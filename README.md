@@ -5,6 +5,8 @@
 
 使用的开发语言及框架：Vue.js+iView UI+PHP+Medoo数据库框架+ZeroMQ中间件
 
+发行版v2.0下载：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.0/svnadmin-2.0.zip
+
 # 一 系统部署
 
 ## （一）安装依赖
@@ -50,7 +52,7 @@ source /svnadmin-2.0/sql/svnadmin.sql; #导入数据库
 
 ### 2、安装 zeromq
 
-- 将文件 svnadmin-2.0/lib/zeromq-4.1.4.tar.gz 上传到 /var/www/html 路径下
+- 将文件 svnadmin-2.0/lib/zeromq-4.1.4.tar.gz 上传至 /var/www/html 路径下
 - 执行以下命令进行解压
 
 ```
@@ -69,7 +71,7 @@ make install
 
 ### 3、安装 zeromq 对 PHP 的扩展
 
-- 将文件 svnadmin-2.0/lib/php-zmq-master.zip 上传到 /var/www/html 路径下
+- 将文件 svnadmin-2.0/lib/php-zmq-master.zip 上传至 /var/www/html 路径下
 - 执行以下命令进行解压
 
 ```
@@ -122,7 +124,7 @@ echo phpinfo();
 
 ## （三）部署程序代码
 
-- 将快速部署代码上传到 /var/www/html 路径下
+- 将发行版代码包上传至 /var/www/html 路径下
 
 - 可选择修改数据库配置文件 config/config.php
 
@@ -131,6 +133,7 @@ echo phpinfo();
 - 进入程序代码的server目录，在命令行下以root用户身份执行以下命令
 
 ```
+cd /var/www/html/svnadminv2.0/server
 php svnadmind.php start
 ```
 
