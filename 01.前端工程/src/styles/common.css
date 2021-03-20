@@ -1,0 +1,8 @@
+/*列表上方操作信息*/
+.page-card-oper { overflow: hidden; margin-top: 10px;}  
+.page-card-oper .oper {float: left;}
+.page-card-oper .search {float: right;}
+/*列表中操作信息*/
+.page-table .pager {float: right;margin-top: 20px; }
+.page-table {margin-top: 20px;/* overflow: hidden; */margin-bottom: 10px;}    
+.operButton {margin-right: 5px;} 
