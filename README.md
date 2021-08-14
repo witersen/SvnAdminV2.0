@@ -1,11 +1,19 @@
 # SVNAdmin 2.0 系统部署与使用手册
-该系统为使用PHP开发的Subversion（SVN）服务器端管理程序
+1、该系统为使用PHP开发的Subversion（SVN）服务器端管理程序
 
-目前支持CentOS 8、CentOS7系统
+2、目前支持CentOS 8、CentOS7系统
 
-使用的开发语言及框架：Vue.js+iView UI+PHP+Medoo数据库框架+ZeroMQ中间件
+3、使用的开发语言及框架：Vue.js+iView UI+PHP+Medoo数据库框架+ZeroMQ中间件
 
-发行版v2.0下载：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.0/svnadmin-2.0.zip
+4、发行版v2.0下载：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.0/svnadmin-2.0.zip
+
+5、安装使用需要注意的地方
+  - 在管理界面点击 安装服务 按钮时可能由于网络或者配置原因造成安装缓慢会产生504 继续等待后台程序安装完成即可
+  - 由于提供的sql文件包含上台机器的仓库信息 需要通过点击 修复异常 按钮来清除旧信息
+
+6、未完成部分：计划任务备份保留n天
+
+7、软件部署与使用演示视频：[https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web](https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web)
 
 # 一 系统部署
 
@@ -63,7 +71,7 @@ tar -zxvf zeromq-4.1.4.tar.gz
 - 进入源文件的根目录执行以下代码进行环境检查和编译安装
 
 ```
-cd zero-4.1.4
+cd zeromq-4.1.4
 ./configure --without-libsodium    #检查并忽略不需要的libsodium
 make
 make install
@@ -82,7 +90,7 @@ unzip php-zmq-master.zip
 - 进入源文件的根目录执行以下代码进行环境检查和编译安装
 
 ```
-cd zero-master
+cd php-zero-master
 phpize
 ./configure
 make
@@ -110,6 +118,19 @@ systemctl restart php-fpm
 
 ### 4、验证安装
 
+- 关闭防火墙
+
+```
+systemctl stop firewalld
+systemctl disable firewalld
+```
+
+- 关闭selinux
+
+```
+setenforce 0 #临时关闭selinux 重启后失效
+```
+
 - 在 web 服务器的根目录新建 PHP 文件用作测试，如 文件名为info.php，写入以下内容
 
 ```
@@ -125,7 +146,6 @@ echo phpinfo();
 ## （三）部署程序代码
 
 - 将发行版代码包上传至 /var/www/html 路径下
-
 - 可选择修改数据库配置文件 config/config.php
 
 ## （四）启动后台程序
