@@ -1,7 +1,7 @@
 # SVNAdmin 2.0 系统部署与使用手册
 1、该系统为使用PHP开发的Subversion（SVN）服务器端管理程序
 
-2、目前支持CentOS 8、CentOS7系统
+2、目前支持CentOS 8、CentOS7系统 PHP版本要求为php7+
 
 3、使用的开发语言及框架：Vue.js+iView UI+PHP+Medoo数据库框架+ZeroMQ中间件
 
