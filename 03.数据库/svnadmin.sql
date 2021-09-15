@@ -1,8 +1,8 @@
--- MySQL dump 10.18  Distrib 10.3.27-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.19  Distrib 10.3.28-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: svnadmin
 -- ------------------------------------------------------
--- Server version	10.3.27-MariaDB
+-- Server version	10.3.28-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -37,7 +37,7 @@ CREATE TABLE `config` (
 
 LOCK TABLES `config` WRITE;
 /*!40000 ALTER TABLE `config` DISABLE KEYS */;
-INSERT INTO `config` VALUES (1,'BACKUP_PATH','/var/backup','备份文件存储路径'),(2,'PROTOCOL','http','协议类型'),(3,'SERVER_DOMAIN','svn.local.com','服务器域名'),(4,'SERVER_IP','192.168.1.103','服务器IP地址'),(5,'SVN_PORT','3690','SVN服务的端口'),(6,'SVN_REPOSITORY_PATH','/www/svn','项目仓库的父路径'),(7,'SVN_WEB_PATH','/repository','SVN目录浏览的根名称'),(8,'ALL_MAIL_STATUS','0','系统是否启用邮件服务'),(9,'mod_dav_svn_status','0','系统是否支持开启目录浏览');
+INSERT INTO `config` VALUES (1,'BACKUP_PATH','/var/backup','备份文件存储路径'),(2,'PROTOCOL','http','协议类型'),(3,'SERVER_DOMAIN','localhost','服务器域名'),(4,'SERVER_IP','127.0.0.1','服务器IP地址'),(5,'SVN_PORT','3690','SVN服务的端口'),(6,'SVN_REPOSITORY_PATH','/www/svn','项目仓库的父路径'),(7,'SVN_WEB_PATH','/repository','SVN目录浏览的根名称'),(8,'ALL_MAIL_STATUS','0','系统是否启用邮件服务'),(9,'mod_dav_svn_status','0','系统是否支持开启目录浏览');
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -59,7 +59,7 @@ CREATE TABLE `crontab` (
   `crontab_count` varchar(45) NOT NULL DEFAULT '备份保存数量',
   `sign` varchar(45) NOT NULL DEFAULT '计划任务标识',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,7 +68,6 @@ CREATE TABLE `crontab` (
 
 LOCK TABLES `crontab` WRITE;
 /*!40000 ALTER TABLE `crontab` DISABLE KEYS */;
-INSERT INTO `crontab` VALUES (2,'dump','weekly','1','1','30','333','3','1613152239_1613152239'),(3,'dump','hourly','1','1','42','333','3','1613152307_1613152307'),(4,'dump','hourly','1','1','51','333','3','1613152948_1613152948'),(5,'dump','hourly','1','1','1','333','3','1613153623_1613153623'),(6,'dump','hourly','1','1','21','333','3','1613154935_1613154935'),(7,'dump','hourly','1','1','27','333','3','1613155276_1613155276'),(8,'dump','hourly','1','1','30','333','3','1613155466_1613155466'),(9,'dump','hourly','1','1','38','333','3','1613156000_1613156000'),(10,'dump','hourly','1','1','49','333','3','1613188036_1613188036'),(11,'dump','weekly','1','1','30','7778','3','1614330085_1614330085'),(12,'dump','hourly','1','1','4','666','3','1614330158_1614330158'),(13,'dump','hourly','1','1','5','666','3','1614330279_1614330279'),(14,'dump','hourly','1','1','10','666','3','1614330518_1614330518'),(15,'dump','hourly','1','1','12','666','3','1614330738_1614330738'),(16,'dump','hourly','1','1','15','666','3','1614330856_1614330856'),(17,'dump','daily','1','17','21','666','3','1614331243_1614331243');
 /*!40000 ALTER TABLE `crontab` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -129,7 +128,7 @@ CREATE TABLE `mail` (
 
 LOCK TABLES `mail` WRITE;
 /*!40000 ALTER TABLE `mail` DISABLE KEYS */;
-INSERT INTO `mail` VALUES (1,'SMTP','smtp.qq.com',25,0,'1801168257','fybbookmsiuvdaeg','1801168257@qq.com',1,'2021-02-26-20-37-48','');
+INSERT INTO `mail` VALUES (1,'SMTP','smtp.qq.com',587,0,'1801168257','fybbookmsiuvdaeg','1801168257@qq.com',1,'2021-09-16-00-28-06','');
 /*!40000 ALTER TABLE `mail` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -149,7 +148,7 @@ CREATE TABLE `repository` (
   `repository_size` double DEFAULT NULL,
   `repository_edittime` varchar(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COMMENT='仓库表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='仓库表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,7 +157,6 @@ CREATE TABLE `repository` (
 
 LOCK TABLES `repository` WRITE;
 /*!40000 ALTER TABLE `repository` DISABLE KEYS */;
-INSERT INTO `repository` VALUES (7,'个人信息资料','/www/svn/个人信息资料','svn://svn.local.com/个人信息资料','-',0.04,'2021-02-26-20-25-35'),(8,'信息收集','/www/svn/信息收集','svn://svn.local.com/信息收集','-',0.04,'2021-02-26-20-25-42');
 /*!40000 ALTER TABLE `repository` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -214,7 +212,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,1,'administrator','administrator',NULL,NULL,'1801168257@qq.com','','超级管理员','0000-00-00-00-00-00'),(49,3,'user1','user1',NULL,NULL,'','','','2021-02-25-13-16-36');
+INSERT INTO `user` VALUES (1,1,'administrator','administrator',NULL,NULL,'1801168257@qq.com','','超级管理员','0000-00-00-00-00-00');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -230,7 +228,7 @@ CREATE TABLE `user_repository` (
   `userid` int(11) NOT NULL,
   `repositoryid` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COMMENT='用户-角色表 保存了每个普通用户被授权使用的仓库列表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户-角色表 保存了每个普通用户被授权使用的仓库列表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -251,4 +249,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-02-27 11:10:01
+-- Dump completed on 2021-09-16  0:40:32
