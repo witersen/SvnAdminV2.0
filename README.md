@@ -5,7 +5,7 @@
 
 3、使用的开发语言及框架：Vue.js+iView UI+PHP+Medoo数据库框架+ZeroMQ中间件
 
-4、发行版v2.0下载：https://gitee.com/witersen/SvnAdminV2.0/attach_files/642135/download/svnadmin-2.0.zip
+4、发行版v2.0下载：https://gitee.com/witersen/SvnAdminV2.0/attach_files/832493/download/svnadmin-2.0.zip
 
 5、安装使用需要注意的地方
   - 在管理界面点击 安装服务 按钮时可能由于网络或者配置原因造成安装缓慢会产生504 继续等待后台程序安装完成即可
