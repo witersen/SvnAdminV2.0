@@ -5,13 +5,9 @@
 
 3、使用的开发语言及框架：Vue.js+iView UI+PHP+Medoo数据库框架+ZeroMQ中间件
 
-4、安装使用需要注意的地方
-  - 在管理界面点击 安装服务 按钮时可能由于网络或者配置原因造成安装缓慢会产生504 继续等待后台程序安装完成即可
-  - 由于提供的sql文件包含上台机器的仓库信息 需要通过点击 修复异常 按钮来清除旧信息
+4、未完成部分：计划任务备份保留n天
 
-5、未完成部分：计划任务备份保留n天
-
-6、软件部署与使用演示视频：[https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web](https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web)
+5、软件部署与使用演示视频：[https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web](https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web)
 
 # 一 系统部署
 
@@ -19,7 +15,7 @@
 
 ```
 yum install -y zip unzip wget                 #压缩与解压缩和下载工具
-yum install -y php                            #安装PHP 版本>=5
+yum install -y php                            #安装PHP 版本7+
 yum install -y php-mysqlnd                    #数据库依赖
 yum install -y php-json                       #json相关函数
 yum install -y php-process                    #pentl扩展和posix扩展
@@ -262,7 +258,7 @@ ps aux | grep svnadmind
  ![](./00.static/01.images/016.png)
 - 测试成功信息如下图所示
  ![](./00.static/01.images/017.png)
-### 11、计划任务备份
+### 11、计划任务备份【功能未实现 会在后续版本开发】
 - 为了保障SVN存储库的数据安全，我们提供了定时备份功能
 - 管理员可通过设置，在服务器工作不繁忙的时候进行仓库备份，如可通过添加每日凌晨1点30分进行备份的任务计划来备份仓库
 - 添加后的任务计划会出现在下方列表中，管理员不需要备份时可选择删除

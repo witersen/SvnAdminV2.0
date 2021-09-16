@@ -77,7 +77,8 @@ export default {
       var that = this;
       that.loginForm.username = userName;
       that.loginForm.password = password;
-      that.showVali = true;
+      that.login();
+      // that.showVali = true;
     },
     onSuccess(times) {
       var that = this;

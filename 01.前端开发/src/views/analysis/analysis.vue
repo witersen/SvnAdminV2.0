@@ -128,7 +128,7 @@
       </Row>
     </Card>
     <br />
-    <Card :bordered="false" :dis-hover="true">
+    <!-- <Card :bordered="false" :dis-hover="true">
       <p slot="title" font-size:10px>实时流量</p>
       <div v-for="(item, index) in network" :key="item.index">
         <Row>
@@ -142,7 +142,7 @@
         <br />
       </div>
       <br />
-    </Card>
+    </Card> -->
   </div>
 </template>
 
@@ -785,7 +785,7 @@ export default {
     that.yingpancricle();
     that.fuzaicircle();
 
-    that.GetNetwork();
+    // that.GetNetwork();
   },
   beforeDestroy() {
     // clearInterval(this.timer);

@@ -1,14 +1,27 @@
 <?php
+/*
+ * @Author: witersen
+ * @Date: 2021-02-25 14:18:17
+ * @LastEditors: witersen
+ * @LastEditTime: 2021-09-16 16:51:20
+ * @Description: QQ:1801168257
+ */
 
-class Daemon {
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+class Daemon
+{
 
     private $pidfile;
 
-    function __construct() {
+    function __construct()
+    {
         $this->pidfile = dirname(__FILE__) . '/svnadmind.pid';
     }
 
-    private function init_daemon() {
+    private function init_daemon()
+    {
         $pid = pcntl_fork();
         if ($pid < 0) {
             exit("pcntl_fork error");
@@ -40,7 +53,8 @@ class Daemon {
         return getmypid();
     }
 
-    private function init_socket() {
+    private function init_socket()
+    {
         //创建一个新的套接字上下文
         $context = new ZMQContext();
         //创建一个ZMQ响应套接字
@@ -50,7 +64,8 @@ class Daemon {
         return $reply;
     }
 
-    private function start_daemon() {
+    private function start_daemon()
+    {
         if (file_exists($this->pidfile)) {
             echo "进程正在运行中 无需启动\n";
             exit(0);
@@ -58,20 +73,20 @@ class Daemon {
         return $this->init_daemon();
     }
 
-    private function start() {
+    private function start()
+    {
         $pid = $this->start_daemon();
         $reply = $this->init_socket();
         while (true) {
             $a = $reply->recv();
-            shell_exec("echo 这是编码信息_$a >> /var/www/html/server.log");
             $b = urldecode($a);
-            shell_exec("echo 这是解码信息_$b >> /var/www/html/server.log");
             $result = shell_exec($b);
             $reply->send($result);
         }
     }
 
-    private function stop() {
+    private function stop()
+    {
         if (file_exists($this->pidfile)) {
             $pid = file_get_contents($this->pidfile);
             posix_kill($pid, 9);
@@ -79,16 +94,18 @@ class Daemon {
         }
     }
 
-    public function run($argv) {
-        if ($argv[1] == 'start') {
-            $this->start();
-        } else if ($argv[1] == 'stop') {
-            $this->stop();
+    public function run($argv)
+    {
+        if (isset($argv[1])) {
+            if ($argv[1] == 'start') {
+                $this->start();
+            } else if ($argv[1] == 'stop') {
+                $this->stop();
+            }
         } else {
-            echo 'Usage: php svnadmind.php start|stop';
+            echo "Usage: php svnadmind.php start|stop\n";
         }
     }
-
 }
 
 $deamon = new Daemon();

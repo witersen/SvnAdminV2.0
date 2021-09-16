@@ -316,8 +316,10 @@ class Svnserve extends Controller {
             }
             parent::RequestReplyExec(" systemctl enable svnserve.service");
             parent::RequestReplyExec(" systemctl start svnserve.service");
-            $this->Firewall->SetFirewallPolicy('tcp', $this->svn_port, 'add');
-            $this->Firewall->SetFirewallPolicy('tcp', $this->http_port, 'add');
+            $this->Firewall->SetFirewallPolicy(["port"=>$this->svn_port,"type"=>"add"]);
+            $this->Firewall->SetFirewallPolicy(["port"=>$this->http_port,"type"=>"add"]);
+            // $this->Firewall->SetFirewallPolicy('tcp', $this->svn_port, 'add');
+            // $this->Firewall->SetFirewallPolicy('tcp', $this->http_port, 'add');
             parent::RequestReplyExec(' setenforce 0');
             parent::RequestReplyExec(" sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config");
         } else {
@@ -532,11 +534,7 @@ class Svnserve extends Controller {
                 "ORDER" => ["repository.repository_edittime" => "DESC"],
                 "LIMIT" => [$begin, $pageSize]
             ]);
-            $total = $this->database_medoo->select('user_repository', [
-                "[>]repository" => [
-                    "repositoryid" => "id"
-                ],
-                    ], [
+            $total = $this->database_medoo->count('user_repository', [
                 "userid" => $userid
             ]);
 
@@ -546,11 +544,10 @@ class Svnserve extends Controller {
                 $list[$key]["id"] = $i + $begin;
                 $i++;
             }
-
             $data['status'] = 1;
             $data['message'] = '获取仓库列表成功';
             $data['data'] = $list;
-            $data['total'] = sizeof($total);
+            $data['total'] = $total;
             return $data;
         }
     }
@@ -585,7 +582,7 @@ class Svnserve extends Controller {
         //判断是否创建成功
         if (!is_dir($this->svn_repository_path . '/' . $repository_name)) {
             $data['status'] = 0;
-            $data['message'] = '添加仓库失败' . $con1;
+            $data['message'] = '添加仓库失败';
             return $data;
         }
         parent::RequestReplyExec(' chmod 777 -R ' . $this->svn_repository_path);
