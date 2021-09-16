@@ -7,7 +7,8 @@
 
 4、未完成部分：计划任务备份保留n天
 
-5、软件部署与使用演示视频：[https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web](https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web)
+5、CentOS裸机部署教程：[https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web](https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web)
+6、宝塔面板部署教程：[https://www.bilibili.com/video/BV1XR4y1H7p3/](https://www.bilibili.com/video/BV1XR4y1H7p3/)
 
 # 一 系统部署
 
@@ -205,7 +206,7 @@ ps aux | grep svnadmind
 - 在输入框输入仓库名称，点击确定，即可添加仓库
 - 添加后可看到仓库列表处我们新添加的仓库
  ![](./00.static/01.images/005.png)
- ![](./00.static/01.images/006.png)
+  ![](./00.static/01.images/006.png)
 ### 3、SVN仓库用户账户管理
 - 针对某一仓库点击右侧用户按钮，可看到当前该仓库的用户信息
 - 每个被创建的仓库默认包含一个root用户，其密码为随机生成
@@ -213,8 +214,8 @@ ps aux | grep svnadmind
 - 通过添加用户可为该仓库添加使用用户
 - 通过编辑按钮可对添加的账户信息进行修改
  ![](./00.static/01.images/007.png)
- ![](./00.static/01.images/008.png)
- ![](./00.static/01.images/009.png)
+  ![](./00.static/01.images/008.png)
+  ![](./00.static/01.images/009.png)
 
 ### 4、SVN仓库用户权限管理
 
