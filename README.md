@@ -7,7 +7,7 @@
 
 4、未完成部分：计划任务备份保留n天
 
-5、CentOS裸机部署教程：[https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web](https://www.bilibili.com/video/BV1nv411T79c?share_source=copy_web)
+5、CentOS裸机部署教程：[https://www.bilibili.com/video/BV1nv411T79c](https://www.bilibili.com/video/BV1nv411T79c)
 
 6、宝塔面板部署教程：[https://www.bilibili.com/video/BV1XR4y1H7p3/](https://www.bilibili.com/video/BV1XR4y1H7p3/)
 
