@@ -9,7 +9,7 @@
 
 5、CentOS裸机部署教程：[https://www.bilibili.com/video/BV1nv411T79c](https://www.bilibili.com/video/BV1nv411T79c)
 
-6、宝塔面板部署教程：[https://www.bilibili.com/video/BV1XR4y1H7p3/](https://www.bilibili.com/video/BV1XR4y1H7p3/)
+6、基于CentOS的宝塔面板部署教程：[https://www.bilibili.com/video/BV1XR4y1H7p3/](https://www.bilibili.com/video/BV1XR4y1H7p3/)
 
 # 一 系统部署
 
