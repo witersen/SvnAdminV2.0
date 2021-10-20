@@ -32,7 +32,8 @@ namespace PHPMailer\PHPMailer;
 class PHPMailer
 {
     const CHARSET_ASCII = 'us-ascii';
-    const CHARSET_ISO88591 = 'iso-8859-1';
+    // const CHARSET_ISO88591 = 'iso-8859-1';
+    const CHARSET_ISO88591 = 'UTF-8';
     const CHARSET_UTF8 = 'utf-8';
 
     const CONTENT_TYPE_PLAINTEXT = 'text/plain';
