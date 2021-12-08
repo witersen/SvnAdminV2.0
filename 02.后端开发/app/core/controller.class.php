@@ -21,13 +21,15 @@ require_once BASE_PATH . '/app/controller/user.class.php';
 require_once BASE_PATH . '/app/function/file.function.php';
 require_once BASE_PATH . '/app/function/web.function.php';
 
-class Controller {
+class Controller
+{
 
     public $database_medoo;
     public $this_userid;
     public $this_username;
 
-    function __construct() {
+    function __construct()
+    {
         $this->database_medoo = (new connModel())->GetConn();
         $this->prehandler();
         $this->this_userid = $this->GetUserInfoByToken(MY_TOKEN)["userid"];
@@ -35,7 +37,8 @@ class Controller {
     }
 
     //预操作,检查Token
-    final function prehandler() {
+    final function prehandler()
+    {
         if (MY_FUNCTION != 'Login') {
             $data = $this->CheckToken(MY_TOKEN);
             if ($data['code'] != '200') {
@@ -50,7 +53,8 @@ class Controller {
     }
 
     //生成token
-    final function CreateToken($userid) {
+    final function CreateToken($userid)
+    {
         $time = time();
         $end_time = time() + 86400;
         $info = $userid . '.' . $time . '.' . $end_time; //设置token过期时间为一天
@@ -61,7 +65,8 @@ class Controller {
     }
 
     //检查token
-    final function CheckToken($token) {
+    final function CheckToken($token)
+    {
         if (!isset($token) || empty($token)) {
             $data['code'] = '400';
             $data['message'] = '非法请求';
@@ -94,7 +99,8 @@ class Controller {
     }
 
     //根据token获取userid
-    final function GetUserInfoByToken($token) {
+    final function GetUserInfoByToken($token)
+    {
         $explode = explode('.', $token);
         $result = $this->database_medoo->select("user", ["username"], ["id" => $explode[0]]);
         $data = array(
@@ -105,20 +111,13 @@ class Controller {
     }
 
     //请求与应答模式
-    final function RequestReplyExec($shell) {
-        //创建套接字上下文
-        $context = new ZMQContext();
-        //创建ZMQ请求套接字
-        $req = new ZMQSocket($context, ZMQ::SOCKET_REQ);
-        //连接到端口
-        $req->connect("tcp://127.0.0.1:6666");
-        //对请求字符串进行编码 防止传输过程中字符串信息丢失
-        $shell = urlencode($shell);
-        //发送请求
-        $req->send($shell);
-        //接收回应
-        $reply = $req->recv();
+    final function RequestReplyExec($shell)
+    {
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("error:" . socket_strerror(socket_last_error()));
+        $server = socket_connect($socket, '127.0.0.1', 6666);
+        socket_write($socket, $shell);
+        $reply = socket_read($socket, 8192);
+        socket_close($socket);
         return $reply;
     }
-
 }

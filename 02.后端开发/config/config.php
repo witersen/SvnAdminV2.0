@@ -13,10 +13,15 @@
 define("DB_TYPE", "mysql");
 define("DB_HOST", "localhost");
 define("DB_PORT", "3306");
-define("DB_USER", "svnadmin");
-define("DB_PASSWORD", "svnadmin");
+define("DB_USER", "root");
+define("DB_PASSWORD", "123456");
 define("DB_NAME", "svnadmin");
 define("DB_CHARSET", "utf8");
+
+/**
+ * 空信息
+ */
+define("ISNULL", "-NULL-");
 
 /*
  * jwt的token模式中的签名

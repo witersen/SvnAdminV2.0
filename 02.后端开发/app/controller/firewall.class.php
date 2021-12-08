@@ -88,7 +88,7 @@ class Firewall extends Controller {
     function GetFirewallPolicy($requestPayload) {
         //获取80 443 3690是否加入防火墙
         $info = parent::RequestReplyExec(' ps auxf|grep -v "grep"|grep firewalld');
-        if ($info = '') {
+        if ($info == ISNULL) {
             $info = array();
             $info['svn'] = false;
             $info['http'] = false;
@@ -131,7 +131,7 @@ class Firewall extends Controller {
     //获取防火墙状态
     function GetFirewallStatus($requestPayload) {
         $info = parent::RequestReplyExec(' ps auxf|grep -v "grep"|grep firewalld');
-        if ($info == '') {
+        if ($info == ISNULL) {
             $info = array();
             $info['status'] = '已停止';
             $info['type'] = 'warning';

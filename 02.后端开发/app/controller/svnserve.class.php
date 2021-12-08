@@ -253,7 +253,7 @@ class Svnserve extends Controller {
 
         //通过ps auxf|grep -v "grep"|grep svnserve和判断文件/usr/bin/svnserve是否存在这两方面来同时判断 如果没有安装过则进行安装
         $info = parent::RequestReplyExec(' ps auxf|grep -v "grep"|grep svnserve');
-        if ($info == '' && !file_exists('/usr/bin/svnserve')) {
+        if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             if ($platform == 'CentOS') {
                 parent::RequestReplyExec(" yum install -y subversion");
                 /*
@@ -558,12 +558,12 @@ class Svnserve extends Controller {
         $this_userid = $this->this_userid;
         $this_username = $this->this_userid;
 
-        $svn_check_status = $this->CheckSvnserveStatus();
-        if ($svn_check_status['status'] == 0) {
-            $data['status'] = 0;
-            $data['message'] = '添加仓库失败 ' . $svn_check_status['message'];
-            return $data;
-        }
+        // $svn_check_status = $this->CheckSvnserveStatus();
+        // if ($svn_check_status['status'] == 0) {
+        //     $data['status'] = 0;
+        //     $data['message'] = '添加仓库失败 ' . $svn_check_status['message'];
+        //     return $data;
+        // }
         //只允许数字 字母 中文 下划线
         if (!$this->CheckStr($repository_name)) {
             $data['status'] = 0;
@@ -865,12 +865,12 @@ class Svnserve extends Controller {
             return $data;
         }
 
-        $svn_check_status = $this->CheckSvnserveStatus();
-        if ($svn_check_status['status'] == 0) {
-            $data['status'] = 0;
-            $data['message'] = '获取仓库对应的账户列表失败 ' . $svn_check_status['message'];
-            return $data;
-        }
+        // $svn_check_status = $this->CheckSvnserveStatus();
+        // if ($svn_check_status['status'] == 0) {
+        //     $data['status'] = 0;
+        //     $data['message'] = '获取仓库对应的账户列表失败 ' . $svn_check_status['message'];
+        //     return $data;
+        // }
 
         $file = fopen($this->svn_repository_path . '/' . $repository_name . '/conf/passwd', "r") or exit('无法打开文件');
         $file_content = array();
@@ -963,12 +963,12 @@ class Svnserve extends Controller {
         $account = trim($requestPayload['account']);
         $passwd = trim($requestPayload['password']);
 
-        $svn_check_status = $this->CheckSvnserveStatus();
-        if ($svn_check_status['status'] == 0) {
-            $data['status'] = 0;
-            $data['message'] = '添加账户失败 ' . $svn_check_status['message'];
-            return $data;
-        }
+        // $svn_check_status = $this->CheckSvnserveStatus();
+        // if ($svn_check_status['status'] == 0) {
+        //     $data['status'] = 0;
+        //     $data['message'] = '添加账户失败 ' . $svn_check_status['message'];
+        //     return $data;
+        // }
 
         /*
          * 校验
@@ -1158,7 +1158,7 @@ class Svnserve extends Controller {
     function GetSvnserveStatus($requestPayload) {
         //是否安装服务
         $info = parent::RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
-        if ($info == '' && !file_exists('/usr/bin/svnserve')) {
+        if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             $info = array();
             $info['status'] = '未安装'; //未安装
             $info['port'] = '3690';
@@ -1183,7 +1183,7 @@ class Svnserve extends Controller {
         }
         //是否启动
         $info = parent::RequestReplyExec(' ps auxf|grep -v "grep"|grep svnserve');
-        if ($info == '' && file_exists('/usr/bin/svnserve')) {
+        if ($info == ISNULL && file_exists('/usr/bin/svnserve')) {
             $info = array();
             $info['status'] = '已停止'; //svn服务未启动
             $info['port'] = '3690';
@@ -1252,7 +1252,7 @@ class Svnserve extends Controller {
     private function CheckSvnserveStatus() {
         //是否安装服务
         $info = parent::RequestReplyExec(' ps auxf|grep -v "grep"|grep svnserve');
-        if ($info == '' && !file_exists('/usr/bin/svnserve')) {
+        if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             $data['status'] = 0;
             $data['code'] = '00';
             $data['message'] = 'svn服务未安装';
@@ -1267,7 +1267,7 @@ class Svnserve extends Controller {
         }
         //是否启动
         $info = parent::RequestReplyExec(' ps auxf|grep -v "grep"|grep svnserve');
-        if ($info == '' && file_exists('/usr/bin/svnserve')) {
+        if ($info == ISNULL && file_exists('/usr/bin/svnserve')) {
             $data['status'] = 0;
             $data['code'] = '01';
             $data['message'] = 'svn服务未启动';

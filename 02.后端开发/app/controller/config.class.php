@@ -104,7 +104,7 @@ class Config extends Controller {
     private function UpdateRepositoryParentPath($old_path, $new_path) {
         parent::RequestReplyExec(" mkdir $new_path");
         $info = parent::RequestReplyExec(' ps auxf|grep -v "grep"|grep svnserve');
-        if ($info == '' && !file_exists('/usr/bin/svnserve')) {
+        if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             /*
              * 没有安装过svn服务
              */
