@@ -100,8 +100,12 @@ class Daemon
     private function start_daemon()
     {
         if (file_exists($this->pidfile)) {
-            echo "进程正在运行中 无需启动\n";
-            exit(0);
+            $pid = file_get_contents($this->pidfile);
+            $result = trim(shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
+            if (strstr($result, $pid)){
+                echo "进程正在运行中 无需启动\n";
+                exit(0);
+            }
         }
         return $this->init_daemon();
     }
