@@ -48,7 +48,7 @@ define("SOCKET_LISTEN_BACKLOG", 2000);
  * 当前软件版本信息
  * 用户请不要自行修改 以免影响后续升级检测
  */
-define('VERSION', '2.1.0');
+define('VERSION', '2.1.1');
 
 /**
  * 升级服务器地址

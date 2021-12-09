@@ -28,11 +28,16 @@ yum install -y php-json                       #json相关函数
 yum install -y httpd                #安装Apache
 systemctl start httpd               #开启Apache
 systemctl enable httpd              #将Apache加入开机自启动
+systemctl restart php-fpm
 ```
 
 ### （三）下载并解压部署程序
 - 在控制台 执行以下命令 将数据库文件移动到指定位置
 ```
+cd /var/www/html/
+wget https://gitee.com/witersen/SvnAdminV2.0/releases/v2.1
+unzip v2.1.0.zip
+mv v2.1.0.zip/* ./*
 mkdir -p /usr/local/svnadmin
 mv svnadmin.db /usr/local/svnadmin
 chmod -R 777 /usr/local/svnadmin
@@ -43,6 +48,7 @@ chmod -R 777 /usr/local/svnadmin
 - 进入程序代码的server目录，在命令行下以root用户身份执行以下命令
 
 ```
+cd server
 php svnadmind.php start
 ```
 

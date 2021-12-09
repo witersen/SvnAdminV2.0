@@ -4,7 +4,8 @@
  * 与操作系统相关的方法的封装
  */
 
-class System extends Controller {
+class System extends Controller
+{
     /*
      * 注意事项：
      * 1、所有的控制器都要继承基类控制器：Controller
@@ -19,7 +20,8 @@ class System extends Controller {
 
     private $Config;
 
-    function __construct() {
+    function __construct()
+    {
         /*
          * 避免子类的构造函数覆盖父类的构造函数
          */
@@ -32,7 +34,8 @@ class System extends Controller {
     }
 
     //判断操作系统类型
-    function GetPlatform() {
+    function GetPlatform()
+    {
         if (!PHP_OS == 'Linux') {
             $data['status'] = 0;
             $data['message'] = '当前操作系统不为Linux';
@@ -68,7 +71,8 @@ class System extends Controller {
     }
 
     //获取磁盘信息，如果有多块磁盘如何处理，可以只显示某个目录如根目录对应的磁盘容量
-    function GetDiskInfo($requestPayload) {
+    function GetDiskInfo($requestPayload)
+    {
         $info['DiskTotal'] = round(disk_total_space(".") / 1024 / 1024 / 1024, 1);
         $info['DiskFree'] = round(disk_free_space(".") / 1024 / 1024 / 1024, 1);
         $info['DiskUsed'] = round($info['DiskTotal'] - $info['DiskFree'], 1);
@@ -81,15 +85,16 @@ class System extends Controller {
     }
 
     //获取服务器运行时间
-    function GetServerUpTime($requestPayload) {
+    function GetServerUpTime($requestPayload)
+    {
         $temp = file_get_contents('/proc/uptime');
         $info = explode(" ", $temp);
         $info = trim($info[0]); //系统自启动开始的秒数
         $min = $info / 60;
         $hours = $min / 60;
         $days = floor($hours / 24);
-        $hours = floor($hours - ( $days * 24));
-        $min = floor($min - ( $days * 60 * 24) - ( $hours * 60));
+        $hours = floor($hours - ($days * 24));
+        $min = floor($min - ($days * 60 * 24) - ($hours * 60));
         $info = $days . "天" . $hours . "小时" . $min . "分钟";
 
         $data['status'] = 1;
@@ -112,7 +117,8 @@ class System extends Controller {
      * softirq 0 从系统启动开始累计到当前时刻，软中断时间
      */
     //GetCPURate GetCPUInfo
-    function GetCPURate($requestPayload) {
+    function GetCPURate($requestPayload)
+    {
         //第一次取值
         $array = file('/proc/stat');
         if (!$array)
@@ -141,7 +147,8 @@ class System extends Controller {
     }
 
     //获取内存信息
-    function GetMemInfo($requestPayload) {
+    function GetMemInfo($requestPayload)
+    {
         $array = file('/proc/meminfo');
         if (!$array)
             return false;
@@ -178,7 +185,8 @@ class System extends Controller {
     }
 
     //获取系统平均负载,有问题未修复
-    function GetLoadAvg($requestPayload) {
+    function GetLoadAvg($requestPayload)
+    {
         //获取系统总核心数
         $array = file('/proc/cpuinfo');
         if (!$array)
@@ -210,7 +218,8 @@ class System extends Controller {
     }
 
     //根据网卡名称获取实时网速 动态更新使用
-    function GetNetworkByName($requestPayload) {
+    function GetNetworkByName($requestPayload)
+    {
         $network_name = $requestPayload['network_name'];
 
         //获取时间 作为x坐标轴数据
@@ -236,7 +245,8 @@ class System extends Controller {
     }
 
     //获取网卡实时网速 第一次加载时使用
-    function GetNetwork($requestPayload) {
+    function GetNetwork($requestPayload)
+    {
         //获取时间 作为x坐标轴数据
         $time = date("H:i:s");
         $sleeptime = 1;
@@ -247,7 +257,7 @@ class System extends Controller {
         //计算
         $result = array();
         foreach ($info1 as $key => $value) {
-//            $result[$key]['name'] = $value['name'];
+            //            $result[$key]['name'] = $value['name'];
             $result[$value['name']][0]['ReceiveSpeed'] = ($info2[$key]['Receive']['bytes'] - $info1[$key]['Receive']['bytes']) / $sleeptime / 1024; //1s内的网络速度 单位 kbps
             $result[$value['name']][0]['TransmitSpeed'] = ($info2[$key]['Transmit']['bytes'] - $info1[$key]['Transmit']['bytes']) / $sleeptime / 1024; //1s内的网络速度 单位 kbps
             $result[$value['name']][0]['time'] = $time;
@@ -260,7 +270,8 @@ class System extends Controller {
     }
 
     //获取单次网卡的流量
-    private function GetSingleNetwork($network_name) {
+    private function GetSingleNetwork($network_name)
+    {
         /*
          * bytes 接口发送或接收的数据的总字节数
          * packets 接口发送或接收的数据包总数
@@ -303,9 +314,9 @@ class System extends Controller {
             //去除网卡名称中的冒号
             $value[0] = str_replace(':', '', $value[0]);
             //删除本地回环口lo的数据
-//            if ($value[0] == 'lo') {
-//                continue;
-//            }
+            //            if ($value[0] == 'lo') {
+            //                continue;
+            //            }
             //只保留特定的网卡
             if ($network_name != '') {
                 if ($value[0] != $network_name) {
@@ -324,5 +335,4 @@ class System extends Controller {
 
         return $networklist;
     }
-
 }

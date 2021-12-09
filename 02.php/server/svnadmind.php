@@ -12,9 +12,11 @@ class Daemon
 {
 
     private $pidfile;
+    private $state;
     private $cmdlist = array(
         "start",
-        "stop"
+        "stop",
+        "console"
     );
 
     function __construct()
@@ -28,7 +30,7 @@ class Daemon
         if ($pid < 0) {
             exit("pcntl_fork 错误");
         } elseif ($pid > 0) {
-            exit(0);
+            exit();
         }
         $sid = posix_setsid();
         if (!$sid) {
@@ -38,7 +40,7 @@ class Daemon
         if ($pid < 0) {
             exit("pcntl_fork 错误");
         } elseif ($pid > 0) {
-            exit(0);
+            exit();
         }
         chdir("/");
         umask(0);
@@ -68,12 +70,15 @@ class Daemon
 
         //监听 设置并发队列的最大长度
         socket_listen($socket, SOCKET_LISTEN_BACKLOG);
+
         while (true) {
+            //非阻塞式回收僵尸进程
+            pcntl_wait($status, WNOHANG);
+
             $clien = socket_accept($socket) or die("socket_accept 错误");
 
-            //如果父进程不关心子进程什么时候结束 子进程结束后 内核会回收
-            //避免了正常情况下僵尸进程的产生
-            pcntl_signal(SIGCHLD, SIG_IGN);
+            //非阻塞式回收僵尸进程
+            pcntl_wait($status, WNOHANG);
 
             $pid = pcntl_fork();
             if ($pid == -1) {
@@ -90,14 +95,20 @@ class Daemon
         //接收客户端发送的数据
         $data = socket_read($clien, SOCKET_READ_LENGTH);
 
+        //console
+        $this->state == "console" ? print_r($data . "\n") : "";
+
         //执行
         $result = shell_exec($data);
+
+        //console
+        $this->state == "console" ? print_r($result . "\n") : "";
 
         //处理没有返回内容的情况 否则 socket_write 遇到空内容会报错
         $result = $result == "" ? ISNULL : $result;
 
         //将结果返回给客户端
-        socket_write($clien, $result, strlen($result)) or die("socket_write error");
+        socket_write($clien, $result, strlen($result)) or die("socket_write 错误");
 
         //关闭会话
         socket_close($clien);
@@ -113,7 +124,7 @@ class Daemon
             $result = trim(shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
             if (strstr($result, $pid)) {
                 echo "进程正在运行中 无需启动\n";
-                exit(0);
+                exit();
             }
         }
         return $this->init_daemon();
@@ -142,17 +153,20 @@ class Daemon
     public function run($argv)
     {
         if (isset($argv[1])) {
-            if (!in_array($argv[1], $this->cmdlist)) {
-                echo "用法: php svnadmind.php [start] [stop]\n";
-                return;
+            $this->state = $argv[1];
+            if (!in_array($this->state, $this->cmdlist)) {
+                echo "用法: php svnadmind.php [start] [stop] [console]\n";
+                exit();
             }
-            if ($argv[1] == 'start') {
+            if ($this->state == 'start') {
                 $this->start();
-            } else if ($argv[1] == 'stop') {
+            } else if ($this->state == 'stop') {
                 $this->stop();
+            } else if ($this->state == 'console') {
+                $this->init_socket();
             }
         } else {
-            echo "用法: php svnadmind.php [start] [stop]\n";
+            echo "用法: php svnadmind.php [start] [stop] [console]\n";
         }
     }
 }
