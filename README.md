@@ -1,5 +1,5 @@
 # SVNAdmin 系统部署与使用手册
-1、该系统为使用PHP开发的Subversion（SVN）的web管理界面 是搭建svn服务器的神器 一分钟安装使用！
+1、该系统为使用PHP开发的Subversion（SVN）的web管理界面 是搭建svn服务器的神器 可一分钟安装使用！
 
 2、目前支持CentOS 8、CentOS7系统 PHP版本要求为 PHP 7 >= 7.3.0, PHP 8
 
@@ -9,9 +9,9 @@
 
 6、基于CentOS的宝塔面板部署教程：
 
-# 一 、系统部署(以CentOS8.2裸机为例)
+## 一 、系统部署 - CentOS8.2裸机
 
-## （一）安装 PHP 7.4 及依赖
+### （一）安装 PHP 7.4 及依赖
 
 ```
 yum install -y zip unzip wget                 #压缩与解压缩和下载工具
@@ -23,21 +23,22 @@ yum install -y php-mysqlnd                    #数据库依赖
 yum install -y php-json                       #json相关函数
 ```
 
-## （二）安装 Web 服务器
+### （二）安装 Web 服务器
 ```
 yum install -y httpd                #安装Apache
 systemctl start httpd               #开启Apache
 systemctl enable httpd              #将Apache加入开机自启动
 ```
 
-## （三）部署程序
+### （三）下载并解压部署程序
+- 在控制台 执行以下命令 将数据库文件移动到指定位置
 ```
 mkdir -p /usr/local/svnadmin
 mv svnadmin.db /usr/local/svnadmin
 chmod -R 777 /usr/local/svnadmin
 ```
 
-## （四）启动后台程序
+### （四）启动后台程序
 
 - 进入程序代码的server目录，在命令行下以root用户身份执行以下命令
 
@@ -52,9 +53,57 @@ ps aux | grep svnadmind
 ```
 
 - 如图所示，可看到服务端程序正常运行在后台
+<img src="./00.static/01.images/002.png" style="zoom: 60%;" />
+
+### （五）web 访问测试
+
+- 访问部署主机地址，可看到程序的登录页信息，代表部署成功
+
+- 可使用默认的用户名(administrator)与密码(administrator)访问
+
+<img src="./00.static/01.images/003.png" style="zoom: 25%;" />
+
+## 二 、系统部署 - 基于CentOS的宝塔面板
+
+### （一）安装 PHP 7.4
+
+<img src="./00.static/01.images/021.jpg" style="zoom: 67%;" />
+
+### （二）解禁 PHP7.4 禁用的函数
+
+- 解禁PHP7.4中 pcntl_signal、pcntl_fork、shell_exec 三个被宝塔面板默认禁用的函数
+<img src="./00.static/01.images/022.jpg" style="zoom: 67%;" />
+
+### （二）创建站点 关闭网站设置中的 open_basedir 
+
+<img src="./00.static/01.images/023.jpg" style="zoom: 67%;" />
+
+### （三）下载并解压部署程序
+- 在网站目录切换到宝塔控制台 执行以下命令 将数据库文件移动到指定位置
+```
+mkdir -p /usr/local/svnadmin
+mv svnadmin.db /usr/local/svnadmin
+chmod -R 777 /usr/local/svnadmin
+```
+
+### （四）启动后台程序
+
+- 进入程序代码的server目录，在宝塔控制台下以root用户身份执行以下命令
+
+```
+php svnadmind.php start
+```
+
+-  执行以下命令用来查看程序的server端是否正常运行
+
+```
+ps aux | grep svnadmind
+```
+
+- 如图所示，可看到服务端程序正常运行在后台
   ![](./00.static/01.images/002.png)
 
-## （五）web 访问测试
+### （五）web 访问测试
 
 - 访问部署主机地址，可看到程序的登录页信息，代表部署成功
 
@@ -62,33 +111,9 @@ ps aux | grep svnadmind
 
   ![](./00.static/01.images/003.png)
 
+## 二、系统使用
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# 二、系统使用
-
-## （一）管理系统介绍与使用
+### （一）管理系统介绍与使用
 
 ### 1、信息总览
 - 系统获取了服务器的负载状态、CPU利用率、内存利用率、硬盘利用率等信息并实时展示在页面
@@ -157,7 +182,7 @@ ps aux | grep svnadmind
 - 管理员可通过设置，在服务器工作不繁忙的时候进行仓库备份，如可通过添加每日凌晨1点30分进行备份的任务计划来备份仓库
 - 添加后的任务计划会出现在下方列表中，管理员不需要备份时可选择删除
  ![](./00.static/01.images/018.png)
-## （二）客户端工具介绍与使用
+### （二）客户端工具介绍与使用
 
 ### 1、客户端工具程序获取和安装
 - 访问 TortoiseSVN 官网，下载对应的客户端工具和中文语言包，如图所示
