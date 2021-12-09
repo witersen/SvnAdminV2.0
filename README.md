@@ -21,6 +21,7 @@ yum install -y php                            #安装PHP7.4
 yum install -y php-process                    #pentl扩展和posix扩展
 yum install -y php-mysqlnd                    #数据库依赖
 yum install -y php-json                       #json相关函数
+
 ```
 
 ### （二）安装 Web 服务器
@@ -28,19 +29,20 @@ yum install -y php-json                       #json相关函数
 yum install -y httpd                #安装Apache
 systemctl start httpd               #开启Apache
 systemctl enable httpd              #将Apache加入开机自启动
-systemctl restart php-fpm
+systemctl restart php-fpm           #重启php-fpm
+
 ```
 
 ### （三）下载并解压部署程序
 - 在控制台 执行以下命令 将数据库文件移动到指定位置
 ```
 cd /var/www/html/
-wget https://gitee.com/witersen/SvnAdminV2.0/releases/v2.1
-unzip v2.1.0.zip
-mv v2.1.0.zip/* ./*
+wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/908427/download/v2.1.1.zip
+unzip v2.1.1.zip
 mkdir -p /usr/local/svnadmin
 mv svnadmin.db /usr/local/svnadmin
 chmod -R 777 /usr/local/svnadmin
+
 ```
 
 ### （四）启动后台程序
@@ -50,12 +52,14 @@ chmod -R 777 /usr/local/svnadmin
 ```
 cd server
 php svnadmind.php start
+
 ```
 
 -  执行以下命令用来查看程序的server端是否正常运行
 
 ```
 ps aux | grep svnadmind
+
 ```
 
 - 如图所示，可看到服务端程序正常运行在后台
@@ -77,7 +81,7 @@ ps aux | grep svnadmind
 
 ### （二）解禁 PHP7.4 禁用的函数
 
-- 解禁PHP7.4中 pcntl_signal、pcntl_fork、shell_exec 三个被宝塔面板默认禁用的函数
+- 解禁PHP7.4中 pcntl_signal、pcntl_fork、pcntl_wait、shell_exec 四个被宝塔面板默认禁用的函数
 <img src="./00.static/01.images/022.jpg" style="zoom: 67%;" />
 
 ### （二）创建站点 关闭网站设置中的 open_basedir 
@@ -87,9 +91,12 @@ ps aux | grep svnadmind
 ### （三）下载并解压部署程序
 - 在网站目录切换到宝塔控制台 执行以下命令 将数据库文件移动到指定位置
 ```
+wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/908427/download/v2.1.1.zip
+unzip v2.1.1.zip
 mkdir -p /usr/local/svnadmin
 mv svnadmin.db /usr/local/svnadmin
 chmod -R 777 /usr/local/svnadmin
+
 ```
 
 ### （四）启动后台程序
@@ -98,12 +105,14 @@ chmod -R 777 /usr/local/svnadmin
 
 ```
 php svnadmind.php start
+
 ```
 
 -  执行以下命令用来查看程序的server端是否正常运行
 
 ```
 ps aux | grep svnadmind
+
 ```
 
 - 如图所示，可看到服务端程序正常运行在后台
