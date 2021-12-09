@@ -1,155 +1,47 @@
-# SVNAdmin 2.0 系统部署与使用手册
-1、该系统为使用PHP开发的Subversion（SVN）服务器端管理程序
+# SVNAdmin 系统部署与使用手册
+1、该系统为使用PHP开发的Subversion（SVN）的web管理界面 是搭建svn服务器的神器 一分钟安装使用！
 
-2、目前支持CentOS 8、CentOS7系统 PHP版本要求为php7+
-
-3、使用的开发语言及框架：Vue.js+iView UI+PHP+Medoo数据库框架+ZeroMQ中间件
+2、目前支持CentOS 8、CentOS7系统 PHP版本要求为 PHP 7 >= 7.3.0, PHP 8
 
 4、未完成部分：计划任务备份保留n天
 
-5、CentOS裸机部署教程：[https://www.bilibili.com/video/BV1nv411T79c](https://www.bilibili.com/video/BV1nv411T79c)
+5、CentOS裸机部署教程：
 
-6、基于CentOS的宝塔面板部署教程：[https://www.bilibili.com/video/BV1XR4y1H7p3/](https://www.bilibili.com/video/BV1XR4y1H7p3/)
+6、基于CentOS的宝塔面板部署教程：
 
-# 一 系统部署
+# 一 、系统部署(以CentOS8.2裸机为例)
 
-## （一）安装依赖
+## （一）安装 PHP 7.4 及依赖
 
 ```
 yum install -y zip unzip wget                 #压缩与解压缩和下载工具
-yum install -y php                            #安装PHP 版本7+
+yum module list php                           #查看可用的PHP模块
+yum module -y enable php:7.4                  #启用PHP7.4，默认为启用PHP7.2
+yum install -y php                            #安装PHP7.4
+yum install -y php-process                    #pentl扩展和posix扩展
 yum install -y php-mysqlnd                    #数据库依赖
 yum install -y php-json                       #json相关函数
-yum install -y php-process                    #pentl扩展和posix扩展
-yum install -y gcc gcc-c++ kernel-devel       #c语言编译环境
-yum install -y make automake autoconf libtool #编译安装zdromq需要
-yum install -y php-devel                      #php开发包 手动编译php扩展时使用
 ```
-## （二）安装Apache服务器和Mariadb数据库并导入数据
-### 1、安装Apache
+
+## （二）安装 Web 服务器
 ```
 yum install -y httpd                #安装Apache
 systemctl start httpd               #开启Apache
 systemctl enable httpd              #将Apache加入开机自启动
 ```
-### 2、安装mariadb
+
+## （三）部署程序
 ```
-yum install -y mariadb-server       #安装mariadb数据库
-systemctl start mariadb             #开启mariadb
-systemctl enable mariadb            #将mariadb加入开机自启动
-mysqladmin -uroot password 123456   #设置数据库的root用户密码为 123456
+mkdir -p /usr/local/svnadmin
+mv svnadmin.db /usr/local/svnadmin
+chmod -R 777 /usr/local/svnadmin
 ```
-### 3、导入SQL文件到数据库
-```
-#假设SQL文件路径为 /svnadmin-2.0/sql/svnadmin.sql
-mysql -u root -p                       #输入密码后进入数据库
-create database svnadmin;              #创建数据库svnadmin
-use svnadmin;                          #切换数据库
-source /svnadmin-2.0/sql/svnadmin.sql; #导入数据库
-```
-## （二）安装消息队列中间件 zeromq
-
-### 1、注意事项
-
-- 源文件压缩包不要在 Windows 平台下解压后通过Fz等工具上传到Linux服务器
-- 源文件压缩包要在 Linux 平台解压，否则编译安装过程中会可能因为文件时间戳等问题出错
-
-### 2、安装 zeromq
-
-- 将文件 svnadmin-2.0/lib/zeromq-4.1.4.tar.gz 上传至 /var/www/html 路径下
-- 执行以下命令进行解压
-
-```
-cd /var/www/html
-tar -zxvf zeromq-4.1.4.tar.gz
-```
-
-- 进入源文件的根目录执行以下代码进行环境检查和编译安装
-
-```
-cd zeromq-4.1.4
-./configure --without-libsodium    #检查并忽略不需要的libsodium
-make
-make install
-```
-
-### 3、安装 zeromq 对 PHP 的扩展
-
-- 将文件 svnadmin-2.0/lib/php-zmq-master.zip 上传至 /var/www/html 路径下
-- 执行以下命令进行解压
-
-```
-cd /var/www/html
-unzip php-zmq-master.zip
-```
-
-- 进入源文件的根目录执行以下代码进行环境检查和编译安装
-
-```
-cd php-zero-master
-phpize
-./configure
-make
-make install
-```
-
-- 编辑 PHP 的配置文件 /etc/php.ini，追加以下内容
-
-```
-extension=zmq.so
-```
-
-- 如果PHP的配置文件非上述文件，可通过以下命令手动查找
-
-```
-whereis php.ini
-```
-
-- 修改配置文件结束后，重启 web 服务器 apache 或 nginx 和 php-fpm
-
-```
-systemctl restart httpd
-systemctl restart php-fpm
-```
-
-### 4、验证安装
-
-- 关闭防火墙
-
-```
-systemctl stop firewalld
-systemctl disable firewalld
-```
-
-- 关闭selinux
-
-```
-setenforce 0 #临时关闭selinux 重启后失效
-```
-
-- 在 web 服务器的根目录新建 PHP 文件用作测试，如 文件名为info.php，写入以下内容
-
-```
-<?php
-echo phpinfo();
-```
-
-- 如图所示，可看到编译安装的 zeromq 扩展
-  ![](./00.static/01.images/001.png)
-  
-- 保存文件然后在浏览器中访问此文件就可看到 PHP 的详细信息，zeromq 相关信息也可看到
-
-## （三）部署程序代码
-
-- 将发行版代码包上传至 /var/www/html 路径下
-- 可选择修改数据库配置文件 config/config.php
 
 ## （四）启动后台程序
 
 - 进入程序代码的server目录，在命令行下以root用户身份执行以下命令
 
 ```
-cd /var/www/html/svnadminv2.0/server
 php svnadmind.php start
 ```
 
@@ -166,7 +58,7 @@ ps aux | grep svnadmind
 
 - 访问部署主机地址，可看到程序的登录页信息，代表部署成功
 
-- 可使用默认的用户名(admin)与密码(admin)访问
+- 可使用默认的用户名(administrator)与密码(administrator)访问
 
   ![](./00.static/01.images/003.png)
 
