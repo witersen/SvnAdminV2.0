@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * 开启错误信息 如需要调试 可取消注释
+ */
 // ini_set('display_errors', 1);
 // error_reporting(E_ALL);
 

@@ -16,12 +16,7 @@ class connModel {
     function __construct() {
         $this->database_medoo = new Medoo([
             'database_type' => DB_TYPE,
-            'database_name' => DB_NAME,
-            'server' => DB_HOST,
-            'username' => DB_USER,
-            'password' => DB_PASSWORD,
-            'charset' => DB_CHARSET,
-            'port' => DB_PORT,
+            'database' => DB_FILE,
         ]);
     }
 

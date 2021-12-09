@@ -114,9 +114,9 @@ class Controller
     final function RequestReplyExec($shell)
     {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("error:" . socket_strerror(socket_last_error()));
-        $server = socket_connect($socket, '127.0.0.1', 6666);
+        $server = socket_connect($socket, IPC_ADDRESS, IPC_PORT);
         socket_write($socket, $shell);
-        $reply = socket_read($socket, 8192);
+        $reply = socket_read($socket, SOCKET_READ_LENGTH);
         socket_close($socket);
         return $reply;
     }
