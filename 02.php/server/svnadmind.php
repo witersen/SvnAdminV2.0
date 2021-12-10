@@ -96,13 +96,18 @@ class Daemon
         $data = socket_read($clien, SOCKET_READ_LENGTH);
 
         //console
-        $this->state == "console" ? print_r($data . "\n") : "";
+        $this->state == "console" ? print_r("\n---------接收内容---------\n" . $data . "\n") : "";
 
-        //执行
-        $result = shell_exec($data);
+        if (trim($data) != "") {
+            //执行
+            $result = shell_exec($data);
+        } else {
+            //探测程序会发送空信息
+            $result = "";
+        }
 
         //console
-        $this->state == "console" ? print_r($result . "\n") : "";
+        $this->state == "console" ? print_r("\n---------执行结果---------\n" . $result . "\n") : "";
 
         //处理没有返回内容的情况 否则 socket_write 遇到空内容会报错
         $result = $result == "" ? ISNULL : $result;

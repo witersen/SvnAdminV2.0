@@ -4,7 +4,8 @@
  * 与用户操作相关的方法的封装
  */
 
-class User extends Controller {
+class User extends Controller
+{
     /*
      * 注意事项：
      * 1、所有的控制器都要继承基类控制器：Controller
@@ -21,7 +22,8 @@ class User extends Controller {
     private $server_ip;
     private $server_domain;
 
-    function __construct() {
+    function __construct()
+    {
         /*
          * 避免子类的构造函数覆盖父类的构造函数
          */
@@ -39,7 +41,8 @@ class User extends Controller {
     }
 
     //获取管理员为普通用户授权的仓库列表，显示所有仓库名称，根据用户，对应显示有没有权限
-    function GetUserRepositoryList($requestPayload) {
+    function GetUserRepositoryList($requestPayload)
+    {
         $userid = $requestPayload['userid'];
 
         //所有仓库列表（带仓库id）
@@ -47,12 +50,12 @@ class User extends Controller {
         //用户的所有仓库列表
         $user_list = $this->database_medoo->select('user_repository', [
             "[>]repository" => ["repositoryid" => "id"],
-                ], [
+        ], [
             "user_repository.id",
             "user_repository.userid",
             "user_repository.repositoryid",
             "repository.repository_name",
-                ], [
+        ], [
             "userid" => $userid,
         ]);
         //聚合
@@ -76,14 +79,15 @@ class User extends Controller {
     }
 
     //设置普通用户授权的仓库列表
-    function SetUserRepositoryList($requestPayload) {
+    function SetUserRepositoryList($requestPayload)
+    {
         $userid = $requestPayload['userid'];
         $this_account_list = $requestPayload['this_account_list'];
 
         foreach ($this_account_list as $key => $value) {
-            if ($value['privilege'] == "1") {//判断该用户是否包含该仓库记录，如果包含不做操作，否则进行插入
+            if ($value['privilege'] == "1") { //判断该用户是否包含该仓库记录，如果包含不做操作，否则进行插入
                 $result = $this->database_medoo->select("user_repository", ["id"], ["userid" => $userid, "repositoryid" => $value['repository_id']]);
-                if (empty($result)) {//不包含
+                if (empty($result)) { //不包含
                     $result = $this->database_medoo->insert("user_repository", ["userid" => $userid, "repositoryid" => $value['repository_id']]);
                     if (!$result->rowCount()) {
                         $data['status'] = 0;
@@ -91,9 +95,9 @@ class User extends Controller {
                         return $data;
                     }
                 }
-            } elseif ($value['privilege'] == "0") {//判断该用户是否包含该仓库记录，如果不包含不做操作，否则进行删除
+            } elseif ($value['privilege'] == "0") { //判断该用户是否包含该仓库记录，如果不包含不做操作，否则进行删除
                 $result = $this->database_medoo->select("user_repository", ["id"], ["userid" => $userid, "repositoryid" => $value['repository_id']]);
-                if (!empty($result)) {//包含
+                if (!empty($result)) { //包含
                     $result = $this->database_medoo->delete("user_repository", [
                         "AND" => [
                             "userid" => $userid, "repositoryid" => $value['repository_id']
@@ -108,13 +112,14 @@ class User extends Controller {
             }
         }
         $data['status'] = 1;
-//        $data['message'] = '修改普通用户对应的仓库权限列表成功';
+        //        $data['message'] = '修改普通用户对应的仓库权限列表成功';
         $data['message'] = '授权成功';
         return $data;
     }
 
     //用户登录
-    function Login($requestPayload) {
+    function Login($requestPayload)
+    {
         $username = trim($requestPayload['username']);
         $password = trim($requestPayload['password']);
 
@@ -126,13 +131,13 @@ class User extends Controller {
 
         $result = $this->database_medoo->select('user', [
             "[>]role" => ["roleid" => "id"],
-                ], [
+        ], [
             "user.id(userid)",
             "user.username",
             "user.roleid",
             "user.password",
             "role.rolename"
-                ], [
+        ], [
             "username" => $username,
             "password" => $password
         ]);
@@ -142,16 +147,16 @@ class User extends Controller {
             $data['message'] = '登录失败 用户不存在或密码错误';
             return $data;
         }
-        $token = parent::CreateToken($result[0]['userid']);
+        $token = CreateToken($result[0]['userid']);
 
         //发送邮件
         $time = date("Y-m-d-H-i-s");
         $ip = $send_content = ""
-                . "登录用户：$username \n"
-                . "登录用户uid：" . $result[0]['userid'] . " \n"
-                . "服务器已设置域名：$this->server_domain \n"
-                . "服务器已设置IP地址：$this->server_ip \n"
-                . "当前时间：$time";
+            . "登录用户：$username \n"
+            . "登录用户uid：" . $result[0]['userid'] . " \n"
+            . "服务器已设置域名：$this->server_domain \n"
+            . "服务器已设置IP地址：$this->server_ip \n"
+            . "当前时间：$time";
         $send_title = "SVN系统登录通知";
         $receive_roleid = 2;
         $receive_userid = 1;
@@ -170,12 +175,13 @@ class User extends Controller {
     }
 
     //用户注销
-    function LogOut() {
-        
+    function LogOut()
+    {
     }
 
     //修改用户信息
-    function EditUser($requestPayload) {
+    function EditUser($requestPayload)
+    {
         $userid = $this->this_userid;
         $edit_userid = trim($requestPayload['edit_userid']);
         $edit_username = trim($requestPayload['edit_username']);
@@ -219,7 +225,7 @@ class User extends Controller {
             "realname" => $edit_realname,
             "email" => $edit_email,
             "phone" => $edit_phone,
-                ], ["id" => $edit_userid]);
+        ], ["id" => $edit_userid]);
 
         if (!$info->rowCount()) {
             $data['status'] = 1;
@@ -233,7 +239,8 @@ class User extends Controller {
     }
 
     //删除用户
-    function DelUser($requestPayload) {
+    function DelUser($requestPayload)
+    {
         $del_userid = $requestPayload['del_userid'];
         $this_userid = $this->this_userid;
         $this_username = $this->this_username;
@@ -285,12 +292,12 @@ class User extends Controller {
         //发送邮件
         $time = date("Y-m-d-H-i-s");
         $send_content = ""
-                . "被删除用户的用户id：$del_userid \n"
-                . "操作用户：$this_username \n"
-                . "操作用户uid：$this_userid \n"
-                . "服务器已设置域名：$this->server_domain \n"
-                . "服务器已设置IP地址：$this->server_ip \n"
-                . "当前时间：$time";
+            . "被删除用户的用户id：$del_userid \n"
+            . "操作用户：$this_username \n"
+            . "操作用户uid：$this_userid \n"
+            . "服务器已设置域名：$this->server_domain \n"
+            . "服务器已设置IP地址：$this->server_ip \n"
+            . "当前时间：$time";
         $send_title = "用户删除通知";
         $receive_roleid = 2;
         $receive_userid = 1;
@@ -302,7 +309,8 @@ class User extends Controller {
     }
 
     //添加用户
-    function AddUser($requestPayload) {
+    function AddUser($requestPayload)
+    {
         $username = trim($requestPayload['username']);
         $password = trim($requestPayload['password']);
         $password2 = trim($requestPayload['password2']);
@@ -356,13 +364,13 @@ class User extends Controller {
         //发送邮件
         $time = date("Y-m-d-H-i-s");
         $send_content = ""
-                . "被创建用户的用户名：$username \n"
-                . "被创建用户的roleid：$roleid \n"
-                . "操作用户：$this_username \n"
-                . "操作用户uid：$this_userid \n"
-                . "服务器已设置域名：$this->server_domain \n"
-                . "服务器已设置IP地址：$this->server_ip \n"
-                . "当前时间：$time";
+            . "被创建用户的用户名：$username \n"
+            . "被创建用户的roleid：$roleid \n"
+            . "操作用户：$this_username \n"
+            . "操作用户uid：$this_userid \n"
+            . "服务器已设置域名：$this->server_domain \n"
+            . "服务器已设置IP地址：$this->server_ip \n"
+            . "当前时间：$time";
         $send_title = "新用户创建通知";
         $receive_roleid = 2;
         $receive_userid = 1;
@@ -374,7 +382,8 @@ class User extends Controller {
     }
 
     //获取用户列表
-    function GetUserList($requestPayload) {
+    function GetUserList($requestPayload)
+    {
         $pageSize = $requestPayload['pageSize'];
         $currentPage = $requestPayload['currentPage'];
         $userid = $this->this_userid;
@@ -401,7 +410,7 @@ class User extends Controller {
 
             $info = $this->database_medoo->select('user', [
                 "[>]role" => ["roleid" => "id"],
-                    ], [
+            ], [
                 "user.id(uid)",
                 "user.roleid",
                 "user.username",
@@ -410,7 +419,7 @@ class User extends Controller {
                 "user.email",
                 "user.phone",
                 "role.rolename"
-                    ], [
+            ], [
                 "LIMIT" => [$begin, $pageSize],
                 "ORDER" => ["user.add_time" => "ASC"],
             ]);
@@ -432,7 +441,7 @@ class User extends Controller {
 
             $info = $this->database_medoo->select('user', [
                 "[>]role" => ["roleid" => "id"],
-                    ], [
+            ], [
                 "user.id(uid)",
                 "user.roleid",
                 "user.username",
@@ -441,7 +450,7 @@ class User extends Controller {
                 "user.email",
                 "user.phone",
                 "role.rolename"
-                    ], [
+            ], [
                 "AND" => [
                     "OR" => [
                         "user.id" => $userid,
@@ -477,7 +486,8 @@ class User extends Controller {
     }
 
     //邮箱检查
-    function CheckMail($mail) {
+    function CheckMail($mail)
+    {
         $pattern = "/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/";
         preg_match($pattern, $mail, $matches);
         $flag = false;
@@ -486,5 +496,4 @@ class User extends Controller {
         }
         return $flag;
     }
-
 }

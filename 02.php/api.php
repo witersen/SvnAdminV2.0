@@ -13,7 +13,7 @@ date_default_timezone_set('PRC');
 require_once BASE_PATH . '/app/core/controller.class.php';
 
 /**
- * Token
+ * token
  */
 define('MY_TOKEN', $_SERVER['HTTP_TOKEN']);
 
@@ -42,6 +42,35 @@ $requestPayload = !empty($requestPayload) ? json_decode($requestPayload, true) :
 if (file_exists($controller_path)) {
     $controller = new $controller_perifx();
     if (is_callable(array($controller, $action))) {
+        //检测守护进程是否开启
+        $state = DetectState();
+        if ($state == 0) {
+            $data['status'] = 0;
+            $data['code'] = 501;
+            $data['message'] = '后台程序超时';
+            echo json_encode($data);
+            return;
+        } else if ($state == 2) {
+            $data['status'] = 0;
+            $data['code'] = 501;
+            $data['message'] = '后台程序未启动';
+            echo json_encode($data);
+            return;
+        }
+        //检测token
+        if (MY_FUNCTION != 'Login') {
+            $data = CheckToken(MY_TOKEN);
+            if ($data['code'] != '200') {
+                $result = array(
+                    'status' => '0',
+                    'code' => $data['code'],
+                    'message' => $data['message']
+                );
+                echo json_encode($result);
+                return;
+            }
+        }
+        //执行请求
         echo json_encode($controller->$action($requestPayload));
     }
 }
