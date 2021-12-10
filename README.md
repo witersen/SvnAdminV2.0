@@ -5,9 +5,9 @@
 
 4、未完成部分：计划任务备份保留n天
 
-5、CentOS裸机部署教程：
+5、CentOS裸机部署教程：[https://www.bilibili.com/video/bv1Ur4y1S7xc](https://www.bilibili.com/video/bv1Ur4y1S7xc)
 
-6、基于CentOS的宝塔面板部署教程：
+6、基于CentOS的宝塔面板部署教程：[https://www.bilibili.com/video/bv1wP4y1G7gx](https://www.bilibili.com/video/bv1wP4y1G7gx)
 
 ## 一 、系统部署 - CentOS8.2裸机
 
@@ -88,7 +88,11 @@ ps aux | grep svnadmind
 
 <img src="./00.static/01.images/023.jpg" style="zoom: 67%;" />
 
-### （三）下载并解压部署程序
+### （三）将PHP的命令行版本更换至安装的PHP7.4
+
+<img src="./00.static/01.images/024.jpg" style="zoom: 67%;" />
+
+### （四）下载并解压部署程序
 - 在网站目录切换到宝塔控制台 执行以下命令 将数据库文件移动到指定位置
 ```
 wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/908887/download/v2.1.2.zip
@@ -99,11 +103,12 @@ chmod -R 777 /usr/local/svnadmin
 
 ```
 
-### （四）启动后台程序
+### （五）启动后台程序
 
 - 进入程序代码的server目录，在宝塔控制台下以root用户身份执行以下命令
 
 ```
+cd server
 php svnadmind.php start
 
 ```
@@ -118,7 +123,7 @@ ps aux | grep svnadmind
 - 如图所示，可看到服务端程序正常运行在后台
   ![](./00.static/01.images/002.png)
 
-### （五）web 访问测试
+### （六）web 访问测试
 
 - 访问部署主机地址，可看到程序的登录页信息，代表部署成功
 
