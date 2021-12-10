@@ -38,7 +38,7 @@ systemctl restart php-fpm           #重启php-fpm
 ```
 cd /var/www/html/
 wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/908887/download/v2.1.2.zip
-unzip v2.1.1.zip
+unzip v2.1.2.zip
 mkdir -p /usr/local/svnadmin
 mv svnadmin.db /usr/local/svnadmin
 chmod -R 777 /usr/local/svnadmin
@@ -92,7 +92,7 @@ ps aux | grep svnadmind
 - 在网站目录切换到宝塔控制台 执行以下命令 将数据库文件移动到指定位置
 ```
 wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/908887/download/v2.1.2.zip
-unzip v2.1.1.zip
+unzip v2.1.2.zip
 mkdir -p /usr/local/svnadmin
 mv svnadmin.db /usr/local/svnadmin
 chmod -R 777 /usr/local/svnadmin
