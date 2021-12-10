@@ -80,7 +80,7 @@ class Svnserve extends Controller
             $data['message'] = '仓库不存在或文件损坏';
             return $data;
         }
-        parent::RequestReplyExec('chmod 777 -R ' . $this->svn_repository_path);
+        RequestReplyExec('chmod 777 -R ' . $this->svn_repository_path);
         foreach ($hooks_type_list as $key => $value) {
             file_put_contents($this->svn_repository_path . '/' . $repository_name . '/' . 'hooks' . '/' . $value['value'], $value["shell"]);
         }
@@ -241,7 +241,7 @@ class Svnserve extends Controller
         $data = array();
 
         //创建svn仓库父目录
-        parent::RequestReplyExec('mkdir -p ' . $this->svn_repository_path);
+        RequestReplyExec('mkdir -p ' . $this->svn_repository_path);
         if (!is_dir($this->svn_repository_path)) {
             $data['status'] = 0;
             $data['message'] = '安装失败 创建目录失败';
@@ -249,19 +249,19 @@ class Svnserve extends Controller
         }
 
         //通过ps auxf|grep -v "grep"|grep svnserve和判断文件/usr/bin/svnserve是否存在这两方面来同时判断 如果没有安装过则进行安装
-        $info = parent::RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             //yum安装
-            parent::RequestReplyExec("yum install -y subversion");
+            RequestReplyExec("yum install -y subversion");
 
             sleep(1);
 
             //通常cp的别名为cp -i ，取消别名
-            parent::RequestReplyExec("alias cp='cp'");
-            parent::RequestReplyExec('cp -f /etc/sysconfig/svnserve /etc/sysconfig/svnserve.bak');
+            RequestReplyExec("alias cp='cp'");
+            RequestReplyExec('cp -f /etc/sysconfig/svnserve /etc/sysconfig/svnserve.bak');
 
             //更改存储库位置 将配置文件/etc/sysconfig/svnserve中的/var/svn/更换为svn仓库目录
-            parent::RequestReplyExec('sed -i \'s/\/var\/svn/' . str_replace('/', '\/', $this->svn_repository_path) . '/g\'' . ' /etc/sysconfig/svnserve');
+            RequestReplyExec('sed -i \'s/\/var\/svn/' . str_replace('/', '\/', $this->svn_repository_path) . '/g\'' . ' /etc/sysconfig/svnserve');
 
             //设置存储密码选项 将以下内容写入文件/etc/subversion/servers servers文件不存在则创建
             /**
@@ -269,16 +269,16 @@ class Svnserve extends Controller
              * [global]
              * store-plaintext-passwords = yes
              */
-            parent::RequestReplyExec("touch /etc/subversion/servers");
+            RequestReplyExec("touch /etc/subversion/servers");
             $con = "[groups]\n[global]\nstore-plaintext-passwords = yes\n";
-            parent::RequestReplyExec('echo \'' . $con . '\' > /etc/subversion/servers');
+            RequestReplyExec('echo \'' . $con . '\' > /etc/subversion/servers');
 
-            parent::RequestReplyExec("systemctl enable svnserve.service");
-            parent::RequestReplyExec("systemctl start svnserve.service");
+            RequestReplyExec("systemctl enable svnserve.service");
+            RequestReplyExec("systemctl start svnserve.service");
             $this->Firewall->SetFirewallPolicy(["port" => $this->svn_port, "type" => "add"]);
             $this->Firewall->SetFirewallPolicy(["port" => $this->http_port, "type" => "add"]);
-            parent::RequestReplyExec('setenforce 0');
-            parent::RequestReplyExec("sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config");
+            RequestReplyExec('setenforce 0');
+            RequestReplyExec("sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config");
 
             $data['status'] = 1;
             $data['message'] = '安装服务成功';
@@ -296,22 +296,22 @@ class Svnserve extends Controller
         //清空表数据
         $this->TruncateTable();
 
-        parent::RequestReplyExec('systemctl stop svnserve');
+        RequestReplyExec('systemctl stop svnserve');
         sleep(2);
-        parent::RequestReplyExec('systemctl disable svnserve');
+        RequestReplyExec('systemctl disable svnserve');
         sleep(2);
-        parent::RequestReplyExec('yum remove -y subversion');
+        RequestReplyExec('yum remove -y subversion');
         sleep(2);
-        parent::RequestReplyExec('yum remove -y subversion');
+        RequestReplyExec('yum remove -y subversion');
         sleep(2);
-        parent::RequestReplyExec('yum remove -y subversion');
+        RequestReplyExec('yum remove -y subversion');
         sleep(2);
-        parent::RequestReplyExec('rm -f /etc/subversion/servers');
-        parent::RequestReplyExec('rm -rf /etc/subversion');
-        parent::RequestReplyExec('rm -rf /usr/bin/svnserve'); //
+        RequestReplyExec('rm -f /etc/subversion/servers');
+        RequestReplyExec('rm -rf /etc/subversion');
+        RequestReplyExec('rm -rf /usr/bin/svnserve'); //
 
         //清除yum缓存
-        parent::RequestReplyExec('yum clean all');
+        RequestReplyExec('yum clean all');
 
         //is_dir的结果会被缓存，所以需要清除缓存
         clearstatcache();
@@ -515,14 +515,14 @@ class Svnserve extends Controller
         }
         //创建仓库
         //解决创建中文仓库乱码问题
-        parent::RequestReplyExec('export LC_CTYPE=en_US.UTF-8 &&  svnadmin create ' . $this->svn_repository_path . '/' . $repository_name);
+        RequestReplyExec('export LC_CTYPE=en_US.UTF-8 &&  svnadmin create ' . $this->svn_repository_path . '/' . $repository_name);
         //判断是否创建成功
         if (!is_dir($this->svn_repository_path . '/' . $repository_name)) {
             $data['status'] = 0;
             $data['message'] = '添加仓库失败';
             return $data;
         }
-        parent::RequestReplyExec('chmod 777 -R ' . $this->svn_repository_path);
+        RequestReplyExec('chmod 777 -R ' . $this->svn_repository_path);
 
         //将新建仓库目录下的conf/svnserve.conf做以下修改，
         /*
@@ -530,12 +530,12 @@ class Svnserve extends Controller
          * 取消注释# password-db = passwd所在行
          * 取消注释# authz-db = authz所在行
          */
-        parent::RequestReplyExec("sed -i 's/# anon-access = read/anon-access = none/g' " . $this->svn_repository_path . "/" . $repository_name . "/conf/svnserve.conf");
-        parent::RequestReplyExec("sed -i 's/# password-db = passwd/password-db = passwd/g' " . $this->svn_repository_path . "/" . $repository_name . "/conf/svnserve.conf");
-        parent::RequestReplyExec("sed -i 's/# authz-db = authz/authz-db = authz/g' " . $this->svn_repository_path . "/" . $repository_name . "/conf/svnserve.conf");
+        RequestReplyExec("sed -i 's/# anon-access = read/anon-access = none/g' " . $this->svn_repository_path . "/" . $repository_name . "/conf/svnserve.conf");
+        RequestReplyExec("sed -i 's/# password-db = passwd/password-db = passwd/g' " . $this->svn_repository_path . "/" . $repository_name . "/conf/svnserve.conf");
+        RequestReplyExec("sed -i 's/# authz-db = authz/authz-db = authz/g' " . $this->svn_repository_path . "/" . $repository_name . "/conf/svnserve.conf");
         $this->InitRepositoryConfFile($repository_name);
 
-        parent::RequestReplyExec('setenforce 0');
+        RequestReplyExec('setenforce 0');
 
         if (!$this->InsertRepositoryTable($repository_name)) {
             $data['status'] = 0;
@@ -581,7 +581,7 @@ class Svnserve extends Controller
             $data['message'] = '失败,项目不存在';
             return $data;
         }
-        parent::RequestReplyExec('rm -rf ' . $this->svn_repository_path . '/' . $repository_name);
+        RequestReplyExec('rm -rf ' . $this->svn_repository_path . '/' . $repository_name);
 
         //检查是否删除成功
         if (!is_dir($this->svn_repository_path . '/' . $repository_name)) {
@@ -669,7 +669,7 @@ class Svnserve extends Controller
             }
         }
 
-        parent::RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/authz');
+        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/authz');
 
         $data['status'] = 1;
         $data['message'] = '账户授权成功';
@@ -707,9 +707,9 @@ class Svnserve extends Controller
             return $data;
         }
         //修改仓库文件夹的目录
-        parent::RequestReplyExec('mv ' . $this->svn_repository_path . '/' . $old_repository_name . ' ' . $this->svn_repository_path . '/' . $new_repository_name);
+        RequestReplyExec('mv ' . $this->svn_repository_path . '/' . $old_repository_name . ' ' . $this->svn_repository_path . '/' . $new_repository_name);
         //        //修改authz文件中的仓库名称
-        //        parent::RequestReplyExec('sed -i \'s/' . $old_repository_name . '/' . $new_repository_name . '/g\' ' . SVN_CONF_PATH . '/authz');
+        //        RequestReplyExec('sed -i \'s/' . $old_repository_name . '/' . $new_repository_name . '/g\' ' . SVN_CONF_PATH . '/authz');
 
         if (!$this->UpdateRepositoryName($old_repository_name, $new_repository_name)) {
             $data['status'] = 0;
@@ -887,7 +887,7 @@ class Svnserve extends Controller
         //写入文件
         array_push($file_content, $account . ' = ' . $passwd . "\n");
         $file_content = implode($file_content);
-        parent::RequestReplyExec('echo \'' . $file_content . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
+        RequestReplyExec('echo \'' . $file_content . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
 
         $data['status'] = 1;
         $data['message'] = '添加账户成功';
@@ -930,7 +930,7 @@ class Svnserve extends Controller
             }
         }
         $con = implode($file_content);
-        parent::RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
+        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
 
         //删除authz文件中的账号
         $file = fopen($this->svn_repository_path . '/' . $repository_name . '/conf/authz', "r") or exit("无法打开文件!");
@@ -949,7 +949,7 @@ class Svnserve extends Controller
             }
         }
         $con = implode($file_content);
-        parent::RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/authz');
+        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/authz');
 
         $data['status'] = 1;
         $data['message'] = '删除账户成功';
@@ -995,7 +995,7 @@ class Svnserve extends Controller
             }
         }
         $con = implode($file_content);
-        parent::RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
+        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
 
         $data['status'] = 1;
         $data['message'] = '修改成功';
@@ -1006,7 +1006,7 @@ class Svnserve extends Controller
     function GetSvnserveStatus($requestPayload)
     {
         //是否安装服务
-        $info = parent::RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             $info = array();
             $info['status'] = '未安装'; //未安装
@@ -1031,7 +1031,7 @@ class Svnserve extends Controller
             return $data;
         }
         //是否启动
-        $info = parent::RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && file_exists('/usr/bin/svnserve')) {
             $info = array();
             $info['status'] = '已停止'; //svn服务未启动
@@ -1068,13 +1068,13 @@ class Svnserve extends Controller
 
         switch ($action) {
             case 'startSvn':
-                parent::RequestReplyExec('systemctl start svnserve');
+                RequestReplyExec('systemctl start svnserve');
                 break;
             case 'restartSvn':
-                parent::RequestReplyExec('systemctl restart svnserve');
+                RequestReplyExec('systemctl restart svnserve');
                 break;
             case 'stopSvn':
-                parent::RequestReplyExec('systemctl stop svnserve');
+                RequestReplyExec('systemctl stop svnserve');
                 break;
         }
 
@@ -1104,7 +1104,7 @@ class Svnserve extends Controller
     private function CheckSvnserveStatus()
     {
         //是否安装服务
-        $info = parent::RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             $data['status'] = 0;
             $data['code'] = '00';
@@ -1119,7 +1119,7 @@ class Svnserve extends Controller
             return $data;
         }
         //是否启动
-        $info = parent::RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && file_exists('/usr/bin/svnserve')) {
             $data['status'] = 0;
             $data['code'] = '01';
@@ -1192,7 +1192,7 @@ class Svnserve extends Controller
          * root=rw 
          */
         $con = "[aliases]\n\n[groups]\n\n[/]\nroot = rw";
-        parent::RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/authz');
+        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/authz');
         //将以下内容写入passwd文件
         /*
          * [users]
@@ -1200,7 +1200,7 @@ class Svnserve extends Controller
          */
         $pass = trim($this->GetInitPasswd(16));
         $con = "[users]\nroot = " . $pass . "\n";
-        parent::RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
+        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
     }
 
     //向仓库表中写入仓库信息

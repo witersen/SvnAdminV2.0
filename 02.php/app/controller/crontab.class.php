@@ -57,7 +57,7 @@ class Crontab extends Controller {
         $cron_path = "/var/spool/cron/root";
         //检查计划任务文件是否存在
         if (!file_exists($cron_path)) {
-            parent::RequestReplyExec("touch $cron_path");
+            RequestReplyExec("touch $cron_path");
         }
 
         //构造脚本文件标识字符串
@@ -65,8 +65,8 @@ class Crontab extends Controller {
 
         //构造脚本文件路径
         $shell_path = BASE_PATH . '/data/crond/' . $sign;
-        parent::RequestReplyExec("touch $shell_path");
-        parent::RequestReplyExec("chmod 755 $shell_path");
+        RequestReplyExec("touch $shell_path");
+        RequestReplyExec("chmod 755 $shell_path");
 
         //获取执行周期
         $cycle = $this->EnCrontabFormat($cycle_type, $week, $hour, $minute);
@@ -93,20 +93,20 @@ shell;
 
 shell;
         } else {
-            parent::RequestReplyExec("rm -f $shell_path");
+            RequestReplyExec("rm -f $shell_path");
             $data['status'] = 0;
             $data['message'] = '失败 备份类型错误';
             return $data;
         }
 
         //向脚本文件并写入内容
-        parent::RequestReplyExec("echo '$shell_content' > $shell_path");
+        RequestReplyExec("echo '$shell_content' > $shell_path");
 
         //将周期+脚本文件路径以追加方式写入计划任务文件 /var/spool/cron/root
         //$content = $cycle . ' bash ' . $shell_path;
         $content = $cycle . ' bash ' . $shell_path;
-        parent::RequestReplyExec("echo '$content' >> $cron_path");
-        parent::RequestReplyExec("systemctl restart crond");
+        RequestReplyExec("echo '$content' >> $cron_path");
+        RequestReplyExec("systemctl restart crond");
 
         //将信息写入数据库表
         $this->database_medoo->insert("crontab", [
@@ -129,9 +129,9 @@ shell;
     function DeleteCrontab($requestPayload) {
         $sign = $requestPayload["sign"];
         //从计划任务文件删除
-        parent::RequestReplyExec("sed -i '/$sign/d' /var/spool/cron/root");
+        RequestReplyExec("sed -i '/$sign/d' /var/spool/cron/root");
         //从web路径删除
-        parent::RequestReplyExec("rm -f " . BASE_PATH . '/data/crond/' . $sign);
+        RequestReplyExec("rm -f " . BASE_PATH . '/data/crond/' . $sign);
         //从数据库删除
         $this->database_medoo->delete("crontab", [
             "AND" => [

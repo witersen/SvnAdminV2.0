@@ -28,17 +28,17 @@ class Daemon
     {
         $pid = pcntl_fork();
         if ($pid < 0) {
-            exit("pcntl_fork 错误");
+            exit('pcntl_fork 错误');
         } elseif ($pid > 0) {
             exit();
         }
         $sid = posix_setsid();
         if (!$sid) {
-            exit("posix_setsid 错误");
+            exit('posix_setsid 错误');
         }
         $pid = pcntl_fork();
         if ($pid < 0) {
-            exit("pcntl_fork 错误");
+            exit('pcntl_fork 错误');
         } elseif ($pid > 0) {
             exit();
         }
@@ -60,10 +60,10 @@ class Daemon
     private function init_socket()
     {
         //创建套接字
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("socket_create 错误");
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or exit('socket_create 错误');
 
         //绑定地址和端口
-        socket_bind($socket, IPC_ADDRESS, IPC_PORT) or die("socket_bind 错误");
+        socket_bind($socket, IPC_ADDRESS, IPC_PORT) or exit('socket_bind 错误');
 
         //设置可重复使用端口号
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
@@ -75,18 +75,56 @@ class Daemon
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
 
-            $clien = socket_accept($socket) or die("socket_accept 错误");
+            $clien = socket_accept($socket) or exit('socket_accept 错误');
 
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
 
             $pid = pcntl_fork();
             if ($pid == -1) {
-                die('pcntl_fork 错误');
+                exit('pcntl_fork 错误');
             } else if ($pid == 0) {
                 $this->handle_request($clien);
             } else {
             }
+        }
+    }
+
+    private function check_sys_type()
+    {
+        if (PHP_OS != 'Linux') {
+            exit("启动失败 \n当前操作系统不为Linux\n");
+        }
+        if (file_exists('/etc/redhat-release')) {
+            $info = file_get_contents('/etc/redhat-release');
+            if (!strstr($info, 'CentOS') && (strstr($info, '8.') || strstr($info, '7.'))) {
+                exit("启动失败 \n仅支持CentOS 7 和 CentOS8 系统\n");
+            }
+            return;
+        }
+        exit("启动失败 \n不支持当前操作系统\n");
+    }
+
+    private function check_php_version()
+    {
+        if (PHP_VERSION < Required_PHP_VERSION) {
+            echo "启动失败 \n当前的PHP版本为 " . PHP_VERSION . " 最低的PHP版本要求为 " . Required_PHP_VERSION . "\n";
+            exit();
+        }
+    }
+
+    private function check_disabled_function()
+    {
+        $disabled_function = explode(',', ini_get('disable_functions'));
+        $needed_function = NEEDED_FUNCTION;
+        foreach ($needed_function as $key => $value) {
+            if (!in_array($value, $disabled_function)) {
+                unset($needed_function[$key]);
+            }
+        }
+        if (!empty($needed_function)) {
+            echo "启动失败 \n需要的以下PHP函数被禁用:\n" . implode("\n", $needed_function) . "\n";
+            exit();
         }
     }
 
@@ -157,6 +195,9 @@ class Daemon
 
     public function run($argv)
     {
+        $this->check_sys_type();
+        $this->check_php_version();
+        $this->check_disabled_function();
         if (isset($argv[1])) {
             $this->state = $argv[1];
             if (!in_array($this->state, $this->cmdlist)) {

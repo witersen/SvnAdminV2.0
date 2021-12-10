@@ -18,8 +18,8 @@ require_once BASE_PATH . '/app/controller/system.class.php';
 require_once BASE_PATH . '/app/controller/user.class.php';
 
 //require function
-require_once BASE_PATH . '/app/function/detect.function.php';
 require_once BASE_PATH . '/app/function/token.function.php';
+require_once BASE_PATH . '/app/function/socket.function.php';
 
 class Controller
 {
@@ -45,16 +45,5 @@ class Controller
             "username" => $result[0]["username"]
         );
         return $data;
-    }
-
-    //与守护进程通信
-    final function RequestReplyExec($shell)
-    {
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("error:" . socket_strerror(socket_last_error()));
-        $server = socket_connect($socket, IPC_ADDRESS, IPC_PORT);
-        socket_write($socket, $shell);
-        $reply = socket_read($socket, SOCKET_READ_LENGTH);
-        socket_close($socket);
-        return $reply;
     }
 }

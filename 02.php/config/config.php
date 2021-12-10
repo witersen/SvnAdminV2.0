@@ -51,6 +51,21 @@ define("SOCKET_LISTEN_BACKLOG", 2000);
 define('VERSION', '2.1.2');
 
 /**
+ * 当前程序支持的最低PHP版本
+ */
+define('Required_PHP_VERSION', '7.3.0');
+
+/**
+ * 需要解除禁止的函数
+ */
+define('NEEDED_FUNCTION', array(
+    'pcntl_fork',
+    'pcntl_signal',
+    'pcntl_wait',
+    'shell_exec'
+));
+
+/**
  * 升级服务器地址
  * 用户请不要自行修改 以免影响后续升级检测
  */

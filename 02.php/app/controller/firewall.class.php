@@ -40,19 +40,19 @@ class Firewall extends Controller {
 
         switch ($action) {
             case 'startFirewall':
-                parent::RequestReplyExec('systemctl start firewalld');
-                parent::RequestReplyExec('firewall-cmd --zone=public --add-port=80/tcp --permanent'); //启动的同时将80加入 使得web服务正常运行
-                parent::RequestReplyExec('firewall-cmd --zone=public --add-port=3690/tcp --permanent'); //启动的同时将80加入 使得web服务正常运行
-                parent::RequestReplyExec('firewall-cmd --reload');
+                RequestReplyExec('systemctl start firewalld');
+                RequestReplyExec('firewall-cmd --zone=public --add-port=80/tcp --permanent'); //启动的同时将80加入 使得web服务正常运行
+                RequestReplyExec('firewall-cmd --zone=public --add-port=3690/tcp --permanent'); //启动的同时将80加入 使得web服务正常运行
+                RequestReplyExec('firewall-cmd --reload');
                 break;
             case 'restartFirewall':
-                parent::RequestReplyExec('systemctl restart firewalld');
-                parent::RequestReplyExec('firewall-cmd --zone=public --add-port=80/tcp --permanent'); //启动的同时将80加入 使得web服务正常运行
-                parent::RequestReplyExec('firewall-cmd --zone=public --add-port=3690/tcp --permanent'); //启动的同时将80加入 使得web服务正常运行
-                parent::RequestReplyExec('firewall-cmd --reload');
+                RequestReplyExec('systemctl restart firewalld');
+                RequestReplyExec('firewall-cmd --zone=public --add-port=80/tcp --permanent'); //启动的同时将80加入 使得web服务正常运行
+                RequestReplyExec('firewall-cmd --zone=public --add-port=3690/tcp --permanent'); //启动的同时将80加入 使得web服务正常运行
+                RequestReplyExec('firewall-cmd --reload');
                 break;
             case 'stopFirewall':
-                parent::RequestReplyExec('systemctl stop firewalld');
+                RequestReplyExec('systemctl stop firewalld');
                 break;
         }
 
@@ -74,8 +74,8 @@ class Firewall extends Controller {
             $data['message'] = '参数不完整';
             return $data;
         }
-        parent::RequestReplyExec('firewall-cmd --zone=public --' . $type . '-port=' . $port . '/' . $protocal . ' --permanent');
-        parent::RequestReplyExec('firewall-cmd --reload');
+        RequestReplyExec('firewall-cmd --zone=public --' . $type . '-port=' . $port . '/' . $protocal . ' --permanent');
+        RequestReplyExec('firewall-cmd --reload');
 
         sleep(1);
 
@@ -87,7 +87,7 @@ class Firewall extends Controller {
     //获取防火墙规则
     function GetFirewallPolicy($requestPayload) {
         //获取80 443 3690是否加入防火墙
-        $info = parent::RequestReplyExec('ps auxf|grep -v "grep"|grep firewalld');
+        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep firewalld');
         if ($info == ISNULL) {
             $info = array();
             $info['svn'] = false;
@@ -101,21 +101,21 @@ class Firewall extends Controller {
         }
 
         $info = array();
-        $result = trim(parent::RequestReplyExec('firewall-cmd --query-port=80/tcp'));
+        $result = trim(RequestReplyExec('firewall-cmd --query-port=80/tcp'));
         if ($result == 'yes') {
             $info['http'] = true;
         } else {
             $info['http'] = false;
         }
 
-        $result = trim(parent::RequestReplyExec('firewall-cmd --query-port=443/tcp'));
+        $result = trim(RequestReplyExec('firewall-cmd --query-port=443/tcp'));
         if ($result == 'yes') {
             $info['https'] = true;
         } else {
             $info['https'] = false;
         }
 
-        $result = trim(parent::RequestReplyExec('firewall-cmd --query-port=3690/tcp'));
+        $result = trim(RequestReplyExec('firewall-cmd --query-port=3690/tcp'));
         if ($result == 'yes') {
             $info['svn'] = true;
         } else {
@@ -130,7 +130,7 @@ class Firewall extends Controller {
 
     //获取防火墙状态
     function GetFirewallStatus($requestPayload) {
-        $info = parent::RequestReplyExec('ps auxf|grep -v "grep"|grep firewalld');
+        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep firewalld');
         if ($info == ISNULL) {
             $info = array();
             $info['status'] = '已停止';
