@@ -2,23 +2,14 @@
 <?php
 
 /*
- * 与配置信息操作相关的方法的封装
+ * 与配置信息操作相关
  */
 
-class Config extends Controller {
-    /*
-     * 注意事项：
-     * 1、所有的控制器都要继承基类控制器：Controller
-     * 2、基类控制器中包含：数据库连接对象、守护进程通信对象、视图层对象、公共函数等，继承后可以直接使用基类的变量和对象
-     * 
-     * 用法：
-     * 1、使用父类的变量：$this->xxx
-     * 2、使用父类的成员函数：parent::yyy()
-     * 3、使用父类的非成员函数，直接用即可：zzz() 
-     * 4、
-     */
+class Config extends Controller
+{
 
-    function __construct() {
+    function __construct()
+    {
         /*
          * 避免子类的构造函数覆盖父类的构造函数
          */
@@ -29,79 +20,112 @@ class Config extends Controller {
          */
     }
 
-    //获取指定项的值
-    public function Get($key) {
-        $result = $this->database_medoo->select("config", ["config_value"], ["config_name" => $key]);
-        return $result[0]['config_value'];
+    //从配置文件获取
+    public function Get($key)
+    {
+        $strContent = file_get_contents(BASE_PATH . '/config/auto.config.php');
+        return GetConfigValue($strContent, $key);
     }
 
-    //修改配置文件的值
-    public function Update($key, $value) {
-        $result = $this->database_medoo->update("config", ["config_value" => $value], ["config_name" => $key]);
+    //向配置文件更新
+    public function Update($key, $value)
+    {
+        $strContent = file_get_contents(BASE_PATH . '/config/auto.config.php');
+        $result = UpdateConfigValue($strContent, $key, $value);
+        file_put_contents(BASE_PATH . '/config/auto.config.php', $result);
     }
 
-    //获取服务器基本信息
-    public function GetBasicSetting($requestPayload) {
-        $all_mail_status = $this->Get("ALL_MAIL_STATUS") == 1 ? true : false;
-        $result = array(
-            "server_ip" => $this->Get("SERVER_IP"),
-            "server_domain" => $this->Get("SERVER_DOMAIN"),
-            "svn_repository_path" => $this->Get("SVN_REPOSITORY_PATH"),
-            "backup_path" => $this->Get("BACKUP_PATH"),
-            "all_mail_status" => $all_mail_status
-        );
+    //设置管理员信息
+    public function SetManageSetting($requestPayload)
+    {
+        $manageUser = trim($requestPayload['manageUser']);
+        $managePass = trim($requestPayload['managePass']);
+        $manageEmail = trim($requestPayload['manageEmail']);
 
-        $data['status'] = 1;
-        $data['data'] = $result;
-        $data['message'] = '获取基础配置信息成功';
-        return $data;
-    }
-
-    //设置服务器基本信息
-    public function SetBasicSetting($requestPayload) {
-        $server_ip = trim($requestPayload['server_ip']);
-        $server_domain = trim($requestPayload['server_domain']);
-        $svn_repository_path = trim($requestPayload['svn_repository_path']);
-        $backup_path = trim($requestPayload['backup_path']);
-        $all_mail_status = $requestPayload['all_mail_status'];
-
-        if (empty($server_ip) || empty($server_domain) || empty($svn_repository_path) || empty($backup_path)) {
+        if (empty($manageUser) || empty($managePass) || empty($manageEmail)) {
             $data['status'] = 0;
             $data['message'] = '参数不完整或错误';
             return $data;
         }
 
-        $old_path = $this->Get("SVN_REPOSITORY_PATH");
-        $new_path = $svn_repository_path;
+        $this->Update("MANAGE_USER", $manageUser);
+        $this->Update("MANAGE_PASS", $managePass);
+        $this->Update("MANAGE_EMAIL", $manageEmail);
 
-        $UpdateRepositoryParentPath = true;
-        if ($old_path != $new_path) {
-            $UpdateRepositoryParentPath = $this->UpdateRepositoryParentPath($old_path, $new_path);
-        }
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
 
-        if ($UpdateRepositoryParentPath) {
-            $this->Update("SERVER_IP", $server_ip);
-            $this->Update("SERVER_DOMAIN", $server_domain);
-            $this->Update("SVN_REPOSITORY_PATH", $svn_repository_path);
-            $this->Update("BACKUP_PATH", $backup_path);
-            if ($all_mail_status) {
-                $this->Update("ALL_MAIL_STATUS", 1);
-            } else {
-                $this->Update("ALL_MAIL_STATUS", 0);
-            }
+    //获取管理员信息
+    public function GetManageSetting($requestPayload)
+    {
+        $result = array(
+            "manageUser" => MANAGE_USER,
+            "managePass" => MANAGE_PASS,
+            "manageEmail" => MANAGE_EMAIL,
+        );
 
-            $data['status'] = 1;
-            $data['message'] = "保存成功";
-            return $data;
-        } else {
+        $data['status'] = 1;
+        $data['data'] = $result;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    //获取服务器基本信息
+    public function GetBasicSetting($requestPayload)
+    {
+        $all_mail_status = ALL_MAIL_STATUS == 1 ? true : false;
+        $result = array(
+            "server_ip" => SERVER_IP,
+            "server_domain" => SERVER_DOMAIN,
+            "svn_repository_path" => SVN_REPOSITORY_PATH,
+            "backup_path" => BACKUP_PATH,
+            "all_mail_status" => $all_mail_status,
+            "token" => SIGNATURE,
+            "logs" => LOG_PATH,
+            "svnserve" => SVN_SERVER_CONF,
+            "passwd" => SVN_SERVER_PASSWD,
+            "authz" => SVN_SERVER_AUTHZ
+        );
+
+        $data['status'] = 1;
+        $data['data'] = $result;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    //设置服务器基本信息
+    public function SetBasicSetting($requestPayload)
+    {
+        $server_ip = trim($requestPayload['server_ip']);
+        $token = trim($requestPayload['token']);
+        $server_domain = trim($requestPayload['server_domain']);
+        $all_mail_status = $requestPayload['all_mail_status'];
+
+        if (empty($server_ip) || empty($server_domain)  || empty($token)) {
             $data['status'] = 0;
-            $data['message'] = "修改版本库父文件夹出错";
+            $data['message'] = '参数不完整或错误';
             return $data;
         }
+
+        $this->Update("SERVER_IP", $server_ip);
+        $this->Update("SERVER_DOMAIN", $server_domain);
+        $this->Update("SIGNATURE", $token);
+        if ($all_mail_status) {
+            $this->Update("ALL_MAIL_STATUS", 1);
+        } else {
+            $this->Update("ALL_MAIL_STATUS", 0);
+        }
+
+        $data['status'] = 1;
+        $data['message'] = "成功";
+        return $data;
     }
 
     //更改版本库父文件夹后触发的操作
-    private function UpdateRepositoryParentPath($old_path, $new_path) {
+    private function UpdateRepositoryParentPath($old_path, $new_path)
+    {
         RequestReplyExec("mkdir $new_path");
         $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
@@ -190,5 +214,4 @@ class Config extends Controller {
             return true;
         }
     }
-
 }

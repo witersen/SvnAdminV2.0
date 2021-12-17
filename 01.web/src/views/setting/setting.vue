@@ -1,3 +1,8 @@
+<style lang="less">
+.text-wrapper {
+  white-space: pre-wrap;
+}
+</style>
 <template>
   <Card :bordered="false" :dis-hover="true">
     <Tabs value="tab1">
@@ -5,19 +10,44 @@
         <Row>
           <Col span="8">
             <Card :bordered="true" :dis-hover="true">
-              <p slot="title">服务器信息</p>
-              <Form ref="formConfig" :model="formConfig" :label-width="110">
-                <FormItem label="服务器IP">
-                  <Input v-model="formConfig.server_ip" />
+              <p slot="title">服务器配置信息</p>
+              <Form ref="formConfig" :model="formConfig" :label-width="140">
+                <FormItem label="版本库父目录">
+                  <Input v-model="formConfig.svn_repository_path" disabled />
                 </FormItem>
+                <FormItem label="SVN配置文件">
+                  <Input v-model="formConfig.svnserve" disabled />
+                </FormItem>
+                <FormItem label="用户文件(passwd)">
+                  <Input v-model="formConfig.passwd" disabled />
+                </FormItem>
+                <FormItem label="权限文件(authz)">
+                  <Input v-model="formConfig.authz" disabled />
+                </FormItem>
+                <FormItem label="备份目录">
+                  <Input v-model="formConfig.backup_path" disabled />
+                </FormItem>
+                <FormItem label="日志目录">
+                  <Input v-model="formConfig.logs" disabled />
+                </FormItem>
+              </Form>
+            </Card>
+          </Col>
+          <Col span="8" offset="1">
+            <Card :bordered="true" :dis-hover="true">
+              <p slot="title">管理系统配置信息</p>
+              <Form ref="formConfig" :model="formConfig" :label-width="140">
                 <FormItem label="服务器域名">
                   <Input v-model="formConfig.server_domain" />
                 </FormItem>
-                <FormItem label="版本库父文件夹">
-                  <Input v-model="formConfig.svn_repository_path" />
+                <FormItem label="服务器IP">
+                  <Input v-model="formConfig.server_ip" />
                 </FormItem>
-                <FormItem label="备份目录">
-                  <Input v-model="formConfig.backup_path" />
+                <FormItem label="加密密钥">
+                  <Input
+                    v-model="formConfig.token"
+                    placeholder="如果是初次安装 请修改打乱该token"
+                  />
                 </FormItem>
                 <FormItem label="消息通知服务">
                   <Switch
@@ -27,9 +57,16 @@
                   />
                 </FormItem>
                 <FormItem>
-                  <Button type="primary" @click="SetBasicSetting()"
-                    >保存</Button
+                  <Tooltip
+                    max-width="300"
+                    :content="toolTipSave"
+                    placement="top"
+                    transfer
                   >
+                    <Button type="primary" @click="SetBasicSetting()"
+                      >保存</Button
+                    >
+                  </Tooltip>
                 </FormItem>
               </Form>
             </Card>
@@ -65,24 +102,47 @@
               <p>安装卸载</p>
               <br />
               <ButtonGroup>
-                <Button
-                  type="info"
-                  @click="Install"
-                  :loading="svnserveLoading.installSvn"
-                  >安装服务</Button
+                <Tooltip
+                  max-width="300"
+                  :content="toolTipInstall"
+                  placement="top"
+                  transfer
                 >
-                <Button
-                  type="warning"
-                  @click="Repaire"
-                  :loading="svnserveLoading.repaireSvn"
-                  >修复异常</Button
+                  <Button
+                    type="info"
+                    @click="Install"
+                    :loading="svnserveLoading.installSvn"
+                    >安装服务</Button
+                  >
+                </Tooltip>
+                <Tooltip
+                  max-width="300"
+                  :content="toolTipRepaire"
+                  placement="top"
+                  transfer
+                  disabled
                 >
-                <Button
-                  type="error"
-                  @click="UnInstall"
-                  :loading="svnserveLoading.unInstallSvn"
-                  >卸载服务</Button
+                  <Button
+                    type="warning"
+                    disabled
+                    @click="Repaire"
+                    :loading="svnserveLoading.repaireSvn"
+                    >修复异常</Button
+                  >
+                </Tooltip>
+                <Tooltip
+                  max-width="300"
+                  :content="toolTipUnInstall"
+                  placement="top"
+                  transfer
                 >
+                  <Button
+                    type="error"
+                    @click="UnInstall"
+                    :loading="svnserveLoading.unInstallSvn"
+                    >卸载服务</Button
+                  >
+                </Tooltip>
               </ButtonGroup>
             </Card>
           </Col>
@@ -153,256 +213,171 @@
       <TabPane label="消息通知" name="tab3">
         <Row>
           <Col span="8">
-            <Card dis-hover style="height: 470px">
+            <Card dis-hover style="height: 540px">
               <p slot="title">邮件服务器</p>
               <Form ref="formEmail" :model="formEmail" :label-width="110">
-                <Row>
-                  <Col span="17">
-                    <FormItem label="SMTP主机">
-                      <Input v-model="formEmail.smtp_host" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="17">
-                    <FormItem label="SMTP端口">
-                      <InputNumber
-                        :max="99999"
-                        :min="0"
-                        v-model="formEmail.smtp_port"
-                      ></InputNumber>
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="17">
-                    <FormItem label="SMTP用户名">
-                      <Input v-model="formEmail.smtp_user" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="17">
-                    <FormItem label="SMTP密码">
-                      <Input v-model="formEmail.smtp_password" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="17">
-                    <FormItem label="发送邮箱">
-                      <Input v-model="formEmail.smtp_send_email" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="17">
-                    <FormItem label="测试邮箱">
-                      <Input v-model="formEmail.smtp_test_email" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="9">
-                    <FormItem>
-                      <Button type="primary" @click="SendTestMail()"
-                        >发送测试邮件</Button
-                      >
-                    </FormItem>
-                  </Col>
-                  <Col span="9">
-                    <FormItem>
-                      <Button type="primary" @click="SetMailInfo()"
-                        >保存</Button
-                      >
-                    </FormItem>
-                  </Col>
-                </Row>
+                <FormItem label="SMTP主机">
+                  <Input v-model="formEmail.smtp_host" />
+                </FormItem>
+                <FormItem label="SMTP端口">
+                  <InputNumber
+                    :max="99999"
+                    :min="0"
+                    v-model="formEmail.smtp_port"
+                  ></InputNumber>
+                </FormItem>
+                <FormItem label="SMTP用户名">
+                  <Input v-model="formEmail.smtp_user" />
+                </FormItem>
+                <FormItem label="SMTP密码">
+                  <Input v-model="formEmail.smtp_password" />
+                </FormItem>
+                <FormItem label="发送邮箱">
+                  <Input v-model="formEmail.smtp_send_email" />
+                </FormItem>
+                <FormItem label="测试邮箱">
+                  <Input v-model="formEmail.smtp_test_email" />
+                </FormItem>
+                <FormItem>
+                  <Button type="primary" @click="SendTestMail()"
+                    >发送测试邮件</Button
+                  >
+                </FormItem>
+                <FormItem>
+                  <Tooltip
+                    max-width="300"
+                    :content="toolTipSave"
+                    placement="top"
+                    transfer
+                  >
+                    <Button type="primary" @click="SetMailInfo()">保存</Button>
+                  </Tooltip>
+                </FormItem>
               </Form>
             </Card>
           </Col>
-          <!-- <Col span="8" offset="1">
-            <Card dis-hover style="height: 470px">
-              <p slot="title">短信网关</p>
-              <Form ref="formMessage" :model="formMessage" :label-width="130">
-                <Row>
-                  <Col span="18">
-                    <FormItem label="短信服务名称">
-                      <Input v-model="formMessage.api_name" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="18">
-                    <FormItem label="AccessKey Id">
-                      <Input v-model="formMessage.accesskey_id" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="18">
-                    <FormItem label="AccessKey Secret">
-                      <Input v-model="formMessage.accesskey_secret" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="18">
-                    <FormItem label="模版CODE">
-                      <Input v-model="formMessage.model_code" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="18">
-                    <FormItem label="签名名称">
-                      <Input v-model="formMessage.signature" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="18">
-                    <FormItem label="测试手机号码">
-                      <Input v-model="formMessage.test_phone" />
-                    </FormItem>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span="9">
-                    <FormItem>
-                      <Button type="primary">发送测试短信</Button>
-                    </FormItem>
-                  </Col>
-                  <Col span="9">
-                    <FormItem>
-                      <Button type="primary">保存</Button>
-                    </FormItem>
-                  </Col>
-                </Row>
-              </Form>
-            </Card>
-          </Col> -->
         </Row>
       </TabPane>
-      <TabPane label="计划任务" name="tab4">
+      <TabPane label="管理员信息" name="tab5">
         <Row>
           <Col span="8">
             <Card :bordered="true" :dis-hover="true">
-              <p slot="title">添加计划任务</p>
+              <p slot="title">账户密码</p>
               <Form
-                ref="formCrontab.backup_type"
-                :model="formCrontab.backup_type"
-                :label-width="90"
+                ref="formAdminInfo"
+                :model="formAdminInfo"
+                :label-width="110"
               >
-                <FormItem label="任务类型">
-                  <Select v-model="formCrontab.backup_type.select">
-                    <Option
-                      v-for="item in formCrontab.backup_type.list"
-                      :value="item.value"
-                      :key="item.value"
-                      >{{ item.label }}</Option
-                    >
-                  </Select>
+                <FormItem label="管理员账号">
+                  <Input v-model="formAdminInfo.manageUser" disabled />
                 </FormItem>
-                <FormItem label="执行周期">
-                  <Row>
-                    <Col span="5">
-                      <Select v-model="formCrontab.cycle_type.select">
-                        <Option
-                          v-for="item in formCrontab.cycle_type.list"
-                          :value="item.value"
-                          :key="item.value"
-                          >{{ item.label }}</Option
-                        >
-                      </Select>
-                    </Col>
-                    <Col
-                      span="5"
-                      offset="1"
-                      v-if="formCrontab.cycle_type.select == 'weekly'"
-                    >
-                      <Select v-model="formCrontab.week.select">
-                        <Option
-                          v-for="item in formCrontab.week.list"
-                          :value="item.value"
-                          :key="item.value"
-                          >{{ item.label }}</Option
-                        >
-                      </Select>
-                    </Col>
-                    <Col
-                      span="5"
-                      offset="1"
-                      v-if="formCrontab.cycle_type.select != 'hourly'"
-                    >
-                      <InputNumber
-                        :min="0"
-                        :max="23"
-                        v-model="formCrontab.hours"
-                        :formatter="(value) => `${value}小时`"
-                        :parser="(value) => value.replace('小时', '')"
-                      ></InputNumber>
-                    </Col>
-                    <Col span="5" offset="1">
-                      <InputNumber
-                        :min="0"
-                        :max="59"
-                        v-model="formCrontab.minutes"
-                        :formatter="(value) => `${value}分钟`"
-                        :parser="(value) => value.replace('分钟', '')"
-                      ></InputNumber>
-                    </Col>
-                  </Row>
+                <FormItem label="管理员密码">
+                  <Input v-model="formAdminInfo.managePass" />
                 </FormItem>
-                <FormItem label="选择仓库">
-                  <Select v-model="formCrontab.repository.select">
-                    <Option
-                      v-for="item in formCrontab.repository.list"
-                      :value="item.value"
-                      :key="item.value"
-                      >{{ item.label }}</Option
-                    >
-                  </Select>
-                </FormItem>
-                <FormItem label="保留最新">
-                  <InputNumber
-                    :min="1"
-                    :max="1000"
-                    v-model="formCrontab.crontab_count"
-                    :formatter="(value) => `${value}份`"
-                    :parser="(value) => value.replace('份', '')"
-                  ></InputNumber>
+                <FormItem label="管理员邮箱">
+                  <Input v-model="formAdminInfo.manageEmail" />
                 </FormItem>
                 <FormItem>
-                  <Button type="primary" @click="AddCrontab">添加任务</Button>
+                  <Tooltip
+                    max-width="300"
+                    :content="toolTipSave"
+                    placement="top"
+                    transfer
+                  >
+                    <Button type="primary" @click="SetManageSetting()"
+                      >保存</Button
+                    >
+                  </Tooltip>
                 </FormItem>
               </Form>
             </Card>
           </Col>
         </Row>
-        <br />
-        <Card :bordered="true" :dis-hover="true">
-          <p slot="title">计划任务列表</p>
-          <Table :columns="crontab_column" :data="crontab_data">
-            <template slot-scope="{ index }" slot="action">
-              <Button type="error" size="small" @click="DeleteCrontab(index)"
-                >删除</Button
-              >
-            </template>
-          </Table>
-          <Card :bordered="false" :dis-hover="true">
-            <Page
-              v-if="content_total != 0"
-              :total="content_total"
-              :page-size="page_size"
-              @on-change="pageChange"
-            />
-          </Card>
-        </Card>
       </TabPane>
-      <!-- <TabPane label="系统安全" name="tab5">系统安全</TabPane>
-      <TabPane label="扩展服务" name="tab6">扩展服务</TabPane> -->
+      <TabPane label="系统更新" name="tab4">
+        <Row>
+          <Col span="8">
+            <Card dis-hover style="height: 320px">
+              <p slot="title">当前版本信息</p>
+              <Form
+                ref="formSoftwareInfo"
+                :model="formSoftwareInfo"
+                :label-width="110"
+              >
+                <FormItem label="当前版本">
+                  <Badge>
+                    {{ formSoftwareInfo.current_verson }}
+                  </Badge>
+                </FormItem>
+                <FormItem label="作者主页">
+                  <Badge>
+                    <a :href="formSoftwareInfo.author" target="_blank">{{
+                      formSoftwareInfo.author
+                    }}</a>
+                  </Badge>
+                </FormItem>
+                <FormItem label="开源地址">
+                  <Row>
+                    <Badge>
+                      <a :href="formSoftwareInfo.github" target="_blank"
+                        >GitHub</a
+                      >
+                    </Badge>
+                  </Row>
+                  <Row>
+                    <Badge>
+                      <a :href="formSoftwareInfo.gitee" target="_blank"
+                        >Gitee</a
+                      >
+                    </Badge>
+                  </Row>
+                </FormItem>
+                <FormItem>
+                  <Tooltip
+                    max-width="300"
+                    :content="toolTipUpdate"
+                    placement="top"
+                    transfer
+                  >
+                    <Button type="primary" @click="CheckUpdate()"
+                      >检测更新</Button
+                    >
+                  </Tooltip>
+                </FormItem>
+              </Form>
+            </Card>
+          </Col>
+        </Row>
+      </TabPane>
     </Tabs>
+    <Modal v-model="modalSofawareUpdateGet" title="最新版本信息">
+      <Form ref="formSoftwareNew" :model="formSoftwareNew" :label-width="90">
+        <FormItem label="最新版本">
+          <Badge dot>
+            {{ formSoftwareNew.latestVersion }}
+          </Badge>
+        </FormItem>
+        <FormItem label="升级类型">
+          <Badge>
+            {{ formSoftwareNew.updateStep }}
+          </Badge>
+        </FormItem>
+        <FormItem label="修复bug">
+          <i-input
+            v-html="formSoftwareNew.fixedContent"
+            type="textarea"
+            autosize
+          ></i-input>
+        </FormItem>
+        <FormItem label="新增功能">
+          <i-input
+            v-html="formSoftwareNew.newContent"
+            type="textarea"
+            autosize
+          ></i-input>
+        </FormItem>
+      </Form>
+    </Modal>
   </Card>
 </template>
 <script>
@@ -412,107 +387,37 @@ export default {
       current: 1, //当前在第几页
       page_size: 10, //每一页有几条数据
       content_total: 20, //总共有多少条数据
-      formCrontab: {
-        backup_type: {
-          select: "dump",
-          list: [
-            {
-              value: "dump",
-              label: "仓库备份-Dump-修订版本较多的情况下备份和恢复较慢",
-            },
-            {
-              value: "hotcopy",
-              label: "仓库备份-Hotcopy-备份和恢复较快但不节约空间",
-            },
-          ],
-        },
-        cycle_type: {
-          select: "weekly",
-          list: [
-            {
-              value: "weekly",
-              label: "每周",
-            },
-            {
-              value: "daily",
-              label: "每天",
-            },
-            {
-              value: "hourly",
-              label: "每小时",
-            },
-          ],
-        },
-        week: {
-          select: "1",
-          list: [
-            {
-              value: "1",
-              label: "周一",
-            },
-            {
-              value: "2",
-              label: "周二",
-            },
-            {
-              value: "3",
-              label: "周三",
-            },
-            {
-              value: "4",
-              label: "周四",
-            },
-            {
-              value: "5",
-              label: "周五",
-            },
-            {
-              value: "6",
-              label: "周六",
-            },
-            {
-              value: "7",
-              label: "周天",
-            },
-          ],
-        },
-        repository: {
-          select: "",
-          list: [
-            {
-              value: "1",
-              label: "11",
-            },
-          ],
-        },
-        hours: 1,
-        minutes: 30,
-        crontab_count: 3,
+      toolTipRepaire: "",
+      toolTipInstall:
+        "此操作会使用yum install方式进行Subversion服务的安装和相关的配置文件修改 请务必通过本方式安装 请确保软件所在主机能够访问外网",
+      toolTipUnInstall:
+        "此操作会通过yum remove方式卸载Subversion服务 不会删除用户的SVN存储库和密码与权限文件 但还是建议操作前先进行数据备份",
+      modalSofawareUpdateGet: false,
+      toolTipUpdate:
+        "此操作是通过读取位于GitHub和Gitee公开仓库(witersen/update)的配置文件进行软件更新检测 所以需要软件所在主机能够访问外网",
+      toolTipSave:
+        "由于配置信息是通过PHP配置文件进行管理读写 如果遇到设置不生效的情况 请检查 web 用户(可能是apache等) 对 $path/config 文件及下属文件的读写权限 您可以直接重设777权限 或联系开发者解决",
+      //当前版本信息
+      formSoftwareInfo: {
+        current_verson: "",
+        github: "",
+        gitee: "",
+        author: "",
       },
-      crontab_column: [
-        {
-          title: "任务名称",
-          key: "crontab_name",
-        },
-        {
-          title: "周期",
-          key: "crontab_cycle",
-        },
-        {
-          title: "执行时间",
-          key: "crontab_time",
-        },
-        {
-          title: "保存数量",
-          key: "crontab_count",
-        },
-        {
-          title: "操作",
-          slot: "action",
-          width: 300,
-          align: "center",
-        },
-      ],
+      //新版本信息
+      formSoftwareNew: {
+        newContent: "",
+        latestVersion: "",
+        fixedContent: "",
+        updateType: "",
+        updateStep: "",
+      },
+      //管理员信息
+      formAdminInfo: {
+        manageUser: "",
+        managePass: "",
+        manageEmail: "",
+      },
       crontab_data: [],
       formMessage: {
         api_name: "",
@@ -572,56 +477,16 @@ export default {
     pageChange(value) {
       var that = this;
       that.current = value;
-      that.GetCrontabList();
     },
-    DeleteCrontab(index) {
+    GetVersionInfo() {
       var that = this;
-      var data = {
-        sign: that.crontab_data[index]["sign"],
-      };
-      that.$Modal.confirm({
-        title: "警告",
-        content: "确定要删除该记录吗？",
-        loading: true,
-        onOk: () => {
-          that.$axios
-            .post("/api.php?c=crontab&a=DeleteCrontab", data)
-            .then(function (response) {
-              var result = response.data;
-              if (result.status == 1) {
-                that.$Message.success(result.message);
-                that.$Modal.remove();
-                that.GetCrontabList();
-              } else {
-                that.$Message.error(result.message);
-                that.$Modal.remove();
-              }
-            })
-            .catch(function (error) {
-              console.log(error);
-            });
-        },
-        onCancel: () => {},
-      });
-    },
-    AddCrontab() {
-      var that = this;
-      var data = {
-        backup_type: that.formCrontab.backup_type.select, // dump hotcopy
-        cycle_type: that.formCrontab.cycle_type.select, // weekly daily hourly
-        week: that.formCrontab.week.select, // 1 2 3 4 5 6 7
-        hour: that.formCrontab.hours, // 0-24
-        minute: that.formCrontab.minutes, // 0-60
-        repository_name: that.formCrontab.repository.select, // repository_name
-        crontab_count: that.formCrontab.crontab_count, // 1-1000
-      };
+      var data = {};
       that.$axios
-        .post("/api.php?c=crontab&a=AddCrontab", data)
+        .post("/api.php?c=update&a=GetVersionInfo", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetCrontabList();
+            that.formSoftwareInfo = result.data;
           } else {
             that.$Message.error(result.message);
           }
@@ -630,19 +495,20 @@ export default {
           console.log(error);
         });
     },
-    GetCrontabList() {
+    CheckUpdate() {
       var that = this;
-      var data = {
-        pageSize: that.page_size,
-        currentPage: that.current,
-      };
+      var data = {};
       that.$axios
-        .post("/api.php?c=crontab&a=GetCrontabList", data)
+        .post("/api.php?c=update&a=CheckUpdate", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            that.crontab_data = result.data;
-            that.content_total = result.total;
+            if (result.data != null) {
+              that.formSoftwareNew = result.data;
+              that.modalSofawareUpdateGet = true;
+            } else {
+              that.$Message.success(result.message);
+            }
           } else {
             that.$Message.error(result.message);
           }
@@ -719,10 +585,9 @@ export default {
     SetBasicSetting() {
       var that = this;
       var data = {
+        token: that.formConfig.token,
         server_ip: that.formConfig.server_ip,
         server_domain: that.formConfig.server_domain,
-        svn_repository_path: that.formConfig.svn_repository_path,
-        backup_path: that.formConfig.backup_path,
         all_mail_status: that.formConfig.all_mail_status,
       };
       that.$axios
@@ -731,6 +596,44 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    SetManageSetting() {
+      var that = this;
+      var data = {
+        manageUser: that.formAdminInfo.manageUser,
+        managePass: that.formAdminInfo.managePass,
+        manageEmail: that.formAdminInfo.manageEmail,
+      };
+      that.$axios
+        .post("/api.php?c=config&a=SetManageSetting", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    GetManageSetting() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=config&a=GetManageSetting", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.formAdminInfo = result.data;
           } else {
             that.$Message.error(result.message);
           }
@@ -800,7 +703,7 @@ export default {
       var data = {};
       that.$Modal.confirm({
         title: "警告",
-        content: "此操作将会删除所有仓库和账户信息，确认继续吗？",
+        content: "此操作将会安装Subversion服务，确认继续吗？",
         onOk: () => {
           that.svnserveLoading.installSvn = true;
           that.$axios
@@ -830,8 +733,7 @@ export default {
       var data = {};
       that.$Modal.confirm({
         title: "警告",
-        content:
-          "此操作将会清除所有普通用户的仓库权限，并尝试重新修复一些数据库表，确认继续吗？",
+        content: "此操作将会尝试修复一些问题，确认继续吗？",
         onOk: () => {
           that.svnserveLoading.repaireSvn = true;
           that.$axios
@@ -860,7 +762,7 @@ export default {
       var data = {};
       that.$Modal.confirm({
         title: "警告",
-        content: "此操作将会删除所有仓库和账户信息，确认继续吗？",
+        content: "此操作将会卸载Subversion服务，确认继续吗？",
         onOk: () => {
           that.svnserveLoading.unInstallSvn = true;
           that.$axios
@@ -993,23 +895,6 @@ export default {
           console.log(error);
         });
     },
-    GetAllRepositoryList() {
-      var that = this;
-      var data = {};
-      that.$axios
-        .post("/api.php?c=svnserve&a=GetAllRepositoryList", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.formCrontab.repository.list = result.data;
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
   },
   mounted() {
     var that = this;
@@ -1018,8 +903,8 @@ export default {
     that.GetFirewallPolicy();
     that.GetBasicSetting();
     that.GetMailInfo();
-    that.GetAllRepositoryList();
-    that.GetCrontabList();
+    that.GetVersionInfo();
+    that.GetManageSetting();
   },
 };
 </script>

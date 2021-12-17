@@ -6,18 +6,6 @@
 
 class System extends Controller
 {
-    /*
-     * 注意事项：
-     * 1、所有的控制器都要继承基类控制器：Controller
-     * 2、基类控制器中包含：数据库连接对象、守护进程通信对象、视图层对象、公共函数等，继承后可以直接使用基类的变量和对象
-     * 
-     * 用法：
-     * 1、使用父类的变量：$this->xxx
-     * 2、使用父类的成员函数：parent::yyy()
-     * 3、使用父类的非成员函数，直接用即可：zzz() 
-     * 4、
-     */
-
     private $Config;
 
     function __construct()
@@ -79,7 +67,7 @@ class System extends Controller
         $info['DiskPercent'] = ($info['DiskTotal'] != 0) ? round($info['DiskUsed'] / $info['DiskTotal'] * 100, 1) : 0;
 
         $data['status'] = 1;
-        $data['message'] = '获取磁盘信息成功';
+        $data['message'] = '成功';
         $data['data'] = $info;
         return $data;
     }
@@ -98,7 +86,7 @@ class System extends Controller
         $info = $days . "天" . $hours . "小时" . $min . "分钟";
 
         $data['status'] = 1;
-        $data['message'] = '获取服务器运行时间成功';
+        $data['message'] = '成功';
         $data['data'] = $info;
         return $data;
     }
@@ -141,7 +129,7 @@ class System extends Controller
         $result['percent'] = round(round(1.00 - ($fiee_time_2 - $fiee_time_1) / ($total_time_2 - $total_time_1), 2) * 100, 1);
 
         $data['status'] = 1;
-        $data['message'] = '获取CPU信息成功';
+        $data['message'] = '成功';
         $data['data'] = $result;
         return $data;
     }
@@ -179,7 +167,7 @@ class System extends Controller
         $result['percent'] = round($MemRealUsed / $MemTotal * 100, 1);
 
         $data['status'] = 1;
-        $data['message'] = '获取内存信息成功';
+        $data['message'] = '成功';
         $data['data'] = $result;
         return $data;
     }
@@ -212,7 +200,7 @@ class System extends Controller
         $result['avg_percent'] = $result['avg_percent'] >= 100 ? 100 : $result['avg_percent'];
 
         $data['status'] = 1;
-        $data['message'] = '获取系统平均负载信息成功';
+        $data['message'] = '成功';
         $data['data'] = $result;
         return $data;
     }
@@ -239,7 +227,7 @@ class System extends Controller
         }
 
         $data['status'] = 1;
-        $data['message'] = '获取特定网卡流量信息成功';
+        $data['message'] = '成功';
         $data['data'] = $result;
         return $data;
     }
@@ -264,7 +252,7 @@ class System extends Controller
         }
 
         $data['status'] = 1;
-        $data['message'] = '获取网卡流量信息成功';
+        $data['message'] = '成功';
         $data['data'] = $result;
         return $data;
     }

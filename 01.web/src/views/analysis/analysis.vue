@@ -104,23 +104,23 @@
         <Col span="4">
           <Card style="width: 235px" :dis-hover="true" :bordered="true">
             <div style="text-align: center">
-              <P class="p_top">超级管理员</P>
+              <P class="p_top">系统管理员</P>
               <div class="gailan">{{ this.gailan.super_count }}</div>
             </div>
           </Card>
         </Col>
-        <Col span="4">
+        <!-- <Col span="4">
           <Card style="width: 235px" :dis-hover="true" :bordered="true">
             <div style="text-align: center">
               <P class="p_top">系统管理员</P>
               <div class="gailan">{{ this.gailan.sys_count }}</div>
             </div>
           </Card>
-        </Col>
+        </Col> -->
         <Col span="4">
           <Card style="width: 235px" :dis-hover="true" :bordered="true">
             <div style="text-align: center">
-              <P class="p_top">普通用户</P>
+              <P class="p_top">SVN用户</P>
               <div class="gailan">{{ this.gailan.user_count }}</div>
             </div>
           </Card>

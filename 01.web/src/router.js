@@ -13,7 +13,7 @@ const publicRoutes = [
         redirect: 'repository',
         meta: {
             requireAuth: true,
-            roles: [1, 2, 3]
+            roles: [1, 2]
         },
         component: (resolve) => require(['./views/layout/layout.vue'], resolve),
         children: [
@@ -24,7 +24,7 @@ const publicRoutes = [
                     title: '服务总览',
                     isNav: true,
                     requireAuth: true,
-                    roles: [1, 2, 3]
+                    roles: [1, 2]
                 },
                 component: (resolve) => require(['./views/analysis/analysis.vue'], resolve)
             },
@@ -35,7 +35,7 @@ const publicRoutes = [
                     title: '仓库管理',
                     isNav: true,
                     requireAuth: true,
-                    roles: [1, 2, 3]
+                    roles: [1, 2]
                 },
                 component: (resolve) => require(['./views/repository/repository.vue'], resolve)
             },
@@ -46,18 +46,29 @@ const publicRoutes = [
                     title: '用户管理',
                     isNav: true,
                     requireAuth: true,
-                    roles: [1, 2]
+                    roles: [1]
                 },
                 component: (resolve) => require(['./views/user/user.vue'], resolve)
+            },
+            {
+                name: 'group',
+                path: 'group',
+                meta: {
+                    title: '分组管理',
+                    isNav: true,
+                    requireAuth: true,
+                    roles: [1]
+                },
+                component: (resolve) => require(['./views/group/group.vue'], resolve)
             },
             {
                 name: 'sys',
                 path: 'setting',
                 meta: {
-                    title: '系统管理',
+                    title: '系统设置',
                     isNav: true,
                     requireAuth: true,
-                    roles: [1, 2]
+                    roles: [1]
                 },
                 component: (resolve) => require(['./views/setting/setting.vue'], resolve),
             },

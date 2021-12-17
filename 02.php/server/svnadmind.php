@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 
 define('BASE_PATH', __DIR__);
 
-require_once BASE_PATH . '/../config/config.php';
+require_once BASE_PATH . '/../config/manual.config.php';
 
 class Daemon
 {
@@ -60,29 +60,29 @@ class Daemon
     private function init_socket()
     {
         //创建套接字
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or exit('socket_create 错误');
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or exit("socket_create 错误\n");
 
         //绑定地址和端口
-        socket_bind($socket, IPC_ADDRESS, IPC_PORT) or exit('socket_bind 错误');
+        socket_bind($socket, IPC_ADDRESS, (int)IPC_PORT) or exit("socket_bind 错误 可能是由于频繁启动 端口未释放 请稍后重试或检查端口冲突\n");
 
         //设置可重复使用端口号
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
 
         //监听 设置并发队列的最大长度
-        socket_listen($socket, SOCKET_LISTEN_BACKLOG);
+        socket_listen($socket, (int)SOCKET_LISTEN_BACKLOG);
 
         while (true) {
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
 
-            $clien = socket_accept($socket) or exit('socket_accept 错误');
+            $clien = socket_accept($socket) or exit("socket_accept 错误\n");
 
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
 
             $pid = pcntl_fork();
             if ($pid == -1) {
-                exit('pcntl_fork 错误');
+                exit("pcntl_fork 错误\n");
             } else if ($pid == 0) {
                 $this->handle_request($clien);
             } else {
@@ -131,7 +131,7 @@ class Daemon
     private function handle_request($clien)
     {
         //接收客户端发送的数据
-        $data = socket_read($clien, SOCKET_READ_LENGTH);
+        $data = socket_read($clien, (int)SOCKET_READ_LENGTH);
 
         //console
         $this->state == "console" ? print_r("\n---------接收内容---------\n" . $data . "\n") : "";
@@ -175,11 +175,6 @@ class Daemon
 
     private function start()
     {
-        clearstatcache(true, DB_FILE);
-        if (!file_exists(DB_FILE)) {
-            echo "数据库文件不存在 请复制数据库文件到指定目录\n";
-            return;
-        }
         $this->start_daemon();
         $this->init_socket();
     }

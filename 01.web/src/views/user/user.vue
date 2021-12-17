@@ -1,135 +1,63 @@
 <template>
   <Card :bordered="false" :dis-hover="true">
-    <Button type="primary" @click="add_user_status_click()">添加用户</Button>
+    <Tooltip max-width="150" :content="toolTipAddUser">
+      <Button type="primary" @click="ModalAddRepUser()">新建用户</Button>
+    </Tooltip>
     <div class="page-table">
-      <Table :columns="column1" :data="data1" :loading="data1_loading_status">
-        <template slot-scope="{ row }" slot="id">
-          <strong>{{ row.id + 1 }}</strong>
+      <Table :columns="tableColumnRepUser" :data="tableDataRepUser">
+        <template slot-scope="{ index }" slot="id">
+          <strong>{{ index + 1 }}</strong>
         </template>
         <template slot-scope="{ index }" slot="action">
-          <Button
-            v-bind:disabled="data1[index]['roleid'] != 3"
-            type="primary"
-            size="small"
-            @click="GetUserRepositoryList(index)"
-            >授权</Button
-          >
-          <Button type="success" size="small" @click="edituserStatus(index)"
+          <Button type="success" size="small" @click="ModalRepUserEdit(index)"
             >编辑</Button
           >
-          <Button type="error" size="small" @click="DelUser(index)"
+          <Button type="error" size="small" @click="ModalRepUserDel(index)"
             >删除</Button
           >
         </template>
       </Table>
       <Card :bordered="false" :dis-hover="true">
         <Page
-          v-if="content_total != 0"
-          :total="content_total"
-          :page-size="page_size"
-          @on-change="pageChange"
+          v-if="numRepUserTotal != 0"
+          :total="numRepUserTotal"
+          :page-size="numRepUserPageSize"
+          @on-change="PagesizeChange"
         />
       </Card>
     </div>
     <Modal
-      v-model="add_user_status"
-      title="添加用户"
-      @on-ok="AddUser()"
-      :loading="modal_add_user_loading_status"
+      v-model="ModalRepUserAdd"
+      title="新建SVN用户"
+      @on-ok="RepAddUser()"
+      @submit.native.prevent
     >
-      <Form ref="formUser" :model="formUser" :label-width="80">
+      <Form ref="formRepUser" :model="formRepUser" :label-width="80">
         <FormItem label="用户名">
-          <Input v-model="formUser.username" />
+          <Input v-model="formRepUser.username" />
         </FormItem>
         <FormItem label="密码">
-          <Input v-model="formUser.password" />
+          <Input v-model="formRepUser.password" />
         </FormItem>
         <FormItem label="确认密码">
-          <Input v-model="formUser.password2" />
-        </FormItem>
-        <FormItem label="角色">
-          <RadioGroup v-model="formUser.roleid">
-            <Radio label="1" disabled><span>超级管理员</span></Radio>
-            <Radio label="2"><span>系统管理员</span></Radio>
-            <Radio label="3"><span>普通用户</span></Radio>
-          </RadioGroup>
-        </FormItem>
-        <FormItem label="姓名">
-          <Input v-model="formUser.realname" />
-        </FormItem>
-        <FormItem label="邮件">
-          <Input v-model="formUser.email" />
-        </FormItem>
-        <FormItem label="电话">
-          <Input v-model="formUser.phone" />
+          <Input v-model="formRepUser.password2" />
         </FormItem>
       </Form>
     </Modal>
     <Modal
-      v-model="shouquan_status"
-      title="用户授权"
-      @on-ok="SetUserRepositoryList"
-      :loading="modal_shouquan_loading_status"
+      v-model="modalRepUserEdit"
+      title="编辑SVN用户信息"
+      @on-ok="RepEditUser()"
     >
-      <Table
-        :loading="shouquan_loading_status"
-        height="400"
-        border
-        :columns="user_repository_list_comumns"
-        :data="user_repository_list_data"
-      >
-        <template slot-scope="{ row }" slot="id">
-          <strong>{{ row.id + 1 }}</strong>
-        </template>
-        <template slot-scope="{ index }" slot="slot_privilege">
-          <RadioGroup
-            type="button"
-            v-model="user_repository_list_data[index].privilege"
-          >
-            <Radio label="1"><span>授权</span></Radio>
-            <Radio label="0"><span>无</span></Radio>
-          </RadioGroup>
-        </template>
-      </Table>
-    </Modal>
-    <Modal
-      v-model="editUser_status"
-      title="编辑用户信息"
-      @on-ok="EditUser()"
-      :loading="modal_editUser_loading_status"
-    >
-      <Form ref="formUser" :model="formUser" :label-width="80">
+      <Form ref="formRepUser" :model="formRepUser" :label-width="80">
         <FormItem label="用户名">
-          <Input
-            v-model="formUser.username"
-            v-bind:disabled="formUser.roleid == 1"
-          />
+          <Input v-model="formRepUser.username" disabled />
         </FormItem>
         <FormItem label="密码">
-          <Input v-model="formUser.password" />
+          <Input v-model="formRepUser.password" />
         </FormItem>
         <FormItem label="确认密码">
-          <Input v-model="formUser.password2" />
-        </FormItem>
-        <FormItem label="角色">
-          <RadioGroup v-model="formUser.roleid">
-            <Radio label="1" disabled><span>超级管理员</span></Radio>
-            <Radio label="2" v-bind:disabled="formUser.roleid == 1"
-              ><span>系统管理员</span></Radio
-            >
-            <Radio label="3" v-bind:disabled="formUser.roleid == 1"
-              ><span>普通用户</span></Radio
-            >
-          </RadioGroup>
-        </FormItem>
-        <FormItem label="姓名">
-          <Input v-model="formUser.realname" />
-        </FormItem>
-        <FormItem label="邮件">
-          <Input v-model="formUser.email" />
-        </FormItem>
-        <FormItem label="电话">
-          <Input v-model="formUser.phone" />
+          <Input v-model="formRepUser.password2" />
         </FormItem>
       </Form>
     </Modal>
@@ -139,20 +67,26 @@
 export default {
   data() {
     return {
-      modal_editUser_loading_status: true, //编辑用户信息确认加载中
-      modal_shouquan_loading_status: true, //授权确认加载中
-      modal_add_user_loading_status: true, //添加用户确认加载中
-      data1_loading_status: true, //用户列表加载中
-      isadmin: window.sessionStorage.roleid == 1 ? true : false,
-      add_user_status: false, //添加用户
-      current: 1, //当前在第几页
-      page_size: 10, //每一页有几条数据
-      content_total: 20, //总共有多少条数据
-      selectedReposotoryPrivilegeItem: "", //仓库授权 仓库账户 弹出框中选中
-      editUser_status: false, //编辑弹出框
-      shouquan_status: false, //授权弹出框
-      shouquan_loading_status: true, //授权弹出框加载中
-      formUser: {
+      toolTipAddUser: "用户名只能由数字、字母、下划线组成 密码可由数字、字母、下划线、点、@组成",
+      /**
+       * 布尔值
+       */
+      boolIsAdmin: window.sessionStorage.roleid == 1 ? true : false,
+
+      /**
+       * 对话框控制
+       */
+      ModalRepUserAdd: false, //添加用户
+      modalRepUserEdit: false, //编辑弹出框
+
+      /**
+       * 分页数据
+       */
+      numRepUserPageCurrent: 1,
+      numRepUserPageSize: 10,
+      numRepUserTotal: 20,
+
+      formRepUser: {
         userid: "", //用户id
         username: "", //添加用户时的用户名称
         password: "", //密码
@@ -163,10 +97,13 @@ export default {
         roleid: "", //角色id
         rolename: "", //角色名称
       },
-      column1: [
+
+      /**
+       * 用户表格数据
+       */
+      tableColumnRepUser: [
         {
           title: "序号",
-          key: "id",
           slot: "id",
           width: 150,
         },
@@ -183,219 +120,128 @@ export default {
           key: "rolename",
         },
         {
-          title: "真实姓名",
-          key: "realname",
-        },
-        {
-          title: "邮件",
-          key: "email",
-        },
-        {
-          title: "电话",
-          key: "phone",
-        },
-        {
           title: "操作",
           slot: "action",
           width: 200,
           align: "center",
         },
       ],
-      data1: [
-        {
-          id: 1,
-          uid: "",
-          roleid: "",
-          username: "",
-          password: "",
-          realname: "",
-          email: "",
-          rolename: "",
-          phone: "",
-        },
-      ],
-      user_repository_list_comumns: [
-        {
-          title: "序号",
-          key: "id",
-          slot: "id",
-          width: 70,
-        },
-        {
-          title: "仓库",
-          key: "repository_name",
-        },
-        {
-          title: "权限",
-          key: "privilege",
-          slot: "slot_privilege",
-        },
-      ],
-      user_repository_list_data: [
-        {
-          id: 0,
-          repository_name: "root",
-          privilege: "",
-        },
-      ],
-      yonghu_comumns: [
-        {
-          title: "序号",
-          key: "id",
-          slot: "id",
-          width: 70,
-        },
-        {
-          title: "账户",
-          key: "account",
-        },
-        {
-          title: "密码",
-          key: "password",
-        },
-        {
-          title: "操作",
-          key: "act",
-          slot: "slot_act",
-        },
-      ],
-      yonghu_data: [
+      tableDataRepUser: [
         // {
-        //   id: 0,
-        //   account: "root",
-        //   password: "123456",
+        //   id: 1,
+        //   uid: "",
+        //   roleid: "",
+        //   username: "",
+        //   password: "",
+        //   realname: "",
+        //   email: "",
+        //   rolename: "",
+        //   phone: "",
         // },
       ],
     };
   },
   methods: {
-    pageChange(value) {
+    PagesizeChange(value) {
       var that = this;
-      that.current = value; //设置当前页数
-      that.GetUserList();
+      that.numRepUserPageCurrent = value; //设置当前页数
+      that.RepGetUserList();
     },
-    edituserStatus(index) {
+    ModalRepUserEdit(index) {
       var that = this;
-      that.editUser_status = true;
-      that.modal_editUser_loading_status = true;
+      that.modalRepUserEdit = true;
 
-      that.formUser.userid = that.data1[index]["uid"];
-      that.formUser.username = that.data1[index]["username"];
-      that.formUser.password = that.data1[index]["password"];
-      that.formUser.password2 = that.data1[index]["password"];
-      that.formUser.roleid = that.data1[index]["roleid"];
-      that.formUser.realname = that.data1[index]["realname"];
-      that.formUser.email = that.data1[index]["email"];
-      that.formUser.phone = that.data1[index]["phone"];
+      that.formRepUser.username = that.tableDataRepUser[index]["username"];
+      that.formRepUser.password = that.tableDataRepUser[index]["password"];
+      that.formRepUser.password2 = that.tableDataRepUser[index]["password"];
     },
-    add_user_status_click() {
+    //添加用户对话框
+    ModalAddRepUser() {
       var that = this;
-      that.modal_add_user_loading_status = true;
-      that.add_user_status = true;
-      that.formUser.username = "";
-      that.formUser.password = "";
-      that.formUser.password2 = "";
-      that.formUser.realname = "";
-      that.formUser.email = "";
-      that.formUser.phone = "";
-      that.formUser.roleid = "";
+      that.ModalRepUserAdd = true;
+      that.formRepUser.username = "";
+      that.formRepUser.password = "";
+      that.formRepUser.password2 = "";
     },
-    EditUser() {
+    RepEditUser() {
       var that = this;
-      that.modal_editUser_loading_status = true;
       var data = {
-        edit_userid: that.formUser.userid,
-        edit_username: that.formUser.username,
-        edit_password: that.formUser.password,
-        edit_password2: that.formUser.password2,
-        edit_roleid: that.formUser.roleid,
-        edit_realname: that.formUser.realname,
-        edit_email: that.formUser.email,
-        edit_phone: that.formUser.phone,
+        edit_username: that.formRepUser.username,
+        edit_password: that.formRepUser.password,
+        edit_password2: that.formRepUser.password2,
       };
       that.$axios
-        .post("/api.php?c=user&a=EditUser", data)
+        .post("/api.php?c=svnserve&a=RepEditUser", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.editUser_status = false;
-            that.modal_editUser_loading_status = false;
-            that.GetUserList();
+            that.modalRepUserEdit = false;
+            that.RepGetUserList();
           } else {
             that.$Message.error(result.message);
-            that.editUser_status = false;
-            that.modal_editUser_loading_status = false;
+            that.modalRepUserEdit = false;
           }
         })
         .catch(function (error) {
           console.log(error);
-          that.editUser_status = false;
-          that.modal_editUser_loading_status = false;
+          that.modalRepUserEdit = false;
         });
     },
-    AddUser() {
+    //添加仓库用户
+    RepAddUser() {
       var that = this;
-      that.modal_add_user_loading_status = true;
       var data = {
-        username: that.formUser.username,
-        password: that.formUser.password,
-        password2: that.formUser.password2,
-        roleid: that.formUser.roleid,
-        realname: that.formUser.realname,
-        email: that.formUser.email,
-        phone: that.formUser.phone,
+        username: that.formRepUser.username,
+        password: that.formRepUser.password,
+        password2: that.formRepUser.password2,
       };
       that.$axios
-        .post("/api.php?c=user&a=AddUser", data)
+        .post("/api.php?c=svnserve&a=RepAddUser", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.add_user_status = false;
-            that.modal_add_user_loading_status = false;
-            that.GetUserList();
+            that.ModalRepUserAdd = false;
+            that.RepGetUserList();
           } else {
             that.$Message.error(result.message);
-            that.add_user_status = false;
-            that.modal_add_user_loading_status = false;
+            that.ModalRepUserAdd = false;
           }
         })
         .catch(function (error) {
           console.log(error);
-          that.add_user_status = false;
-          that.modal_add_user_loading_status = false;
+          that.ModalRepUserAdd = false;
         });
     },
-    GetUserList() {
+    //获取仓库用户列表
+    RepGetUserList() {
       var that = this;
-      that.data1_loading_status = true;
       var data = {
-        pageSize: that.page_size,
-        currentPage: that.current,
+        pageSize: that.numRepUserPageSize,
+        currentPage: that.numRepUserPageCurrent,
       };
       that.$axios
-        .post("/api.php?c=user&a=GetUserList", data)
+        .post("/api.php?c=svnserve&a=RepGetUserList", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            that.data1 = result.data;
-            that.content_total = result.total;
-            that.data1_loading_status = false;
+            that.tableDataRepUser = result.data;
+            that.numRepUserTotal = result.total;
           } else {
             that.$Message.error(result.message);
-            that.data1_loading_status = false;
+            that.numRepUserTotal = 0;
           }
         })
         .catch(function (error) {
           console.log(error);
-          that.data1_loading_status = false;
         });
     },
-    DelUser(index) {
+    //删除仓库用户
+    ModalRepUserDel(index) {
       var that = this;
       var data = {
-        del_userid: that.data1[index]["uid"],
+        del_username: that.tableDataRepUser[index]["username"],
       };
       that.$Modal.confirm({
         title: "警告",
@@ -403,13 +249,13 @@ export default {
         loading: true,
         onOk: () => {
           that.$axios
-            .post("/api.php?c=user&a=DelUser", data)
+            .post("/api.php?c=svnserve&a=RepUserDel", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
                 that.$Modal.remove();
-                that.GetUserList();
+                that.RepGetUserList();
               } else {
                 that.$Message.error(result.message);
                 that.$Modal.remove();
@@ -422,68 +268,11 @@ export default {
         onCancel: () => {},
       });
     },
-    SetUserRepositoryList() {
-      var that = this;
-      that.modal_shouquan_loading_status = true;
-      var data = {
-        userid: that.formUser.userid,
-        this_account_list: that.user_repository_list_data,
-      };
-      that.$axios
-        .post("/api.php?c=user&a=SetUserRepositoryList", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.shouquan_status = false;
-            that.modal_shouquan_loading_status = false;
-          } else {
-            that.$Message.error(result.message);
-            that.shouquan_status = false;
-            that.modal_shouquan_loading_status = false;
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.shouquan_status = false;
-          that.modal_shouquan_loading_status = false;
-        });
-    },
-    GetUserRepositoryListAct() {
-      var that = this;
-      that.shouquan_loading_status = true;
-      var data = {
-        userid: that.formUser.userid,
-      };
-      that.$axios
-        .post("/api.php?c=user&a=GetUserRepositoryList", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.user_repository_list_data = result.data;
-            that.shouquan_loading_status = false;
-          } else {
-            that.$Message.error(result.message);
-            that.shouquan_loading_status = false;
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.shouquan_loading_status = false;
-        });
-    },
-    GetUserRepositoryList(index) {
-      var that = this;
-      that.modal_shouquan_loading_status = true;
-      that.shouquan_status = true;
-      that.formUser.userid = that.data1[index]["uid"];
-      that.GetUserRepositoryListAct();
-    },
   },
   created() {},
   mounted() {
     var that = this;
-    that.GetUserList();
+    that.RepGetUserList();
   },
 };
 </script>

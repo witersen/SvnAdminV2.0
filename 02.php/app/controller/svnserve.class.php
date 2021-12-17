@@ -6,7 +6,7 @@
  * 相关目录：
  * 1、conf目录地址：/www/svn/conf
  * 2、repository地址：/www/svn/repository
- * 3、/etc/sysconfig/svnserve 文件内容指定了SVN服务的repository目录 不清楚为自动生成的配置或为手动生成的配置
+ * 3、/etc/sysconfig/svnserve 文件内容指定了SVN服务的repository目录 
  * 4、/etc/subversion 
  * 5、SVN项目部署目录：自定义 文件会自动保存在自定义的部署目录
  * 6、/var/svn 为subversive的默认仓库目录
@@ -15,23 +15,10 @@
 
 class Svnserve extends Controller
 {
-    /*
-     * 注意事项：
-     * 1、所有的控制器都要继承基类控制器：Controller
-     * 2、基类控制器中包含：数据库连接对象、守护进程通信对象、视图层对象、公共函数等，继承后可以直接使用基类的变量和对象
-     * 
-     * 用法：
-     * 1、使用父类的变量：$this->xxx
-     * 2、使用父类的成员函数：parent::yyy()
-     * 3、使用父类的非成员函数，直接用即可：zzz() 
-     * 4、
-     */
-
     private $Config;
     private $svn_repository_path;
     private $server_domain;
-    private $protocol;
-    private $svn_web_path;
+    private $svn_protocol;
     private $svn_port;
     private $http_port;
     private $server_ip;
@@ -60,32 +47,541 @@ class Svnserve extends Controller
 
         $this->Clientinfo = new Clientinfo();
 
-        $this->svn_repository_path = $this->Config->Get("SVN_REPOSITORY_PATH");
-        $this->server_domain = $this->Config->Get("SERVER_DOMAIN");
-        $this->server_ip = $this->Config->Get("SERVER_IP");
-        $this->protocol = $this->Config->Get("PROTOCOL");
-        $this->svn_web_path = $this->Config->Get("SVN_WEB_PATH");
-        $this->svn_port = $this->Config->Get("SVN_PORT");
-        $this->http_port = $this->Config->Get("HTTP_PORT");
+        $this->svn_repository_path = SVN_REPOSITORY_PATH;
+        $this->server_domain = SERVER_DOMAIN;
+        $this->server_ip = SERVER_IP;
+        $this->svn_protocol = SVN_PROTOCOL;
+        $this->svn_port = SVN_PORT;
+        $this->http_port = HTTP_PORT;
+    }
+
+
+    /**
+     * 添加仓库用户
+     */
+    function RepAddUser($requestPayload)
+    {
+        $username = trim($requestPayload['username']);
+        $password = trim($requestPayload['password']);
+        $password2 = trim($requestPayload['password2']);
+
+        if (empty($username) || empty($password) ||  $password != $password2) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        if (preg_match("/^[0-9a-zA-Z_]*$/", $username, $match) == 0) {
+            $data['status'] = 0;
+            $data['message'] = '用户名只能包括数字、字母、下划线';
+            return $data;
+        }
+
+        if (preg_match("/^[0-9a-zA-Z_.@]*$/", $password, $match) == 0) {
+            $data['status'] = 0;
+            $data['message'] = '密码只能包括数字、字母、下划线、点 、@';
+            return $data;
+        }
+
+        if ($username == MANAGE_USER) {
+            $data['status'] = 0;
+            $data['message'] = 'SVN用户与管理员账号冲突';
+            return $data;
+        }
+
+        $status =  FunAddSvnUser(file_get_contents(SVN_SERVER_PASSWD), $username, $password);
+        if ($status == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[users]标识';
+            return $data;
+        }
+        if ($status == '1') {
+            $data['status'] = 0;
+            $data['message'] = '用户已存在';
+            return $data;
+        }
+        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 获取仓库用户列表
+     */
+    function RepGetUserList($requestPayload)
+    {
+        $pageSize = $requestPayload['pageSize'];
+        $currentPage = $requestPayload['currentPage'];
+
+        if (empty($pageSize) || empty($currentPage)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        //检查svn状态
+        $svn_check_status = $this->CheckSvnserveStatus();
+        if ($svn_check_status['status'] == 0) {
+            $data['status'] = 0;
+            $data['message'] = $svn_check_status['message'];
+            return $data;
+        }
+
+        $userPassList = FunGetSvnUserPassList(file_get_contents(SVN_SERVER_PASSWD));
+
+        $begin = $pageSize * ($currentPage - 1);
+
+        $temp = array();
+        foreach ($userPassList as $key => $value) {
+            array_push($temp, array(
+                'username' => $key,
+                'password' => $value
+            ));
+        }
+
+        $temp = array_splice($temp, $begin, $pageSize);
+
+        $info = array();
+        foreach ($temp as $key => $value) {
+            array_push($info, array(
+                'username' => $value['username'],
+                'password' => $value['password'],
+                'rolename' => 'SVN用户'
+            ));
+        }
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        $data['data'] = $info;
+        $data['total'] = count(FunGetSvnUserList(file_get_contents(SVN_SERVER_PASSWD)));
+        return $data;
+    }
+
+    /**
+     * 编辑仓库用户信息
+     */
+    function RepEditUser($requestPayload)
+    {
+        $edit_username = trim($requestPayload['edit_username']);
+        $edit_password = trim($requestPayload['edit_password']);
+        $edit_password2 = trim($requestPayload['edit_password2']);
+
+        if (empty($edit_username) || empty($edit_password) ||  $edit_password != $edit_password2) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if (preg_match("/^[0-9a-zA-Z_]*$/", $edit_password, $match) == 0) {
+            $data['status'] = 0;
+            $data['message'] = '分组名只能包括数字、字母、下划线';
+            return $data;
+        }
+
+        if ($edit_username == MANAGE_USER) {
+            $data['status'] = 0;
+            $data['message'] = 'SVN用户与管理员账号冲突';
+            return $data;
+        }
+
+        $status = FunUpdSvnUserPass(file_get_contents(SVN_SERVER_PASSWD), $edit_username, $edit_password);
+        if ($status == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[users]标识';
+            return $data;
+        }
+        if ($status == '1') {
+            $data['status'] = 0;
+            $data['message'] = '用户不存在';
+            return $data;
+        }
+        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 删除仓库用户
+     */
+    function RepUserDel($requestPayload)
+    {
+        $del_username = $requestPayload['del_username'];
+
+        if (empty($del_username)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        $status = FunDelSvnUserPasswd(file_get_contents(SVN_SERVER_PASSWD), $del_username);
+        if ($status == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[users]标识';
+            return $data;
+        }
+        if ($status == '1') {
+            $data['status'] = 0;
+            $data['message'] = '用户不存在';
+            return $data;
+        }
+        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
+
+        $status = FunDelUserAuthz(file_get_contents(SVN_SERVER_AUTHZ), $del_username);
+        if ($status == '1') {
+            $data['status'] = 0;
+            $data['message'] = '用户不存在';
+            return $data;
+        }
+        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 添加仓库分组
+     */
+    function RepAddGroup($requestPayload)
+    {
+        $groupname = trim($requestPayload['groupname']);
+
+        if (empty($groupname)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        if (preg_match("/^[0-9a-zA-Z_]*$/", $groupname, $match) == 0) {
+            $data['status'] = 0;
+            $data['message'] = '组名称只能包括数字、字母、下划线';
+            return $data;
+        }
+
+        $status = FunAddSvnGroup(file_get_contents(SVN_SERVER_AUTHZ), $groupname);
+
+        if ($status == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[groups]标识';
+            return $data;
+        }
+        if ($status == '1') {
+            $data['status'] = 0;
+            $data['message'] = '分组已存在';
+            return $data;
+        }
+        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 获取仓库分组列表
+     */
+    function RepGetGroupList($requestPayload)
+    {
+        $pageSize = $requestPayload['pageSize'];
+        $currentPage = $requestPayload['currentPage'];
+
+        if (empty($pageSize) || empty($currentPage)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        //检查svn状态
+        $svn_check_status = $this->CheckSvnserveStatus();
+        if ($svn_check_status['status'] == 0) {
+            $data['status'] = 0;
+            $data['message'] = $svn_check_status['message'];
+            return $data;
+        }
+
+        $authz = file_get_contents(SVN_SERVER_AUTHZ);
+        $groupList = FunGetSvnGroupList($authz);
+        $groupUserList = FunGetSvnGroupUserList($authz);
+
+        $total = count($groupList);
+
+        $begin = $pageSize * ($currentPage - 1);
+
+        //array_splice会将下标自动转换 使用要注意
+        $groupList = array_splice($groupList, $begin, $pageSize);
+
+        $info = array();
+        foreach ($groupList as $key => $value) {
+            $usercount = count($groupUserList[$value]);
+            if ($usercount == 1) {
+                $usercount = trim($groupUserList[$value][0]) == '' ? 0 : 1;
+            } else {
+                $usercount = count($groupUserList[$value]);
+            }
+            array_push($info, array(
+                'groupname' => $value,
+                'usercount' => $usercount,
+            ));
+        }
+
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        $data['data'] = $info;
+        $data['total'] = $total;
+        return $data;
+    }
+
+    /**
+     * 编辑仓库分组信息
+     */
+    function RepEditGroup($requestPayload)
+    {
+        $oldGroup = trim($requestPayload['oldGroup']);
+        $newGroup = trim($requestPayload['newGroup']);
+
+        if (empty($oldGroup) || empty($newGroup)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        if (preg_match("/^[0-9a-zA-Z_]*$/", $newGroup, $match) == 0) {
+            $data['status'] = 0;
+            $data['message'] = '分组名只能包括数字、字母、下划线';
+            return $data;
+        }
+
+        if ($oldGroup == $newGroup) {
+            $data['status'] = 0;
+            $data['message'] = '无修改';
+            return $data;
+        }
+
+        $status = FunUpdSvnGroup(file_get_contents(SVN_SERVER_AUTHZ), $oldGroup, $newGroup);
+        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 删除仓库分组
+     */
+    function RepGroupDel($requestPayload)
+    {
+        $groupname = $requestPayload['del_groupname'];
+
+        if (empty($groupname)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        $status = FunDelSvnGroup(file_get_contents(SVN_SERVER_AUTHZ), $groupname);
+        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 获取仓库分组用户
+     */
+    function RepGetGroupUserList($requestPayload)
+    {
+        $groupname = $requestPayload['groupname'];
+
+        if (empty($groupname)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        $status1 = FunGetSvnUserListByGroup(file_get_contents(SVN_SERVER_AUTHZ), $groupname);
+        if ($status1 == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[groups]标识';
+            return $data;
+        }
+        if ($status1 == '1') {
+            $data['status'] = 0;
+            $data['message'] = '分组不存在';
+            return $data;
+        }
+        $status2 = FunGetSvnUserList(file_get_contents(SVN_SERVER_PASSWD));
+        if ($status2 == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[users]标识';
+            return $data;
+        }
+        $list = array();
+        foreach ($status2 as $key => $value) {
+            if (in_array($value, $status1)) {
+                array_push($list, array(
+                    'username' => $value,
+                    'status' => 'in'
+                ));
+            } else {
+                array_push($list, array(
+                    'username' => $value,
+                    'status' => 'no'
+                ));
+            }
+        }
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        $data['data'] = $list;
+        return $data;
+    }
+
+    /**
+     * 设置仓库分组用户
+     */
+    function RepSetGroupUserList($requestPayload)
+    {
+        $group_name = trim($requestPayload['group_name']);
+        $this_account_list = $requestPayload['this_account_list'];
+
+        if (empty($group_name) || empty($this_account_list)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        $authz = file_get_contents(SVN_SERVER_AUTHZ);
+        foreach ($this_account_list as $key => $value) {
+            if ($value['status'] == 'no') {
+                $status1 = FunDelSvnGroupUser($authz, $group_name, $value['username']);
+                if ($status1 == '0') {
+                    $data['status'] = 0;
+                    $data['message'] = '文件中不存在[groups]标识';
+                    return $data;
+                } elseif ($status1 == '1') {
+                    $data['status'] = 0;
+                    $data['message'] = '用户组不存在';
+                    return $data;
+                } elseif ($status1 == '2') {
+                } else {
+                    $authz = $status1;
+                }
+            } else if ($value['status'] == 'in') {
+                $status2 = FunAddSvnGroupUser($authz, $group_name, $value['username']);
+                if ($status2 == '0') {
+                    $data['status'] = 0;
+                    $data['message'] = '文件中不存在[groups]标识';
+                    return $data;
+                } elseif ($status2 == '1') {
+                    $data['status'] = 0;
+                    $data['message'] = '用户组不存在';
+                    return $data;
+                } elseif ($status2 == '2') {
+                } else {
+                    $authz = $status2;
+                }
+            }
+        }
+
+        RequestReplyExec('echo \'' . $authz . '\' > ' . SVN_SERVER_AUTHZ);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
     }
 
     //设置仓库的hooks
-    function SetRepositoryHooks($requestPayload)
+    function SetRepHooks($requestPayload)
     {
         $repository_name = trim($requestPayload['repository_name']);
         $hooks_type_list = $requestPayload['hooks_type_list'];
 
-        if (!is_dir($this->svn_repository_path . '/' . $repository_name . '/' . 'hooks')) {
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name . '/' . 'hooks')) {
             $data['status'] = 0;
             $data['message'] = '仓库不存在或文件损坏';
             return $data;
         }
-        RequestReplyExec('chmod 777 -R ' . $this->svn_repository_path);
+        RequestReplyExec('chmod 777 -R ' . SVN_REPOSITORY_PATH);
         foreach ($hooks_type_list as $key => $value) {
-            file_put_contents($this->svn_repository_path . '/' . $repository_name . '/' . 'hooks' . '/' . $value['value'], $value["shell"]);
+            file_put_contents(SVN_REPOSITORY_PATH . '/' . $repository_name . '/' . 'hooks' . '/' . $value['value'], $value["shell"]);
         }
         $data['status'] = 1;
-        $data['message'] = '设置hooks数据成功';
+        $data['message'] = '成功';
         return $data;
     }
 
@@ -94,12 +590,19 @@ class Svnserve extends Controller
     {
         $repository_name = trim($requestPayload['repository_name']);
 
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
         if (empty($repository_name)) {
             $data['status'] = 0;
             $data['message'] = '参数不完整';
             return $data;
         }
-        if (!is_dir($this->svn_repository_path . '/' . $repository_name . '/' . 'hooks')) {
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name . '/' . 'hooks')) {
             $data['status'] = 0;
             $data['message'] = '仓库不存在或文件损坏';
             return $data;
@@ -162,25 +665,23 @@ class Svnserve extends Controller
             "pre-revprop-change",
             "post-revprop-change"
         );
-        $file_arr = scandir($this->svn_repository_path . '/' . $repository_name . '/' . 'hooks');
+        $file_arr = scandir(SVN_REPOSITORY_PATH . '/' . $repository_name . '/' . 'hooks');
         foreach ($file_arr as $file_item) {
             if ($file_item != '.' && $file_item != '..') {
                 if (in_array($file_item, $hooks_file_list)) {
-                    $hooks_type_list[$file_item]['shell'] = file_get_contents($this->svn_repository_path . '/' . $repository_name . '/' . 'hooks' . '/' . $file_item);
+                    $hooks_type_list[$file_item]['shell'] = file_get_contents(SVN_REPOSITORY_PATH . '/' . $repository_name . '/' . 'hooks' . '/' . $file_item);
                 }
             }
         }
         $data['status'] = 1;
         $data['data'] = $hooks_type_list;
-        $data['message'] = '获取hooks数据成功';
+        $data['message'] = '成功';
         return $data;
     }
 
     //系统首页 获取概览情况
     function GetGailan($requestPayload)
     {
-        $userid = $this->this_userid;
-
         $resultlist = array(
             'os_type' => "", //操作系统类型
             'os_runtime' => "", //系统运行天数
@@ -206,11 +707,11 @@ class Svnserve extends Controller
         $resultlist['repository_count'] = 0;
         if ($svn_check_status['code'] == '01' || $svn_check_status['code'] == '11') {
             $i = 0;
-            $file_arr = scandir($this->svn_repository_path);
+            $file_arr = scandir(SVN_REPOSITORY_PATH);
             foreach ($file_arr as $file_item) {
                 if ($file_item != '.' && $file_item != '..') {
-                    if (is_dir($this->svn_repository_path . '/' . $file_item)) {
-                        $file_arr2 = scandir($this->svn_repository_path . '/' . $file_item);
+                    if (is_dir(SVN_REPOSITORY_PATH . '/' . $file_item)) {
+                        $file_arr2 = scandir(SVN_REPOSITORY_PATH . '/' . $file_item);
                         foreach ($file_arr2 as $file_item2) {
                             if (($file_item2 == 'conf' || $file_item2 == 'db' || $file_item2 == 'hooks' || $file_item2 == 'locks')) {
                                 $i++;
@@ -222,46 +723,65 @@ class Svnserve extends Controller
             }
             $resultlist['repository_count'] = $i;
         }
-        //超级管理员数量
-        $resultlist['super_count'] = $this->database_medoo->count("user", ["roleid" => '1']);
-        //系统管理员数量
-        $resultlist['sys_count'] = $this->database_medoo->count("user", ["roleid" => '2']);
-        //普通用户数量
-        $resultlist['user_count'] = $this->database_medoo->count("user", ["roleid" => '3']);
+        //管理员数量
+        $resultlist['super_count'] = 1;
+        //SVN用户数量
+        $resultlist['user_count'] = count(FunGetSvnUserList(file_get_contents(SVN_SERVER_PASSWD)));
 
         $data['status'] = 1;
         $data['data'] = $resultlist;
-        $data['message'] = '获取概览数据成功';
+        $data['message'] = '成功';
         return $data;
     }
 
     //安装svnserve服务
     function Install($requestPayload)
     {
-        $data = array();
-
-        //创建svn仓库父目录
-        RequestReplyExec('mkdir -p ' . $this->svn_repository_path);
-        if (!is_dir($this->svn_repository_path)) {
+        if ($this->this_roleid != 1) {
             $data['status'] = 0;
-            $data['message'] = '安装失败 创建目录失败';
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
             return $data;
         }
+
+        //创建svn仓库父目录
+        RequestReplyExec('mkdir -p ' . SVN_REPOSITORY_PATH);
+
+        RequestReplyExec('chmod 777 -R ' . SVN_REPOSITORY_PATH);
+
+        //创建数据备份目录
+        RequestReplyExec('mkdir -p ' . BACKUP_PATH);
+
+        //创建日志目录
+        RequestReplyExec('mkdir -p ' . LOG_PATH);
 
         //通过ps auxf|grep -v "grep"|grep svnserve和判断文件/usr/bin/svnserve是否存在这两方面来同时判断 如果没有安装过则进行安装
         $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
-            //yum安装
-            RequestReplyExec("yum install -y subversion");
+            //创建文件 svnserve.conf  并写入内容
+            RequestReplyExec('touch ' . SVN_SERVER_CONF);
+            RequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/svnserve.conf') . '\' > ' . SVN_SERVER_CONF);
 
-            sleep(1);
+            //创建文件 passwd
+            RequestReplyExec('touch ' . SVN_SERVER_PASSWD);
+            RequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/passwd') . '\' > ' . SVN_SERVER_PASSWD);
+
+            //创建文件 authz
+            RequestReplyExec('touch ' . SVN_SERVER_AUTHZ);
+            RequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/authz') . '\' > ' . SVN_SERVER_AUTHZ);
+
+            //yum 方式安装 subversion
+            RequestReplyExec("yum install -y subversion");
 
             //通常cp的别名为cp -i ，取消别名
             RequestReplyExec("alias cp='cp'");
+
+            //备份文件
             RequestReplyExec('cp -f /etc/sysconfig/svnserve /etc/sysconfig/svnserve.bak');
 
             //更改存储库位置 将配置文件/etc/sysconfig/svnserve中的/var/svn/更换为svn仓库目录
-            RequestReplyExec('sed -i \'s/\/var\/svn/' . str_replace('/', '\/', $this->svn_repository_path) . '/g\'' . ' /etc/sysconfig/svnserve');
+            //增加启动参数 指定所有仓库被一个配置文件管理
+            RequestReplyExec('sed -i \'s/\/var\/svn/ ' . str_replace('/', '\/', SVN_REPOSITORY_PATH) . ' --config-file ' . str_replace('/', '\/', SVN_SERVER_CONF) . '/g\'' . ' /etc/sysconfig/svnserve');
 
             //设置存储密码选项 将以下内容写入文件/etc/subversion/servers servers文件不存在则创建
             /**
@@ -270,18 +790,27 @@ class Svnserve extends Controller
              * store-plaintext-passwords = yes
              */
             RequestReplyExec("touch /etc/subversion/servers");
-            $con = "[groups]\n[global]\nstore-plaintext-passwords = yes\n";
-            RequestReplyExec('echo \'' . $con . '\' > /etc/subversion/servers');
+            // $con = "[groups]\n[global]\nstore-plaintext-passwords = yes\n";
+            RequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/servers') . '\' > /etc/subversion/servers');
 
+            //加入开机启动项
             RequestReplyExec("systemctl enable svnserve.service");
+
+            //启动
             RequestReplyExec("systemctl start svnserve.service");
-            $this->Firewall->SetFirewallPolicy(["port" => $this->svn_port, "type" => "add"]);
-            $this->Firewall->SetFirewallPolicy(["port" => $this->http_port, "type" => "add"]);
+
+            //将svn和http默认端口加入防火墙
+            $this->Firewall->SetFirewallPolicy(["port" => SVN_PORT, "type" => "add"]);
+            $this->Firewall->SetFirewallPolicy(["port" => HTTP_PORT, "type" => "add"]);
+
+            //临时关闭selinux
             RequestReplyExec('setenforce 0');
+
+            //永久关闭selinux
             RequestReplyExec("sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config");
 
             $data['status'] = 1;
-            $data['message'] = '安装服务成功';
+            $data['message'] = '成功';
             return $data;
         } else {
             $data['status'] = 1;
@@ -293,22 +822,19 @@ class Svnserve extends Controller
     //卸载svnserve服务
     function UnInstall($requestPayload)
     {
-        //清空表数据
-        $this->TruncateTable();
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
 
         RequestReplyExec('systemctl stop svnserve');
-        sleep(2);
         RequestReplyExec('systemctl disable svnserve');
-        sleep(2);
         RequestReplyExec('yum remove -y subversion');
-        sleep(2);
-        RequestReplyExec('yum remove -y subversion');
-        sleep(2);
-        RequestReplyExec('yum remove -y subversion');
-        sleep(2);
         RequestReplyExec('rm -f /etc/subversion/servers');
         RequestReplyExec('rm -rf /etc/subversion');
-        RequestReplyExec('rm -rf /usr/bin/svnserve'); //
+        RequestReplyExec('rm -rf /usr/bin/svnserve');
 
         //清除yum缓存
         RequestReplyExec('yum clean all');
@@ -317,248 +843,151 @@ class Svnserve extends Controller
         clearstatcache();
 
         $data['status'] = 1;
-        $data['message'] = '卸载服务成功';
+        $data['message'] = '成功';
         return $data;
     }
 
-    //修复svn服务 包括重新扫描仓库列表重新写入仓库表
+    //修复svn服务
     function Repaire($requestPayload)
     {
-        //清空仓库表和用户-仓库表
-        $this->TruncateTable();
-        //扫描仓库并写入仓库表
-        $this->ScanRepository();
-        //根据仓库表完善信息
-        $this->UpdateRepositoryInfo();
-
-        $data['status'] = 1;
-        $data['message'] = '修复成功';
-        return $data;
-    }
-
-    //获取所有仓库信息 计划任务列表下拉菜单使用
-    function GetAllRepositoryList($requestPayload)
-    {
-        $userid = $this->this_userid;
-
-        //更新仓库表
-        $this->UpdateRepositoryInfo();
-        //根据用户角色筛选结果
-        $result = $this->database_medoo->select("user", ["roleid"], ["id" => $userid]);
-        if (empty($result)) {
-            $data['status'] = 0;
-            $data['message'] = '获取仓库列表失败 用户角色不在允许范围'; //检测到非法用户应该返回另外的状态码使token立即失效并退出登录
-            $data['code'] = 401;
-            return $data;
-        }
-        $list = array();
-        if ($result[0]['roleid'] == "1" || $result[0]['roleid'] == "2") {
-            //获取列表
-            $list = $this->database_medoo->select("repository", [
-                "repository_name(value)",
-            ], [
-                "ORDER" => ["repository_edittime" => "DESC"],
-            ]);
-        } else {
-            //用户的所有仓库列表
-            $list = $this->database_medoo->select('user_repository', [
-                "[>]repository" => [
-                    "repositoryid" => "id"
-                ],
-            ], [
-                "repository.repository_name(value)",
-            ], [
-                "userid" => $userid,
-                "ORDER" => ["repository.repository_edittime" => "DESC"],
-            ]);
-        }
-        //处理数据结构
-        foreach ($list as $key => $value) {
-            $list[$key]['label'] = $value['value'];
-        }
-        $data['status'] = 1;
-        $data['message'] = '获取仓库列表成功';
-        $data['data'] = $list;
-        return $data;
     }
 
     //项目管理 获取仓库信息
     function GetRepositoryList($requestPayload)
     {
-        $userid = $this->this_userid;
         $pageSize = trim($requestPayload['pageSize']);
         $currentPage = trim($requestPayload['currentPage']);
+
+        if (empty(trim($pageSize)) || empty(trim($currentPage)) || trim($pageSize) == 0) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
 
         //检查svn状态
         $svn_check_status = $this->CheckSvnserveStatus();
         if ($svn_check_status['status'] == 0) {
             $data['status'] = 0;
-            $data['message'] = '获取仓库列表失败 ' . $svn_check_status['message'];
+            $data['message'] =  $svn_check_status['message'];
             return $data;
         }
 
-        //检查参数
-        if (empty(trim($pageSize)) || empty(trim($currentPage)) || trim($pageSize) == 0) {
-            $data['status'] = 0;
-            $data['message'] = '获取仓库列表失败 参数不完整或错误';
-            return $data;
+        RequestReplyExec('chmod 777 -R ' . SVN_REPOSITORY_PATH);
+
+        $repArray = GetRepList();
+        $total = count($repArray);
+
+        $authzContent = file_get_contents(SVN_SERVER_AUTHZ);
+
+        //检查是否有没有写入配置文件的仓库字段
+        foreach ($repArray as $key => $value) {
+            $status = FunSetRepAuthz($authzContent, $value['repository_name'], '/');
+            if ($status != '1') {
+                $authzContent = $status;
+            }
         }
 
-        //更新仓库表
-        $this->UpdateRepositoryInfo();
+        RequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
 
-        //根据用户角色筛选结果
-        $result = $this->database_medoo->select("user", ["roleid"], ["id" => $userid]);
-        if (empty($result)) {
-            $data['status'] = 0;
-            $data['message'] = '获取仓库列表失败 用户角色不在允许范围'; //检测到非法用户应该返回另外的状态码使token立即失效并退出登录
-            $data['code'] = 401;
-            return $data;
-        }
-        if ($result[0]['roleid'] == "1" || $result[0]['roleid'] == "2") {
-            //分页处理
-            $begin = $pageSize * ($currentPage - 1);
+        if ($this->this_roleid == 2) {
+            $allRepList = array();
 
-            //获取列表
-            $list = $this->database_medoo->select("repository", [
-                "id",
-                "repository_name",
-                "repository_url",
-                "repository_checkout_url",
-                "repository_web_url",
-                "repository_size",
-                "repository_edittime"
-            ], [
-                "ORDER" => ["repository_edittime" => "DESC"],
-                "LIMIT" => [$begin, $pageSize]
-            ]);
+            //查看用户本身的仓库 
+            $userRepList = FunGetUserPriRepListWithoutPri($authzContent, $this->this_username, '/');
+            $allRepList = array_merge($userRepList, $allRepList);
 
-            //计算数量
-            $total = $this->database_medoo->count("repository");
-
-            //处理自增的id
-            $i = 0;
-            foreach ($list as $key => $value) {
-                $list[$key]["id"] = $i + $begin;
-                $i++;
+            //查看用户所在所有分组的仓库
+            $groupUserList = FunGetSvnGroupUserList($authzContent);
+            foreach ($groupUserList as $key => $value) {
+                if (in_array($this->this_username, $value)) {
+                    //获取当前用户组有权限的仓库列表
+                    $groupRepList =  FunGetGroupPriRepListWithoutPri($authzContent, $key);
+                    if ($groupRepList != null) {
+                        $allRepList = array_merge($allRepList, $groupRepList);
+                    }
+                }
             }
 
-            $data['status'] = 1;
-            $data['message'] = '获取仓库列表成功';
-            $data['data'] = $list;
-            $data['total'] = $total;
-            return $data;
-        } else {
-            //分页处理
-            $begin = $pageSize * ($currentPage - 1);
-
-            //用户的所有仓库列表
-            $list = $this->database_medoo->select('user_repository', [
-                "[>]repository" => [
-                    "repositoryid" => "id"
-                ],
-            ], [
-                "repository.id",
-                "repository.repository_name",
-                "repository.repository_url",
-                "repository.repository_checkout_url",
-                "repository.repository_web_url",
-                "repository.repository_size",
-                "repository.repository_edittime"
-            ], [
-                "userid" => $userid,
-                "ORDER" => ["repository.repository_edittime" => "DESC"],
-                "LIMIT" => [$begin, $pageSize]
-            ]);
-            $total = $this->database_medoo->count('user_repository', [
-                "userid" => $userid
-            ]);
-
-            //处理自增的id
-            $i = 0;
-            foreach ($list as $key => $value) {
-                $list[$key]["id"] = $i + $begin;
-                $i++;
+            //处理
+            if ($allRepList == null) {
+                $repArray = null;
+                $total = 0;
+            } else {
+                foreach ($repArray as $key => $value) {
+                    if (!in_array($value['repository_name'], $allRepList)) {
+                        unset($repArray[$key]);
+                    }
+                }
             }
-            $data['status'] = 1;
-            $data['message'] = '获取仓库列表成功';
-            $data['data'] = $list;
-            $data['total'] = $total;
-            return $data;
         }
+
+        $begin = $pageSize * ($currentPage - 1);
+
+        //array_splice会将下标自动转换 使用要注意
+        $list = array_splice($repArray, $begin, $pageSize);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        $data['data'] = $list;
+        $data['total'] = $total;
+        return $data;
     }
 
     //项目管理 按钮 添加svn仓库   包括项目标题
     function AddRepository($requestPayload)
     {
         $repository_name = $requestPayload['repository_name'];
-        $this_userid = $this->this_userid;
-        $this_username = $this->this_userid;
 
-        // $svn_check_status = $this->CheckSvnserveStatus();
-        // if ($svn_check_status['status'] == 0) {
-        //     $data['status'] = 0;
-        //     $data['message'] = '添加仓库失败 ' . $svn_check_status['message'];
-        //     return $data;
-        // }
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        $svn_check_status = $this->CheckSvnserveStatus();
+        if ($svn_check_status['status'] == 0) {
+            $data['status'] = 0;
+            $data['message'] = $svn_check_status['message'];
+            return $data;
+        }
+
         //只允许数字 字母 中文 下划线
         if (!$this->CheckStr($repository_name)) {
             $data['status'] = 0;
-            $data['message'] = '添加仓库失败 包含非法字符';
+            $data['message'] = '包含非法字符';
             return $data;
         }
+
         //判断仓库是否存在
-        if (is_dir($this->svn_repository_path . '/' . $repository_name)) {
+        if (is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
             $data['status'] = 0;
-            $data['message'] = '添加仓库失败 仓库已经存在';
+            $data['message'] = '仓库已经存在';
             return $data;
         }
+
         //创建仓库
         //解决创建中文仓库乱码问题
-        RequestReplyExec('export LC_CTYPE=en_US.UTF-8 &&  svnadmin create ' . $this->svn_repository_path . '/' . $repository_name);
+        RequestReplyExec('export LC_CTYPE=en_US.UTF-8 &&  svnadmin create ' . SVN_REPOSITORY_PATH . '/' . $repository_name);
+
         //判断是否创建成功
-        if (!is_dir($this->svn_repository_path . '/' . $repository_name)) {
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
             $data['status'] = 0;
             $data['message'] = '添加仓库失败';
             return $data;
         }
-        RequestReplyExec('chmod 777 -R ' . $this->svn_repository_path);
-
-        //将新建仓库目录下的conf/svnserve.conf做以下修改，
-        /*
-         * 取消注释# anon-access = read所在行
-         * 取消注释# password-db = passwd所在行
-         * 取消注释# authz-db = authz所在行
-         */
-        RequestReplyExec("sed -i 's/# anon-access = read/anon-access = none/g' " . $this->svn_repository_path . "/" . $repository_name . "/conf/svnserve.conf");
-        RequestReplyExec("sed -i 's/# password-db = passwd/password-db = passwd/g' " . $this->svn_repository_path . "/" . $repository_name . "/conf/svnserve.conf");
-        RequestReplyExec("sed -i 's/# authz-db = authz/authz-db = authz/g' " . $this->svn_repository_path . "/" . $repository_name . "/conf/svnserve.conf");
-        $this->InitRepositoryConfFile($repository_name);
+        RequestReplyExec('chmod 777 -R ' . SVN_REPOSITORY_PATH);
 
         RequestReplyExec('setenforce 0');
 
-        if (!$this->InsertRepositoryTable($repository_name)) {
-            $data['status'] = 0;
-            $data['message'] = '添加仓库成功 但写入仓库表失败';
-            return $data;
+        //写入配置文件
+        $status = FunSetRepAuthz(file_get_contents(SVN_SERVER_AUTHZ), $repository_name, '/');
+        if ($status != '1') {
+            RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
         }
 
-        //发送邮件
-        $time = date("Y-m-d-H-i-s");
-        $ip = $send_content = ""
-            . "被创建的仓库名称：$repository_name \n"
-            . "操作用户：$this_username \n"
-            . "操作用户uid：$this_userid \n"
-            . "服务器已设置域名：$this->server_domain \n"
-            . "服务器已设置IP地址：$this->server_ip \n"
-            . "当前时间：$time";
-        $send_title = "SVN仓库创建通知";
-        $receive_roleid = 2;
-        $receive_userid = 1;
-        $this->Mail->SendMail($send_title, $send_content, $receive_roleid, $receive_userid);
-
         $data['status'] = 1;
-        $data['message'] = '添加仓库成功';
+        $data['message'] = '成功';
         return $data;
     }
 
@@ -566,8 +995,6 @@ class Svnserve extends Controller
     function DeleteRepository($requestPayload)
     {
         $repository_name = $requestPayload['repository_name'];
-        $this_userid = $this->this_userid;
-        $this_username = $this->this_userid;
 
         if (empty($repository_name)) {
             $data['status'] = 0;
@@ -575,48 +1002,43 @@ class Svnserve extends Controller
             return $data;
         }
 
-        //删除仓库目录
-        if (!is_dir($this->svn_repository_path . '/' . $repository_name)) {
+        if ($this->this_roleid != 1) {
             $data['status'] = 0;
-            $data['message'] = '失败,项目不存在';
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
             return $data;
         }
-        RequestReplyExec('rm -rf ' . $this->svn_repository_path . '/' . $repository_name);
+
+        //删除仓库目录
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
+            $data['status'] = 0;
+            $data['message'] = '仓库不存在';
+            return $data;
+        }
+        RequestReplyExec('rm -rf ' . SVN_REPOSITORY_PATH . '/' . $repository_name);
 
         //检查是否删除成功
-        if (!is_dir($this->svn_repository_path . '/' . $repository_name)) {
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
             $data['status'] = 0;
             $data['message'] = '删除仓库失败';
             return $data;
         }
 
-        if (!$this->DeleteRepositoryTable($repository_name)) {
-            $data['status'] = 0;
-            $data['message'] = '删除仓库成功但从表中删除仓库信息失败';
-            return $data;
+        //从配置文件删除
+        $status = FunDelRepAuthz(file_get_contents(SVN_SERVER_AUTHZ), $repository_name);
+        if ($status != '1') {
+            RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
         }
 
-        //发送邮件
-        $time = date("Y-m-d-H-i-s");
-        $send_content = ""
-            . "被删除的仓库名称：$repository_name \n"
-            . "操作用户：$this_username \n"
-            . "操作用户uid：$this_userid \n"
-            . "服务器已设置域名：$this->server_domain \n"
-            . "服务器已设置IP地址：$this->server_ip \n"
-            . "当前时间：$time";
-        $send_title = "SVN仓库删除通知";
-        $receive_roleid = 2;
-        $receive_userid = 1;
-        $this->Mail->SendMail($send_title, $send_content, $receive_roleid, $receive_userid);
-
         $data['status'] = 1;
-        $data['message'] = '删除仓库成功';
+        $data['message'] = '成功';
         return $data;
     }
 
-    //项目管理 按钮 为svn项目授权 -> 在账号列表收集并提交账户相对于svn项目的权限变化
-    function SetRepositoryPrivilege($requestPayload)
+    /**
+     * 为仓库设置用户的权限
+     */
+    function SetRepositoryUserPrivilege($requestPayload)
     {
         $repository_name = trim($requestPayload['repository_name']);
         $this_account_list = $requestPayload['this_account_list'];
@@ -627,52 +1049,78 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if (!is_dir($this->svn_repository_path . '/' . $repository_name)) {
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
             $data['status'] = 0;
             $data['message'] = '项目不存在';
             return $data;
         }
 
-        //这里只从一维的角度判断两个数组键值是否一致，也可以进行拆分数组，深入判断数据的键值和内容是否符合要求
-        $all_account_list = $this->GetRepositoryUserList(array("repository_name" => $repository_name))['data'];
-        if (!empty(array_diff_key($all_account_list, $this_account_list))) {
-            $data['status'] = 0;
-            $data['message'] = '传递的数组参数不符合要求';
-            return $data;
-        }
-        //读文件写入数组
-        $file = fopen($this->svn_repository_path . '/' . $repository_name . '/conf/authz', "r") or exit("无法打开文件!");
-        $file_content = array();
-        while (!feof($file)) {
-            array_push($file_content, fgets($file));
-        }
-        fclose($file);
+        $authzContent = file_get_contents(SVN_SERVER_AUTHZ);
 
-        //判断处理
-        for ($i = 0; $i < sizeof($file_content); $i++) {
-            if (trim($file_content[$i]) == '[/]') {
-                $file_content[$i] = '';
-                for ($j = $i + 1; $j < sizeof($file_content); $j++) {
-                    if (strstr($file_content[$j], '['))
-                        break;
-                    $file_content[$j] = '';
-                }
-            }
-        }
-        $con = implode($file_content);
-
-        //读取数组 拼接项目与账户权限字符串
-        $con .= '[/]' . "\n";
         foreach ($this_account_list as $key => $value) {
-            if ($value['privilege'] == 'rw' || $value['privilege'] == 'r') {
-                $con .= $value['account'] . ' = ' . $value['privilege'] . "\n";
+            $authzContent = FunSetRepUserPri($authzContent, $value['account'], $value['privilege'] == 'no' ? '' : $value['privilege'], $repository_name, '/');
+            if ($authzContent == '0') {
+                $data['status'] = 0;
+                $data['message'] = '仓库字段在配置文件中不存在 请刷新修复';
+                return $data;
             }
         }
 
-        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/authz');
+        RequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
 
         $data['status'] = 1;
-        $data['message'] = '账户授权成功';
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 为仓库设置用户组的权限
+     */
+    function SetRepositoryGroupPrivilege($requestPayload)
+    {
+        $repository_name = trim($requestPayload['repository_name']);
+        $this_account_list = $requestPayload['this_account_list'];
+
+        if (empty($repository_name) || empty($this_account_list)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
+            $data['status'] = 0;
+            $data['message'] = '项目不存在';
+            return $data;
+        }
+
+        $authzContent = file_get_contents(SVN_SERVER_AUTHZ);
+        foreach ($this_account_list as $key => $value) {
+            if ($authzContent == '0') {
+                $data['status'] = 0;
+                $data['message'] = '仓库字段在配置文件中不存在 请刷新修复';
+                return $data;
+            }
+            $authzContent = FunSetRepGroupPri($authzContent, $value['account'], $value['privilege'] == 'no' ? '' : $value['privilege'], $repository_name, '/');
+        }
+
+        RequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
         return $data;
     }
 
@@ -682,10 +1130,17 @@ class Svnserve extends Controller
         $old_repository_name = trim($requestPayload['old_repository_name']);
         $new_repository_name = trim($requestPayload['new_repository_name']);
 
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
         //输入包含空格判断
         if (strstr($new_repository_name, ' ')) {
             $data['status'] = 0;
-            $data['message'] = '修改失败 输入不规范';
+            $data['message'] = '输入不规范';
             return $data;
         }
         //不为空判断
@@ -695,77 +1150,34 @@ class Svnserve extends Controller
             return $data;
         }
         //目录是否存在判断
-        if (!is_dir($this->svn_repository_path . '/' . $old_repository_name)) {
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $old_repository_name)) {
             $data['status'] = 0;
             $data['message'] = '要修改的项目不存在';
             return $data;
         }
         //是否重复
-        if (is_dir($this->svn_repository_path . '/' . $new_repository_name)) {
+        if (is_dir(SVN_REPOSITORY_PATH . '/' . $new_repository_name)) {
             $data['status'] = 0;
             $data['message'] = '项目名称冲突';
             return $data;
         }
         //修改仓库文件夹的目录
-        RequestReplyExec('mv ' . $this->svn_repository_path . '/' . $old_repository_name . ' ' . $this->svn_repository_path . '/' . $new_repository_name);
-        //        //修改authz文件中的仓库名称
-        //        RequestReplyExec('sed -i \'s/' . $old_repository_name . '/' . $new_repository_name . '/g\' ' . SVN_CONF_PATH . '/authz');
+        RequestReplyExec('mv ' . SVN_REPOSITORY_PATH . '/' . $old_repository_name . ' ' . SVN_REPOSITORY_PATH . '/' . $new_repository_name);
 
-        if (!$this->UpdateRepositoryName($old_repository_name, $new_repository_name)) {
-            $data['status'] = 0;
-            $data['message'] = '修改仓库信息成功但仓库表信息修改失败';
-            return $data;
+        //修改配置文件
+        $status = FunUpdRepAuthz(file_get_contents(SVN_SERVER_AUTHZ), $old_repository_name, $new_repository_name);
+        if ($status != '1') {
+            RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
         }
 
         $data['status'] = 1;
-        $data['message'] = '修改仓库信息成功';
+        $data['message'] = '成功';
         return $data;
     }
 
-    //获取仓库对应的用户和密码列表
-    function GetRepositoryUserList($requestPayload)
-    {
-        $repository_name = $requestPayload['repository_name'];
-
-        if (empty($repository_name)) {
-            $data['status'] = 0;
-            $data['message'] = '参数不完整';
-            return $data;
-        }
-
-        // $svn_check_status = $this->CheckSvnserveStatus();
-        // if ($svn_check_status['status'] == 0) {
-        //     $data['status'] = 0;
-        //     $data['message'] = '获取仓库对应的账户列表失败 ' . $svn_check_status['message'];
-        //     return $data;
-        // }
-
-        $file = fopen($this->svn_repository_path . '/' . $repository_name . '/conf/passwd', "r") or exit('无法打开文件');
-        $file_content = array();
-        while (!feof($file)) {
-            array_push($file_content, fgets($file));
-        }
-        fclose($file);
-        $account_info = array();
-        for ($i = 0, $j = 0; $i < sizeof($file_content); $i++) {
-            if (strstr($file_content[$i], '=')) {
-                $temp = explode('=', $file_content[$i]);
-                $account_info[$j]['id'] = $j;
-                $account_info[$j]['account'] = trim($temp[0]);
-                //                if ($is_need_passwd == 1) {
-                $account_info[$j]['password'] = trim($temp[1]);
-                //                }
-                $j++;
-            }
-        }
-
-        $data['status'] = 1;
-        $data['message'] = '获取仓库对应的账户列表成功';
-        $data['data'] = $account_info;
-        return $data;
-    }
-
-    //获取仓库对应的账户的权限
+    /**
+     * 获取某个仓库的带有权限的用户列表
+     */
     function GetRepositoryUserPrivilegeList($requestPayload)
     {
         $repository_name = trim($requestPayload['repository_name']);
@@ -776,230 +1188,116 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if (!is_dir($this->svn_repository_path . '/' . $repository_name)) {
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
             $data['status'] = 0;
             $data['message'] = '项目不存在';
             return $data;
         }
 
-        //读取文本到数组 获取该项目对应的所有账号和权限
-        $file = fopen($this->svn_repository_path . '/' . $repository_name . '/conf/authz', "r") or exit("无法打开文件!");
-        $file_content = array();
-        while (!feof($file)) {
-            array_push($file_content, fgets($file));
-        }
-        fclose($file);
+        $authzContent = file_get_contents(SVN_SERVER_AUTHZ);
 
-        //获取该仓库的所有账号
-        $all_account_list = array();
-        $all_account_list = $this->GetRepositoryUserList(array("repository_name" => $repository_name))['data'];
-
-        //聚合 目的是为了防止密码文件和权限文件中的用户列表不一致导致获取的数据不准确
-        $temp = array();
-        foreach ($all_account_list as $key => $value) {
-            $all_account_list[$key]['privilege'] = '';
+        $status1 = FunGetRepUserPriList($authzContent, $repository_name, '/');
+        if ($status1 == '0') {
+            $data['status'] = 0;
+            $data['message'] = '仓库字段在配置文件中不存在 请刷新修复';
+            return $data;
         }
-        for ($i = 0; $i < sizeof($file_content); $i++) {
-            if (strstr($file_content[$i], '=')) {
-                $temp = explode('=', $file_content[$i]);
-                $temp[0] = trim($temp[0]);
-                $temp[1] = trim($temp[1]);
-                foreach ($all_account_list as $key => $value) {
-                    if ($value['account'] == $temp[0]) {
-                        $all_account_list[$key]['privilege'] = $temp[1];
-                        break;
+
+        $status2 = FunGetSvnUserList(file_get_contents(SVN_SERVER_PASSWD));
+        if ($status2 == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[users]标识';
+            return $data;
+        }
+
+        $list = array();
+        foreach ($status2 as $key => $value) {
+            $status2[$key]['account'] = $value;
+            if (array_key_exists($value, $status1)) {
+                array_push($list, array(
+                    'account' => $value,
+                    'privilege' => $status1[$value]
+                ));
+            } else {
+                array_push($list, array(
+                    'account' => $value,
+                    'privilege' => 'no'
+                ));
+            }
+        }
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        $data['data'] = $list;
+        return $data;
+    }
+
+    /**
+     * 获取某个仓库的带有权限的用户组列表
+     */
+    function GetRepositoryGroupPrivilegeList($requestPayload)
+    {
+        $repository_name = trim($requestPayload['repository_name']);
+
+        if (empty($repository_name)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
+            $data['status'] = 0;
+            $data['message'] = '项目不存在';
+            return $data;
+        }
+
+        $status1 = FunGetRepGroupPriList(file_get_contents(SVN_SERVER_AUTHZ), $repository_name, '/');
+        if ($status1 == '0') {
+            $data['status'] = 0;
+            $data['message'] = '仓库字段在配置文件中不存在 请刷新修复';
+            return $data;
+        } else {
+            $status2 = FunGetSvnGroupList(file_get_contents(SVN_SERVER_AUTHZ));
+            if ($status2 == '0') {
+                $data['status'] = 0;
+                $data['message'] = '文件中不存在[groups]标识';
+                return $data;
+            } else {
+                $list = array();
+                foreach ($status2 as $key => $value) {
+                    $status2[$key]['account'] = $value;
+                    if (array_key_exists($value, $status1)) {
+                        array_push($list, array(
+                            'account' => $value,
+                            'privilege' => $status1[$value]
+                        ));
+                    } else {
+                        array_push($list, array(
+                            'account' => $value,
+                            'privilege' => 'no'
+                        ));
                     }
                 }
+                $data['status'] = 1;
+                $data['message'] = '成功';
+                $data['data'] = $list;
+                return $data;
             }
         }
-
-        //对权限字段为空的 设置为no
-        foreach ($all_account_list as $key => $value) {
-            if ($value['privilege'] == '') {
-                $all_account_list[$key]['privilege'] = 'no';
-            }
-        }
-
-        $data['status'] = 1;
-        $data['message'] = '获取仓库对应账户及权限成功';
-        $data['data'] = $all_account_list;
-        return $data;
-    }
-
-    //账号管理 添加账号
-    function AddAccount($requestPayload)
-    {
-        $repository_name = trim($requestPayload['repository_name']);
-        $account = trim($requestPayload['account']);
-        $passwd = trim($requestPayload['password']);
-
-        // $svn_check_status = $this->CheckSvnserveStatus();
-        // if ($svn_check_status['status'] == 0) {
-        //     $data['status'] = 0;
-        //     $data['message'] = '添加账户失败 ' . $svn_check_status['message'];
-        //     return $data;
-        // }
-
-        /*
-         * 校验
-         */
-        $account = trim($account);
-        $passwd = trim($passwd);
-
-        //判断输入中是否包含空格
-        if (strstr($account, ' ') || strstr($passwd, ' ')) {
-            $data['status'] = 0;
-            $data['message'] = '添加账户失败 输入不规范';
-            $data['data'] = '';
-            return $data;
-        }
-
-        //长度校验
-        if (empty($account) || empty($passwd) || strlen($passwd) < 8) {
-            $data['status'] = 0;
-            $data['message'] = '失败 账户为空或密码长度不符合要求';
-            return $data;
-        }
-
-        //是否包含特殊字符校验 待完成
-        //账户冲突校验
-        $account_list = array();
-        $temp = $this->GetRepositoryUserList(array("repository_name" => $repository_name))['data'];
-        //        $temp = $this->GetAccountList(0, 99, 99)['data'];
-        foreach ($temp as $key => $value) {
-            array_push($account_list, $value['account']);
-        }
-        if (in_array($account, $account_list)) {
-            $data['status'] = 0;
-            $data['message'] = '失败 账户已存在';
-            return $data;
-        }
-        /*
-         * 添加账户
-         */
-        //写入数组
-        $file = fopen($this->svn_repository_path . '/' . $repository_name . '/conf/passwd', "r") or exit("无法打开文件!");
-        $file_content = array();
-        while (!feof($file)) {
-            array_push($file_content, fgets($file));
-        }
-        fclose($file);
-        //写入文件
-        array_push($file_content, $account . ' = ' . $passwd . "\n");
-        $file_content = implode($file_content);
-        RequestReplyExec('echo \'' . $file_content . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
-
-        $data['status'] = 1;
-        $data['message'] = '添加账户成功';
-        return $data;
-    }
-
-    //账号管理 删除账号
-    function DeleteAccount($requestPayload)
-    {
-        $repository_name = trim($requestPayload['repository_name']);
-        $account = trim($requestPayload['account']);
-
-        if (empty($account)) {
-            $data['status'] = 0;
-            $data['message'] = '参数不完整';
-            return $data;
-        }
-
-        if ($account == 'root') {
-            $data['status'] = 0;
-            $data['message'] = 'root账户不可删除';
-            return $data;
-        }
-
-        //删除passwd文件中的账号密码
-        $file = fopen($this->svn_repository_path . '/' . $repository_name . '/conf/passwd', "r") or exit("无法打开文件!");
-        $file_content = array();
-        while (!feof($file)) {
-            array_push($file_content, fgets($file));
-        }
-        fclose($file);
-        for ($i = 0; $i < sizeof($file_content); $i++) {
-            //            if (!strstr(trim($file_content[$i]), '[users]')) {
-            if (strstr(trim($file_content[$i]), '=')) {
-                $temp = trim(substr($file_content[$i], 0, strrpos($file_content[$i], '=')));
-                if ($temp == $account) {
-                    $file_content[$i] = '';
-                    break;
-                }
-            }
-        }
-        $con = implode($file_content);
-        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
-
-        //删除authz文件中的账号
-        $file = fopen($this->svn_repository_path . '/' . $repository_name . '/conf/authz', "r") or exit("无法打开文件!");
-        $file_content = array();
-        while (!feof($file)) {
-            array_push($file_content, fgets($file));
-        }
-        fclose($file);
-        for ($i = 0; $i < sizeof($file_content); $i++) {
-            if (strstr(trim($file_content[$i]), '=')) {
-                $temp = trim(substr($file_content[$i], 0, strrpos($file_content[$i], '=')));
-                if ($temp == $account) {
-                    $file_content[$i] = '';
-                    //break;
-                }
-            }
-        }
-        $con = implode($file_content);
-        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/authz');
-
-        $data['status'] = 1;
-        $data['message'] = '删除账户成功';
-        return $data;
-    }
-
-    //账号管理 编辑账号 提交用户对账号信息的修改 账号作为唯一标识不能修改
-    function SetCountInfo($requestPayload)
-    {
-        $repository_name = trim($requestPayload['repository_name']);
-        $account = trim($requestPayload['account']);
-        $passwd = trim($requestPayload['password']);
-
-        if (empty($account) || empty($passwd) || empty($repository_name)) {
-            $data['status'] = 0;
-            $data['message'] = '参数不完整';
-            return $data;
-        }
-
-        //判断输入中是否包含空格
-        if (strstr($account, ' ') || strstr($passwd, ' ') || strstr($repository_name, ' ')) {
-            $data['status'] = 0;
-            $data['message'] = '修改密码失败 输入不规范';
-            $data['data'] = '';
-            return $data;
-        }
-
-        //修改passwd文件中的账号密码
-        $file = fopen($this->svn_repository_path . '/' . $repository_name . '/conf/passwd', "r") or exit("无法打开文件!");
-        $file_content = array();
-        while (!feof($file)) {
-            array_push($file_content, fgets($file));
-        }
-        fclose($file);
-        for ($i = 0; $i < sizeof($file_content); $i++) {
-            //            if (!strstr(trim($file_content[$i]), '[users]')) {
-            if (strstr(trim($file_content[$i]), '=')) {
-                $temp = trim(substr($file_content[$i], 0, strrpos($file_content[$i], '=')));
-                if ($temp == $account) {
-                    $file_content[$i] = "\n" . $account . ' = ' . $passwd . "\n";
-                    break;
-                }
-            }
-        }
-        $con = implode($file_content);
-        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
-
-        $data['status'] = 1;
-        $data['message'] = '修改成功';
-        return $data;
     }
 
     //高级设置 初始化加载 列出svnserve服务的状态
@@ -1014,19 +1312,19 @@ class Svnserve extends Controller
             $info['type'] = 'error';
 
             $data['status'] = 1;
-            $data['message'] = '获取SVN服务状态成功';
+            $data['message'] = '成功';
             $data['data'] = $info;
             return $data;
         }
         //是否存在repository目录
-        if (!is_dir($this->svn_repository_path)) {
+        if (!is_dir(SVN_REPOSITORY_PATH)) {
             $info = array();
             $info['status'] = '异常'; //存储库目录不存在
             $info['port'] = '3690';
             $info['type'] = 'error';
 
             $data['status'] = 1;
-            $data['message'] = '获取SVN服务状态成功';
+            $data['message'] = '成功';
             $data['data'] = $info;
             return $data;
         }
@@ -1039,7 +1337,7 @@ class Svnserve extends Controller
             $info['type'] = 'warning';
 
             $data['status'] = 1;
-            $data['message'] = '获取SVN服务状态成功';
+            $data['message'] = '成功';
             $data['data'] = $info;
             return $data;
         }
@@ -1050,7 +1348,7 @@ class Svnserve extends Controller
         $info['type'] = 'success';
 
         $data['status'] = 1;
-        $data['message'] = '获取SVN服务状态成功';
+        $data['message'] = '成功';
         $data['data'] = $info;
         return $data;
     }
@@ -1063,6 +1361,13 @@ class Svnserve extends Controller
         if (empty($action)) {
             $data['status'] = 0;
             $data['message'] = '参数不完整';
+            return $data;
+        }
+
+        if ($this->this_roleid != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
             return $data;
         }
 
@@ -1079,18 +1384,8 @@ class Svnserve extends Controller
         }
 
         $data['status'] = 1;
-        $data['message'] = '设置SVN服务状态成功';
+        $data['message'] = '成功';
         return $data;
-    }
-
-    //获取随机的root密码
-    private function GetInitPasswd($length)
-    {
-        !empty($length) or die('参数不完整');
-
-        $str = md5(time());
-        $token = substr($str, 5, $length);
-        return $token;
     }
 
     //只允许中文 数字 字母
@@ -1112,7 +1407,7 @@ class Svnserve extends Controller
             return $data;
         }
         //是否存在repository目录
-        if (!is_dir($this->svn_repository_path)) {
+        if (!is_dir(SVN_REPOSITORY_PATH)) {
             $data['status'] = 0;
             $data['code'] = '00';
             $data['message'] = '存储库目录不存在';
@@ -1129,171 +1424,5 @@ class Svnserve extends Controller
         $data['status'] = 1;
         $data['code'] = '11';
         return $data;
-    }
-
-    //获取文件夹体积
-    private function GetDirSize($dir)
-    {
-        clearstatcache();
-        $dh = opendir($dir) or exit('打开目录错误'); //打开目录，返回一个目录流
-        $size = 0;      //初始大小为0 
-        while (false !== ($file = @readdir($dh))) { //循环读取目录下的文件
-            if ($file != '.' and $file != '..') {
-                $path = $dir . '/' . $file; //设置目录，用于含有子目录的情况
-                if (is_dir($path)) {
-                    $size += $this->GetDirSize($path); //递归调用，计算目录大小
-                } elseif (is_file($path)) {
-                    $size += filesize($path); //计算文件大小
-                }
-            }
-        }
-        closedir($dh); //关闭目录流
-        return $size; //返回大小
-    }
-
-    //从仓库表中删除仓库信息
-    private function DeleteRepositoryTable($repository_name)
-    {
-        $repository_name = trim($repository_name);
-        if ($repository_name == "" || $repository_name == null) {
-            return false;
-        }
-        //从仓库表中删除
-        $result = $this->database_medoo->select("repository", ["id"], ["repository_name" => $repository_name]);
-        if (empty($result)) {
-            return false;
-        }
-        $repositoryid = $result[0]['id']; //仓库id
-        $result = $this->database_medoo->delete("repository", [
-            "AND" => [
-                "repository_name" => $repository_name
-            ]
-        ]);
-        if (!$result->rowCount()) {
-            return false;
-        }
-        //从仓库与用户表中删除
-        $result = $this->database_medoo->delete("user_repository", [
-            "AND" => [
-                "repositoryid" => $repositoryid
-            ]
-        ]);
-        return true;
-    }
-
-    //写入账户和密码的初始内容到仓库中的passowrd和authz配置文件，进行仓库初始化
-    private function InitRepositoryConfFile($repository_name)
-    {
-        //将以下内容写入authz文件
-        /*
-         * [aliases]
-         * [groups]
-         * [/]
-         * root=rw 
-         */
-        $con = "[aliases]\n\n[groups]\n\n[/]\nroot = rw";
-        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/authz');
-        //将以下内容写入passwd文件
-        /*
-         * [users]
-         * root=随机生成的密码
-         */
-        $pass = trim($this->GetInitPasswd(16));
-        $con = "[users]\nroot = " . $pass . "\n";
-        RequestReplyExec('echo \'' . $con . '\' > ' . $this->svn_repository_path . '/' . $repository_name . '/conf/passwd');
-    }
-
-    //向仓库表中写入仓库信息
-    private function InsertRepositoryTable($repository_name)
-    {
-        $repository_name = trim($repository_name);
-        if ($repository_name == "" || $repository_name == null) {
-            return false;
-        }
-        $this->database_medoo->insert("repository", ["repository_name" => $repository_name, "repository_edittime" => date("Y-m-d-H-i-s")]);
-        $account_id = $this->database_medoo->id();
-        return $account_id;
-    }
-
-    //扫描仓库信息并更新仓库信息表
-    private function UpdateRepositoryInfo()
-    {
-        //查仓库表
-        $list = $this->database_medoo->select("repository", [
-            "id",
-            "repository_name"
-        ]);
-        //循环更新数据库（虽然循环更新数据库有点扯蛋 但是这是目前能想到的最好的方法 后期有待优化）
-        foreach ($list as $key => $value) {
-            $id = $list[$key]["id"];
-            $repository_name = $list[$key]["repository_name"];
-            $repository_url = $this->svn_repository_path . '/' . $repository_name;
-            $repository_size = round($this->GetDirSize($this->svn_repository_path . '/' . $repository_name) / (1024 * 1024), 2);
-            $repository_checkout_url = 'svn://' . $this->server_domain . '/' . $repository_name;
-            $repository_web_url = "-";
-            $result = $this->database_medoo->update("repository", [
-                "repository_url" => $repository_url,
-                "repository_size" => $repository_size,
-                "repository_checkout_url" => $repository_checkout_url,
-                "repository_web_url" => $repository_web_url
-            ], [
-                "id" => $id
-            ]);
-        }
-    }
-
-    //扫描仓库并写入仓库表
-    private function ScanRepository()
-    {
-        $file_arr = scandir($this->svn_repository_path);
-        foreach ($file_arr as $file_item) {
-            if ($file_item != '.' && $file_item != '..') {
-                if (is_dir($this->svn_repository_path . '/' . $file_item)) {
-                    $file_arr2 = scandir($this->svn_repository_path . '/' . $file_item);
-                    foreach ($file_arr2 as $file_item2) {
-                        if (($file_item2 == 'conf' || $file_item2 == 'db' || $file_item2 == 'hooks' || $file_item2 == 'locks')) {
-                            $result = $this->database_medoo->insert("repository", [
-                                "repository_name" => $file_item,
-                                "repository_edittime" => date("Y-m-d-H-i-s")
-                            ]);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    //向仓库表中更新仓库信息
-    private function UpdateRepositoryName($old_repository_name, $new_repository_name)
-    {
-        $old_repository_name = trim($old_repository_name);
-        $new_repository_name = trim($new_repository_name);
-        if ($old_repository_name == "" || $old_repository_name == null || $new_repository_name == "" || $new_repository_name == null) {
-            return false;
-        }
-        //更新仓库表
-        $result = $this->database_medoo->select("repository", ["id"], ["repository_name" => $old_repository_name]);
-        if (empty($result)) {
-            return false;
-        }
-        $repositoryid = $result[0]['id']; //仓库id
-        $result = $this->database_medoo->update("repository", ["repository_name" => $new_repository_name], ["id" => $repositoryid]);
-        if (!$result->rowCount()) {
-            return false;
-        }
-        return true;
-    }
-
-    //卸载程序时要清空仓库表和用户-仓库表
-    private function TruncateTable()
-    {
-        $arr = array(
-            "repository",
-            "user_repository"
-        );
-        foreach ($arr as $value) {
-            $this->database_medoo->query("truncate table $value;");
-        }
     }
 }

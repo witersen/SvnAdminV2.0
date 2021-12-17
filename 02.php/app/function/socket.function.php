@@ -4,9 +4,9 @@
 function RequestReplyExec($shell)
 {
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("error:" . socket_strerror(socket_last_error()));
-    $server = socket_connect($socket, IPC_ADDRESS, IPC_PORT);
+    $server = socket_connect($socket, IPC_ADDRESS, (int)IPC_PORT);
     socket_write($socket, $shell);
-    $reply = socket_read($socket, SOCKET_READ_LENGTH);
+    $reply = socket_read($socket, (int)SOCKET_READ_LENGTH);
     socket_close($socket);
     return $reply;
 }
@@ -23,7 +23,7 @@ function DetectState()
 
     socket_set_nonblock($sock);
 
-    socket_connect($sock, IPC_ADDRESS, IPC_PORT);
+    socket_connect($sock, IPC_ADDRESS, (int)IPC_PORT);
 
     socket_set_block($sock);
 

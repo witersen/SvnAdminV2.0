@@ -5,7 +5,8 @@
  */
 
 require_once BASE_PATH . '/extension/Medoo/Medoo.php';
-require_once BASE_PATH . '/config/config.php';
+require_once BASE_PATH . '/config/auto.config.php';
+require_once BASE_PATH . '/config/manual.config.php';
 
 use Medoo\Medoo;
 

@@ -1,22 +1,11 @@
 <?php
 
 /*
- * 与客户端信息相关的方法的封装
+ * 与客户端信息相关
  */
 
-class Clientinfo extends Controller {
-    /*
-     * 注意事项：
-     * 1、所有的控制器都要继承基类控制器：Controller
-     * 2、基类控制器中包含：数据库连接对象、守护进程通信对象、视图层对象、公共函数等，继承后可以直接使用基类的变量和对象
-     * 
-     * 用法：
-     * 1、使用父类的变量：$this->xxx
-     * 2、使用父类的成员函数：parent::yyy()
-     * 3、使用父类的非成员函数，直接用即可：zzz() 
-     * 4、
-     */
-
+class Clientinfo extends Controller
+{
     private $remotes_keys = [
         'HTTP_X_FORWARDED_FOR',
         'HTTP_CLIENT_IP',
@@ -29,7 +18,8 @@ class Clientinfo extends Controller {
     ];
     private $Config;
 
-    function __construct() {
+    function __construct()
+    {
         /*
          * 避免子类的构造函数覆盖父类的构造函数
          */
@@ -42,7 +32,8 @@ class Clientinfo extends Controller {
     }
 
     //获取IP地址
-    function GetClientIp() {
+    function GetClientIp()
+    {
         foreach ($this->remotes_keys as $key) {
             if (array_key_exists($key, $_SERVER)) {
                 foreach (explode(',', $_SERVER[$key]) as $ip) {
@@ -56,7 +47,8 @@ class Clientinfo extends Controller {
     }
 
     //获取操作系统类型
-    function GetClientOS() {
+    function GetClientOS()
+    {
         $agent = $_SERVER['HTTP_USER_AGENT'];
         $os = false;
 
@@ -123,7 +115,8 @@ class Clientinfo extends Controller {
     }
 
     //获取浏览器类型
-    function GetClientBrowser() {
+    function GetClientBrowser()
+    {
         $sys = $_SERVER['HTTP_USER_AGENT'];  //获取用户代理字符串
         if (stripos($sys, "Firefox/") > 0) {
             preg_match("/Firefox\/([^;)]+)+/i", $sys, $b);
@@ -162,12 +155,13 @@ class Clientinfo extends Controller {
     }
 
     //校验IP地址
-    private function isValid($ip) {
-        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 | FILTER_FLAG_NO_PRIV_RANGE)
+    private function isValid($ip)
+    {
+        if (
+            !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 | FILTER_FLAG_NO_PRIV_RANGE)
         ) {
             return false;
         }
         return true;
     }
-
 }

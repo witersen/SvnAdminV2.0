@@ -1,11 +1,11 @@
 <?php
 
 //生成token
-function CreateToken($userid)
+function CreateToken($username)
 {
     $time = time();
     $end_time = time() + 86400;
-    $info = $userid . '.' . $time . '.' . $end_time; //设置token过期时间为一天
+    $info = $username . '.' . $time . '.' . $end_time; //设置token过期时间为一天
     //根据以上信息信息生成签名（密钥为 siasqr)
     $signature = hash_hmac('md5', $info, SIGNATURE);
     //最后将这两部分拼接起来，得到最终的Token字符串
