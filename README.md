@@ -90,6 +90,10 @@ ps aux | grep svnadmind
 
 <img src="./00.static/01.images/024.jpg" style="zoom: 67%;" />
 
+### （5）记得关闭PHP7.4的 错误输出
+
+<img src="./00.static/01.images/025.jpg" style="zoom: 67%;" />
+
 ### （5）下载并解压部署程序
 - 在网站目录切换到宝塔控制台 执行以下命令 将数据库文件移动到指定位置
 ```
