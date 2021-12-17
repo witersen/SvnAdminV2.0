@@ -7,6 +7,10 @@
 
 4、GitHub地址：https://github.com/witersen/SvnAdminV2.0 Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
 
+5、可以加入群聊讨论遇到的问题 <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=DdSr3ht7keIaqpvw2Xwd6TpyRAFd3h9D&jump_from=webapi">
+<img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="SvnAdmin开源项目" title="SvnAdmin开源项目">
+</a>
+
 ## 一 、系统部署 - CentOS8.2裸机
 
 ### （1）安装 PHP 7.4 及依赖
