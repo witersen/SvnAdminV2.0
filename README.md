@@ -93,10 +93,9 @@ ps aux | grep svnadmind
 ### （5）下载并解压部署程序
 - 在网站目录切换到宝塔控制台 执行以下命令 将数据库文件移动到指定位置
 ```
-cd /var/www/html
 wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/916329/download/v2.2.zip
 unzip v2.2.zip
-chmod 777 -R /var/www/html/config
+chmod 777 -R config
 mkdir -p /home/svnadmin/rep
 
 ```
