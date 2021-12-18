@@ -894,7 +894,9 @@ class Svnserve extends Controller
 
             //查看用户本身的仓库 
             $userRepList = FunGetUserPriRepListWithoutPri($authzContent, $this->this_username, '/');
-            $allRepList = array_merge($userRepList, $allRepList);
+            if ($userRepList != null) {
+                $allRepList = array_merge($userRepList, $allRepList);
+            }
 
             //查看用户所在所有分组的仓库
             $groupUserList = FunGetSvnGroupUserList($authzContent);
@@ -903,14 +905,14 @@ class Svnserve extends Controller
                     //获取当前用户组有权限的仓库列表
                     $groupRepList =  FunGetGroupPriRepListWithoutPri($authzContent, $key);
                     if ($groupRepList != null) {
-                        $allRepList = array_merge($allRepList, $groupRepList);
+                        $allRepList = array_merge($groupRepList, $allRepList);
                     }
                 }
             }
 
             //处理
             if ($allRepList == null) {
-                $repArray = null;
+                $repArray = array();
                 $total = 0;
             } else {
                 foreach ($repArray as $key => $value) {
