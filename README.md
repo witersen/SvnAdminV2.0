@@ -109,7 +109,7 @@ mkdir -p /home/svnadmin/rep
 - 进入程序代码的server目录，在宝塔控制台下以root用户身份执行以下命令
 
 ```
-cd /var/www/html/server
+cd server
 php svnadmind.php start
 
 ```
