@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * 与计划任务操作相关
  */

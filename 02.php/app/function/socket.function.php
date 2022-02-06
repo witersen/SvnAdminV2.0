@@ -1,7 +1,11 @@
 <?php
 
-//与守护进程通信
-function RequestReplyExec($shell)
+declare(strict_types=1);
+
+/**
+ * 与守护进程通信
+ */
+function FunRequestReplyExec($shell)
 {
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("error:" . socket_strerror(socket_last_error()));
     $server = socket_connect($socket, IPC_ADDRESS, (int)IPC_PORT);
@@ -17,7 +21,7 @@ function RequestReplyExec($shell)
  * 1 打开
  * 2 关闭
  */
-function DetectState()
+function FunDetectState()
 {
     $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 

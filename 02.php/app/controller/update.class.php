@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * 与系统更新操作相关
  */
@@ -41,7 +43,7 @@ class Update extends Controller
     function CheckUpdate($requestPayload)
     {
         foreach (UPDATE_SERVER as $key => $value) {
-            $versionInfo = curl_request($value);
+            $versionInfo = FunCurlRequest($value);
             if ($versionInfo != null) {
                 $versionInfo = json_decode($versionInfo, true);
                 $latestVersion = $versionInfo['latestVersion'];

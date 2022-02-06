@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * 与客户端信息相关
  */
@@ -37,7 +39,7 @@ class Clientinfo extends Controller
         foreach ($this->remotes_keys as $key) {
             if (array_key_exists($key, $_SERVER)) {
                 foreach (explode(',', $_SERVER[$key]) as $ip) {
-                    if ($this->isValid(trim($ip))) {
+                    if ($this->isValid($ip)) {
                         return $ip;
                     }
                 }

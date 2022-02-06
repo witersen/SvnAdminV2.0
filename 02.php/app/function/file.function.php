@@ -1,6 +1,11 @@
 <?php
 
-function GetDirSize($dir)
+declare(strict_types=1);
+
+/**
+ * 获取文件夹体积
+ */
+function FunGetDirSize($dir)
 {
     clearstatcache();
     $dh = opendir($dir) or exit('打开目录错误'); //打开目录，返回一个目录流
@@ -9,7 +14,7 @@ function GetDirSize($dir)
         if ($file != '.' and $file != '..') {
             $path = $dir . '/' . $file; //设置目录，用于含有子目录的情况
             if (is_dir($path)) {
-                $size += GetDirSize($path); //递归调用，计算目录大小
+                $size += FunGetDirSize($path); //递归调用，计算目录大小
             } elseif (is_file($path)) {
                 $size += filesize($path); //计算文件大小
             }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * 与邮件操作相关
  */
@@ -174,17 +176,5 @@ class Mail extends Controller
         $data['data'] = $data;
         $data['message'] = '成功';
         return $data;
-    }
-
-    //邮箱检查
-    private function CheckMail($mail)
-    {
-        $pattern = "/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/";
-        preg_match($pattern, $mail, $matches);
-        $flag = false;
-        if (!empty($matches)) {
-            $flag = true;
-        }
-        return $flag;
     }
 }

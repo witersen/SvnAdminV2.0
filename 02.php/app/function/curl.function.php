@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * 通用请求
  */
-function curl_request($url)
+function FunCurlRequest($url)
 {
     //初始化
     $curl = curl_init();

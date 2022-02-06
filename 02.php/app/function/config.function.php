@@ -1,8 +1,13 @@
 <?php
 
-function UpdateConfigValue($strContent, $key, $value)
+declare(strict_types=1);
+
+/**
+ * 更新配置文件的value项
+ */
+function FunUpdateConfigValue($strContent, $key, $value)
 {
-    $status = preg_match("/define\(\"*'*$key'*\"*\s*,\s*'*(.*?)'*\)/", $strContent, $result);
+    $status = preg_match(sprintf(REG_CONFIG, $key), $strContent, $result);
     if ($status == 0) {
         return false;
     } else {
@@ -10,9 +15,13 @@ function UpdateConfigValue($strContent, $key, $value)
     }
 }
 
-function GetConfigValue($strContent, $key)
+/**
+ * 获取配置文件的value项
+ */
+
+function FunGetConfigValue($strContent, $key)
 {
-    $status = preg_match("/define\(\"*'*$key'*\"*\s*,\s*'*(.*?)'*\)/", $strContent, $result);
+    $status = preg_match(sprintf(REG_CONFIG, $key), $strContent, $result);
     if ($status == 0) {
         return false;
     } else {

@@ -1,6 +1,8 @@
 <?php
 
-ini_set('display_errors', 1);
+declare(strict_types=1);
+
+ini_set('display_errors', '1');
 
 error_reporting(E_ALL);
 
@@ -183,7 +185,7 @@ class Daemon
     {
         if (file_exists($this->pidfile)) {
             $pid = file_get_contents($this->pidfile);
-            posix_kill($pid, 9);
+            posix_kill((int)$pid, 9);
             unlink($this->pidfile);
         }
     }

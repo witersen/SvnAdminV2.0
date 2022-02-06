@@ -14,6 +14,9 @@
           <strong>{{ index + 1 }}</strong>
         </template>
         <template slot-scope="{ index }" slot="action">
+          <Button type="primary" size="small" @click="ModelRepTree(index)"
+            >目录</Button
+          >
           <Button
             type="primary"
             size="small"
@@ -93,6 +96,11 @@
         </template>
       </Table>
     </Modal>
+    <Modal v-model="modalRepTree" title="目录浏览">
+      <Scroll>
+        <Tree :data="treeRep"    ></Tree>
+      </Scroll>
+    </Modal>
     <Modal
       v-model="modalRepGroupPriGet"
       title="SVN用户组授权"
@@ -165,7 +173,10 @@
 export default {
   data() {
     return {
-      toolTipAddRep: "仓库名可由中文、数字、字母、下划线组成",
+      //仓库目录树
+      treeRep: [],
+      toolTipAddRep:
+        "SVN仓库名称只能包含字母、数字、破折号、下划线、点，不能以点开头或结尾",
       /**
        * 分页数据
        */
@@ -176,6 +187,7 @@ export default {
       /**
        * 对话框控制
        */
+      modalRepTree: false, //查看目录树
       modalAddRep: false, //新建仓库
       modalRepRenameGet: false, //编辑仓库
       modalRepUserPriGet: false, //仓库用户授权
@@ -265,35 +277,34 @@ export default {
         },
         {
           title: "仓库名称",
-          key: "repository_name",
+          key: "repName",
         },
         {
           title: "检出路径",
-          key: "repository_checkout_url",
+          key: "repCheckoutUrl",
         },
         {
           title: "服务器路径",
-          key: "repository_url",
+          key: "repUrl",
         },
         {
           title: "仓库体积(MB)",
-          key: "repository_size",
+          key: "repSize",
         },
         {
           title: "操作",
           slot: "action",
-          width: 300,
+          width: 400,
           align: "center",
         },
       ],
       tableDataRep: [
         // {
         //   id: 1,
-        //   repository_name: "测试",
-        //   repository_checkout_url: "svn:127.0.0.1/测试",
-        //   repository_url: "/var/svn/",
-        //   repository_web_url: "",
-        //   repository_size: "",
+        //   repName: "测试",
+        //   repCheckoutUrl: "svn:127.0.0.1/测试",
+        //   repUrl: "/var/svn/",
+        //   repSize: "",
         // },
       ],
 
@@ -400,8 +411,8 @@ export default {
     ModelRepRename(index) {
       var that = this;
       that.modalRepRenameGet = true;
-      that.tempRepEditName = that.tableDataRep[index]["repository_name"];
-      that.old_repository_name = that.tableDataRep[index]["repository_name"];
+      that.tempRepEditName = that.tableDataRep[index]["repName"];
+      that.old_repository_name = that.tableDataRep[index]["repName"];
     },
     //修改仓库名称
     SetRepRename() {
@@ -432,7 +443,7 @@ export default {
     //显示删除仓库对话框
     ModelRepDel(index) {
       var that = this;
-      var repository_name = that.tableDataRep[index]["repository_name"];
+      var repository_name = that.tableDataRep[index]["repName"];
       var data = {
         repository_name: repository_name,
       };
@@ -508,22 +519,47 @@ export default {
     ModelRepHooksGet(index) {
       var that = this;
       that.modalRepHooksGet = true;
-      that.tempRepCurrentSelect = that.tableDataRep[index]["repository_name"];
+      that.tempRepCurrentSelect = that.tableDataRep[index]["repName"];
       that.GetRepositoryHooks(that.tempRepCurrentSelect);
+    },
+    //查看目录树
+    ModelRepTree(index) {
+      var that = this;
+      that.modalRepTree = true;
+      that.GetRepTree(that.tableDataRep[index]["repName"]);
     },
     //svn用户授权
     ModelRepUserGet(index) {
       var that = this;
       that.modalRepUserPriGet = true;
-      that.tempRepCurrentSelect = that.tableDataRep[index]["repository_name"];
-      that.GetRepUserPri(that.tableDataRep[index]["repository_name"]);
+      that.tempRepCurrentSelect = that.tableDataRep[index]["repName"];
+      that.GetRepUserPri(that.tableDataRep[index]["repName"]);
     },
     //svn用户组授权
     ModelRepGroupGet(index) {
       var that = this;
       that.modalRepGroupPriGet = true;
-      that.tempRepCurrentSelect = that.tableDataRep[index]["repository_name"];
-      that.GetRepGroupPri(that.tableDataRep[index]["repository_name"]);
+      that.tempRepCurrentSelect = that.tableDataRep[index]["repName"];
+      that.GetRepGroupPri(that.tableDataRep[index]["repName"]);
+    },
+    GetRepTree(repository_name) {
+      var that = this;
+      var data = {
+        repository_name: repository_name,
+      };
+      that.$axios
+        .post("/api.php?c=svnserve&a=GetRepTree", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.treeRep = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     },
     AddRep() {
       var that = this;

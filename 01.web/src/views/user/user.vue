@@ -8,9 +8,26 @@
         <template slot-scope="{ index }" slot="id">
           <strong>{{ index + 1 }}</strong>
         </template>
-        <template slot-scope="{ index }" slot="action">
+        <template slot-scope="{ row }" slot="disabled">
+          {{ row.disabled == 1 ? "禁用" : "启用" }}
+        </template>
+        <template slot-scope="{ row, index }" slot="action">
+          <Button
+            type="info"
+            size="small"
+            v-if="row.disabled == 1"
+            @click="RepUserEnabled(index)"
+            >启用</Button
+          >
+          <Button
+            type="info"
+            size="small"
+            v-else
+            @click="RepUserDisabled(index)"
+            >禁用</Button
+          >
           <Button type="success" size="small" @click="ModalRepUserEdit(index)"
-            >编辑</Button
+            >密码</Button
           >
           <Button type="error" size="small" @click="ModalRepUserDel(index)"
             >删除</Button
@@ -34,13 +51,13 @@
     >
       <Form ref="formRepUser" :model="formRepUser" :label-width="80">
         <FormItem label="用户名">
-          <Input v-model="formRepUser.username" />
+          <Input v-model="formRepUser.userName" />
         </FormItem>
         <FormItem label="密码">
-          <Input v-model="formRepUser.password" />
+          <Input v-model="formRepUser.userPass" />
         </FormItem>
         <FormItem label="确认密码">
-          <Input v-model="formRepUser.password2" />
+          <Input v-model="formRepUser.userPass2" />
         </FormItem>
       </Form>
     </Modal>
@@ -51,13 +68,13 @@
     >
       <Form ref="formRepUser" :model="formRepUser" :label-width="80">
         <FormItem label="用户名">
-          <Input v-model="formRepUser.username" disabled />
+          <Input v-model="formRepUser.userName" disabled />
         </FormItem>
         <FormItem label="密码">
-          <Input v-model="formRepUser.password" />
+          <Input v-model="formRepUser.userPass" />
         </FormItem>
         <FormItem label="确认密码">
-          <Input v-model="formRepUser.password2" />
+          <Input v-model="formRepUser.userPass2" />
         </FormItem>
       </Form>
     </Modal>
@@ -67,7 +84,7 @@
 export default {
   data() {
     return {
-      toolTipAddUser: "用户名只能由数字、字母、下划线组成 密码可由数字、字母、下划线、点、@组成",
+      toolTipAddUser: "SVN用户名称只能包含字母、数字、破折号、下划线、点",
       /**
        * 布尔值
        */
@@ -88,14 +105,13 @@ export default {
 
       formRepUser: {
         userid: "", //用户id
-        username: "", //添加用户时的用户名称
-        password: "", //密码
-        password2: "", //重复密码
+        userName: "", //添加用户时的用户名称
+        userPass: "", //密码
+        userPass2: "", //重复密码
         realname: "", //姓名
         email: "", //邮件
         phone: "", //电话
         roleid: "", //角色id
-        rolename: "", //角色名称
       },
 
       /**
@@ -109,20 +125,20 @@ export default {
         },
         {
           title: "用户名",
-          key: "username",
+          key: "userName",
         },
         {
           title: "密码",
-          key: "password",
+          key: "userPass",
         },
         {
-          title: "角色",
-          key: "rolename",
+          title: "状态",
+          key: "disabled",
+          slot: "disabled",
         },
         {
           title: "操作",
           slot: "action",
-          width: 200,
           align: "center",
         },
       ],
@@ -131,11 +147,10 @@ export default {
         //   id: 1,
         //   uid: "",
         //   roleid: "",
-        //   username: "",
-        //   password: "",
+        //   userName: "",
+        //   userPass: "",
         //   realname: "",
         //   email: "",
-        //   rolename: "",
         //   phone: "",
         // },
       ],
@@ -147,28 +162,70 @@ export default {
       that.numRepUserPageCurrent = value; //设置当前页数
       that.RepGetUserList();
     },
+    //启用用户
+    RepUserEnabled(index) {
+      var that = this;
+      var data = {
+        userName: that.tableDataRepUser[index]["userName"],
+      };
+      that.$axios
+        .post("/api.php?c=svnserve&a=RepEnabledUser", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.RepGetUserList();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    //禁用用户
+    RepUserDisabled(index) {
+      var that = this;
+      var data = {
+        userName: that.tableDataRepUser[index]["userName"],
+      };
+      that.$axios
+        .post("/api.php?c=svnserve&a=RepDisabledUser", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.RepGetUserList();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
     ModalRepUserEdit(index) {
       var that = this;
       that.modalRepUserEdit = true;
 
-      that.formRepUser.username = that.tableDataRepUser[index]["username"];
-      that.formRepUser.password = that.tableDataRepUser[index]["password"];
-      that.formRepUser.password2 = that.tableDataRepUser[index]["password"];
+      that.formRepUser.userName = that.tableDataRepUser[index]["userName"];
+      that.formRepUser.userPass = that.tableDataRepUser[index]["userPass"];
+      that.formRepUser.userPass2 = that.tableDataRepUser[index]["userPass"];
     },
     //添加用户对话框
     ModalAddRepUser() {
       var that = this;
       that.ModalRepUserAdd = true;
-      that.formRepUser.username = "";
-      that.formRepUser.password = "";
-      that.formRepUser.password2 = "";
+      that.formRepUser.userName = "";
+      that.formRepUser.userPass = "";
+      that.formRepUser.userPass2 = "";
     },
     RepEditUser() {
       var that = this;
       var data = {
-        edit_username: that.formRepUser.username,
-        edit_password: that.formRepUser.password,
-        edit_password2: that.formRepUser.password2,
+        edit_username: String(that.formRepUser.userName),
+        edit_password: String(that.formRepUser.userPass),
+        edit_password2: String(that.formRepUser.userPass2),
       };
       that.$axios
         .post("/api.php?c=svnserve&a=RepEditUser", data)
@@ -192,9 +249,9 @@ export default {
     RepAddUser() {
       var that = this;
       var data = {
-        username: that.formRepUser.username,
-        password: that.formRepUser.password,
-        password2: that.formRepUser.password2,
+        userName: that.formRepUser.userName,
+        userPass: that.formRepUser.userPass,
+        userPass2: that.formRepUser.userPass2,
       };
       that.$axios
         .post("/api.php?c=svnserve&a=RepAddUser", data)
@@ -241,7 +298,7 @@ export default {
     ModalRepUserDel(index) {
       var that = this;
       var data = {
-        del_username: that.tableDataRepUser[index]["username"],
+        del_username: that.tableDataRepUser[index]["userName"],
       };
       that.$Modal.confirm({
         title: "警告",

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * 与svn服务相关的方法的封装
  * 
@@ -61,42 +63,30 @@ class Svnserve extends Controller
      */
     function RepAddUser($requestPayload)
     {
-        $username = trim($requestPayload['username']);
-        $password = trim($requestPayload['password']);
-        $password2 = trim($requestPayload['password2']);
+        $userName = trim($requestPayload['userName']);
+        $userPass = $requestPayload['userPass'];
+        $userPass2 = $requestPayload['userPass2'];
 
-        if (empty($username) || empty($password) ||  $password != $password2) {
+        if (empty($userName) ||  $userPass != $userPass2) {
             $data['status'] = 0;
             $data['message'] = '参数不完整或错误';
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
             return $data;
         }
 
-        if (preg_match("/^[0-9a-zA-Z_]*$/", $username, $match) == 0) {
+        if (!FunIsValidRepUser($userName)) {
             $data['status'] = 0;
-            $data['message'] = '用户名只能包括数字、字母、下划线';
+            $data['message'] = 'SVN用户名只能包含字母、数字、破折号、下划线、点';
             return $data;
         }
 
-        if (preg_match("/^[0-9a-zA-Z_.@]*$/", $password, $match) == 0) {
-            $data['status'] = 0;
-            $data['message'] = '密码只能包括数字、字母、下划线、点 、@';
-            return $data;
-        }
-
-        if ($username == MANAGE_USER) {
-            $data['status'] = 0;
-            $data['message'] = 'SVN用户与管理员账号冲突';
-            return $data;
-        }
-
-        $status =  FunAddSvnUser(file_get_contents(SVN_SERVER_PASSWD), $username, $password);
+        $status =  FunAddSvnUser($this->globalPasswdContent, $userName, $userPass);
         if ($status == '0') {
             $data['status'] = 0;
             $data['message'] = '文件中不存在[users]标识';
@@ -107,7 +97,7 @@ class Svnserve extends Controller
             $data['message'] = '用户已存在';
             return $data;
         }
-        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
+        FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
 
         $data['status'] = 1;
         $data['message'] = '成功';
@@ -128,7 +118,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -143,33 +133,18 @@ class Svnserve extends Controller
             return $data;
         }
 
-        $userPassList = FunGetSvnUserPassList(file_get_contents(SVN_SERVER_PASSWD));
+        $userPassList = FunGetSvnUserPassList($this->globalPasswdContent);
+
+        $total = count($userPassList);
 
         $begin = $pageSize * ($currentPage - 1);
 
-        $temp = array();
-        foreach ($userPassList as $key => $value) {
-            array_push($temp, array(
-                'username' => $key,
-                'password' => $value
-            ));
-        }
-
-        $temp = array_splice($temp, $begin, $pageSize);
-
-        $info = array();
-        foreach ($temp as $key => $value) {
-            array_push($info, array(
-                'username' => $value['username'],
-                'password' => $value['password'],
-                'rolename' => 'SVN用户'
-            ));
-        }
+        $userPassList = array_splice($userPassList, $begin, $pageSize);
 
         $data['status'] = 1;
         $data['message'] = '成功';
-        $data['data'] = $info;
-        $data['total'] = count(FunGetSvnUserList(file_get_contents(SVN_SERVER_PASSWD)));
+        $data['data'] = $userPassList;
+        $data['total'] = $total;
         return $data;
     }
 
@@ -178,29 +153,17 @@ class Svnserve extends Controller
      */
     function RepEditUser($requestPayload)
     {
-        $edit_username = trim($requestPayload['edit_username']);
-        $edit_password = trim($requestPayload['edit_password']);
-        $edit_password2 = trim($requestPayload['edit_password2']);
+        $edit_username = $requestPayload['edit_username'];
+        $edit_password = $requestPayload['edit_password'];
+        $edit_password2 = $requestPayload['edit_password2'];
 
-        if (empty($edit_username) || empty($edit_password) ||  $edit_password != $edit_password2) {
+        if (empty(trim($edit_username)) ||  $edit_password != $edit_password2) {
             $data['status'] = 0;
             $data['message'] = '参数不完整或错误';
             return $data;
         }
 
-        if (preg_match("/^[0-9a-zA-Z_]*$/", $edit_password, $match) == 0) {
-            $data['status'] = 0;
-            $data['message'] = '分组名只能包括数字、字母、下划线';
-            return $data;
-        }
-
-        if ($edit_username == MANAGE_USER) {
-            $data['status'] = 0;
-            $data['message'] = 'SVN用户与管理员账号冲突';
-            return $data;
-        }
-
-        $status = FunUpdSvnUserPass(file_get_contents(SVN_SERVER_PASSWD), $edit_username, $edit_password);
+        $status = FunUpdSvnUserPass($this->globalPasswdContent, $edit_username, $edit_password);
         if ($status == '0') {
             $data['status'] = 0;
             $data['message'] = '文件中不存在[users]标识';
@@ -211,7 +174,7 @@ class Svnserve extends Controller
             $data['message'] = '用户不存在';
             return $data;
         }
-        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
+        FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
 
         $data['status'] = 1;
         $data['message'] = '成功';
@@ -231,14 +194,14 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
             return $data;
         }
 
-        $status = FunDelSvnUserPasswd(file_get_contents(SVN_SERVER_PASSWD), $del_username);
+        $status = FunDelSvnUserPasswd($this->globalPasswdContent, $del_username);
         if ($status == '0') {
             $data['status'] = 0;
             $data['message'] = '文件中不存在[users]标识';
@@ -249,15 +212,81 @@ class Svnserve extends Controller
             $data['message'] = '用户不存在';
             return $data;
         }
-        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
+        FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
 
-        $status = FunDelUserAuthz(file_get_contents(SVN_SERVER_AUTHZ), $del_username);
+        $status = FunDelUserAuthz($this->globalAuthzContent, $del_username);
         if ($status == '1') {
             $data['status'] = 0;
             $data['message'] = '用户不存在';
             return $data;
         }
-        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+        FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 启用SVN用户
+     */
+    function RepEnabledUser($requestPayload)
+    {
+        $userName = $requestPayload['userName'];
+
+        if (empty($userName)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        $status = FunEnabledUser($this->globalPasswdContent, $userName);
+
+        if ($status == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[users]标识';
+            return $data;
+        }
+        if ($status == '1') {
+            $data['status'] = 0;
+            $data['message'] = '要启用的用户不存在';
+            return $data;
+        }
+
+        FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 禁用SVN用户
+     */
+    function RepDisabledUser($requestPayload)
+    {
+        $userName = $requestPayload['userName'];
+
+        if (empty($userName)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        $status = FunDisabledUser($this->globalPasswdContent, $userName);
+
+        if ($status == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[users]标识';
+            return $data;
+        }
+        if ($status == '1') {
+            $data['status'] = 0;
+            $data['message'] = '要禁用的用户不存在';
+            return $data;
+        }
+
+        FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_PASSWD);
 
         $data['status'] = 1;
         $data['message'] = '成功';
@@ -269,28 +298,28 @@ class Svnserve extends Controller
      */
     function RepAddGroup($requestPayload)
     {
-        $groupname = trim($requestPayload['groupname']);
+        $groupName = trim($requestPayload['groupName']);
 
-        if (empty($groupname)) {
+        if (empty($groupName)) {
             $data['status'] = 0;
             $data['message'] = '参数不完整或错误';
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
             return $data;
         }
 
-        if (preg_match("/^[0-9a-zA-Z_]*$/", $groupname, $match) == 0) {
+        if (!FunIsValidRepGroup($groupName)) {
             $data['status'] = 0;
-            $data['message'] = '组名称只能包括数字、字母、下划线';
+            $data['message'] = 'SVN组名称只能包含字母、数字、破折号、下划线、点';
             return $data;
         }
 
-        $status = FunAddSvnGroup(file_get_contents(SVN_SERVER_AUTHZ), $groupname);
+        $status = FunAddSvnGroup($this->globalAuthzContent, $groupName);
 
         if ($status == '0') {
             $data['status'] = 0;
@@ -302,7 +331,7 @@ class Svnserve extends Controller
             $data['message'] = '分组已存在';
             return $data;
         }
-        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+        FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
 
         $data['status'] = 1;
         $data['message'] = '成功';
@@ -323,7 +352,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -338,35 +367,49 @@ class Svnserve extends Controller
             return $data;
         }
 
-        $authz = file_get_contents(SVN_SERVER_AUTHZ);
-        $groupList = FunGetSvnGroupList($authz);
-        $groupUserList = FunGetSvnGroupUserList($authz);
+        // $groupList = FunGetSvnGroupList($this->globalAuthzContent);
+        $groupUserList = FunGetSvnGroupUserAndGroupList($this->globalAuthzContent);
 
-        $total = count($groupList);
+        if ($groupUserList == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件格式错误(不存在[groups]标识)';
+            return $data;
+        }
+
+        $total = count($groupUserList);
 
         $begin = $pageSize * ($currentPage - 1);
 
         //array_splice会将下标自动转换 使用要注意
-        $groupList = array_splice($groupList, $begin, $pageSize);
+        $groupUserList = array_splice($groupUserList, $begin, $pageSize);
 
-        $info = array();
-        foreach ($groupList as $key => $value) {
-            $usercount = count($groupUserList[$value]);
-            if ($usercount == 1) {
-                $usercount = trim($groupUserList[$value][0]) == '' ? 0 : 1;
-            } else {
-                $usercount = count($groupUserList[$value]);
-            }
-            array_push($info, array(
-                'groupname' => $value,
-                'usercount' => $usercount,
-            ));
+        // return $groupUserList;
+
+        // $info = [];
+        // foreach ($groupList as $key => $value) {
+        //     $usercount = count((array_column($groupUserList, 'include', 'groupName'))[$value]['users']);
+        //     if ($usercount == 1) {
+        //         $usercount = trim((array_column($groupUserList, 'include', 'groupName'))[$value]['users'][0]) == '' ? 0 : 1;
+        //     } else {
+        //         $usercount = count((array_column($groupUserList, 'include', 'groupName'))[$value]['users']);
+        //     }
+        //     array_push($info, array(
+        //         'groupName' => $value,
+        //         'includeUserCount' => $usercount,
+        //         'includeGroupCount'=>''
+        //     ));
+        // }
+
+        foreach ($groupUserList as $key => $value) {
+            $groupUserList[$key]['includeUserCount'] = count($value['include']['users']);
+            $groupUserList[$key]['includeGroupCount'] = count($value['include']['groups']);
+            unset($groupUserList[$key]['include']);
         }
 
 
         $data['status'] = 1;
         $data['message'] = '成功';
-        $data['data'] = $info;
+        $data['data'] = $groupUserList;
         $data['total'] = $total;
         return $data;
     }
@@ -385,16 +428,16 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
             return $data;
         }
 
-        if (preg_match("/^[0-9a-zA-Z_]*$/", $newGroup, $match) == 0) {
+        if (!FunIsValidRepGroup($newGroup)) {
             $data['status'] = 0;
-            $data['message'] = '分组名只能包括数字、字母、下划线';
+            $data['message'] = 'SVN组名称只能包含字母、数字、破折号、下划线、点';
             return $data;
         }
 
@@ -404,8 +447,8 @@ class Svnserve extends Controller
             return $data;
         }
 
-        $status = FunUpdSvnGroup(file_get_contents(SVN_SERVER_AUTHZ), $oldGroup, $newGroup);
-        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+        $status = FunUpdSvnGroup($this->globalAuthzContent, $oldGroup, $newGroup);
+        FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
 
         $data['status'] = 1;
         $data['message'] = '成功';
@@ -417,23 +460,23 @@ class Svnserve extends Controller
      */
     function RepGroupDel($requestPayload)
     {
-        $groupname = $requestPayload['del_groupname'];
+        $groupName = $requestPayload['del_groupname'];
 
-        if (empty($groupname)) {
+        if (empty($groupName)) {
             $data['status'] = 0;
             $data['message'] = '参数不完整或错误';
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
             return $data;
         }
 
-        $status = FunDelSvnGroup(file_get_contents(SVN_SERVER_AUTHZ), $groupname);
-        RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+        $status = FunDelSvnGroup($this->globalAuthzContent, $groupName);
+        FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
 
         $data['status'] = 1;
         $data['message'] = '成功';
@@ -441,26 +484,26 @@ class Svnserve extends Controller
     }
 
     /**
-     * 获取仓库分组用户
+     * 获取分组包含的用户列表
      */
     function RepGetGroupUserList($requestPayload)
     {
-        $groupname = $requestPayload['groupname'];
+        $groupName = $requestPayload['groupName'];
 
-        if (empty($groupname)) {
+        if (empty($groupName)) {
             $data['status'] = 0;
             $data['message'] = '参数不完整或错误';
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
             return $data;
         }
 
-        $status1 = FunGetSvnUserListByGroup(file_get_contents(SVN_SERVER_AUTHZ), $groupname);
+        $status1 = FunGetSvnUserListByGroup($this->globalAuthzContent, $groupName);
         if ($status1 == '0') {
             $data['status'] = 0;
             $data['message'] = '文件中不存在[groups]标识';
@@ -471,14 +514,15 @@ class Svnserve extends Controller
             $data['message'] = '分组不存在';
             return $data;
         }
-        $status2 = FunGetSvnUserList(file_get_contents(SVN_SERVER_PASSWD));
+        $status2 = FunGetSvnUserList($this->globalPasswdContent);
         if ($status2 == '0') {
             $data['status'] = 0;
             $data['message'] = '文件中不存在[users]标识';
             return $data;
         }
-        $list = array();
-        foreach ($status2 as $key => $value) {
+        $userList = array_column($status2, 'userName');
+        $list = [];
+        foreach ($userList as $value) {
             if (in_array($value, $status1)) {
                 array_push($list, array(
                     'username' => $value,
@@ -498,7 +542,64 @@ class Svnserve extends Controller
     }
 
     /**
-     * 设置仓库分组用户
+     * 获取分组包含的分组列表
+     */
+    function RepGetGroupGroupList($requestPayload)
+    {
+        $groupName = $requestPayload['groupName'];
+
+        if (empty($groupName)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整或错误';
+            return $data;
+        }
+
+        if ($this->globalUserRoleId != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        $status1 = FunGetSvnGroupListByGroup($this->globalAuthzContent, $groupName);
+        if ($status1 == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[groups]标识';
+            return $data;
+        }
+        if ($status1 == '1') {
+            $data['status'] = 0;
+            $data['message'] = '分组不存在';
+            return $data;
+        }
+        $status2 = FunGetSvnGroupList($this->globalAuthzContent);
+        if ($status2 == '0') {
+            $data['status'] = 0;
+            $data['message'] = '文件中不存在[groups]标识';
+            return $data;
+        }
+        $list = [];
+        foreach ($status2 as $value) {
+            if (in_array($value, $status1)) {
+                array_push($list, array(
+                    'groupName' => $value,
+                    'status' => 'in'
+                ));
+            } else {
+                array_push($list, array(
+                    'groupName' => $value,
+                    'status' => 'no'
+                ));
+            }
+        }
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        $data['data'] = $list;
+        return $data;
+    }
+
+    /**
+     * 设置仓库分组的用户
      */
     function RepSetGroupUserList($requestPayload)
     {
@@ -511,17 +612,17 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
             return $data;
         }
 
-        $authz = file_get_contents(SVN_SERVER_AUTHZ);
+        $authzContent = $this->globalAuthzContent;
         foreach ($this_account_list as $key => $value) {
             if ($value['status'] == 'no') {
-                $status1 = FunDelSvnGroupUser($authz, $group_name, $value['username']);
+                $status1 = FunDelSvnGroupUser($authzContent, $group_name, $value['username']);
                 if ($status1 == '0') {
                     $data['status'] = 0;
                     $data['message'] = '文件中不存在[groups]标识';
@@ -532,10 +633,10 @@ class Svnserve extends Controller
                     return $data;
                 } elseif ($status1 == '2') {
                 } else {
-                    $authz = $status1;
+                    $authzContent = $status1;
                 }
             } else if ($value['status'] == 'in') {
-                $status2 = FunAddSvnGroupUser($authz, $group_name, $value['username']);
+                $status2 = FunAddSvnGroupUser($authzContent, $group_name, $value['username']);
                 if ($status2 == '0') {
                     $data['status'] = 0;
                     $data['message'] = '文件中不存在[groups]标识';
@@ -546,16 +647,179 @@ class Svnserve extends Controller
                     return $data;
                 } elseif ($status2 == '2') {
                 } else {
-                    $authz = $status2;
+                    $authzContent = $status2;
                 }
             }
         }
 
-        RequestReplyExec('echo \'' . $authz . '\' > ' . SVN_SERVER_AUTHZ);
+        FunRequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
 
         $data['status'] = 1;
         $data['message'] = '成功';
         return $data;
+    }
+
+    /**
+     * 设置仓库分组的分组
+     */
+    function RepSetGroupGroupList($requestPayload)
+    {
+        $parentGroupName = trim($requestPayload['groupName']);
+        $thisAccountList = $requestPayload['thisAccountList'];
+
+        if (empty($parentGroupName) || empty($thisAccountList)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整';
+            return $data;
+        }
+
+        if ($this->globalUserRoleId != 1) {
+            $data['status'] = 0;
+            $data['message'] = '非法用户';
+            $data['code'] = 401;
+            return $data;
+        }
+
+        $authzContent = $this->globalAuthzContent;
+        foreach ($thisAccountList as $key => $value) {
+            if ($value['status'] == 'no') {
+                $status1 = FunDelSvnGroupGroup($authzContent, $parentGroupName, $value['groupName']);
+                if ($status1 == '0') {
+                    $data['status'] = 0;
+                    $data['message'] = '文件中不存在[groups]标识';
+                    return $data;
+                } elseif ($status1 == '1') {
+                    $data['status'] = 0;
+                    $data['message'] = '用户组不存在';
+                    return $data;
+                } elseif ($status1 == '2') {
+                } else {
+                    $authzContent = $status1;
+                }
+            } else if ($value['status'] == 'in') {
+                $status2 = FunAddSvnGroupGroup($authzContent, $parentGroupName, $value['groupName']);
+                if ($status2 == '0') {
+                    $data['status'] = 0;
+                    $data['message'] = '文件中不存在[groups]标识';
+                    return $data;
+                } elseif ($status2 == '1') {
+                    $data['status'] = 0;
+                    $data['message'] = '用户组不存在';
+                    return $data;
+                } elseif ($status2 == '2') {
+                } elseif ($status2 == '3') {
+                    $data['status'] = 0;
+                    $data['message'] = '存在分组循环嵌套的情况';
+                    return $data;
+                } else {
+                    //获取分组所在的所有分组
+                    $groupGroupList = $this->GetSvnGroupAllGroupList($parentGroupName);
+
+                    if (in_array($value['groupName'], $groupGroupList)) {
+                        $data['status'] = 0;
+                        $data['message'] = '存在分组循环嵌套的情况';
+                        return $data;
+                    }
+
+                    $authzContent = $status2;
+                }
+            }
+        }
+
+        FunRequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        return $data;
+    }
+
+    /**
+     * 获取用户所在的所有分组
+     * 
+     * 包括直接包含关系 如
+     * group1=user1
+     * 
+     * 和间接包含关系 如
+     * group1=user1
+     * group2=@group1
+     * group3=@group2
+     * group4=@group3
+     */
+    private function GetSvnUserAllGroupList($userName)
+    {
+        $authzContent = $this->globalAuthzContent;
+
+        //所有的分组列表
+        $allGroupList = FunGetSvnGroupList($authzContent);
+
+        //用户所在的分组列表
+        $userGroupList = FunGetSvnUserGroupList($authzContent, $userName);
+
+        //剩余的分组列表
+        $leftGroupList = array_diff($allGroupList, $userGroupList);
+
+        //循环匹配 直到匹配到与该用户相关的有权限的用户组为止
+        loop:
+        $userGroupListBack = $userGroupList;
+        foreach ($userGroupList as $group1) {
+            $newList = FunGetSvnGroupGroupList($authzContent, $group1);
+            foreach ($leftGroupList as $group2) {
+                if (in_array($group2, $newList)) {
+                    array_push($userGroupList, $group2);
+                    unset($leftGroupList[array_search($group2, $leftGroupList)]);
+                }
+            }
+        }
+        if ($userGroupList != $userGroupListBack) {
+            goto loop;
+        }
+
+        return $userGroupList;
+    }
+
+    /**
+     * 获取分组所在的所有分组
+     * 
+     * 包括直接包含关系 如
+     * group2=@group1
+     * 
+     * 和间接包含关系 如
+     * group2=@group1
+     * group3=@group2
+     * group4=@group3
+     */
+    private function GetSvnGroupAllGroupList($groupName)
+    {
+        $parentGroupName = $groupName;
+
+        $authzContent = $this->globalAuthzContent;
+
+        //所有的分组列表
+        $allGroupList = FunGetSvnGroupList($authzContent);
+
+        //分组所在的分组列表 
+        $groupGroupList = FunGetSvnGroupGroupList($authzContent, $parentGroupName);
+
+        //剩余的分组列表
+        $leftGroupList = array_diff($allGroupList, $groupGroupList);
+
+        //循环匹配
+        loop:
+        $userGroupListBack = $groupGroupList;
+        foreach ($groupGroupList as $group1) {
+            $newList = FunGetSvnGroupGroupList($authzContent, $group1);
+            foreach ($leftGroupList as $group2) {
+                if (in_array($group2, $newList)) {
+                    array_push($groupGroupList, $group2);
+                    unset($leftGroupList[array_search($group2, $leftGroupList)]);
+                }
+            }
+        }
+        if ($groupGroupList != $userGroupListBack) {
+            goto loop;
+        }
+
+        return $groupGroupList;
     }
 
     //设置仓库的hooks
@@ -564,7 +828,7 @@ class Svnserve extends Controller
         $repository_name = trim($requestPayload['repository_name']);
         $hooks_type_list = $requestPayload['hooks_type_list'];
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -576,10 +840,11 @@ class Svnserve extends Controller
             $data['message'] = '仓库不存在或文件损坏';
             return $data;
         }
-        RequestReplyExec('chmod 777 -R ' . SVN_REPOSITORY_PATH);
+
         foreach ($hooks_type_list as $key => $value) {
             file_put_contents(SVN_REPOSITORY_PATH . '/' . $repository_name . '/' . 'hooks' . '/' . $value['value'], $value["shell"]);
         }
+
         $data['status'] = 1;
         $data['message'] = '成功';
         return $data;
@@ -590,7 +855,7 @@ class Svnserve extends Controller
     {
         $repository_name = trim($requestPayload['repository_name']);
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -726,7 +991,7 @@ class Svnserve extends Controller
         //管理员数量
         $resultlist['super_count'] = 1;
         //SVN用户数量
-        $resultlist['user_count'] = count(FunGetSvnUserList(file_get_contents(SVN_SERVER_PASSWD)));
+        $resultlist['user_count'] = count(array_column(FunGetSvnUserList($this->globalPasswdContent), 'userName'));
 
         $data['status'] = 1;
         $data['data'] = $resultlist;
@@ -737,7 +1002,7 @@ class Svnserve extends Controller
     //安装svnserve服务
     function Install($requestPayload)
     {
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -745,43 +1010,41 @@ class Svnserve extends Controller
         }
 
         //创建svn仓库父目录
-        RequestReplyExec('mkdir -p ' . SVN_REPOSITORY_PATH);
-
-        RequestReplyExec('chmod 777 -R ' . SVN_REPOSITORY_PATH);
+        FunRequestReplyExec('mkdir -p ' . SVN_REPOSITORY_PATH);
 
         //创建数据备份目录
-        RequestReplyExec('mkdir -p ' . BACKUP_PATH);
+        FunRequestReplyExec('mkdir -p ' . BACKUP_PATH);
 
         //创建日志目录
-        RequestReplyExec('mkdir -p ' . LOG_PATH);
+        FunRequestReplyExec('mkdir -p ' . LOG_PATH);
 
         //通过ps auxf|grep -v "grep"|grep svnserve和判断文件/usr/bin/svnserve是否存在这两方面来同时判断 如果没有安装过则进行安装
-        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = FunRequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             //创建文件 svnserve.conf  并写入内容
-            RequestReplyExec('touch ' . SVN_SERVER_CONF);
-            RequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/svnserve.conf') . '\' > ' . SVN_SERVER_CONF);
+            FunRequestReplyExec('touch ' . SVN_SERVER_CONF);
+            FunRequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/svnserve.conf') . '\' > ' . SVN_SERVER_CONF);
 
             //创建文件 passwd
-            RequestReplyExec('touch ' . SVN_SERVER_PASSWD);
-            RequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/passwd') . '\' > ' . SVN_SERVER_PASSWD);
+            FunRequestReplyExec('touch ' . SVN_SERVER_PASSWD);
+            FunRequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/passwd') . '\' > ' . SVN_SERVER_PASSWD);
 
             //创建文件 authz
-            RequestReplyExec('touch ' . SVN_SERVER_AUTHZ);
-            RequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/authz') . '\' > ' . SVN_SERVER_AUTHZ);
+            FunRequestReplyExec('touch ' . SVN_SERVER_AUTHZ);
+            FunRequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/authz') . '\' > ' . SVN_SERVER_AUTHZ);
 
             //yum 方式安装 subversion
-            RequestReplyExec("yum install -y subversion");
+            FunRequestReplyExec("yum install -y subversion");
 
             //通常cp的别名为cp -i ，取消别名
-            RequestReplyExec("alias cp='cp'");
+            FunRequestReplyExec("alias cp='cp'");
 
             //备份文件
-            RequestReplyExec('cp -f /etc/sysconfig/svnserve /etc/sysconfig/svnserve.bak');
+            FunRequestReplyExec('cp -f /etc/sysconfig/svnserve /etc/sysconfig/svnserve.bak');
 
             //更改存储库位置 将配置文件/etc/sysconfig/svnserve中的/var/svn/更换为svn仓库目录
             //增加启动参数 指定所有仓库被一个配置文件管理
-            RequestReplyExec('sed -i \'s/\/var\/svn/ ' . str_replace('/', '\/', SVN_REPOSITORY_PATH) . ' --config-file ' . str_replace('/', '\/', SVN_SERVER_CONF) . '/g\'' . ' /etc/sysconfig/svnserve');
+            FunRequestReplyExec('sed -i \'s/\/var\/svn/ ' . str_replace('/', '\/', SVN_REPOSITORY_PATH) . ' --config-file ' . str_replace('/', '\/', SVN_SERVER_CONF) . '/g\'' . ' /etc/sysconfig/svnserve');
 
             //设置存储密码选项 将以下内容写入文件/etc/subversion/servers servers文件不存在则创建
             /**
@@ -789,25 +1052,25 @@ class Svnserve extends Controller
              * [global]
              * store-plaintext-passwords = yes
              */
-            RequestReplyExec("touch /etc/subversion/servers");
+            FunRequestReplyExec("touch /etc/subversion/servers");
             // $con = "[groups]\n[global]\nstore-plaintext-passwords = yes\n";
-            RequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/servers') . '\' > /etc/subversion/servers');
+            FunRequestReplyExec('echo \'' . file_get_contents(BASE_PATH . '/data/templete/servers') . '\' > /etc/subversion/servers');
 
             //加入开机启动项
-            RequestReplyExec("systemctl enable svnserve.service");
+            FunRequestReplyExec("systemctl enable svnserve.service");
 
             //启动
-            RequestReplyExec("systemctl start svnserve.service");
+            FunRequestReplyExec("systemctl start svnserve.service");
 
             //将svn和http默认端口加入防火墙
             $this->Firewall->SetFirewallPolicy(["port" => SVN_PORT, "type" => "add"]);
             $this->Firewall->SetFirewallPolicy(["port" => HTTP_PORT, "type" => "add"]);
 
             //临时关闭selinux
-            RequestReplyExec('setenforce 0');
+            FunRequestReplyExec('setenforce 0');
 
             //永久关闭selinux
-            RequestReplyExec("sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config");
+            FunRequestReplyExec("sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config");
 
             $data['status'] = 1;
             $data['message'] = '成功';
@@ -822,22 +1085,22 @@ class Svnserve extends Controller
     //卸载svnserve服务
     function UnInstall($requestPayload)
     {
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
             return $data;
         }
 
-        RequestReplyExec('systemctl stop svnserve');
-        RequestReplyExec('systemctl disable svnserve');
-        RequestReplyExec('yum remove -y subversion');
-        RequestReplyExec('rm -f /etc/subversion/servers');
-        RequestReplyExec('rm -rf /etc/subversion');
-        RequestReplyExec('rm -rf /usr/bin/svnserve');
+        FunRequestReplyExec('systemctl stop svnserve');
+        FunRequestReplyExec('systemctl disable svnserve');
+        FunRequestReplyExec('yum remove -y subversion');
+        FunRequestReplyExec('rm -f /etc/subversion/servers');
+        FunRequestReplyExec('rm -rf /etc/subversion');
+        FunRequestReplyExec('rm -rf /usr/bin/svnserve');
 
         //清除yum缓存
-        RequestReplyExec('yum clean all');
+        FunRequestReplyExec('yum clean all');
 
         //is_dir的结果会被缓存，所以需要清除缓存
         clearstatcache();
@@ -852,13 +1115,15 @@ class Svnserve extends Controller
     {
     }
 
-    //项目管理 获取仓库信息
+    /**
+     * 获取仓库列表
+     */
     function GetRepositoryList($requestPayload)
     {
-        $pageSize = trim($requestPayload['pageSize']);
-        $currentPage = trim($requestPayload['currentPage']);
+        $pageSize = $requestPayload['pageSize'];
+        $currentPage = $requestPayload['currentPage'];
 
-        if (empty(trim($pageSize)) || empty(trim($currentPage)) || trim($pageSize) == 0) {
+        if (empty($pageSize) || empty($currentPage) || $pageSize == 0) {
             $data['status'] = 0;
             $data['message'] = '参数不完整或错误';
             return $data;
@@ -872,61 +1137,56 @@ class Svnserve extends Controller
             return $data;
         }
 
-        RequestReplyExec('chmod 777 -R ' . SVN_REPOSITORY_PATH);
+        $repArray = FunGetRepList();
 
-        $repArray = GetRepList();
-        $total = count($repArray);
+        $authzContent = $this->globalAuthzContent;
 
-        $authzContent = file_get_contents(SVN_SERVER_AUTHZ);
+        $authzContentBackup = $authzContent;
 
-        //检查是否有没有写入配置文件的仓库字段
+        //检查是否存在没有写入配置文件的仓库字段
         foreach ($repArray as $key => $value) {
-            $status = FunSetRepAuthz($authzContent, $value['repository_name'], '/');
+            $status = FunSetRepAuthz($authzContent, $value['repName'], '/');
             if ($status != '1') {
                 $authzContent = $status;
             }
         }
 
-        RequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
+        //写入
+        if ($authzContentBackup != $authzContent) {
+            FunRequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
+        }
 
-        if ($this->this_roleid == 2) {
-            $allRepList = array();
+        if ($this->globalUserRoleId == 2) {
+            //获取用户所在的所有分组
+            $userGroupList = $this->GetSvnUserAllGroupList($this->globalUserName);
 
-            //查看用户本身的仓库 
-            $userRepList = FunGetUserPriRepListWithoutPri($authzContent, $this->this_username, '/');
-            if ($userRepList != null) {
-                $allRepList = array_merge($userRepList, $allRepList);
+            $allRepList = [];
+
+            //获取分组有权限的仓库列表
+            foreach ($userGroupList as $value) {
+                $allRepList = array_merge($allRepList, FunGetGroupPriRepListWithoutPri($authzContent, $value));
             }
 
-            //查看用户所在所有分组的仓库
-            $groupUserList = FunGetSvnGroupUserList($authzContent);
-            foreach ($groupUserList as $key => $value) {
-                if (in_array($this->this_username, $value)) {
-                    //获取当前用户组有权限的仓库列表
-                    $groupRepList =  FunGetGroupPriRepListWithoutPri($authzContent, $key);
-                    if ($groupRepList != null) {
-                        $allRepList = array_merge($groupRepList, $allRepList);
-                    }
-                }
-            }
+            //获取用户有权限的仓库列表
+            $allRepList = array_merge($allRepList, FunGetUserPriRepListWithoutPri($authzContent, $this->globalUserName));
+
+            //获取所有用户有权限的仓库列表
+            $allRepList = array_merge($allRepList, FunGetAllHavePriRepListWithoutPri($authzContent));
 
             //处理
-            if ($allRepList == null) {
-                $repArray = array();
-                $total = 0;
-            } else {
-                foreach ($repArray as $key => $value) {
-                    if (!in_array($value['repository_name'], $allRepList)) {
-                        unset($repArray[$key]);
-                    }
+            foreach ($repArray as $key => $value) {
+                if (!in_array($value['repName'], $allRepList)) {
+                    unset($repArray[$key]);
                 }
             }
         }
 
         $begin = $pageSize * ($currentPage - 1);
 
+        $total =  count($repArray);
+
         //array_splice会将下标自动转换 使用要注意
-        $list = array_splice($repArray, $begin, $pageSize);
+        $list = array_splice($repArray, $begin, (int)$pageSize);
 
         $data['status'] = 1;
         $data['message'] = '成功';
@@ -940,7 +1200,7 @@ class Svnserve extends Controller
     {
         $repository_name = $requestPayload['repository_name'];
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -954,10 +1214,10 @@ class Svnserve extends Controller
             return $data;
         }
 
-        //只允许数字 字母 中文 下划线
-        if (!$this->CheckStr($repository_name)) {
+        //只能包含字母、数字、破折号、下划线或点字符，不能以句点开头或结尾
+        if (!FunIsValidRepName($repository_name)) {
             $data['status'] = 0;
-            $data['message'] = '包含非法字符';
+            $data['message'] = 'SVN仓库名称只能包含字母、数字、破折号、下划线、点，不能以点开头或结尾';
             return $data;
         }
 
@@ -970,7 +1230,7 @@ class Svnserve extends Controller
 
         //创建仓库
         //解决创建中文仓库乱码问题
-        RequestReplyExec('export LC_CTYPE=en_US.UTF-8 &&  svnadmin create ' . SVN_REPOSITORY_PATH . '/' . $repository_name);
+        FunRequestReplyExec('export LC_CTYPE=en_US.UTF-8 &&  svnadmin create ' . SVN_REPOSITORY_PATH . '/' . $repository_name);
 
         //判断是否创建成功
         if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
@@ -978,14 +1238,13 @@ class Svnserve extends Controller
             $data['message'] = '添加仓库失败';
             return $data;
         }
-        RequestReplyExec('chmod 777 -R ' . SVN_REPOSITORY_PATH);
 
-        RequestReplyExec('setenforce 0');
+        FunRequestReplyExec('setenforce 0');
 
         //写入配置文件
-        $status = FunSetRepAuthz(file_get_contents(SVN_SERVER_AUTHZ), $repository_name, '/');
+        $status = FunSetRepAuthz($this->globalAuthzContent, $repository_name, '/');
         if ($status != '1') {
-            RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+            FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
         }
 
         $data['status'] = 1;
@@ -1004,7 +1263,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -1017,7 +1276,7 @@ class Svnserve extends Controller
             $data['message'] = '仓库不存在';
             return $data;
         }
-        RequestReplyExec('rm -rf ' . SVN_REPOSITORY_PATH . '/' . $repository_name);
+        FunRequestReplyExec('rm -rf ' . SVN_REPOSITORY_PATH . '/' . $repository_name);
 
         //检查是否删除成功
         if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
@@ -1027,9 +1286,9 @@ class Svnserve extends Controller
         }
 
         //从配置文件删除
-        $status = FunDelRepAuthz(file_get_contents(SVN_SERVER_AUTHZ), $repository_name);
+        $status = FunDelRepAuthz($this->globalAuthzContent, $repository_name);
         if ($status != '1') {
-            RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+            FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
         }
 
         $data['status'] = 1;
@@ -1051,7 +1310,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -1064,8 +1323,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        $authzContent = file_get_contents(SVN_SERVER_AUTHZ);
-
+        $authzContent = $this->globalAuthzContent;
         foreach ($this_account_list as $key => $value) {
             $authzContent = FunSetRepUserPri($authzContent, $value['account'], $value['privilege'] == 'no' ? '' : $value['privilege'], $repository_name, '/');
             if ($authzContent == '0') {
@@ -1075,7 +1333,7 @@ class Svnserve extends Controller
             }
         }
 
-        RequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
+        FunRequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
 
         $data['status'] = 1;
         $data['message'] = '成功';
@@ -1096,7 +1354,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -1109,7 +1367,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        $authzContent = file_get_contents(SVN_SERVER_AUTHZ);
+        $authzContent = $this->globalAuthzContent;
         foreach ($this_account_list as $key => $value) {
             if ($authzContent == '0') {
                 $data['status'] = 0;
@@ -1119,7 +1377,7 @@ class Svnserve extends Controller
             $authzContent = FunSetRepGroupPri($authzContent, $value['account'], $value['privilege'] == 'no' ? '' : $value['privilege'], $repository_name, '/');
         }
 
-        RequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
+        FunRequestReplyExec('echo \'' . $authzContent . '\' > ' . SVN_SERVER_AUTHZ);
 
         $data['status'] = 1;
         $data['message'] = '成功';
@@ -1132,44 +1390,41 @@ class Svnserve extends Controller
         $old_repository_name = trim($requestPayload['old_repository_name']);
         $new_repository_name = trim($requestPayload['new_repository_name']);
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
             return $data;
         }
 
-        //输入包含空格判断
-        if (strstr($new_repository_name, ' ')) {
+        //只能包含字母、数字、破折号、下划线或点字符，不能以句点开头或结尾
+        if (!FunIsValidRepName($new_repository_name)) {
             $data['status'] = 0;
-            $data['message'] = '输入不规范';
+            $data['message'] = 'SVN仓库名称只能包含字母、数字、破折号、下划线、点，不能以点开头或结尾';
             return $data;
         }
-        //不为空判断
-        if (empty($old_repository_name) || empty($new_repository_name)) {
-            $data['status'] = 0;
-            $data['message'] = '参数不完整';
-            return $data;
-        }
+
         //目录是否存在判断
         if (!is_dir(SVN_REPOSITORY_PATH . '/' . $old_repository_name)) {
             $data['status'] = 0;
             $data['message'] = '要修改的项目不存在';
             return $data;
         }
+
         //是否重复
         if (is_dir(SVN_REPOSITORY_PATH . '/' . $new_repository_name)) {
             $data['status'] = 0;
             $data['message'] = '项目名称冲突';
             return $data;
         }
+
         //修改仓库文件夹的目录
-        RequestReplyExec('mv ' . SVN_REPOSITORY_PATH . '/' . $old_repository_name . ' ' . SVN_REPOSITORY_PATH . '/' . $new_repository_name);
+        FunRequestReplyExec('mv ' . SVN_REPOSITORY_PATH . '/' . $old_repository_name . ' ' . SVN_REPOSITORY_PATH . '/' . $new_repository_name);
 
         //修改配置文件
-        $status = FunUpdRepAuthz(file_get_contents(SVN_SERVER_AUTHZ), $old_repository_name, $new_repository_name);
+        $status = FunUpdRepAuthz($this->globalAuthzContent, $old_repository_name, $new_repository_name);
         if ($status != '1') {
-            RequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
+            FunRequestReplyExec('echo \'' . $status . '\' > ' . SVN_SERVER_AUTHZ);
         }
 
         $data['status'] = 1;
@@ -1190,7 +1445,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -1203,29 +1458,30 @@ class Svnserve extends Controller
             return $data;
         }
 
-        $authzContent = file_get_contents(SVN_SERVER_AUTHZ);
-
-        $status1 = FunGetRepUserPriList($authzContent, $repository_name, '/');
+        $status1 = FunGetRepUserListWithPri($this->globalAuthzContent, $repository_name, '/');
         if ($status1 == '0') {
             $data['status'] = 0;
             $data['message'] = '仓库字段在配置文件中不存在 请刷新修复';
             return $data;
         }
 
-        $status2 = FunGetSvnUserList(file_get_contents(SVN_SERVER_PASSWD));
+        $status2 = FunGetSvnUserList($this->globalPasswdContent);
         if ($status2 == '0') {
             $data['status'] = 0;
             $data['message'] = '文件中不存在[users]标识';
             return $data;
         }
 
-        $list = array();
-        foreach ($status2 as $key => $value) {
-            $status2[$key]['account'] = $value;
-            if (array_key_exists($value, $status1)) {
+        $userNamePri = array_column($status1, 'userPri', 'userName');
+
+        $userList = array_column($status2, 'userName');
+
+        $list = [];
+        foreach ($userList as $value) {
+            if (array_key_exists($value, $userNamePri)) {
                 array_push($list, array(
                     'account' => $value,
-                    'privilege' => $status1[$value]
+                    'privilege' => $userNamePri[$value] == '' ? 'no' : $userNamePri[$value]
                 ));
             } else {
                 array_push($list, array(
@@ -1242,6 +1498,31 @@ class Svnserve extends Controller
     }
 
     /**
+     * 获取仓库目录树
+     */
+    public function GetRepTree($requestPayload)
+    {
+        $repository_name = trim($requestPayload['repository_name']);
+
+        if (empty($repository_name)) {
+            $data['status'] = 0;
+            $data['message'] = '参数不完整';
+            return $data;
+        }
+
+        if (!is_dir(SVN_REPOSITORY_PATH . '/' . $repository_name)) {
+            $data['status'] = 0;
+            $data['message'] = '仓库不存在';
+            return $data;
+        }
+
+        $data['status'] = 1;
+        $data['message'] = '成功';
+        $data['data'] = FunGetRepTree($repository_name);
+        return $data;
+    }
+
+    /**
      * 获取某个仓库的带有权限的用户组列表
      */
     function GetRepositoryGroupPrivilegeList($requestPayload)
@@ -1254,7 +1535,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -1267,25 +1548,25 @@ class Svnserve extends Controller
             return $data;
         }
 
-        $status1 = FunGetRepGroupPriList(file_get_contents(SVN_SERVER_AUTHZ), $repository_name, '/');
+        $status1 = FunGetRepGroupListWithPri($this->globalAuthzContent, $repository_name, '/');
         if ($status1 == '0') {
             $data['status'] = 0;
             $data['message'] = '仓库字段在配置文件中不存在 请刷新修复';
             return $data;
         } else {
-            $status2 = FunGetSvnGroupList(file_get_contents(SVN_SERVER_AUTHZ));
+            $status2 = FunGetSvnGroupList($this->globalAuthzContent);
             if ($status2 == '0') {
                 $data['status'] = 0;
                 $data['message'] = '文件中不存在[groups]标识';
                 return $data;
             } else {
-                $list = array();
-                foreach ($status2 as $key => $value) {
-                    $status2[$key]['account'] = $value;
-                    if (array_key_exists($value, $status1)) {
+                $groupList = array_column($status1, 'groupPri', 'groupName');
+                $list = [];
+                foreach ($status2 as $value) {
+                    if (array_key_exists($value, $groupList)) {
                         array_push($list, array(
                             'account' => $value,
-                            'privilege' => $status1[$value]
+                            'privilege' => $groupList[$value]
                         ));
                     } else {
                         array_push($list, array(
@@ -1306,9 +1587,9 @@ class Svnserve extends Controller
     function GetSvnserveStatus($requestPayload)
     {
         //是否安装服务
-        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = FunRequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
-            $info = array();
+            $info = [];
             $info['status'] = '未安装'; //未安装
             $info['port'] = '3690';
             $info['type'] = 'error';
@@ -1320,7 +1601,7 @@ class Svnserve extends Controller
         }
         //是否存在repository目录
         if (!is_dir(SVN_REPOSITORY_PATH)) {
-            $info = array();
+            $info = [];
             $info['status'] = '异常'; //存储库目录不存在
             $info['port'] = '3690';
             $info['type'] = 'error';
@@ -1331,9 +1612,9 @@ class Svnserve extends Controller
             return $data;
         }
         //是否启动
-        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = FunRequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && file_exists('/usr/bin/svnserve')) {
-            $info = array();
+            $info = [];
             $info['status'] = '已停止'; //svn服务未启动
             $info['port'] = '3690';
             $info['type'] = 'warning';
@@ -1344,7 +1625,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        $info = array();
+        $info = [];
         $info['status'] = '运行中'; //svn服务未启动
         $info['port'] = '3690';
         $info['type'] = 'success';
@@ -1366,7 +1647,7 @@ class Svnserve extends Controller
             return $data;
         }
 
-        if ($this->this_roleid != 1) {
+        if ($this->globalUserRoleId != 1) {
             $data['status'] = 0;
             $data['message'] = '非法用户';
             $data['code'] = 401;
@@ -1375,13 +1656,13 @@ class Svnserve extends Controller
 
         switch ($action) {
             case 'startSvn':
-                RequestReplyExec('systemctl start svnserve');
+                FunRequestReplyExec('systemctl start svnserve');
                 break;
             case 'restartSvn':
-                RequestReplyExec('systemctl restart svnserve');
+                FunRequestReplyExec('systemctl restart svnserve');
                 break;
             case 'stopSvn':
-                RequestReplyExec('systemctl stop svnserve');
+                FunRequestReplyExec('systemctl stop svnserve');
                 break;
         }
 
@@ -1390,18 +1671,11 @@ class Svnserve extends Controller
         return $data;
     }
 
-    //只允许中文 数字 字母
-    private function CheckStr($str)
-    {
-        $res = preg_match('/^[\x{4e00}-\x{9fa5}A-Za-z0-9_]+$/u', $str);
-        return $res ? true : false;
-    }
-
     //获取服务状态 检查相关的目录文件是否存在
     private function CheckSvnserveStatus()
     {
         //是否安装服务
-        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = FunRequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             $data['status'] = 0;
             $data['code'] = '00';
@@ -1416,7 +1690,7 @@ class Svnserve extends Controller
             return $data;
         }
         //是否启动
-        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        $info = FunRequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && file_exists('/usr/bin/svnserve')) {
             $data['status'] = 0;
             $data['code'] = '01';

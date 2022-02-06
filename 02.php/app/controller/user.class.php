@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * 与用户操作相关
  */
@@ -37,7 +39,7 @@ class User extends Controller
 
         if ($username == MANAGE_USER) {
             if ($password == MANAGE_PASS) {
-                $token = CreateToken($username);
+                $token = FunCreateToken($username);
                 //发送邮件
                 $time = date("Y-m-d-H-i-s");
                 $ip = $send_content = ""
@@ -64,15 +66,15 @@ class User extends Controller
             }
         }
 
-        $svn_user_list = FunGetSvnUserList(file_get_contents(SVN_SERVER_PASSWD));
-        if (!in_array($username, $svn_user_list)) {
+        $svn_user_list = FunGetSvnUserList($this->globalPasswdContent);
+        if (!in_array($username, array_column($svn_user_list, 'userName'))) {
             $data['status'] = 0;
             $data['message'] = '用户不存在';
             return $data;
         } else {
-            $svn_user_pass_list = FunGetSvnUserPassList(file_get_contents(SVN_SERVER_PASSWD));
-            if ($svn_user_pass_list[$username] == $password) {
-                $token = CreateToken($username);
+            $svn_user_pass_list = FunGetSvnUserPassList($this->globalPasswdContent);
+            if ((array_column($svn_user_pass_list, 'userPass', 'userName'))[$username] == $password) {
+                $token = FunCreateToken($username);
                 //发送邮件
                 $time = date("Y-m-d-H-i-s");
                 $ip = $send_content = ""
@@ -103,17 +105,5 @@ class User extends Controller
         $data['status'] = 0;
         $data['message'] = '用户不存在';
         return $data;
-    }
-
-    //邮箱检查
-    function CheckMail($mail)
-    {
-        $pattern = "/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/";
-        preg_match($pattern, $mail, $matches);
-        $flag = false;
-        if (!empty($matches)) {
-            $flag = true;
-        }
-        return $flag;
     }
 }

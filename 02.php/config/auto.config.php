@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * 修改频率较高的配置项
  */
@@ -16,6 +18,11 @@ define("MANAGE_EMAIL", "1801168257@qq.com");
  * 用户第一次使用后可选择重新设置
  */
 define("SIGNATURE", "QOWIREUQWIOFN");
+
+/**
+ * 临时数据目录
+ */
+define("TEMP_PATH", "/home/svnadmin/temp");
 
 /**
  * SVN存储库目录
@@ -95,7 +102,7 @@ define("CURL_TIMEOUT", 5);
  * 当前软件版本信息
  * 用户请不要自行修改 以免影响后续升级检测
  */
-define("VERSION", "2.2.1");
+define("VERSION", "2.2.2");
 
 /**
  * 升级服务器地址

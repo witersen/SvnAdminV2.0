@@ -15,6 +15,12 @@
             @click="ModalRepGroupUserGet(index)"
             >用户</Button
           >
+          <Button
+            type="primary"
+            size="small"
+            @click="ModalRepGroupGroupGet(index)"
+            >分组</Button
+          >
           <Button type="success" size="small" @click="ModalRepGroupEdit(index)"
             >编辑</Button
           >
@@ -44,7 +50,7 @@
         @submit.native.prevent
       >
         <FormItem label="组名称">
-          <Input v-model="formRepGroup.groupname" />
+          <Input v-model="formRepGroup.groupName" />
         </FormItem>
       </Form>
     </Modal>
@@ -55,13 +61,13 @@
     >
       <Form ref="formRepGroup" :model="formRepGroup" :label-width="80">
         <FormItem label="组名称">
-          <Input v-model="formRepGroup.groupname" />
+          <Input v-model="formRepGroup.groupName" />
         </FormItem>
       </Form>
     </Modal>
     <Modal
       v-model="modalRepGroupUserGet"
-      title="分组用户管理"
+      title="将选择的用户作为当前分组的成员"
       @on-ok="SetRepUserGroup"
     >
       <Table
@@ -81,13 +87,38 @@
         </template>
       </Table>
     </Modal>
+    <Modal
+      v-model="modalRepGroupGroupGet"
+      title="将选择的分组作为当前分组的成员"
+      @on-ok="SetRepGroupGroup"
+    >
+      <Table
+        height="400"
+        border
+        :columns="tableColumnRepGroupGroup"
+        :data="tableDataRepGroupGroup"
+      >
+        <template slot-scope="{ index }" slot="id">
+          <strong>{{ index + 1 }}</strong>
+        </template>
+        <template slot-scope="{ index }" slot="slot_status">
+          <RadioGroup
+            type="button"
+            v-model="tableDataRepGroupGroup[index].status"
+          >
+            <Radio label="in"><span>成员</span></Radio>
+            <Radio label="no"><span>非成员</span></Radio>
+          </RadioGroup>
+        </template>
+      </Table>
+    </Modal>
   </Card>
 </template>
 <script>
 export default {
   data() {
     return {
-      toolTipAddGroup: "分组名只能由字母数字下划线组成",
+      toolTipAddGroup: "SVN分组名称只能包含字母、数字、破折号、下划线、点",
       /**
        * 布尔值
        */
@@ -99,12 +130,14 @@ export default {
       modalRepGroupAdd: false, //添加分组
       modalRepGroupEdit: false, //编辑弹出框
       modalRepGroupUserGet: false,
+      modalRepGroupGroupGet: false,
 
       /**
        * 临时数据
        */
       tempRepGroupName: "",
-      tempRepGroupCurrentSelect: "",
+      tempRepGroupUserCurrentSelect: "",
+      tempRepGroupGroupCurrentSelect: "",
 
       /**
        * 分页数据
@@ -114,7 +147,7 @@ export default {
       numRepGroupTotal: 20,
 
       formRepGroup: {
-        groupname: "", //添加用户时的用户名称
+        groupName: "", //添加用户时的用户名称
       },
 
       /**
@@ -128,28 +161,31 @@ export default {
         },
         {
           title: "组名称",
-          key: "groupname",
+          key: "groupName",
         },
         {
           title: "包含用户数",
-          key: "usercount",
+          key: "includeUserCount",
+        },
+        {
+          title: "包含分组数",
+          key: "includeGroupCount",
         },
         {
           title: "操作",
           slot: "action",
-          width: 200,
           align: "center",
         },
       ],
       tableDataRepGroup: [
         // {
-        //   groupname: "",
-        //   usercount: 0,
+        //   groupName: "",
+        //   includeUserCount: 0,
         // },
       ],
 
       /**
-       * 用户表格
+       * 分组的用户表格
        */
       tableColumnRepUser: [
         {
@@ -169,6 +205,28 @@ export default {
         },
       ],
       tableDataRepUser: [],
+
+      /**
+       * 分组的分组表格
+       */
+      tableColumnRepGroupGroup: [
+        {
+          title: "序号",
+          key: "id",
+          slot: "id",
+          width: 70,
+        },
+        {
+          title: "分组名",
+          key: "groupName",
+        },
+        {
+          title: "状态",
+          key: "status",
+          slot: "slot_status",
+        },
+      ],
+      tableDataRepGroupGroup: [],
     };
   },
   methods: {
@@ -181,15 +239,23 @@ export default {
     ModalRepGroupUserGet(index) {
       var that = this;
       that.modalRepGroupUserGet = true;
-      that.tempRepGroupCurrentSelect =
-        that.tableDataRepGroup[index]["groupname"];
-      that.GetRepGroupUser(that.tableDataRepGroup[index]["groupname"]);
+      that.tempRepGroupUserCurrentSelect =
+        that.tableDataRepGroup[index]["groupName"];
+      that.GetRepGroupUser(that.tableDataRepGroup[index]["groupName"]);
+    },
+    //查看分组的分组
+    ModalRepGroupGroupGet(index) {
+      var that = this;
+      that.modalRepGroupGroupGet = true;
+      that.tempRepGroupGroupCurrentSelect =
+        that.tableDataRepGroup[index]["groupName"];
+      that.GetRepGroupGroup(that.tableDataRepGroup[index]["groupName"]);
     },
     //获取分组的用户
-    GetRepGroupUser(groupname) {
+    GetRepGroupUser(groupName) {
       var that = this;
       var data = {
-        groupname: groupname,
+        groupName: groupName,
       };
       that.$axios
         .post("/api.php?c=svnserve&a=RepGetGroupUserList", data)
@@ -205,11 +271,31 @@ export default {
           console.log(error);
         });
     },
+    //获取分组的分组
+    GetRepGroupGroup(groupName) {
+      var that = this;
+      var data = {
+        groupName: groupName,
+      };
+      that.$axios
+        .post("/api.php?c=svnserve&a=RepGetGroupGroupList", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.tableDataRepGroupGroup = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
     //为分组设置用户
     SetRepUserGroup() {
       var that = this;
       var data = {
-        group_name: that.tempRepGroupCurrentSelect,
+        group_name: that.tempRepGroupUserCurrentSelect,
         this_account_list: that.tableDataRepUser,
       };
       that.$axios
@@ -228,27 +314,50 @@ export default {
           console.log(error);
         });
     },
+    //为分组设置分组
+    SetRepGroupGroup() {
+      var that = this;
+      var data = {
+        groupName: that.tempRepGroupGroupCurrentSelect,
+        thisAccountList: that.tableDataRepGroupGroup,
+      };
+      that.$axios
+        .post("/api.php?c=svnserve&a=RepSetGroupGroupList", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.modalRepGroupGroupGet = false;
+            that.RepGetGroupList();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
     //编辑分组
     ModalRepGroupEdit(index) {
       var that = this;
       that.modalRepGroupEdit = true;
 
-      that.tempRepGroupName = that.tableDataRepGroup[index]["groupname"];
+      that.tempRepGroupName = that.tableDataRepGroup[index]["groupName"];
 
-      that.formRepGroup.groupname = that.tableDataRepGroup[index]["groupname"];
+      that.formRepGroup.groupName = that.tableDataRepGroup[index]["groupName"];
     },
     //添加分组对话框
     ModalAddRepGroup() {
       var that = this;
       that.modalRepGroupAdd = true;
-      that.formRepGroup.groupname = "";
+      that.formRepGroup.groupName = "";
     },
     //编辑分组
     RepEditGroup() {
       var that = this;
       var data = {
         oldGroup: that.tempRepGroupName,
-        newGroup: that.formRepGroup.groupname,
+        newGroup: that.formRepGroup.groupName,
       };
       that.$axios
         .post("/api.php?c=svnserve&a=RepEditGroup", data)
@@ -271,7 +380,7 @@ export default {
     RepAddGroup() {
       var that = this;
       var data = {
-        groupname: that.formRepGroup.groupname,
+        groupName: that.formRepGroup.groupName,
       };
       that.$axios
         .post("/api.php?c=svnserve&a=RepAddGroup", data)
@@ -317,7 +426,7 @@ export default {
     ModalRepGroupDel(index) {
       var that = this;
       var data = {
-        del_groupname: that.tableDataRepGroup[index]["groupname"],
+        del_groupname: that.tableDataRepGroup[index]["groupName"],
       };
       that.$Modal.confirm({
         title: "警告",

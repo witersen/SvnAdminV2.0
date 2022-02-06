@@ -1,7 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 //生成token
-function CreateToken($username)
+function FunCreateToken($username)
 {
     $time = time();
     $end_time = time() + 86400;
@@ -13,7 +15,7 @@ function CreateToken($username)
 }
 
 //校验token
-function CheckToken($token)
+function FunCheckToken($token)
 {
     if (!isset($token) || empty($token)) {
         $data['code'] = '400';

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * 与操作系统相关的方法的封装
  */
@@ -193,9 +195,9 @@ class System extends Controller
         $info = explode(" ", implode("", $array));
 
         //负载百分比 = 最近一分钟负载/CPU核心数*100%
-        $result['minute_1_avg'] = '最近1分钟平均负载：' . round($info[0], 2);
-        $result['minute_5_avg'] = '最近5分钟平均负载：' . round($info[1], 2);
-        $result['minute_15_avg'] = '最近15分钟平均负载：' . round($info[2], 2);
+        $result['minute_1_avg'] = '最近1分钟平均负载：' . round((float)$info[0], 2);
+        $result['minute_5_avg'] = '最近5分钟平均负载：' . round((float)$info[1], 2);
+        $result['minute_15_avg'] = '最近15分钟平均负载：' . round((float)$info[2], 2);
         $result['avg_percent'] = round(($info[0] / $result['cpu_cores']) * 100, 2);
         $result['avg_percent'] = $result['avg_percent'] >= 100 ? 100 : $result['avg_percent'];
 
@@ -218,7 +220,7 @@ class System extends Controller
         sleep($sleeptime);
         $info2 = $this->GetSingleNetwork($network_name);
         //计算
-        $result = array();
+        $result = [];
         foreach ($info1 as $key => $value) {
             $result[$key]['name'] = $value['name'];
             $result[$key]['data'][0]['ReceiveSpeed'] = ($info2[$key]['Receive']['bytes'] - $info1[$key]['Receive']['bytes']) / $sleeptime / 1024; //1s内的网络速度 单位 kbps
@@ -243,7 +245,7 @@ class System extends Controller
         sleep($sleeptime);
         $info2 = $this->GetSingleNetwork("");
         //计算
-        $result = array();
+        $result = [];
         foreach ($info1 as $key => $value) {
             //            $result[$key]['name'] = $value['name'];
             $result[$value['name']][0]['ReceiveSpeed'] = ($info2[$key]['Receive']['bytes'] - $info1[$key]['Receive']['bytes']) / $sleeptime / 1024; //1s内的网络速度 单位 kbps
@@ -273,7 +275,7 @@ class System extends Controller
          * multicast 设备驱动程序发送或接收的多播帧数
          */
         //$network_name为空表示获取除了本地回环外的所有网卡
-        $networklist = array();
+        $networklist = [];
         $info = file("/proc/net/dev");
         //删除不是网卡的元素
         foreach ($info as $key => $value) {
@@ -284,7 +286,7 @@ class System extends Controller
             $info[$key] = trim($info[$key]);
         }
         //格式化
-        $templist = array();
+        $templist = [];
         foreach ($info as $key => $value) {
             $temp = explode(' ', $value);
             foreach ($temp as $key2 => $value2) {
@@ -296,7 +298,7 @@ class System extends Controller
             }
             array_push($templist, array_values($temp));
         }
-        $temp = array();
+        $temp = [];
         //格式化
         foreach ($templist as $key => $value) {
             //去除网卡名称中的冒号

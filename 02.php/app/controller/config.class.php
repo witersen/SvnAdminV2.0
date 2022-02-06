@@ -1,5 +1,6 @@
-
 <?php
+
+declare(strict_types=1);
 
 /*
  * 与配置信息操作相关
@@ -24,14 +25,14 @@ class Config extends Controller
     public function Get($key)
     {
         $strContent = file_get_contents(BASE_PATH . '/config/auto.config.php');
-        return GetConfigValue($strContent, $key);
+        return FunGetConfigValue($strContent, $key);
     }
 
     //向配置文件更新
     public function Update($key, $value)
     {
         $strContent = file_get_contents(BASE_PATH . '/config/auto.config.php');
-        $result = UpdateConfigValue($strContent, $key, $value);
+        $result = FunUpdateConfigValue($strContent, $key, $value);
         file_put_contents(BASE_PATH . '/config/auto.config.php', $result);
     }
 
@@ -126,8 +127,8 @@ class Config extends Controller
     //更改版本库父文件夹后触发的操作
     private function UpdateRepositoryParentPath($old_path, $new_path)
     {
-        RequestReplyExec("mkdir $new_path");
-        $info = RequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
+        FunRequestReplyExec("mkdir $new_path");
+        $info = FunRequestReplyExec('ps auxf|grep -v "grep"|grep svnserve');
         if ($info == ISNULL && !file_exists('/usr/bin/svnserve')) {
             /*
              * 没有安装过svn服务
@@ -140,7 +141,7 @@ class Config extends Controller
                         $file_arr2 = scandir($old_path . '/' . $file_item);
                         foreach ($file_arr2 as $file_item2) {
                             if (($file_item2 == 'conf' || $file_item2 == 'db' || $file_item2 == 'hooks' || $file_item2 == 'locks')) {
-                                RequestReplyExec('mv -b -f ' . $old_path . '/' . $file_item . ' ' . $new_path);
+                                FunRequestReplyExec('mv -b -f ' . $old_path . '/' . $file_item . ' ' . $new_path);
                             }
                         }
                     }
@@ -166,7 +167,7 @@ class Config extends Controller
              * 安装过svn服务
              */
             //停止服务
-            RequestReplyExec('systemctl stop svnserve');
+            FunRequestReplyExec('systemctl stop svnserve');
             //移动仓库
             $file_arr = scandir($old_path);
             foreach ($file_arr as $file_item) {
@@ -175,19 +176,19 @@ class Config extends Controller
                         $file_arr2 = scandir($old_path . '/' . $file_item);
                         foreach ($file_arr2 as $file_item2) {
                             if (($file_item2 == 'conf' || $file_item2 == 'db' || $file_item2 == 'hooks' || $file_item2 == 'locks')) {
-                                RequestReplyExec('mv -b -f ' . $old_path . '/' . $file_item . ' ' . $new_path);
+                                FunRequestReplyExec('mv -b -f ' . $old_path . '/' . $file_item . ' ' . $new_path);
                             }
                         }
                     }
                 }
             }
             //修改配置文件
-            RequestReplyExec('sed -i \'s/' . str_replace('/', '\/', $old_path) . '/' . str_replace('/', '\/', $new_path) . '/g\'' . ' /etc/sysconfig/svnserve'); //bug
+            FunRequestReplyExec('sed -i \'s/' . str_replace('/', '\/', $old_path) . '/' . str_replace('/', '\/', $new_path) . '/g\'' . ' /etc/sysconfig/svnserve'); //bug
             //启动服务
-            RequestReplyExec('systemctl start svnserve');
+            FunRequestReplyExec('systemctl start svnserve');
             //检查配置文件是否被正确修改
             $file = fopen("/etc/sysconfig/svnserve", "r") or exit("无法打开文件!");
-            $file_content = array();
+            $file_content = [];
             while (!feof($file)) {
                 array_push($file_content, fgets($file));
             }
