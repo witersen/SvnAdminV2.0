@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * 正则匹配规则
  */
@@ -17,7 +15,7 @@ define('REG_SVN_USER_DISABLED', '#disabled#');
  * 1、可以包含中文、字母、数字、下划线、破折号、点
  * 2、不能以点开头或结尾
  */
-define('REG_SVN_REP_NAME', "/^[^.][\u4E00-\u9FA5A-Za-z0-9-_.]*[^.]$/");
+define('REG_SVN_REP_NAME', "/^[^.][\x{4e00}-\x{9fa5}A-Za-z0-9-_.]*[^.]$/u");
 
 /**
  * 校验SVN用户名称
@@ -157,6 +155,13 @@ define('REG_AUTHZ_REP_ALL_PATH_WITHOUT_CON', "/^\[%s:(.*?)\]/m");
 define('REG_AUTHZ_REP_ALL_PATH_WITH_CON', "/^\[%s:.*\][\s\S][^\[]*/m");
 
 /**
+ * 匹配authz配置文件中的所有仓库名称
+ * 
+ * 不匹配这些仓库的内容和具体路径
+ */
+define('REG_AUTHZ_ALL_REP_WITHOUT_PATH_AND_CON', "/^\[(.*?):.*?\]/m");
+
+/**
  * 将 svnadmin info $repPaht 的结果匹配为 key => value 形式
  */
 define('REG_REP_INFO', "/(.*):[\S]*(.*)/m");
@@ -172,3 +177,8 @@ define('REG_MAIL', "/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a
  * %s => $key
  */
 define('REG_CONFIG', "/define\(\"*'*%s'*\"*\s*,\s*'*(.*?)'*\)/");
+
+/**
+ * 匹配subversion版本号
+ */
+define('REG_SUBVERSION_VERSION', "/\bversion[\s]+(.*?)[\s]+/m");

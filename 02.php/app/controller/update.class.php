@@ -1,12 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
-/*
- * 与系统更新操作相关
- */
-
-class Update extends Controller
+class update extends controller
 {
     function __construct()
     {
@@ -18,23 +12,24 @@ class Update extends Controller
         /*
          * 其它自定义操作
          */
-        $this->Config = new Config();
+        // $this->Config = new Config();
     }
 
     /**
      * 获取当前版本信息
      */
-    function GetVersionInfo($requestPayload)
+    function GetVersion()
     {
-        $data['status'] = 1;
-        $data['message'] = '成功';
-        $data['data'] = array(
-            'current_verson' => VERSION,
-            'github' => 'https://github.com/witersen/svnAdminV2.0',
-            'gitee' => 'https://gitee.com/witersen/SvnAdminV2.0',
-            'author' => 'https://www.witersen.com'
-        );
-        return $data;
+        return [
+            'status' => 1,
+            'message' => '成功',
+            'data' => [
+                'current_verson' => VERSION,
+                'github' => 'https://github.com/witersen/svnAdminV2.0',
+                'gitee' => 'https://gitee.com/witersen/SvnAdminV2.0',
+                'author' => 'https://www.witersen.com'
+            ]
+        ];
     }
 
     /**
@@ -42,7 +37,7 @@ class Update extends Controller
      */
     function CheckUpdate($requestPayload)
     {
-        foreach (UPDATE_SERVER as $key => $value) {
+        foreach (unserialize(UPDATE_SERVER) as $key => $value) {
             $versionInfo = FunCurlRequest($value);
             if ($versionInfo != null) {
                 $versionInfo = json_decode($versionInfo, true);

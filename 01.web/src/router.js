@@ -1,81 +1,120 @@
-const publicRoutes = [
+const routers = [
     {
         name: 'login',
         path: '/login',
         meta: {
-            requireAuth: false,
+            title: ''
         },
-        component: (resolve) => require(['./views/login/login.vue'], resolve)
+        component: (resolve) => require(['./views/login/index.vue'], resolve)
     },
     {
         name: 'manage',
         path: '/',
-        redirect: 'repository',
+        redirect: { name: 'login' },
         meta: {
-            requireAuth: true,
-            roles: [1, 2]
+            title: 'SVNAdmin',
         },
-        component: (resolve) => require(['./views/layout/layout.vue'], resolve),
+        component: (resolve) => require(['./views/layout/basicLayout/index.vue'], resolve),
         children: [
             {
-                name: 'repository',
-                path: 'repository',
+                name: 'index',
+                path: '/index',
                 meta: {
-                    title: '服务总览',
-                    isNav: true,
-                    requireAuth: true,
-                    roles: [1, 2]
+                    title: '信息统计',
+                    icon: "ios-stats",
+                    user_role_id: ['1'],
+                    group: {
+                        name: "仓库",
+                        num: 1
+                    }
                 },
-                component: (resolve) => require(['./views/analysis/analysis.vue'], resolve)
+                component: (resolve) => require(['./views/index/index.vue'], resolve)
             },
             {
-                name: 'analysis',
-                path: 'analysis',
+                name: 'repositoryInfo',
+                path: '/repositoryInfo',
                 meta: {
-                    title: '仓库管理',
-                    isNav: true,
-                    requireAuth: true,
-                    roles: [1, 2]
+                    title: 'SVN仓库',
+                    icon: 'logo-buffer',
+                    user_role_id: ['1', '2'],
+                    group: {
+                        name: "",
+                        num: 1
+                    }
                 },
-                component: (resolve) => require(['./views/repository/repository.vue'], resolve)
+                component: (resolve) => require(['./views/repositoryInfo/index.vue'], resolve)
             },
             {
-                name: 'user',
-                path: 'user',
+                name: 'repositoryUser',
+                path: '/repositoryUser',
                 meta: {
-                    title: '用户管理',
-                    isNav: true,
-                    requireAuth: true,
-                    roles: [1]
+                    title: 'SVN用户',
+                    icon: 'md-person',
+                    user_role_id: ['1'],
+                    group: {
+                        name: "",
+                        num: 1
+                    }
                 },
-                component: (resolve) => require(['./views/user/user.vue'], resolve)
+                component: (resolve) => require(['./views/repositoryUser/index.vue'], resolve),
             },
             {
-                name: 'group',
-                path: 'group',
+                name: 'repositoryGroup',
+                path: '/repositoryGroup',
                 meta: {
-                    title: '分组管理',
-                    isNav: true,
-                    requireAuth: true,
-                    roles: [1]
+                    title: 'SVN分组',
+                    icon: 'md-people',
+                    user_role_id: ['1'],
+                    group: {
+                        name: "",
+                        num: 1
+                    }
                 },
-                component: (resolve) => require(['./views/group/group.vue'], resolve)
+                component: (resolve) => require(['./views/repositoryGroup/index.vue'], resolve),
             },
             {
-                name: 'sys',
-                path: 'setting',
+                name: 'systemLog',
+                path: '/systemLog',
                 meta: {
-                    title: '系统设置',
-                    isNav: true,
-                    requireAuth: true,
-                    roles: [1]
+                    title: '系统日志',
+                    icon: 'md-bug',
+                    user_role_id: ['1'],
+                    group: {
+                        name: "运维",
+                        num: 2
+                    }
                 },
-                component: (resolve) => require(['./views/setting/setting.vue'], resolve),
+                component: (resolve) => require(['./views/systemLog/index.vue'], resolve),
             },
+            {
+                name: 'personal',
+                path: '/personal',
+                meta: {
+                    title: '个人中心',
+                    icon: 'md-cube',
+                    user_role_id: ['1', '2'],
+                    group: {
+                        name: "高级",
+                        num: 3
+                    }
+                },
+                component: (resolve) => require(['./views/personal/index.vue'], resolve),
+            },
+            {
+                name: 'advance',
+                path: '/advance',
+                meta: {
+                    title: '系统配置',
+                    icon: 'md-settings',
+                    user_role_id: ['1'],
+                    group: {
+                        name: "",
+                        num: 3
+                    }
+                },
+                component: (resolve) => require(['./views/advance/index.vue'], resolve),
+            }
         ]
     },
 ];
-
-
-
-export default publicRoutes;
+export default routers;

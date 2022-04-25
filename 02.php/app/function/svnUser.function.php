@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+//declare(strict_types=1);
 
 /**
  * 不提供修改SVN用户名称的方法
@@ -20,7 +20,8 @@ function FunAddSvnUser($passwdContent, $userName, $userPass)
     $userPass = trim($userPass);
     preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
     if (array_key_exists(0, $passwdContentPreg[1])) {
-        if (empty(trim($passwdContentPreg[1][0]))) {
+        $temp1 = trim($passwdContentPreg[1][0]);
+        if (empty($temp1)) {
             $userStr = "\n$userName=$userPass\n";
             return $passwdContent . $userStr;
         } else {
@@ -66,7 +67,8 @@ function FunDelSvnUserPasswd($passwdContent, $userName, $isDisabledUser = false)
     $userName = $isDisabledUser ? (REG_SVN_USER_DISABLED . $userName) : $userName;
     preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
     if (array_key_exists(0, $passwdContentPreg[1])) {
-        if (empty(trim($passwdContentPreg[1][0]))) {
+        $temp1 = trim($passwdContentPreg[1][0]);
+        if (empty($temp1)) {
             return '1';
         } else {
             preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
@@ -119,7 +121,8 @@ function FunGetSvnUserList($passwdContent)
 {
     preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
     if (array_key_exists(0, $passwdContentPreg[1])) {
-        if (empty(trim($passwdContentPreg[1][0]))) {
+        $temp1 = trim($passwdContentPreg[1][0]);
+        if (empty($temp1)) {
             return [];
         } else {
             preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
@@ -175,7 +178,8 @@ function FunGetSvnUserPassList($passwdContent)
 {
     preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
     if (array_key_exists(0, $passwdContentPreg[1])) {
-        if (empty(trim($passwdContentPreg[1][0]))) {
+        $tem1 = trim($passwdContentPreg[1][0]);
+        if (empty($tem1)) {
             return [];
         } else {
             preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
@@ -215,7 +219,8 @@ function FunGetPassByUser($passwdContent, $userName, $isDisabledUser = false)
     $userName = $isDisabledUser ? (REG_SVN_USER_DISABLED . $userName) : $userName;
     preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
     if (array_key_exists(0, $passwdContentPreg[1])) {
-        if (empty(trim($passwdContentPreg[1][0]))) {
+        $temp1 = trim($passwdContentPreg[1][0]);
+        if (empty($temp1)) {
             return [];
         } else {
             preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
@@ -246,7 +251,8 @@ function FunUpdSvnUserPass($passwdContent, $userName, $userPass, $isDisabledUser
     $userName = $isDisabledUser ? (REG_SVN_USER_DISABLED . $userName) : $userName;
     preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
     if (array_key_exists(0, $passwdContentPreg[1])) {
-        if (empty(trim($passwdContentPreg[1][0]))) {
+        $temp1 = trim($passwdContentPreg[1][0]);
+        if (empty($temp1)) {
             return '1';
         } else {
             preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
@@ -289,7 +295,8 @@ function FunGetSvnUserGroupList($authzContent, $userName)
     $userName = trim($userName);
     preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
     if (array_key_exists(0, $authzContentPreg[0])) {
-        if (empty(trim($authzContentPreg[1][0]))) {
+        $temp1 = trim($authzContentPreg[1][0]);
+        if (empty($temp1)) {
             return [];
         } else {
             preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
@@ -378,6 +385,52 @@ function FunGetUserPriRepListWithPri($authzContent, $userName)
 }
 
 /**
+ * 获取某个用户有权限的所有仓库列表（带有路径和权限）
+ * 
+ * 空列表
+ * []
+ * 
+ * 正常数据
+ * Array
+ * (
+ *     [0] => Array
+ *         (
+ *             [repName] => rep1
+ *             [priPath] => /
+ *             [repPri] => rw
+ *         )
+ *     [1] => Array
+ *         (
+ *             [repName] => rep2
+ *             [priPath] => /branches/taoweitao/计划.md
+ *             [repPri] => rw
+ *         )
+ * )
+ */
+function FunGetUserPriRepListWithPriAndPath($authzContent, $userName)
+{
+    $userName = trim($userName);
+    preg_match_all(sprintf(REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
+    if (array_key_exists(0, $authzContentPreg[1])) {
+        array_walk($authzContentPreg[1], 'FunArrayValueTrim');
+        array_walk($authzContentPreg[2], 'FunArrayValueTrim');
+        array_walk($authzContentPreg[3], 'FunArrayValueTrim');
+        $result = [];
+        foreach ($authzContentPreg[1] as $key => $value) {
+            array_push($result, [
+                'repName' => $value,
+                'priPath' => $authzContentPreg[2][$key],
+                'repPri' => $authzContentPreg[3][$key],
+                'unique' => $value . ':' . $authzContentPreg[2][$key] . $authzContentPreg[3][$key]
+            ]);
+        }
+        return $result;
+    } else {
+        return [];
+    }
+}
+
+/**
  * 从所有仓库路径和分组下修改用户名
  *
  * string       正常
@@ -401,7 +454,8 @@ function FunDelUserAuthz($authzContent, $userName)
     $content2 = "";
     preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg1);
     if (array_key_exists(0, $authzContentPreg1[0])) {
-        if (!empty(trim($authzContentPreg1[1][0]))) {
+        $temp1 = trim($authzContentPreg1[1][0]);
+        if (!empty($temp1)) {
             preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg1[1][0], $resultPreg);
             array_walk($resultPreg[1], 'FunArrayValueTrim');
             array_walk($resultPreg[2], 'FunArrayValueTrim');
@@ -435,7 +489,8 @@ function FunDisabledUser($passwdContent, $userName)
     $userName = trim($userName);
     preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
     if (array_key_exists(0, $passwdContentPreg[1])) {
-        if (empty(trim($passwdContentPreg[1][0]))) {
+        $temp1 = trim($passwdContentPreg[1][0]);
+        if (empty($temp1)) {
             return '1';
         } else {
             preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
@@ -469,7 +524,8 @@ function FunEnabledUser($passwdContent, $userName)
     $userName = trim($userName);
     preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
     if (array_key_exists(0, $passwdContentPreg[1])) {
-        if (empty(trim($passwdContentPreg[1][0]))) {
+        $temp1 = trim($passwdContentPreg[1][0]);
+        if (empty($temp1)) {
             return '1';
         } else {
             preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
@@ -492,4 +548,21 @@ function FunEnabledUser($passwdContent, $userName)
     }
 }
 
+// require_once '/var/www/html/config/reg.config.php';
+// require_once '/var/www/html/app/function/array.function.php';
 
+// $authzContent = file_get_contents('/home/svnadmin/authz');
+// $passwd = file_get_contents('/home/svnadmin/passwd');
+
+// print_r(FunAddSvnUser($passwd, 'user', ' pass '));
+// print_r(FunDelSvnUserPasswd($passwd, 'user3 ', false));
+// print_r(FunGetSvnUserList($passwd));
+// print_r(FunGetSvnUserPassList($passwd));
+// print_r(FunGetPassByUser($passwd, 'user3', true));
+// print_r(FunUpdSvnUserPass($passwd, 'user2 ', '\\\\', false));
+// print_r(FunGetSvnUserGroupList($authzContent, 'user2'));
+// print_r(FunGetUserPriRepListWithoutPri($authzContent, 'user2'));
+// print_r(FunGetUserPriRepListWithPri($authzContent, 'user2'));
+// print_r(FunDelUserAuthz($authzContent, 'user2'));
+// print_r(FunDisabledUser($passwd, 'user2'));
+// print_r(FunEnabledUser($passwd, 'user3'));

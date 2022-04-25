@@ -1,7 +1,8 @@
-let util = {};
+let util = {
 
+};
 util.title = function (title) {
-    title = title ? title + ' - Svn Admin' : 'Svn Admin';
+    title = title ? title + ' - SVNAdmin' : 'SVNAdmin';
     window.document.title = title;
 };
 

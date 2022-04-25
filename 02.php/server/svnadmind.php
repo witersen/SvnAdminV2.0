@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+//declare(strict_types=1);
 
 ini_set('display_errors', '1');
 
@@ -8,25 +8,28 @@ error_reporting(E_ALL);
 
 define('BASE_PATH', __DIR__);
 
-require_once BASE_PATH . '/../config/manual.config.php';
+require_once BASE_PATH . '/../config/subversion.config.php';
+require_once BASE_PATH . '/../config/daemon.config.php';
 
 class Daemon
 {
-
-    private $pidfile;
-    private $state;
-    private $cmdlist = array(
-        "start",
-        "stop",
-        "console"
-    );
+    private $pidFile;
+    private $workMode;
+    private $scripts = [
+        'start',
+        'stop',
+        'console'
+    ];
 
     function __construct()
     {
-        $this->pidfile = dirname(__FILE__) . '/svnadmind.pid';
+        $this->pidFile = dirname(__FILE__) . '/svnadmind.pid';
     }
 
-    private function init_daemon()
+    /**
+     * 将程序变为守护进程
+     */
+    private function initDaemon()
     {
         $pid = pcntl_fork();
         if ($pid < 0) {
@@ -44,7 +47,7 @@ class Daemon
         } elseif ($pid > 0) {
             exit();
         }
-        chdir("/");
+        chdir('/');
         umask(0);
         if (defined('STDIN')) {
             fclose(STDIN);
@@ -55,164 +58,199 @@ class Daemon
         if (defined('STDERR')) {
             fclose(STDERR);
         }
-        file_put_contents($this->pidfile, getmypid());
-        return getmypid();
+        file_put_contents($this->pidFile, getmypid());
+        $this->initSocket();
     }
 
-    private function init_socket()
+    /**
+     * 监听指定端口
+     */
+    private function initSocket()
     {
         //创建套接字
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or exit("socket_create 错误\n");
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or exit('启动失败：socket_create 错误' . PHP_EOL);
 
         //绑定地址和端口
-        socket_bind($socket, IPC_ADDRESS, (int)IPC_PORT) or exit("socket_bind 错误 可能是由于频繁启动 端口未释放 请稍后重试或检查端口冲突\n");
+        socket_bind($socket, IPC_ADDRESS, IPC_PORT) or exit('启动失败：socket_bind 错误，可能是由于频繁启动，端口未释放，请稍后重试或检查端口冲突' . PHP_EOL);
 
         //设置可重复使用端口号
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
 
         //监听 设置并发队列的最大长度
-        socket_listen($socket, (int)SOCKET_LISTEN_BACKLOG);
+        socket_listen($socket, SOCKET_LISTEN_BACKLOG);
 
         while (true) {
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
 
-            $clien = socket_accept($socket) or exit("socket_accept 错误\n");
+            $client = socket_accept($socket) or exit('启动失败：socket_accept 错误' . PHP_EOL);
 
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
 
             $pid = pcntl_fork();
             if ($pid == -1) {
-                exit("pcntl_fork 错误\n");
+                exit('启动失败：pcntl_fork 错误' . PHP_EOL);
             } else if ($pid == 0) {
-                $this->handle_request($clien);
+                $this->handleRequest($client);
             } else {
             }
         }
     }
 
-    private function check_sys_type()
-    {
-        if (PHP_OS != 'Linux') {
-            exit("启动失败 \n当前操作系统不为Linux\n");
-        }
-        if (file_exists('/etc/redhat-release')) {
-            $info = file_get_contents('/etc/redhat-release');
-            if (!strstr($info, 'CentOS') && (strstr($info, '8.') || strstr($info, '7.'))) {
-                exit("启动失败 \n仅支持CentOS 7 和 CentOS8 系统\n");
-            }
-            return;
-        }
-        exit("启动失败 \n不支持当前操作系统\n");
-    }
-
-    private function check_php_version()
-    {
-        if (PHP_VERSION < Required_PHP_VERSION) {
-            echo "启动失败 \n当前的PHP版本为 " . PHP_VERSION . " 最低的PHP版本要求为 " . Required_PHP_VERSION . "\n";
-            exit();
-        }
-    }
-
-    private function check_disabled_function()
-    {
-        $disabled_function = explode(',', ini_get('disable_functions'));
-        $needed_function = NEEDED_FUNCTION;
-        foreach ($needed_function as $key => $value) {
-            if (!in_array($value, $disabled_function)) {
-                unset($needed_function[$key]);
-            }
-        }
-        if (!empty($needed_function)) {
-            echo "启动失败 \n需要的以下PHP函数被禁用:\n" . implode("\n", $needed_function) . "\n";
-            exit();
-        }
-    }
-
-    private function handle_request($clien)
+    /**
+     * socket程序接收和处理请求
+     */
+    private function handleRequest($client)
     {
         //接收客户端发送的数据
-        $data = socket_read($clien, (int)SOCKET_READ_LENGTH);
+        $data = socket_read($client, SOCKET_READ_LENGTH);
 
         //console
-        $this->state == "console" ? print_r("\n---------接收内容---------\n" . $data . "\n") : "";
+        $this->workMode == 'console' ? print_r(PHP_EOL . '---------receive---------' . PHP_EOL . $data . PHP_EOL) : '';
 
-        if (trim($data) != "") {
-            //执行
-            $result = shell_exec($data);
+        if (trim($data) != '') {
+            /**
+             * shell_exec方法拿不到执行指令的错误抛出信息
+             */
+            // $result = shell_exec($data);
+
+            /**
+             * passthru会将所有的结果（包括正确的和错误的抛出信息输出）
+             * 可以使用 ob_start ob_get_contents ob_end_clean 拿到缓冲区的内容
+             * 
+             * 此方法在console调试模式下会导致 $result 变量拿不到值；
+             * 但是在daemon模式下 $result 变量可以拿到值（猜测是输入到终端与输出到缓冲区的影响）
+             */
+            ob_start();
+            passthru($data);
+            $result = ob_get_contents();
+            ob_end_clean();
         } else {
             //探测程序会发送空信息
-            $result = "";
+            $result = '';
         }
 
         //console
-        $this->state == "console" ? print_r("\n---------执行结果---------\n" . $result . "\n") : "";
+        $this->workMode == 'console' ? print_r(PHP_EOL . '---------result---------' . PHP_EOL . $result . PHP_EOL) : '';
 
         //处理没有返回内容的情况 否则 socket_write 遇到空内容会报错
-        $result = $result == "" ? ISNULL : $result;
+        $result = $result == '' ? ISNULL : $result;
 
         //将结果返回给客户端
-        socket_write($clien, $result, strlen($result)) or die("socket_write 错误");
+        socket_write($client, $result, strlen($result)) or die('启动失败：socket_write 错误' . PHP_EOL);
 
         //关闭会话
-        socket_close($clien);
+        socket_close($client);
 
         //退出进程
         exit();
     }
 
-    private function start_daemon()
+    /**
+     * 检查操作系统是否符合要求
+     */
+    private function checkSysType()
     {
-        if (file_exists($this->pidfile)) {
-            $pid = file_get_contents($this->pidfile);
-            $result = trim(shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
-            if (strstr($result, $pid)) {
-                echo "进程正在运行中 无需启动\n";
-                exit();
+        if (PHP_OS != 'Linux') {
+            exit('启动失败：当前操作系统不为Linux' . PHP_EOL);
+        }
+        if (file_exists('/etc/redhat-release')) {
+            $info = file_get_contents('/etc/redhat-release');
+            if (!strstr($info, 'CentOS') && (strstr($info, '8.') || strstr($info, '7.'))) {
+                exit('启动失败：当前仅支持 CentOS 7和 CentOS8 操作系统' . PHP_EOL);
+            }
+            return;
+        }
+        exit('启动失败：当前仅支持 CentOS 7和 CentOS8 操作系统' . PHP_EOL);
+    }
+
+    /**
+     * 检查php版本是否符合要求
+     */
+    private function checkPhpVersion()
+    {
+        if (PHP_VERSION < Required_PHP_VERSION) {
+            exit('启动失败：当前的PHP版本为：' . PHP_VERSION . '，要求的最低PHP版本为：' . Required_PHP_VERSION . PHP_EOL);
+        }
+    }
+
+    /**
+     * 检查需要的函数是否被禁用
+     */
+    private function checkDisabledFunction()
+    {
+        $disabled_function = explode(',', ini_get('disable_functions'));
+        $cli_needed_function = unserialize(CLI_NEEDED_FUNCTION);
+        foreach ($cli_needed_function as $key => $value) {
+            if (!in_array($value, $disabled_function)) {
+                unset($cli_needed_function[$key]);
             }
         }
-        return $this->init_daemon();
-    }
-
-    private function start()
-    {
-        $this->start_daemon();
-        $this->init_socket();
-    }
-
-    private function stop()
-    {
-        if (file_exists($this->pidfile)) {
-            $pid = file_get_contents($this->pidfile);
-            posix_kill((int)$pid, 9);
-            unlink($this->pidfile);
+        if (!empty($cli_needed_function)) {
+            exit('启动失败：需要的以下函数被禁用：' . PHP_EOL . implode(' ', $cli_needed_function) . PHP_EOL);
         }
+    }
+
+    /**
+     * 以守护进程模式工作
+     */
+    private function startDaemon()
+    {
+        if (file_exists($this->pidFile)) {
+            $pid = file_get_contents($this->pidFile);
+            $result = trim(shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
+            if (strstr($result, $pid)) {
+                exit('程序正在运行中' . PHP_EOL);
+            }
+        }
+        $this->initDaemon();
+    }
+
+    /**
+     * 关闭守护进程
+     */
+    private function stopDaemon()
+    {
+        if (file_exists($this->pidFile)) {
+            $pid = file_get_contents($this->pidFile);
+            posix_kill((int)$pid, 9);
+            unlink($this->pidFile);
+        }
+    }
+
+    /**
+     * 以控制台模式工作 用于调试
+     */
+    private function startConsole()
+    {
+        $this->initSocket();
     }
 
     public function run($argv)
     {
-        $this->check_sys_type();
-        $this->check_php_version();
-        $this->check_disabled_function();
+        $this->checkSysType();
+        $this->checkPhpVersion();
+        $this->checkDisabledFunction();
         if (isset($argv[1])) {
-            $this->state = $argv[1];
-            if (!in_array($this->state, $this->cmdlist)) {
-                echo "用法: php svnadmind.php [start] [stop] [console]\n";
-                exit();
+            $this->workMode = $argv[1];
+            if (!in_array($this->workMode, $this->scripts)) {
+                exit('用法：php svnadmin.php [start | stop | coonsole]' . PHP_EOL);
             }
-            if ($this->state == 'start') {
-                $this->start();
-            } else if ($this->state == 'stop') {
-                $this->stop();
-            } else if ($this->state == 'console') {
-                $this->init_socket();
+            if ($this->workMode == 'start') {
+                $this->startDaemon();
+            } else if ($this->workMode == 'stop') {
+                $this->stopDaemon();
+            } else if ($this->workMode == 'console') {
+                $this->startConsole();
             }
         } else {
-            echo "用法: php svnadmind.php [start] [stop] [console]\n";
+            exit('用法：php svnadmin.php [start | stop | coonsole]' . PHP_EOL);
         }
     }
 }
 
-$deamon = new Daemon();
-$deamon->run($argv);
+if (preg_match('/cli/i', php_sapi_name())) {
+    $deamon = new Daemon();
+    $deamon->run($argv);
+}

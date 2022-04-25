@@ -1,11 +1,11 @@
 <?php
 
-declare(strict_types=1);
+//declare(strict_types=1);
 
 /**
  * 与守护进程通信
  */
-function FunRequestReplyExec($shell)
+function FunShellExec($shell)
 {
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("error:" . socket_strerror(socket_last_error()));
     $server = socket_connect($socket, IPC_ADDRESS, (int)IPC_PORT);
@@ -25,9 +25,11 @@ function FunDetectState()
 {
     $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 
+
+    @socket_connect($sock, IPC_ADDRESS, (int)IPC_PORT);
+
     socket_set_nonblock($sock);
 
-    socket_connect($sock, IPC_ADDRESS, (int)IPC_PORT);
 
     socket_set_block($sock);
 
