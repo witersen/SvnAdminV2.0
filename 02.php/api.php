@@ -77,11 +77,11 @@ if (file_exists($controller_path)) {
 
     //白名单检查
     if ($type == 'mini') {
-        if (!in_array($action, unserialize(miniWhiteList))) {
+        if (!in_array($controller_perifx . '/' . $action, $ROUTERS['MINI_PUBLIC_ROUTERS'])) {
             FunCheckToken($token);
         }
     } else if ($type == 'web') {
-        if (!in_array($action, unserialize(webWhiteList))) {
+        if (!in_array($controller_perifx . '/' . $action, $ROUTERS['WEB_PUBLIC_ROUTERS'])) {
             FunCheckToken($token);
         }
     } else {
@@ -94,6 +94,12 @@ if (file_exists($controller_path)) {
     //开始调用
     $controller = new $controller_perifx();
     if (is_callable(array($controller, $action))) {
+        //检查SVN用户的路由表
+        if ($controller->globalUserRoleId == 2) {
+            if (!in_array($controller_perifx . '/' . $action, $ROUTERS['SVN_USER_ROUTERS'])) {
+                FunMessageExit(401, 0, '无权限');
+            }
+        }
         //执行请求
         $controller->$action();
     } else {

@@ -7,12 +7,12 @@
  */
 
 //require config
-require_once BASE_PATH . '/config/api.config.php';
 require_once BASE_PATH . '/config/curl.config.php';
 require_once BASE_PATH . '/config/daemon.config.php';
 require_once BASE_PATH . '/config/subversion.config.php';
 require_once BASE_PATH . '/config/database.config.php';
 require_once BASE_PATH . '/config/reg.config.php';
+require_once BASE_PATH . '/config/router.config.php';
 require_once BASE_PATH . '/config/sign.config.php';
 require_once BASE_PATH . '/config/update.config.php';
 require_once BASE_PATH . '/config/version.config.php';
