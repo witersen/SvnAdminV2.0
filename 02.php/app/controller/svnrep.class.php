@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 21:38:11
+ * @LastEditTime: 2022-04-27 02:06:19
  * @Description: QQ:1801168257
  */
 
@@ -331,6 +331,7 @@ class svnrep extends controller
                     'rep_name[~]' => $searchKeyword,
                 ],
             ],
+            'svn_user_name' => $this->globalUserName
         ]);
 
         FunMessageExit(200, 1, '成功', [
@@ -358,6 +359,10 @@ class svnrep extends controller
      */
     function GetUserRepCon()
     {
+        $path = $this->requestPayload['path'];
+
+        $repName = $this->requestPayload['rep_name'];
+
         /**
          * 获取svn检出地址
          * 
@@ -377,11 +382,108 @@ class svnrep extends controller
             FunMessageExit(200, 0, '用户不存在' . $this->globalUserName);
         }
 
-        //检查权限
-        $result = CheckSvnUserPathAutzh($checkoutHost, $this->requestPayload['rep_name'], $this->requestPayload['path'], $this->globalUserName, $svnUserPass);
-        FunMessageExit(200, 0, 'test', $result);
-    }
+        $cmdSvnList = sprintf("svn list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $checkoutHost . '/' . $repName . $path, $this->globalUserName, $svnUserPass);
+        $result = FunShellExec($cmdSvnList);
 
+        if ($result == ISNULL) {
+            $resultArray = [];
+        } else {
+            if (strstr($result, 'svn: E170001: Authentication error from server: Password incorrect')) {
+                FunMessageExit(200, 0, '密码错误');
+            }
+            if (strstr($result, 'svn: E170001: Authorization failed')) {
+                FunMessageExit(200, 0, '没有权限');
+            }
+            if (strstr($result, 'svn: E170013: Unable to connect to a repository at URL')) {
+                FunMessageExit(200, 0, '其它错误');
+            }
+
+            $resultArray = explode("\n", trim($result));
+        }
+
+        $data = [];
+        foreach ($resultArray as $key => $value) {
+            //补全路径
+            if (substr($path, strlen($path) - 1, 1) == '/') {
+                $value = $path .  $value;
+            } else {
+                $value = $path . '/' . $value;
+            }
+
+            //获取文件或者文件夹最年轻的版本号
+            $lastRev  = FunGetRepFileRev($repName, $value);
+
+            //获取文件或者文件夹最年轻的版本的作者
+            $lastRevAuthor = FunGetRepFileAuthor($repName, $lastRev);
+
+            //同上 日期
+            $lastRevDate = FunGetRepFileDate($repName, $lastRev);
+
+            //同上 日志
+            $lastRevLog = FunGetRepFileLog($repName, $lastRev);
+
+            $pathArray = explode('/', $value);
+            $pathArray = array_values(array_filter($pathArray, 'FunArrayValueFilter'));
+            $pathArrayCount = count($pathArray);
+            if (substr($value, strlen($value) - 1, 1) == '/') {
+                array_push($data, [
+                    'resourceType' => 2,
+                    'resourceName' => $pathArray[$pathArrayCount - 1],
+                    'fileSize' => '',
+                    'revAuthor' => $lastRevAuthor,
+                    'revNum' => 'r' . $lastRev,
+                    'revTime' => $lastRevDate,
+                    'revLog' => $lastRevLog,
+                    'fullPath' => $value
+                ]);
+            } else {
+                array_push($data, [
+                    'resourceType' => 1,
+                    'resourceName' => $pathArray[$pathArrayCount - 1],
+                    'fileSize' => FunGetRepRevFileSize($repName, $value),
+                    'revAuthor' => $lastRevAuthor,
+                    'revNum' => 'r' . $lastRev,
+                    'revTime' => $lastRevDate,
+                    'revLog' => $lastRevLog,
+                    'fullPath' => $value
+                ]);
+            }
+        }
+
+        //处理面包屑
+        if ($path == '/') {
+            $breadPathArray = ['/'];
+            $breadNameArray = [$repName];
+        } else {
+            $pathArray = explode('/', $path);
+            //将全路径处理为带有/的数组
+            $tempArray = [];
+            array_push($tempArray, '/');
+            for ($i = 0; $i < count($pathArray); $i++) {
+                if ($pathArray[$i] != '') {
+                    array_push($tempArray, $pathArray[$i]);
+                    array_push($tempArray, '/');
+                }
+            }
+            //处理为递增的路径数组
+            $breadPathArray = ['/'];
+            $breadNameArray = [$repName];
+            $tempPath = '/';
+            for ($i = 1; $i < count($tempArray); $i += 2) {
+                $tempPath .= $tempArray[$i] . $tempArray[$i + 1];
+                array_push($breadPathArray, $tempPath);
+                array_push($breadNameArray, $tempArray[$i]);
+            }
+        }
+
+        FunMessageExit(200, 1, '', [
+            'data' => $data,
+            'bread' => [
+                'path' => $breadPathArray,
+                'name' => $breadNameArray
+            ]
+        ]);
+    }
 
     /**
      * 管理人员根据目录名称获取该目录下的文件和文件夹列表

@@ -1381,7 +1381,11 @@ export default {
     ClickRowGetRepCon(row, index) {
       if (this.tableDataRepCon[index].resourceType == "2") {
         this.currentRepTreePath = this.tableDataRepCon[index].fullPath;
-        this.GetRepCon();
+        if (this.user_role_id == 1) {
+          this.GetRepCon();
+        } else if (this.user_role_id == 2) {
+          this.GetUserRepCon();
+        }
       }
     },
     /**
@@ -1389,7 +1393,11 @@ export default {
      */
     ClickBreadGetRepCon(fullPath) {
       this.currentRepTreePath = fullPath;
-      this.GetRepCon();
+      if (this.user_role_id == 1) {
+        this.GetRepCon();
+      } else if (this.user_role_id == 2) {
+        this.GetUserRepCon();
+      }
     },
     /**
      * 复制检出地址
@@ -1604,9 +1612,13 @@ export default {
      * 点击目录树节点触发
      */
     ChangeSelectTreeNode(selectArray, currentItem) {
-      this.currentRepTreePriPath = currentItem.fullPath;
-      this.GetRepPathUserPri();
-      this.GetRepPathGroupPri();
+      if (currentItem.resourceType == "2") {
+        this.currentRepTreePriPath = currentItem.fullPath;
+        this.GetRepPathUserPri();
+        this.GetRepPathGroupPri();
+      } else {
+        this.$Message.error("不支持文件授权");
+      }
     },
     /**
      * 异步加载目录下的内容
