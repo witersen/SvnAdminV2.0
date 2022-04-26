@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 21:29:09
+ * @LastEditTime: 2022-04-26 21:38:11
  * @Description: QQ:1801168257
  */
 
@@ -379,7 +379,6 @@ class svnrep extends controller
 
         //检查权限
         $result = CheckSvnUserPathAutzh($checkoutHost, $this->requestPayload['rep_name'], $this->requestPayload['path'], $this->globalUserName, $svnUserPass);
-        
         FunMessageExit(200, 0, 'test', $result);
     }
 
