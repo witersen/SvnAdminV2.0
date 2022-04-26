@@ -1,6 +1,7 @@
 <template>
   <div>
     <Card :bordered="false" :dis-hover="true">
+      <!-- SVNserve服务非正常状态提示 -->
       <Alert
         v-if="formStatusSubversion.status == false"
         type="error"
@@ -20,7 +21,7 @@
             icon="md-add"
             type="primary"
             ghost
-            @click="ModalAddRep"
+            @click="ModalCreateRep"
             v-if="user_role_id == 1"
             >新建SVN仓库</Button
           >
@@ -50,14 +51,14 @@
         @on-sort-change="SortChangeRep"
         border
         :loading="loadingRep"
-        :columns="tableRepColumn"
-        :data="tableRepData"
+        :columns="tableColumnRep"
+        :data="tableDataRep"
         size="small"
       >
         <template slot-scope="{ row, index }" slot="rep_note">
           <Input
             :border="false"
-            v-model="tableRepData[index].rep_note"
+            v-model="tableDataRep[index].rep_note"
             @on-blur="EditRepNote(index, row.rep_name)"
           />
         </template>
@@ -105,8 +106,8 @@
         @on-sort-change="SortChangeUserRep"
         border
         :loading="loadingUserRep"
-        :columns="tableSvnuserRepColumn"
-        :data="tableSvnuserRepData"
+        :columns="tableColumnUserRep"
+        :data="tableDataUserRep"
         size="small"
       >
         <template slot-scope="{ row }" slot="action">
@@ -125,8 +126,8 @@
           :total="totalRep"
           :current="pageCurrentRep"
           :page-size="pageSizeRep"
-          @on-page-size-change="RepPageSizeChange"
-          @on-change="RepPageChange"
+          @on-page-size-change="PageSizeChangeRep"
+          @on-change="PageChangeRep"
           size="small"
           show-sizer
         />
@@ -138,15 +139,15 @@
           :total="totalUserRep"
           :current="pageCurrentUserRep"
           :page-size="pageSizeUserRep"
-          @on-page-size-change="UserRepPageSizeChange"
-          @on-change="UserRepPageChange"
+          @on-page-size-change="PageSizeChangeUserRep"
+          @on-change="PageChangeUserRep"
           size="small"
           show-sizer
         />
       </Card>
     </Card>
     <!-- 对话框-新建SVN仓库 -->
-    <Modal v-model="modalAddRep" title="新建SVN仓库" @on-ok="CreateRep">
+    <Modal v-model="modalCreateRep" title="新建SVN仓库" @on-ok="CreateRep">
       <Form :model="formRepAdd" :label-width="80">
         <FormItem label="仓库名称">
           <Input v-model="formRepAdd.rep_name"></Input>
@@ -201,8 +202,8 @@
           :border="false"
           :loading="loadingRepCon"
           :show-header="false"
-          :columns="tableRepScanColumn"
-          :data="tableRepScanData"
+          :columns="tableColumnRepCon"
+          :data="tableDataRepCon"
           @on-row-click="ClickRowGetRepCon"
         >
           <template slot-scope="{ row }" slot="resourceType">
@@ -225,7 +226,7 @@
       </div>
     </Modal>
     <!-- 对话框-备份仓库 -->
-    <Modal v-model="modalBackuptRep" :title="titleModalRepBackup">
+    <Modal v-model="modalRepDump" :title="titleModalRepBackup">
       <Row style="margin-bottom: 15px">
         <Col span="18">
           <Button
@@ -241,8 +242,8 @@
       <Table
         height="200"
         border
-        :columns="tableBackupFolderColumn2"
-        :data="tableBackupFolderData"
+        :columns="tableColumnBackup2"
+        :data="tableDataBackup"
         size="small"
         :loading="loadingRepBackupList"
       >
@@ -259,7 +260,7 @@
         </template>
       </Table>
       <div slot="footer">
-        <Button type="primary" @click="modalBackuptRep = false">取消</Button>
+        <Button type="primary" @click="modalRepDump = false">取消</Button>
       </div>
     </Modal>
     <!-- 对话框-仓库权限 -->
@@ -287,8 +288,8 @@
                       border
                       :height="200"
                       size="small"
-                      :columns="tableRepPriUserColumn"
-                      :data="tableRepPriUserData"
+                      :columns="tableColumnRepPathUserPri"
+                      :data="tableDataRepPathUserPri"
                       :loading="loadingRepPathUserPri"
                       @on-current-change="ChangeSelectRepUserPri"
                     ></Table>
@@ -334,8 +335,8 @@
                       border
                       :height="200"
                       size="small"
-                      :columns="tableRepPriGroupColumn"
-                      :data="tableRepPriGroupData"
+                      :columns="tableColumnRepPathGroupPri"
+                      :data="tableDataRepPathGroupPri"
                       :loading="loadingRepPathGroupPri"
                       @on-current-change="ChangeSelectRepGroupPri"
                     ></Table>
@@ -419,8 +420,8 @@
         <TabPane label="属性">
           <Table
             :show-header="false"
-            :columns="tableRepDetailColumn"
-            :data="tableRepDetailData"
+            :columns="tableColumnRepDetail"
+            :data="tableDataRepDetail"
             :loading="loadingRepDetail"
             size="small"
             height="350"
@@ -478,8 +479,8 @@
                 border
                 highlight-row
                 :loading="loadingRepBackupList"
-                :columns="tableBackupFolderColumn1"
-                :data="tableBackupFolderData"
+                :columns="tableColumnBackup1"
+                :data="tableDataBackup"
                 size="small"
                 @on-row-click="ClickRowUploadBackup"
               ></Table>
@@ -541,8 +542,8 @@
         height="350"
         highlight-row
         :show-header="false"
-        :columns="tableRepAllUserColumn"
-        :data="tableRepAllUserData"
+        :columns="tableColumnAllUser"
+        :data="tableDataAllUser"
         :loading="loadingAllUserList"
         @on-row-click="ClickRowAddRepPathUser"
       >
@@ -562,8 +563,8 @@
         height="350"
         highlight-row
         :show-header="false"
-        :columns="tableRepAllGroupColumn"
-        :data="tableRepAllGroupData"
+        :columns="tableColumnAllGroup"
+        :data="tableDataAllGroup"
         :loading="loadingAllGroupList"
         @on-row-click="ClickRowAddRepPathGroup"
       ></Table>
@@ -575,6 +576,9 @@
 export default {
   data() {
     return {
+      /**
+       * 权限相关
+       */
       token: sessionStorage.token,
       user_role_id: sessionStorage.user_role_id,
 
@@ -585,11 +589,11 @@ export default {
        * 对话框
        */
       //新建SVN仓库
-      modalAddRep: false,
+      modalCreateRep: false,
       //浏览仓库
       modalViewRep: false,
-      //备份仓库
-      modalBackuptRep: false,
+      //仓库备份
+      modalRepDump: false,
       //仓库权限
       modalRepPri: false,
       //仓库钩子配置
@@ -612,7 +616,7 @@ export default {
       /**
        * 分页数据
        */
-      //仓库
+      //所有仓库
       pageCurrentRep: 1,
       pageSizeRep: 10,
       totalRep: 0,
@@ -629,7 +633,7 @@ export default {
       /**
        * 加载
        */
-      //仓库列表
+      //所有仓库列表
       loadingRep: true,
       //用户仓库列表
       loadingUserRep: true,
@@ -790,8 +794,8 @@ export default {
       /**
        * 表格
        */
-      //管理员-仓库信息
-      tableRepColumn: [
+      //所有仓库
+      tableColumnRep: [
         {
           title: "序号",
           type: "index",
@@ -849,9 +853,9 @@ export default {
           // fixed:"right"
         },
       ],
-      tableRepData: [],
-      //SVN用户-仓库信息
-      tableSvnuserRepColumn: [
+      tableDataRep: [],
+      //SVN用户仓库
+      tableColumnUserRep: [
         {
           title: "序号",
           type: "index",
@@ -883,9 +887,9 @@ export default {
           // fixed:"right"
         },
       ],
-      tableSvnuserRepData: [],
-      //表格形式的仓库文件表格
-      tableRepScanColumn: [
+      tableDataUserRep: [],
+      //仓库内容浏览
+      tableColumnRepCon: [
         {
           title: "类型",
           slot: "resourceType",
@@ -923,10 +927,10 @@ export default {
           tooltip: true,
         },
       ],
-      tableRepScanData: [],
+      tableDataRepCon: [],
       //备份文件夹
       //导入仓库文件浏览用
-      tableBackupFolderColumn1: [
+      tableColumnBackup1: [
         {
           title: "文件名",
           key: "fileName",
@@ -943,7 +947,7 @@ export default {
         },
       ],
       //仓库备份管理用
-      tableBackupFolderColumn2: [
+      tableColumnBackup2: [
         {
           title: "文件名",
           key: "fileName",
@@ -964,9 +968,9 @@ export default {
           width: 130,
         },
       ],
-      tableBackupFolderData: [],
+      tableDataBackup: [],
       //某节点的用户权限
-      tableRepPriUserColumn: [
+      tableColumnRepPathUserPri: [
         {
           title: "用户名",
           key: "userName",
@@ -976,9 +980,9 @@ export default {
           key: "userPri",
         },
       ],
-      tableRepPriUserData: [],
+      tableDataRepPathUserPri: [],
       //某节点的分组权限
-      tableRepPriGroupColumn: [
+      tableColumnRepPathGroupPri: [
         {
           title: "分组名",
           key: "groupName",
@@ -988,9 +992,9 @@ export default {
           key: "groupPri",
         },
       ],
-      tableRepPriGroupData: [],
+      tableDataRepPathGroupPri: [],
       //仓库的详细信息 uuid等
-      tableRepDetailColumn: [
+      tableColumnRepDetail: [
         {
           title: "属性",
           key: "repKey",
@@ -1007,9 +1011,9 @@ export default {
           width: 60,
         },
       ],
-      tableRepDetailData: [],
+      tableDataRepDetail: [],
       //仓库的所有用户
-      tableRepAllUserColumn: [
+      tableColumnAllUser: [
         {
           title: "用户名",
           key: "userName",
@@ -1019,15 +1023,15 @@ export default {
           slot: "disabled",
         },
       ],
-      tableRepAllUserData: [],
+      tableDataAllUser: [],
       //仓库的所有分组
-      tableRepAllGroupColumn: [
+      tableColumnAllGroup: [
         {
           title: "分组名",
           key: "groupName",
         },
       ],
-      tableRepAllGroupData: [],
+      tableDataAllGroup: [],
     };
   },
   computed: {},
@@ -1036,26 +1040,11 @@ export default {
     this.GetStatus();
     if (this.user_role_id == 1) {
       this.GetRepList();
-    } else {
+    } else if (this.user_role_id == 2) {
       this.GetSvnUserRepList();
     }
   },
   methods: {
-    //上传前
-    BeforeUpload() {
-      this.loadingUploadBackup = true;
-      return true;
-    },
-    //上传成功
-    UploadSuccess(res, file, fileList) {
-      this.loadingUploadBackup = false;
-      var result = res;
-      if (result.status == 1) {
-        this.$Message.success(result.message);
-      } else {
-        this.$Message.error(result.message);
-      }
-    },
     /**
      * 获取svnserve运行状态
      */
@@ -1076,11 +1065,12 @@ export default {
           console.log(error);
         });
     },
+
     /**
      * 添加仓库
      */
-    ModalAddRep() {
-      this.modalAddRep = true;
+    ModalCreateRep() {
+      this.modalCreateRep = true;
     },
     CreateRep() {
       var that = this;
@@ -1104,70 +1094,14 @@ export default {
           console.log(error);
         });
     },
-    ImportRep() {
-      var that = this;
-      that.loadingImportBackup = true;
-      var data = {
-        rep_name: that.currentRepName,
-        fileName: that.formUploadBackup.fileName,
-      };
-      that.$axios
-        .post("/api.php?c=svnrep&a=ImportRep&t=web", data)
-        .then(function (response) {
-          that.loadingImportBackup = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.formUploadBackup.errorInfo = result.data;
-          } else {
-            that.$Message.error(result.message);
-            that.formUploadBackup.errorInfo = result.data;
-          }
-        })
-        .catch(function (error) {
-          that.loadingImportBackup = false;
-          console.log(error);
-        });
-    },
-    /**
-     * 每页数量改变
-     */
-    RepPageSizeChange(value) {
-      //设置每页条数
-      this.pageSizeRep = value;
-      this.GetRepList();
-    },
-    /**
-     * 用户仓库每页数量改变
-     */
-    UserRepPageSizeChange(value) {
-      //设置每页条数
-      this.pageSizeUserRep = value;
-      this.GetSvnUserRepList();
-    },
-    /**
-     * 仓库列表页码改变
-     */
-    RepPageChange(value) {
-      //设置当前页数
-      this.pageCurrentRep = value;
-      this.GetRepList();
-    },
-    /**
-     * 用户仓库列表页码改变
-     */
-    UserRepPageChange(value) {
-      //设置当前页数
-      this.pageCurrentUserRep = value;
-      this.GetSvnUserRepList();
-    },
+
     /**
      * 获取仓库列表
      */
     GetRepList() {
       var that = this;
       that.loadingRep = true;
-      that.tableRepData = [];
+      that.tableDataRep = [];
       that.totalRep = 0;
       var data = {
         pageSize: that.pageSizeRep,
@@ -1183,7 +1117,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             // that.$Message.success(result.message);
-            that.tableRepData = result.data.data;
+            that.tableDataRep = result.data.data;
             that.totalRep = result.data.total;
           } else {
             that.$Message.error(result.message);
@@ -1195,12 +1129,39 @@ export default {
         });
     },
     /**
+     * 所有仓库列表页码改变
+     */
+    PageChangeRep(value) {
+      //设置当前页数
+      this.pageCurrentRep = value;
+      this.GetRepList();
+    },
+    /**
+     * 所有仓库列表每页数量改变
+     */
+    PageSizeChangeRep(value) {
+      //设置每页条数
+      this.pageSizeRep = value;
+      this.GetRepList();
+    },
+    /**
+     * 所有仓库排序
+     */
+    SortChangeRep(value) {
+      this.sortName = value.key;
+      if (value.order == "desc" || value.order == "asc") {
+        this.sortType = value.order;
+      }
+      this.GetRepList();
+    },
+
+    /**
      * 获取用户仓库列表
      */
     GetSvnUserRepList() {
       var that = this;
       that.loadingUserRep = true;
-      that.tableSvnuserRepData = [];
+      that.tableDataUserRep = [];
       that.totalUserRep = 0;
       var data = {
         pageSize: that.pageSizeUserRep,
@@ -1215,7 +1176,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             // that.$Message.success(result.message);
-            that.tableSvnuserRepData = result.data.data;
+            that.tableDataUserRep = result.data.data;
             that.totalUserRep = result.data.total;
           } else {
             that.$Message.error(result.message);
@@ -1227,14 +1188,20 @@ export default {
         });
     },
     /**
-     * 仓库排序
+     * 用户仓库列表页码改变
      */
-    SortChangeRep(value) {
-      this.sortName = value.key;
-      if (value.order == "desc" || value.order == "asc") {
-        this.sortType = value.order;
-      }
-      this.GetRepList();
+    PageChangeUserRep(value) {
+      //设置当前页数
+      this.pageCurrentUserRep = value;
+      this.GetSvnUserRepList();
+    },
+    /**
+     * 用户仓库每页数量改变
+     */
+    PageSizeChangeUserRep(value) {
+      //设置每页条数
+      this.pageSizeUserRep = value;
+      this.GetSvnUserRepList();
     },
     /**
      * 用户仓库排序
@@ -1246,6 +1213,7 @@ export default {
       }
       this.GetSvnUserRepList();
     },
+
     /**
      * 编辑仓库备注信息
      */
@@ -1253,7 +1221,7 @@ export default {
       var that = this;
       var data = {
         rep_name: rep_name,
-        rep_note: that.tableRepData[index].rep_note,
+        rep_note: that.tableDataRep[index].rep_note,
       };
       that.$axios
         .post("/api.php?c=svnrep&a=EditRepNote&t=web", data)
@@ -1269,13 +1237,165 @@ export default {
           console.log(error);
         });
     },
+
+    /**
+     * 管理人员浏览仓库
+     */
+    ModalViewRep(rep_name) {
+      var that = this;
+      //通过按钮点击浏览 初始化路径和仓库名称
+      that.currentRepTreePath = "/";
+      that.currentRepName = rep_name;
+      //设置标题
+      that.titleModalViewRep = "仓库内容-" + rep_name;
+      //显示对话框
+      that.modalViewRep = true;
+      //请求检出地址信息
+      that.GetCheckout().then(function (response) {
+        //在检出地址的成功回调中开始请求仓库内容
+        that.GetRepCon();
+      });
+    },
+    /**
+     * 用户浏览仓库
+     */
+    ModalViewUserRep(rep_name, pri_path) {
+      var that = this;
+      //通过按钮点击浏览 初始化路径和仓库名称
+      that.currentRepTreePath = pri_path;
+      that.currentRepName = rep_name;
+      //设置标题
+      that.titleModalViewRep = "仓库内容-" + rep_name;
+      //显示对话框
+      that.modalViewRep = true;
+      //请求检出地址信息
+      that.GetCheckout().then(function (response) {
+        //在检出地址的成功回调中开始请求仓库内容
+        that.GetUserRepCon();
+      });
+    },
+    /**
+     * 获取检出地址前缀
+     */
+    GetCheckout() {
+      var that = this;
+      //清空之前的检出地址
+      that.tempCheckout = "";
+      //清空之前的表格内容
+      that.tableDataRepCon = [];
+      //清空之前的面包屑
+      that.breadRepPath = [];
+      //重置加载动画
+      that.loadingRepCon = true;
+      var data = {};
+      return new Promise(function (resolve, reject) {
+        that.$axios
+          .post("/api.php?c=subversion&a=GetCheckout&t=web", data)
+          .then(function (response) {
+            var result = response.data;
+            if (result.status == 1) {
+              that.checkInfo = result.data;
+            } else {
+              that.loadingRepCon = false;
+              that.$Message.error(result.message);
+            }
+            resolve(response);
+          })
+          .catch(function (error) {
+            console.log(error);
+            reject(error);
+          });
+      });
+    },
+    /**
+     * 获取仓库内容
+     */
+    GetRepCon() {
+      var that = this;
+      that.loadingRepCon = true;
+      var data = {
+        rep_name: that.currentRepName,
+        path: that.currentRepTreePath,
+      };
+      that.$axios
+        .post("/api.php?c=svnrep&a=GetRepCon&t=web", data)
+        .then(function (response) {
+          that.loadingRepCon = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.tableDataRepCon = result.data.data;
+            that.breadRepPath = result.data.bread;
+            //更新检出地址
+            that.tempCheckout =
+              that.checkInfo.protocal +
+              that.checkInfo.prefix +
+              "/" +
+              that.currentRepName +
+              that.currentRepTreePath;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingRepCon = false;
+          console.log(error);
+        });
+    },
+    /**
+     * 获取用户仓库内容
+     */
+    GetUserRepCon() {},
+    /**
+     * 点击某行获取仓库路径内容
+     */
+    ClickRowGetRepCon(row, index) {
+      if (this.tableDataRepCon[index].resourceType == "2") {
+        this.currentRepTreePath = this.tableDataRepCon[index].fullPath;
+        this.GetRepCon();
+      }
+    },
+    /**
+     * 点击面包屑获取仓库路径内容
+     */
+    ClickBreadGetRepCon(fullPath) {
+      this.currentRepTreePath = fullPath;
+      this.GetRepCon();
+    },
+    /**
+     * 复制检出地址
+     */
+    CopyCheckout() {
+      var that = this;
+      that.$copyText(that.tempCheckout).then(
+        function (e) {
+          that.$Message.success("复制成功");
+        },
+        function (e) {
+          that.$Message.error("复制失败，请手动复制");
+        }
+      );
+    },
+
+    /**
+     * 备份仓库
+     */
+    ModalRepDump(rep_name) {
+      //设置标题
+      this.titleModalRepBackup = "仓库备份-" + rep_name;
+      //显示对话框
+      this.modalRepDump = true;
+      //设置当前选中的仓库名
+      this.currentRepName = rep_name;
+      //请求数据
+      this.GetBackupList();
+    },
     /**
      * 获取备份文件夹下的文件列表
      */
     GetBackupList() {
       var that = this;
       that.loadingRepBackupList = true;
-      that.tableBackupFolderData = [];
+      that.tableDataBackup = [];
       var data = {};
       that.$axios
         .post("/api.php?c=svnrep&a=GetBackupList&t=web", data)
@@ -1283,13 +1403,36 @@ export default {
           that.loadingRepBackupList = false;
           var result = response.data;
           if (result.status == 1) {
-            that.tableBackupFolderData = result.data;
+            that.tableDataBackup = result.data;
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
           that.loadingRepBackupList = false;
+          console.log(error);
+        });
+    },
+    RepDump() {
+      var that = this;
+      that.loadingRepDump = true;
+      var data = {
+        rep_name: that.currentRepName,
+      };
+      that.$axios
+        .post("/api.php?c=svnrep&a=RepDump&t=web", data)
+        .then(function (response) {
+          that.loadingRepDump = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetBackupList();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingRepDump = false;
           console.log(error);
         });
     },
@@ -1354,181 +1497,38 @@ export default {
         },
       });
     },
+
     /**
-     * 浏览仓库
+     * 仓库权限
      */
-    ModalViewRep(rep_name) {
+    ModalRepPri(rep_name) {
+      var that = this;
       //通过按钮点击浏览 初始化路径和仓库名称
-      this.currentRepTreePath = "/";
-      this.currentRepName = rep_name;
+      that.currentRepTreePath = "/";
+      that.currentRepTreePriPath = "/";
+      that.currentRepName = rep_name;
       //设置标题
-      this.titleModalViewRep = "仓库内容-" + rep_name;
+      that.titleModalRepPri = "仓库权限-" + rep_name;
       //显示对话框
-      this.modalViewRep = true;
-      //请求检出地址信息
-      //请求目录数据
-      this.GetCheckout();
-    },
-    /**
-     * 用户浏览仓库
-     */
-    ModalViewUserRep(rep_name, pri_path) {
-      //通过按钮点击浏览 初始化路径和仓库名称
-      this.currentRepTreePath = pri_path;
-      this.currentRepName = rep_name;
-      //设置标题
-      this.titleModalViewRep = "仓库内容-" + rep_name;
-      //显示对话框
-      this.modalViewRep = true;
-      //请求检出地址信息
-      //请求目录数据
-      this.GetCheckout();
-    },
-    /**
-     * 获取检出地址前缀
-     */
-    GetCheckout() {
-      var that = this;
-      //清空之前的检出地址
-      that.tempCheckout = "";
-      //清空之前的表格内容
-      that.tableRepScanData = [];
-      //清空之前的面包屑
-      that.breadRepPath = [];
-      //重置加载动画
-      that.loadingRepCon = true;
-      var data = {};
-      that.$axios
-        .post("/api.php?c=subversion&a=GetCheckout&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.checkInfo = result.data;
-            that.GetRepCon();
-          } else {
-            that.loadingRepCon = false;
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
-    /**
-     * 复制检出地址
-     */
-    CopyCheckout() {
-      var that = this;
-      that.$copyText(that.tempCheckout).then(
-        function (e) {
-          that.$Message.success("复制成功");
-        },
-        function (e) {
-          that.$Message.error("复制失败，请手动复制");
-        }
-      );
-    },
-    /**
-     * 复制仓库属性
-     */
-    CopyRepDetail(index) {
-      var that = this;
-      var copyContent =
-        that.tableRepDetailData[index].repKey +
-        ":" +
-        that.tableRepDetailData[index].repValue;
-      that.$copyText(copyContent).then(
-        function (e) {
-          that.$Message.success("复制成功");
-        },
-        function (e) {
-          that.$Message.error("复制失败，请手动复制");
-        }
-      );
-    },
-    /**
-     * 获取仓库内容
-     */
-    GetRepCon() {
-      var that = this;
-      that.loadingRepCon = true;
-      var data = {
-        rep_name: that.currentRepName,
-        path: that.currentRepTreePath,
-      };
-      that.$axios
-        .post("/api.php?c=svnrep&a=GetRepCon&t=web", data)
-        .then(function (response) {
-          that.loadingRepCon = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.tableRepScanData = result.data.data;
-            that.breadRepPath = result.data.bread;
-            //更新检出地址
-            that.tempCheckout =
-              that.checkInfo.protocal +
-              that.checkInfo.prefix +
-              "/" +
-              that.currentRepName +
-              that.currentRepTreePath;
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          that.loadingRepCon = false;
-          console.log(error);
-        });
-    },
-    /**
-     * 点击某行获取仓库路径内容
-     */
-    ClickRowGetRepCon(row, index) {
-      if (this.tableRepScanData[index].resourceType == "2") {
-        this.currentRepTreePath = this.tableRepScanData[index].fullPath;
-        this.GetRepCon();
-      }
-    },
-    /**
-     * 点击面包屑获取仓库路径内容
-     */
-    ClickBreadGetRepCon(fullPath) {
-      this.currentRepTreePath = fullPath;
-      this.GetRepCon();
-    },
-    /**
-     * 异步加载目录下的内容
-     */
-    LoadingRepTree(item, callback) {
-      var that = this;
-      var data = [];
-      that.currentRepTreePath = item.fullPath;
+      that.modalRepPri = true;
+      //显示加载动画
+      that.loadingRepTree = true;
+      //清空数据
+      that.treeRep = [];
+      //请求目录树
       that.GetRepTree().then(function (response) {
+        that.loadingRepTree = false;
         var result = response.data;
         if (result.status == 1) {
-          data = result.data;
-          if (data.length > 0) {
-            if (data[0].fullPath != "/") {
-              callback(data);
-            } else {
-              callback([]);
-              //根目录下没有内容时 直接覆盖掉
-              that.treeRep = [
-                {
-                  resourceType: 2,
-                  title: that.currentRepName + "/",
-                  fullPath: "/",
-                },
-              ];
-            }
-          } else {
-            callback([]);
-          }
+          that.treeRep = result.data;
         } else {
           that.$Message.error(result.message);
-          callback(data);
         }
       });
+      //获取仓库根路径的用户权限列表
+      that.GetRepPathUserPri();
+      //获取仓库根路径的分组权限列表
+      that.GetRepPathGroupPri();
     },
     /**
      * 获取目录树
@@ -1579,12 +1579,47 @@ export default {
       this.GetRepPathGroupPri();
     },
     /**
+     * 异步加载目录下的内容
+     */
+    LoadingRepTree(item, callback) {
+      var that = this;
+      var data = [];
+      that.currentRepTreePath = item.fullPath;
+      that.GetRepTree().then(function (response) {
+        var result = response.data;
+        if (result.status == 1) {
+          data = result.data;
+          if (data.length > 0) {
+            if (data[0].fullPath != "/") {
+              callback(data);
+            } else {
+              callback([]);
+              //根目录下没有内容时 直接覆盖掉
+              that.treeRep = [
+                {
+                  resourceType: 2,
+                  title: that.currentRepName + "/",
+                  fullPath: "/",
+                },
+              ];
+            }
+          } else {
+            callback([]);
+          }
+        } else {
+          that.$Message.error(result.message);
+          callback(data);
+        }
+      });
+    },
+
+    /**
      * 获取某个仓库路径的用户权限列表
      */
     GetRepPathUserPri() {
       var that = this;
       //清空上次表格数据
-      that.tableRepPriUserData = [];
+      that.tableDataRepPathUserPri = [];
       //清空选中的用户数据
       that.currentRepPriUser = "";
       that.currentRepPriUserIndex = -1;
@@ -1600,7 +1635,7 @@ export default {
           that.loadingRepPathUserPri = false;
           var result = response.data;
           if (result.status == 1) {
-            that.tableRepPriUserData = result.data;
+            that.tableDataRepPathUserPri = result.data;
           } else {
             that.$Message.error(result.message);
           }
@@ -1621,156 +1656,19 @@ export default {
       this.radioRepUserPri = currentRow.userPri;
     },
     /**
-     * 点击仓库路径的分组权限列表的某行
-     */
-    ChangeSelectRepGroupPri(currentRow, oldCurrentRow) {
-      //将当前选中的分组和下标进行同步
-      this.currentRepPriGroup = currentRow.groupName;
-      this.currentRepPriGroupIndex = currentRow.index;
-      //将当前选中行的权限同步到下方的单选
-      if (currentRow.groupPri == "") {
-        this.radioRepGroupPri = "no";
-      } else {
-        this.radioRepGroupPri = currentRow.groupPri;
-      }
-    },
-    /**
-     * 单选按钮 为选中的用户更换权限
+     * 单选组合 为选中的用户更换权限
      */
     ChangeRadioRepUserPri(value) {
       //如果没有选中用户则做出提示
       if (this.currentRepPriUser == "") {
         this.$Message.error("未选择用户");
       } else {
-        this.tableRepPriUserData[this.currentRepPriUserIndex].userPri = value;
-      }
-    },
-    /**
-     * 单选按钮 为选中的分组更换权限
-     */
-    ChangeRadioRepGroupPri(value) {
-      //如果没有选中分组则做出提示
-      if (this.currentRepPriGroup == "") {
-        this.$Message.error("未选择分组");
-      } else {
-        this.tableRepPriGroupData[this.currentRepPriGroupIndex].groupPri =
+        this.tableDataRepPathUserPri[this.currentRepPriUserIndex].userPri =
           value;
       }
     },
     /**
-     * 单选按钮 选择导入
-     */
-    ChangeRadioUploadType(value) {
-      this.formUploadBackup.selectType = value;
-      if (value == "2") {
-        this.GetBackupList();
-      }
-    },
-    /**
-     * 获取某个仓库路径的分组权限列表
-     */
-    GetRepPathGroupPri() {
-      var that = this;
-      //清空上次表格数据
-      that.tableRepPriGroupData = [];
-      //清空选中的分组名称数据
-      that.currentRepPriGroup = "";
-      that.currentRepPriGroupIndex = -1;
-      //开始加载动画
-      that.loadingRepPathGroupPri = true;
-      var data = {
-        rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
-      };
-      that.$axios
-        .post("/api.php?c=svnrep&a=GetRepPathGroupPri&t=web", data)
-        .then(function (response) {
-          that.loadingRepPathGroupPri = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.tableRepPriGroupData = result.data;
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          that.loadingRepPathGroupPri = false;
-          console.log(error);
-        });
-    },
-    /**
-     * 获取所有的SVN用户列表
-     */
-    GetAllUserList() {
-      var that = this;
-      //清空上次数据
-      that.tableRepAllUserData = [];
-      //开始加载动画
-      that.loadingAllUserList = true;
-      var data = {};
-      that.$axios
-        .post("/api.php?c=svnuser&a=GetAllUserList&t=web", data)
-        .then(function (response) {
-          that.loadingAllUserList = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.tableRepAllUserData = result.data;
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          that.loadingAllUserList = false;
-          console.log(error);
-        });
-    },
-    /**
-     * 选中用户添加权限
-     */
-    ClickRowAddRepPathUser(currentRow, oldCurrentRow) {
-      this.currentRepPriAddUser = currentRow.userName;
-    },
-    /**
-     * 选中分组添加权限
-     */
-    ClickRowAddRepPathGroup(currentRow, oldCurrentRow) {
-      this.currentRepPriAddGroup = currentRow.groupName;
-    },
-    /**
-     * 选中文件进行导入
-     */
-    ClickRowUploadBackup(currentRow, oldCurrentRow) {
-      //当前选中的文件
-      this.formUploadBackup.fileName = currentRow.fileName;
-    },
-    /**
-     * 增加某个仓库路径的用户权限
-     */
-    AddRepPathUserPri() {
-      var that = this;
-      var data = {
-        rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
-        pri: "rw",
-        user: that.currentRepPriAddUser,
-      };
-      that.$axios
-        .post("/api.php?c=svnrep&a=AddRepPathUserPri&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetRepPathUserPri();
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
-    /**
-     * 删除某个仓库路径的用户权限
+     * 单选按钮 删除某个仓库路径的用户权限
      */
     DelRepPathUserPri() {
       var that = this;
@@ -1800,7 +1698,7 @@ export default {
         });
     },
     /**
-     * 修改某个仓库路径的用户权限
+     * 单选按钮 修改某个仓库路径的用户权限
      */
     EditRepPathUserPri() {
       var that = this;
@@ -1812,8 +1710,9 @@ export default {
       var data = {
         rep_name: that.currentRepName,
         path: that.currentRepTreePriPath,
-        pri: that.tableRepPriUserData[that.currentRepPriUserIndex].userPri,
-        user: that.tableRepPriUserData[that.currentRepPriUserIndex].userName,
+        pri: that.tableDataRepPathUserPri[that.currentRepPriUserIndex].userPri,
+        user: that.tableDataRepPathUserPri[that.currentRepPriUserIndex]
+          .userName,
       };
       that.$axios
         .post("/api.php?c=svnrep&a=EditRepPathUserPri&t=web", data)
@@ -1831,28 +1730,190 @@ export default {
         });
     },
     /**
-     * 获取所有的SVN分组列表
+     * 增加某个仓库路径的用户权限
      */
-    GetAllGroupList() {
+    AddRepPathUserPri() {
       var that = this;
-      //清空上次数据
-      that.tableRepAllGroupData = [];
-      //开始加载动画
-      that.loadingAllGroupList = true;
-      var data = {};
+      var data = {
+        rep_name: that.currentRepName,
+        path: that.currentRepTreePriPath,
+        pri: "rw",
+        user: that.currentRepPriAddUser,
+      };
       that.$axios
-        .post("/api.php?c=svngroup&a=GetAllGroupList&t=web", data)
+        .post("/api.php?c=svnrep&a=AddRepPathUserPri&t=web", data)
         .then(function (response) {
-          that.loadingAllGroupList = false;
           var result = response.data;
           if (result.status == 1) {
-            that.tableRepAllGroupData = result.data;
+            that.$Message.success(result.message);
+            that.GetRepPathUserPri();
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
-          that.loadingAllGroupList = false;
+          console.log(error);
+        });
+    },
+    /**
+     * 获取所有的SVN用户列表
+     */
+    ModalRepAllUser() {
+      this.modalRepAllUser = true;
+      //获取所有SVN用户列表
+      this.GetAllUserList();
+    },
+    /**
+     * 获取所有的SVN用户列表
+     */
+    GetAllUserList() {
+      var that = this;
+      //清空上次数据
+      that.tableDataAllUser = [];
+      //开始加载动画
+      that.loadingAllUserList = true;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=svnuser&a=GetAllUserList&t=web", data)
+        .then(function (response) {
+          that.loadingAllUserList = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.tableDataAllUser = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingAllUserList = false;
+          console.log(error);
+        });
+    },
+    /**
+     * 选中用户添加权限
+     */
+    ClickRowAddRepPathUser(currentRow, oldCurrentRow) {
+      this.currentRepPriAddUser = currentRow.userName;
+    },
+
+    /**
+     * 获取某个仓库路径的分组权限列表
+     */
+    GetRepPathGroupPri() {
+      var that = this;
+      //清空上次表格数据
+      that.tableDataRepPathGroupPri = [];
+      //清空选中的分组名称数据
+      that.currentRepPriGroup = "";
+      that.currentRepPriGroupIndex = -1;
+      //开始加载动画
+      that.loadingRepPathGroupPri = true;
+      var data = {
+        rep_name: that.currentRepName,
+        path: that.currentRepTreePriPath,
+      };
+      that.$axios
+        .post("/api.php?c=svnrep&a=GetRepPathGroupPri&t=web", data)
+        .then(function (response) {
+          that.loadingRepPathGroupPri = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.tableDataRepPathGroupPri = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingRepPathGroupPri = false;
+          console.log(error);
+        });
+    },
+    /**
+     * 点击仓库路径的分组权限列表的某行
+     */
+    ChangeSelectRepGroupPri(currentRow, oldCurrentRow) {
+      //将当前选中的分组和下标进行同步
+      this.currentRepPriGroup = currentRow.groupName;
+      this.currentRepPriGroupIndex = currentRow.index;
+      //将当前选中行的权限同步到下方的单选
+      if (currentRow.groupPri == "") {
+        this.radioRepGroupPri = "no";
+      } else {
+        this.radioRepGroupPri = currentRow.groupPri;
+      }
+    },
+    /**
+     * 单选组合 为选中的分组更换权限
+     */
+    ChangeRadioRepGroupPri(value) {
+      //如果没有选中分组则做出提示
+      if (this.currentRepPriGroup == "") {
+        this.$Message.error("未选择分组");
+      } else {
+        this.tableDataRepPathGroupPri[this.currentRepPriGroupIndex].groupPri =
+          value;
+      }
+    },
+    /**
+     * 单选按钮 删除某个仓库路径的分组权限
+     */
+    DelRepPathGroupPri() {
+      var that = this;
+      //如果没有选中用户则做出提示
+      if (that.currentRepPriGroup == "") {
+        that.$Message.error("未选择分组");
+        return;
+      }
+      var data = {
+        rep_name: that.currentRepName,
+        path: that.currentRepTreePriPath,
+        group: that.currentRepPriGroup,
+      };
+      that.$axios
+        .post("/api.php?c=svnrep&a=DelRepPathGroupPri&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetRepPathGroupPri();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    /**
+     * 单选按钮 修改某个仓库路径的分组权限
+     */
+    EditRepPathGroupPri() {
+      var that = this;
+      //如果没有选中分组则做出提示
+      if (that.currentRepPriGroup == "") {
+        that.$Message.error("未选择分组");
+        return;
+      }
+      var data = {
+        rep_name: that.currentRepName,
+        path: that.currentRepTreePriPath,
+        pri: that.tableDataRepPathGroupPri[that.currentRepPriGroupIndex]
+          .groupPri,
+        group:
+          that.tableDataRepPathGroupPri[that.currentRepPriGroupIndex].groupName,
+      };
+      that.$axios
+        .post("/api.php?c=svnrep&a=EditRepPathGroupPri&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetRepPathGroupPri();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
           console.log(error);
         });
     },
@@ -1883,160 +1944,46 @@ export default {
         });
     },
     /**
-     * 删除某个仓库路径的分组权限
+     * 获取所有的SVN分组列表
      */
-    DelRepPathGroupPri() {
+    ModalRepAllGroup() {
+      this.modalRepAllGroup = true;
+      //获取所有SVN分组列表
+      this.GetAllGroupList();
+    },
+    /**
+     * 获取所有的SVN分组列表
+     */
+    GetAllGroupList() {
       var that = this;
-      //如果没有选中用户则做出提示
-      if (that.currentRepPriGroup == "") {
-        that.$Message.error("未选择分组");
-        return;
-      }
-      var data = {
-        rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
-        group: that.currentRepPriGroup,
-      };
+      //清空上次数据
+      that.tableDataAllGroup = [];
+      //开始加载动画
+      that.loadingAllGroupList = true;
+      var data = {};
       that.$axios
-        .post("/api.php?c=svnrep&a=DelRepPathGroupPri&t=web", data)
+        .post("/api.php?c=svngroup&a=GetAllGroupList&t=web", data)
         .then(function (response) {
+          that.loadingAllGroupList = false;
           var result = response.data;
           if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetRepPathGroupPri();
+            that.tableDataAllGroup = result.data;
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
+          that.loadingAllGroupList = false;
           console.log(error);
         });
     },
     /**
-     * 修改某个仓库路径的分组权限
+     * 选中分组添加权限
      */
-    EditRepPathGroupPri() {
-      var that = this;
-      //如果没有选中分组则做出提示
-      if (that.currentRepPriGroup == "") {
-        that.$Message.error("未选择分组");
-        return;
-      }
-      var data = {
-        rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
-        pri: that.tableRepPriGroupData[that.currentRepPriGroupIndex].groupPri,
-        group:
-          that.tableRepPriGroupData[that.currentRepPriGroupIndex].groupName,
-      };
-      that.$axios
-        .post("/api.php?c=svnrep&a=EditRepPathGroupPri&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetRepPathGroupPri();
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+    ClickRowAddRepPathGroup(currentRow, oldCurrentRow) {
+      this.currentRepPriAddGroup = currentRow.groupName;
     },
-    /**
-     * 获取仓库的属性内容（key-vlaue的形式）
-     */
-    GetRepDetail() {
-      var that = this;
-      that.loadingRepDetail = true;
-      var data = {
-        rep_name: that.currentRepName,
-      };
-      that.$axios
-        .post("/api.php?c=svnrep&a=GetRepDetail&t=web", data)
-        .then(function (response) {
-          that.loadingRepDetail = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.tableRepDetailData = result.data;
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          that.loadingRepDetail = false;
-          console.log(error);
-        });
-    },
-    /**
-     * 备份仓库
-     */
-    ModalRepDump(rep_name) {
-      //设置标题
-      this.titleModalRepBackup = "仓库备份-" + rep_name;
-      //显示对话框
-      this.modalBackuptRep = true;
-      //设置当前选中的仓库名
-      this.currentRepName = rep_name;
-      //请求数据
-      this.GetBackupList();
-    },
-    RepDump() {
-      var that = this;
-      that.loadingRepDump = true;
-      var data = {
-        rep_name: that.currentRepName,
-      };
-      that.$axios
-        .post("/api.php?c=svnrep&a=RepDump&t=web", data)
-        .then(function (response) {
-          that.loadingRepDump = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetBackupList();
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          that.loadingRepDump = false;
-          console.log(error);
-        });
-    },
-    /**
-     * 仓库权限
-     */
-    ModalRepPri(rep_name) {
-      var that = this;
-      //通过按钮点击浏览 初始化路径和仓库名称
-      that.currentRepTreePath = "/";
-      that.currentRepTreePriPath = "/";
-      that.currentRepName = rep_name;
-      //设置标题
-      that.titleModalRepPri = "仓库权限-" + rep_name;
-      //显示对话框
-      that.modalRepPri = true;
-      //显示加载动画
-      that.loadingRepTree = true;
-      //清空数据
-      that.treeRep = [];
-      //请求目录树
-      that.GetRepTree().then(function (response) {
-        that.loadingRepTree = false;
-        var result = response.data;
-        if (result.status == 1) {
-          that.treeRep = result.data;
-        } else {
-          that.$Message.error(result.message);
-        }
-      });
-      //获取仓库根路径的用户权限列表
-      that.GetRepPathUserPri();
-      //获取仓库根路径的分组权限列表
-      that.GetRepPathGroupPri();
-    },
+
     /**
      * 仓库钩子
      */
@@ -2049,104 +1996,6 @@ export default {
       this.currentRepName = rep_name;
       //请求数据
       this.GetRepHooks();
-    },
-    /**
-     * SVN仓库所有用户
-     */
-    ModalRepAllUser() {
-      this.modalRepAllUser = true;
-      //获取所有SVN用户列表
-      this.GetAllUserList();
-    },
-    /**
-     * SVN所有分组
-     */
-    ModalRepAllGroup() {
-      this.modalRepAllGroup = true;
-      //获取所有SVN分组列表
-      this.GetAllGroupList();
-    },
-    /**
-     * 高级
-     */
-    ModalRepAdvance(rep_name) {
-      //设置当前仓库名称
-      this.currentRepName = rep_name;
-      //设置标题
-      this.titleModalRepAdvance = "高级-" + rep_name;
-      //重置
-      this.formUploadBackup.selectType = "1";
-      this.formUploadBackup.fileName = "";
-      this.formUploadBackup.errorInfo = "";
-      //显示对话框
-      this.modalRepAdvance = true;
-      //请求数据
-      this.GetRepDetail();
-    },
-    /**
-     * 编辑仓库名称
-     */
-    ModalEditRepName(rep_name) {
-      //备份旧名称
-      this.formRepEdit.old_rep_name = JSON.parse(JSON.stringify(rep_name));
-      //设置新名称
-      this.formRepEdit.new_rep_name = JSON.parse(JSON.stringify(rep_name));
-      //配置标题
-      this.titleModalEditRepName = "修改仓库名称-" + rep_name;
-      //显示对话框
-      this.modalEditRepName = true;
-    },
-    EditRepName() {
-      var that = this;
-      var data = {
-        old_rep_name: that.formRepEdit.old_rep_name,
-        new_rep_name: that.formRepEdit.new_rep_name,
-      };
-      that.$axios
-        .post("/api.php?c=svnrep&a=EditRepName&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetRepList();
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
-    /**
-     * 删除仓库
-     *
-     */
-    DelRep(rep_name) {
-      var that = this;
-      that.$Modal.confirm({
-        title: "删除仓库-" + rep_name,
-        content:
-          "确定要删除该仓库吗？<br/>该操作不可逆！<br/>如果该仓库有正在进行的网络传输，可能会删除失败，请注意提示信息！",
-        onOk: () => {
-          var data = {
-            rep_name: rep_name,
-          };
-          that.$axios
-            .post("/api.php?c=svnrep&a=DelRep&t=web", data)
-            .then(function (response) {
-              var result = response.data;
-              if (result.status == 1) {
-                that.$Message.success(result.message);
-                that.GetRepList();
-              } else {
-                that.$Message.error(result.message);
-              }
-            })
-            .catch(function (error) {
-              console.log(error);
-            });
-        },
-      });
     },
     /**
      * 获取仓库的钩子和对应的内容列表
@@ -2194,6 +2043,189 @@ export default {
         .catch(function (error) {
           console.log(error);
         });
+    },
+
+    /**
+     * 高级
+     */
+    ModalRepAdvance(rep_name) {
+      //设置当前仓库名称
+      this.currentRepName = rep_name;
+      //设置标题
+      this.titleModalRepAdvance = "高级-" + rep_name;
+      //重置
+      this.formUploadBackup.selectType = "1";
+      this.formUploadBackup.fileName = "";
+      this.formUploadBackup.errorInfo = "";
+      //显示对话框
+      this.modalRepAdvance = true;
+      //请求数据
+      this.GetRepDetail();
+    },
+    /**
+     * 获取仓库的属性内容（key-vlaue的形式）
+     */
+    GetRepDetail() {
+      var that = this;
+      that.loadingRepDetail = true;
+      var data = {
+        rep_name: that.currentRepName,
+      };
+      that.$axios
+        .post("/api.php?c=svnrep&a=GetRepDetail&t=web", data)
+        .then(function (response) {
+          that.loadingRepDetail = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.tableDataRepDetail = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingRepDetail = false;
+          console.log(error);
+        });
+    },
+    /**
+     * 复制仓库属性
+     */
+    CopyRepDetail(index) {
+      var that = this;
+      var copyContent =
+        that.tableDataRepDetail[index].repKey +
+        ":" +
+        that.tableDataRepDetail[index].repValue;
+      that.$copyText(copyContent).then(
+        function (e) {
+          that.$Message.success("复制成功");
+        },
+        function (e) {
+          that.$Message.error("复制失败，请手动复制");
+        }
+      );
+    },
+    /**
+     * 单选按钮 选择导入
+     */
+    ChangeRadioUploadType(value) {
+      this.formUploadBackup.selectType = value;
+      if (value == "2") {
+        this.GetBackupList();
+      }
+    },
+    //上传前
+    BeforeUpload() {
+      this.loadingUploadBackup = true;
+      return true;
+    },
+    //上传成功
+    UploadSuccess(res, file, fileList) {
+      this.loadingUploadBackup = false;
+      var result = res;
+      if (result.status == 1) {
+        this.$Message.success(result.message);
+      } else {
+        this.$Message.error(result.message);
+      }
+    },
+    /**
+     * 选中文件进行导入
+     */
+    ClickRowUploadBackup(currentRow, oldCurrentRow) {
+      //当前选中的文件
+      this.formUploadBackup.fileName = currentRow.fileName;
+    },
+    ImportRep() {
+      var that = this;
+      that.loadingImportBackup = true;
+      var data = {
+        rep_name: that.currentRepName,
+        fileName: that.formUploadBackup.fileName,
+      };
+      that.$axios
+        .post("/api.php?c=svnrep&a=ImportRep&t=web", data)
+        .then(function (response) {
+          that.loadingImportBackup = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.formUploadBackup.errorInfo = result.data;
+          } else {
+            that.$Message.error(result.message);
+            that.formUploadBackup.errorInfo = result.data;
+          }
+        })
+        .catch(function (error) {
+          that.loadingImportBackup = false;
+          console.log(error);
+        });
+    },
+
+    /**
+     * 编辑仓库名称
+     */
+    ModalEditRepName(rep_name) {
+      //备份旧名称
+      this.formRepEdit.old_rep_name = JSON.parse(JSON.stringify(rep_name));
+      //设置新名称
+      this.formRepEdit.new_rep_name = JSON.parse(JSON.stringify(rep_name));
+      //配置标题
+      this.titleModalEditRepName = "修改仓库名称-" + rep_name;
+      //显示对话框
+      this.modalEditRepName = true;
+    },
+    EditRepName() {
+      var that = this;
+      var data = {
+        old_rep_name: that.formRepEdit.old_rep_name,
+        new_rep_name: that.formRepEdit.new_rep_name,
+      };
+      that.$axios
+        .post("/api.php?c=svnrep&a=EditRepName&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetRepList();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+
+    /**
+     * 删除仓库
+     */
+    DelRep(rep_name) {
+      var that = this;
+      that.$Modal.confirm({
+        title: "删除仓库-" + rep_name,
+        content:
+          "确定要删除该仓库吗？<br/>该操作不可逆！<br/>如果该仓库有正在进行的网络传输，可能会删除失败，请注意提示信息！",
+        onOk: () => {
+          var data = {
+            rep_name: rep_name,
+          };
+          that.$axios
+            .post("/api.php?c=svnrep&a=DelRep&t=web", data)
+            .then(function (response) {
+              var result = response.data;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetRepList();
+              } else {
+                that.$Message.error(result.message);
+              }
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        },
+      });
     },
   },
 };

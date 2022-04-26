@@ -6,7 +6,7 @@
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="140">
               <FormItem label="Subversion">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span>{{ formSvn.version }}</span>
                   </Col>
@@ -24,10 +24,11 @@
                       >安装</Button
                     >
                   </Col>
+                  <Col span="6"> </Col>
                 </Row>
               </FormItem>
               <FormItem label="运行状态">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span style="color: #ff9900" v-if="formSvn.installed == 0"
                       >未安装</span
@@ -59,7 +60,7 @@
                 </Row>
               </FormItem>
               <FormItem label="svnserve绑定端口">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span>{{ formSvn.bindPort }}</span>
                   </Col>
@@ -69,7 +70,7 @@
                 </Row>
               </FormItem>
               <FormItem label="svnserve绑定主机名">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span>{{ formSvn.bindHost }}</span>
                   </Col>
@@ -87,7 +88,7 @@
                 </Row>
               </FormItem>
               <FormItem label="管理系统主机名">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span>{{ formSvn.manageHost }}</span>
                   </Col>
@@ -99,7 +100,7 @@
                 </Row>
               </FormItem>
               <FormItem label="检出地址选用">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <RadioGroup
                       v-model="formSvn.enable"
@@ -113,7 +114,7 @@
                 </Row>
               </FormItem>
               <FormItem label="svnserve运行日志">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span>{{ formSvn.svnserveLog }}</span>
                   </Col>
@@ -135,7 +136,7 @@
                 v-for="(item, index) in configList"
                 :key="index"
               >
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span>{{ item.value }}</span>
                   </Col>
@@ -148,42 +149,42 @@
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="SMTP主机">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Input value="2.4.0"></Input>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="SMTP端口">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Input value="2.4.0"></Input>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="SMTP用户名">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Input value="2.4.0"></Input>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="SMTP密码">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Input value="2.4.0"></Input>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="发件人邮箱">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Input value="2.4.0"></Input>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="测试接收邮箱">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Input value="2.4.0"></Input>
                   </Col>
@@ -193,7 +194,7 @@
                 </Row>
               </FormItem>
               <FormItem label="默认启用状态">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Switch>
                       <Icon type="md-checkmark" slot="open"></Icon>
@@ -213,7 +214,7 @@
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="用户登录">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Switch>
                       <Icon type="md-checkmark" slot="open"></Icon>
@@ -223,7 +224,7 @@
                 </Row>
               </FormItem>
               <FormItem label="用户密码修改">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Switch>
                       <Icon type="md-checkmark" slot="open"></Icon>
@@ -233,7 +234,7 @@
                 </Row>
               </FormItem>
               <FormItem label="任务计划执行失败">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Switch>
                       <Icon type="md-checkmark" slot="open"></Icon>
@@ -259,7 +260,7 @@
                 5、重置密钥后所有管理系统在线用户会被下线<br />
               </FormItem>
               <FormItem label="密钥">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Input type="password" readonly value="2.4.0"></Input>
                   </Col>
@@ -276,21 +277,21 @@
                 <Badge> v2.3 </Badge>
               </FormItem>
               <FormItem label="支持PHP-FPM版本">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span>5.4+</span>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="支持PHP-CLI版本">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span>5.4+</span>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="支持数据库">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <span>MySQL、sqlite</span>
                   </Col>
