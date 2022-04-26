@@ -365,7 +365,7 @@ class svnrep extends controller
             if ($svnUserPass == '0') {
                 FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
             } else if ($svnUserPass == '1') {
-                FunMessageExit(200, 0, '用户不存在');
+                FunMessageExit(200, 0, '用户不存在'.$this->globalUserName);
             }
 
             //检查权限

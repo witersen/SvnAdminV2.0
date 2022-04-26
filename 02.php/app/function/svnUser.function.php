@@ -226,7 +226,7 @@ function FunGetPassByUser($passwdContent, $userName, $isDisabledUser = false)
             preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
             array_walk($resultPreg[1], 'FunArrayValueTrim');
             array_walk($resultPreg[3], 'FunArrayValueTrim');
-            if (array_search($userName, $resultPreg[1])) {
+            if (array_search($userName, $resultPreg[1]) !== false) {
                 return $resultPreg[3][array_search($userName, $resultPreg[1])];
             } else {
                 return '1';

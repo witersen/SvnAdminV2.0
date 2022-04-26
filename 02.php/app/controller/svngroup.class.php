@@ -430,10 +430,10 @@ class svngroup extends controller
         $userGroupListBack = $userGroupList;
         foreach ($userGroupList as $group1) {
             $newList = FunGetSvnGroupGroupList($authzContent, $group1);
-            foreach ($leftGroupList as $group2) {
+            foreach ($leftGroupList as $key2 => $group2) {
                 if (in_array($group2, $newList)) {
                     array_push($userGroupList, $group2);
-                    unset($leftGroupList[array_search($group2, $leftGroupList)]);
+                    unset($leftGroupList[$key2]);
                 }
             }
         }
@@ -475,10 +475,10 @@ class svngroup extends controller
         $userGroupListBack = $groupGroupList;
         foreach ($groupGroupList as $group1) {
             $newList = FunGetSvnGroupGroupList($authzContent, $group1);
-            foreach ($leftGroupList as $group2) {
+            foreach ($leftGroupList as $key2 => $group2) {
                 if (in_array($group2, $newList)) {
                     array_push($groupGroupList, $group2);
-                    unset($leftGroupList[array_search($group2, $leftGroupList)]);
+                    unset($leftGroupList[$key2]);
                 }
             }
         }
