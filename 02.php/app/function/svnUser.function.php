@@ -1,6 +1,11 @@
 <?php
-
-//declare(strict_types=1);
+/*
+ * @Author: witersen
+ * @Date: 2022-04-24 23:37:06
+ * @LastEditors: witersen
+ * @LastEditTime: 2022-04-26 21:28:06
+ * @Description: QQ:1801168257
+ */
 
 /**
  * 不提供修改SVN用户名称的方法
@@ -52,6 +57,7 @@ function FunAddSvnUser($passwdContent, $userName, $userPass)
  */
 function FunUpdSvnUserPasswd($passwdContent, $oldUserName, $newUserName)
 {
+    //不提供此方法
 }
 
 /**
@@ -547,22 +553,3 @@ function FunEnabledUser($passwdContent, $userName)
         return '0';
     }
 }
-
-// require_once '/var/www/html/config/reg.config.php';
-// require_once '/var/www/html/app/function/array.function.php';
-
-// $authzContent = file_get_contents('/home/svnadmin/authz');
-// $passwd = file_get_contents('/home/svnadmin/passwd');
-
-// print_r(FunAddSvnUser($passwd, 'user', ' pass '));
-// print_r(FunDelSvnUserPasswd($passwd, 'user3 ', false));
-// print_r(FunGetSvnUserList($passwd));
-// print_r(FunGetSvnUserPassList($passwd));
-// print_r(FunGetPassByUser($passwd, 'user3', true));
-// print_r(FunUpdSvnUserPass($passwd, 'user2 ', '\\\\', false));
-// print_r(FunGetSvnUserGroupList($authzContent, 'user2'));
-// print_r(FunGetUserPriRepListWithoutPri($authzContent, 'user2'));
-// print_r(FunGetUserPriRepListWithPri($authzContent, 'user2'));
-// print_r(FunDelUserAuthz($authzContent, 'user2'));
-// print_r(FunDisabledUser($passwd, 'user2'));
-// print_r(FunEnabledUser($passwd, 'user3'));

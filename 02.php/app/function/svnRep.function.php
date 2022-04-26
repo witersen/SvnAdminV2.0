@@ -1,6 +1,11 @@
 <?php
-
-//declare(strict_types=1);
+/*
+ * @Author: witersen
+ * @Date: 2022-04-24 23:37:06
+ * @LastEditors: witersen
+ * @LastEditTime: 2022-04-26 21:27:30
+ * @Description: QQ:1801168257
+ */
 
 /**
  * 获取某个仓库路径下有权限的用户列表
@@ -217,11 +222,7 @@ function FunSetRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
         $temp1 = trim($authzContentPreg[1][0]);
         if (empty($temp1)) {
             //添加用户
-            if (trim($privilege) != '') {
-                return str_replace($authzContentPreg[0][0], "\n[$repName:$repPath]\n$user=$privilege\n", $authzContent);
-            } else {
-                return $authzContent;
-            }
+            return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n$user=$privilege\n", $authzContent);
         } else {
             //进一步判断有没有用户数据
             preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
@@ -235,7 +236,7 @@ function FunSetRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
 
             if (in_array($user, $resultPreg[1])) {
                 //编辑
-                $userContent = "\n";
+                $userContent = "[$repName:$repPath]\n";
 
                 //处理分组
                 foreach (array_combine($resultPregGroup[1], $resultPregGroup[2]) as $groupStr => $groupPri) {
@@ -245,21 +246,16 @@ function FunSetRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
                 //处理用户
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $userStr => $userPri) {
                     if ($userStr == $user) {
-                        if ($privilege == "") {
-                            continue;
-                        } else {
-                            $userContent .= "$userStr=$privilege\n";
-                        }
+                        $userContent .= "$userStr=$privilege\n";
                     } else {
                         $userContent .= "$userStr=$userPri\n";
                     }
                 }
 
-                return str_replace($authzContentPreg[1][0], $userContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $userContent, $authzContent);
             } else {
                 //新增
-
-                $userContent = "\n";
+                $userContent = "[$repName:$repPath]\n";
 
                 //处理分组
                 foreach (array_combine($resultPregGroup[1], $resultPregGroup[2]) as $groupStr => $groupPri) {
@@ -267,14 +263,11 @@ function FunSetRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
                 }
 
                 //处理用户
-                if ($privilege == "") {
-                } else {
-                    $userContent .= "$user=$privilege\n";
-                }
+                $userContent .= "$user=$privilege\n";
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $userStr => $userPri) {
                     $userContent .= "$userStr=$userPri\n";
                 }
-                return str_replace($authzContentPreg[1][0], $userContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $userContent, $authzContent);
             }
         }
     } else {
@@ -317,7 +310,7 @@ function FunDelRepUserPri($authzContent, $user, $repName, $repPath)
 
             if (in_array($user, $resultPreg[1])) {
                 //删除
-                $userContent = "\n";
+                $userContent = "[$repName:$repPath]\n";
 
                 //处理分组
                 foreach (array_combine($resultPregGroup[1], $resultPregGroup[2]) as $groupStr => $groupPri) {
@@ -332,7 +325,7 @@ function FunDelRepUserPri($authzContent, $user, $repName, $repPath)
                     $userContent .= "$userStr=$userPri\n";
                 }
 
-                return str_replace($authzContentPreg[1][0], $userContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $userContent, $authzContent);
             } else {
                 return '1';
             }
@@ -361,11 +354,7 @@ function FunUpdRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
     if (array_key_exists(0, $authzContentPreg[0])) {
         $temp1 = trim($authzContentPreg[1][0]);
         if (empty($temp1)) {
-            if (trim($privilege) != '') {
-                return str_replace($authzContentPreg[0][0], "\n[$repName:$repPath]\n$user=$privilege\n", $authzContent);
-            } else {
-                return $authzContent;
-            }
+            return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n$user=$privilege\n", $authzContent);
         } else {
             //进一步判断有没有用户数据
             preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
@@ -378,7 +367,7 @@ function FunUpdRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
             array_walk($resultPregGroup[2], 'FunArrayValueTrim');
 
             //编辑
-            $userContent = "\n";
+            $userContent = "[$repName:$repPath]\n";
 
             //处理分组
             foreach (array_combine($resultPregGroup[1], $resultPregGroup[2]) as $groupStr => $groupPri) {
@@ -388,17 +377,12 @@ function FunUpdRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
             //处理用户
             foreach (array_combine($resultPreg[1], $resultPreg[2]) as $userStr => $userPri) {
                 if ($userStr == $user) {
-                    if ($privilege == "") {
-                        continue;
-                    } else {
-                        $userContent .= "$userStr=$privilege\n";
-                        continue;
-                    }
+                    $userContent .= "$userStr=$privilege\n";
                 } else {
                     $userContent .= "$userStr=$userPri\n";
                 }
             }
-            return str_replace($authzContentPreg[1][0], $userContent, $authzContent);
+            return str_replace($authzContentPreg[0][0], $userContent, $authzContent);
         }
     } else {
         return '0';
@@ -427,11 +411,7 @@ function FunSetRepGroupPri($authzContent, $group, $privilege, $repName, $repPath
     if (array_key_exists(0, $authzContentPreg[0])) {
         $temp1 = trim($authzContentPreg[1][0]);
         if (empty($temp1)) {
-            if (trim($privilege) != "") {
-                return str_replace($authzContentPreg[0][0], "\n[$repName:$repPath]\n@$group=$privilege\n", $authzContent);
-            } else {
-                return $authzContent;
-            }
+            return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n@$group=$privilege\n", $authzContent);
         } else {
             //进一步判断有没有分组数据
             preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
@@ -445,16 +425,12 @@ function FunSetRepGroupPri($authzContent, $group, $privilege, $repName, $repPath
 
             if (in_array($group, $resultPregGroup[1])) {
                 //编辑
-                $groupContent = "\n";
+                $groupContent = "[$repName:$repPath]\n";
 
                 //处理分组
                 foreach (array_combine($resultPregGroup[1], $resultPregGroup[2]) as $groupStr => $groupPri) {
                     if ($groupStr == $group) {
-                        if ($privilege == "") {
-                            continue;
-                        } else {
-                            $groupContent .= "@$group=$privilege\n";
-                        }
+                        $groupContent .= "@$group=$privilege\n";
                     } else {
                         $groupContent .= "@$groupStr=$groupPri\n";
                     }
@@ -465,16 +441,13 @@ function FunSetRepGroupPri($authzContent, $group, $privilege, $repName, $repPath
                     $groupContent .= "$userStr=$userPri\n";
                 }
 
-                return str_replace($authzContentPreg[1][0], $groupContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $groupContent, $authzContent);
             } else {
                 //新增
-                $groupContent = "\n";
+                $groupContent = "[$repName:$repPath]\n";
 
                 //处理分组
-                if ($privilege == "") {
-                } else {
-                    $groupContent .= "@$group=$privilege\n";
-                }
+                $groupContent .= "@$group=$privilege\n";
                 foreach (array_combine($resultPregGroup[1], $resultPregGroup[2]) as $groupStr => $groupPri) {
                     $groupContent .= "@$groupStr=$groupPri\n";
                 }
@@ -484,7 +457,7 @@ function FunSetRepGroupPri($authzContent, $group, $privilege, $repName, $repPath
                     $groupContent .= "$userStr=$userPri\n";
                 }
 
-                return str_replace($authzContentPreg[1][0], $groupContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $groupContent, $authzContent);
             }
         }
     } else {
@@ -526,7 +499,7 @@ function FunDelRepGroupPri($authzContent, $group, $repName, $repPath)
 
             if (in_array($group, $resultPregGroup[1])) {
                 //编辑
-                $groupContent = "\n";
+                $groupContent = "[$repName:$repPath]\n";
 
                 //处理分组
                 foreach (array_combine($resultPregGroup[1], $resultPregGroup[2]) as $groupStr => $groupPri) {
@@ -542,7 +515,7 @@ function FunDelRepGroupPri($authzContent, $group, $repName, $repPath)
                     $groupContent .= "$userStr=$userPri\n";
                 }
 
-                return str_replace($authzContentPreg[1][0], $groupContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $groupContent, $authzContent);
             } else {
                 return '1';
             }
@@ -572,11 +545,7 @@ function FunUpdRepGroupPri($authzContent, $group, $privilege, $repName, $repPath
     if (array_key_exists(0, $authzContentPreg[0])) {
         $temp1 = trim($authzContentPreg[1][0]);
         if (empty($temp1)) {
-            if (trim($privilege) != "") {
-                return str_replace($authzContentPreg[0][0], "\n[$repName:$repPath]\n@$group=$privilege\n", $authzContent);
-            } else {
-                return $authzContent;
-            }
+            return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n@$group=$privilege\n", $authzContent);
         } else {
             //进一步判断有没有分组数据
             preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
@@ -590,16 +559,12 @@ function FunUpdRepGroupPri($authzContent, $group, $privilege, $repName, $repPath
 
             if (in_array($group, $resultPregGroup[1])) {
                 //编辑
-                $groupContent = "\n";
+                $groupContent = "[$repName:$repPath]\n";
 
                 //处理分组
                 foreach (array_combine($resultPregGroup[1], $resultPregGroup[2]) as $groupStr => $groupPri) {
                     if ($groupStr == $group) {
-                        if ($privilege == "") {
-                            continue;
-                        } else {
-                            $groupContent .= "@$group=$privilege\n";
-                        }
+                        $groupContent .= "@$group=$privilege\n";
                     } else {
                         $groupContent .= "@$groupStr=$groupPri\n";
                     }
@@ -610,7 +575,7 @@ function FunUpdRepGroupPri($authzContent, $group, $privilege, $repName, $repPath
                     $groupContent .= "$userStr=$userPri\n";
                 }
 
-                return str_replace($authzContentPreg[1][0], $groupContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $groupContent, $authzContent);
             } else {
                 return '1';
             }
@@ -1331,33 +1296,3 @@ function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, 
     }
     return true;
 }
-
-// require_once '/var/www/html/config/reg.config.php';
-// require_once '/var/www/html/app/function/array.function.php';
-// require_once '/var/www/html/app/function/string.function.php';
-// require_once '/var/www/html/app/function/file.function.php';
-// require_once '/var/www/html/config/auto.config.php';
-
-// $authzContent = file_get_contents('/home/svnadmin/authz');
-// $passwd = file_get_contents('/home/svnadmin/passwd');
-
-// print_r(FunGetRepUserListWithoutPri($authzContent, 'rep1', '/'));
-// print_r(FunGetRepUserListWithPri($authzContent, 'rep1', '/'));
-// print_r(FunGetRepGroupListWithoutPri($authzContent, 'rep1', '/'));
-// print_r(FunGetRepGroupListWithPri($authzContent, 'rep1', '/'));
-// print_r(FunSetRepUserPri($authzContent, 'wsp', 'rw', 'rep2', '/'));
-// print_r(FunDelRepUserPri($authzContent, 'user3', 'rep3', '/'));
-// print_r(FunUpdRepUserPri($authzContent, 'user3', 'r', 'rep3', '/'));
-// print_r(FunSetRepGroupPri($authzContent, 'group3', 'r', 'rep3', '/'));
-// print_r(FunDelRepGroupPri($authzContent, 'group3', 'rep3', '/'));
-// print_r(FunUpdRepGroupPri($authzContent, 'group3', 'r', 'rep3', '/'));
-// print_r(FunSetRepAuthz($authzContent, 'rep3666', '/'));
-// print_r(FunDelRepAuthz($authzContent, 'rep2'));
-// print_r(FunUpdRepAuthz($authzContent, 'rep2', 'rep3'));
-// print_r(FunGetRepList());
-// print_r(FunGetSimpleRepList());
-// print_r(FunGetAllHavePriRepListWithPri($authzContent));
-// print_r(FunGetAllHavePriRepListWithoutPri($authzContent));
-// print_r(FunGetAllNoPriRepListWithoutPri($authzContent));
-// print_r(FunGetRepTree('rep46'));
-// print_r(FunGetStrSpaceCount('  test'));

@@ -1,6 +1,11 @@
 <?php
-
-//declare(strict_types=1);
+/*
+ * @Author: witersen
+ * @Date: 2022-04-24 23:37:06
+ * @LastEditors: witersen
+ * @LastEditTime: 2022-04-26 21:28:48
+ * @Description: QQ:1801168257
+ */
 
 /**
  * 添加分组
@@ -25,7 +30,7 @@ function FunAddSvnGroup($authzContent, $groupName)
             if (in_array($groupName, $resultPreg[1])) {
                 return '1';
             } else {
-                $groupContent = "\n";
+                $groupContent = "[groups]\n";
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                     $groupContent .= "$groupStr=";
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
@@ -33,7 +38,7 @@ function FunAddSvnGroup($authzContent, $groupName)
                     $groupContent .=  implode(',', $userGroupArray) . "\n";
                 }
                 $groupContent .= "$groupName=\n";
-                return str_replace($authzContentPreg[1][0], $groupContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $groupContent, $authzContent);
             }
         }
     } else {
@@ -428,10 +433,11 @@ function FunAddSvnGroupUser($authzContent, $groupName, $userName)
             array_walk($resultPreg[1], 'FunArrayValueTrim');
             array_walk($resultPreg[2], 'FunArrayValueTrim');
             if (in_array($groupName, $resultPreg[1])) {
-                $groupContent = "\n";
+                $groupContent = "[groups]\n";
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                     $groupContent .= "$groupStr=";
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
+                    array_walk($userGroupArray, 'FunArrayValueTrim');
                     if ($groupStr == $groupName) {
                         if (in_array($userName, $userGroupArray)) {
                             return '2';
@@ -440,7 +446,7 @@ function FunAddSvnGroupUser($authzContent, $groupName, $userName)
                     }
                     $groupContent .=  implode(',', $userGroupArray) . "\n";
                 }
-                return str_replace($authzContentPreg[1][0], $groupContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $groupContent, $authzContent);
             } else {
                 return '1';
             }
@@ -472,7 +478,7 @@ function FunDelSvnGroupUser($authzContent, $groupName, $userName)
             array_walk($resultPreg[1], 'FunArrayValueTrim');
             array_walk($resultPreg[2], 'FunArrayValueTrim');
             if (in_array($groupName, $resultPreg[1])) {
-                $groupContent = "\n";
+                $groupContent = "[groups]\n";
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                     $groupContent .= "$groupStr=";
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
@@ -486,7 +492,7 @@ function FunDelSvnGroupUser($authzContent, $groupName, $userName)
                     }
                     $groupContent .=  implode(',', $userGroupArray) . "\n";
                 }
-                return str_replace($authzContentPreg[1][0], $groupContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $groupContent, $authzContent);
             } {
                 return '1';
             }
@@ -522,7 +528,7 @@ function FunAddSvnGroupGroup($authzContent, $groupName, $groupName2)
             array_walk($resultPreg[1], 'FunArrayValueTrim');
             array_walk($resultPreg[2], 'FunArrayValueTrim');
             if (in_array($groupName, $resultPreg[1])) {
-                $groupContent = "\n";
+                $groupContent = "[groups]\n";
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                     $groupContent .= "$groupStr=";
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
@@ -535,7 +541,7 @@ function FunAddSvnGroupGroup($authzContent, $groupName, $groupName2)
                     }
                     $groupContent .=  implode(',', $userGroupArray) . "\n";
                 }
-                return str_replace($authzContentPreg[1][0], $groupContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $groupContent, $authzContent);
             } else {
                 return '1';
             }
@@ -567,7 +573,7 @@ function FunDelSvnGroupGroup($authzContent, $groupName, $groupName2)
             array_walk($resultPreg[1], 'FunArrayValueTrim');
             array_walk($resultPreg[2], 'FunArrayValueTrim');
             if (in_array($groupName, $resultPreg[1])) {
-                $groupContent = "\n";
+                $groupContent = "[groups]\n";
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                     $groupContent .= "$groupStr=";
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
@@ -581,7 +587,7 @@ function FunDelSvnGroupGroup($authzContent, $groupName, $groupName2)
                     }
                     $groupContent .=  implode(',', $userGroupArray) . "\n";
                 }
-                return str_replace($authzContentPreg[1][0], $groupContent, $authzContent);
+                return str_replace($authzContentPreg[0][0], $groupContent, $authzContent);
             } {
                 return '1';
             }
@@ -682,24 +688,3 @@ function FunGetGroupPriRepListWithPriAndPath($authzContent, $groupName)
         return [];
     }
 }
-
-// require_once '/var/www/html/config/reg.config.php';
-// require_once '/var/www/html/app/function/array.function.php';
-
-// $authzContent = file_get_contents('/home/svnadmin/authz');
-// $passwd = file_get_contents('/home/svnadmin/passwd');
-
-// print_r(FunAddSvnGroup($authzContent, 'group'));
-// print_r(FunDelSvnGroup($authzContent, 'group1'));
-// print_r(FunUpdSvnGroup($authzContent, 'group1', 'group33'));
-// print_r(FunGetSvnGroupList($authzContent));
-// print_r(FunGetSvnGroupGroupList($authzContent, 'group4'));
-// print_r(FunGetSvnUserListByGroup($authzContent, 'group1'));
-// print_r(FunGetSvnGroupListByGroup($authzContent, 'group2'));
-// print_r(FunGetSvnGroupUserAndGroupList($authzContent));
-// print_r(FunAddSvnGroupUser($authzContent, 'group1', 'user'));
-// print_r(FunDelSvnGroupUser($authzContent, 'group2', 'user2'));
-// print_r(FunAddSvnGroupGroup($authzContent, 'group1', 'group2'));
-// print_r(FunDelSvnGroupGroup($authzContent, 'group1', 'group'));
-// print_r(FunGetGroupPriRepListWithoutPri($authzContent, 'group4'));
-// print_r(FunGetGroupPriRepListWithPri($authzContent, 'group4'));

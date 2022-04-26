@@ -1,4 +1,18 @@
 <?php
+/*
+ * @Author: witersen
+ * @Date: 2022-04-26 00:24:31
+ * @LastEditors: witersen
+ * @LastEditTime: 2022-04-26 18:24:04
+ * @Description: QQ:1801168257
+ */
+
+/**
+ * 自定义全局权限路由表
+ * 
+ * 路由规则：控制器名/方法名
+ * 白名单路由：即无需鉴权的请求
+ */
 
 $ROUTERS = [
     /**
@@ -19,7 +33,7 @@ $ROUTERS = [
      */
     'SVN_USER_ROUTERS' => [
         'svnrep/GetSvnUserRepList',
-        'svnrep/GetRepCon',
+        'svnrep/GetUserRepCon',
 
         'common/Logout',
 

@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: witersen
+ * @Date: 2022-04-24 23:37:05
+ * @LastEditors: witersen
+ * @LastEditTime: 2022-04-26 21:29:09
+ * @Description: QQ:1801168257
+ */
 
 class svnrep extends controller
 {
@@ -346,33 +353,42 @@ class svnrep extends controller
         FunMessageExit();
     }
 
+    /**
+     * SVN用户根据目录名称获取该目录下的文件和文件夹列表
+     */
+    function GetUserRepCon()
+    {
+        /**
+         * 获取svn检出地址
+         * 
+         * 目的为使用当前SVN用户的身份来进行被授权过的路径的内容浏览
+         */
+        $bindInfo = FunGetSubversionListen();
+        $checkoutHost = 'svn://' . $bindInfo['bindHost'];
+        if ($bindInfo['bindPort'] != '3690') {
+            $checkoutHost = 'svn://' . $bindInfo['bindHost'] . ':' . $bindInfo['bindPort'];
+        }
+
+        //获取SVN用户密码
+        $svnUserPass = FunGetPassByUser($this->globalPasswdContent, $this->globalUserName);
+        if ($svnUserPass == '0') {
+            FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
+        } else if ($svnUserPass == '1') {
+            FunMessageExit(200, 0, '用户不存在' . $this->globalUserName);
+        }
+
+        //检查权限
+        $result = CheckSvnUserPathAutzh($checkoutHost, $this->requestPayload['rep_name'], $this->requestPayload['path'], $this->globalUserName, $svnUserPass);
+        
+        FunMessageExit(200, 0, 'test', $result);
+    }
+
 
     /**
-     * 根据目录名称获取该目录下的文件和文件夹列表
+     * 管理人员根据目录名称获取该目录下的文件和文件夹列表
      */
     function GetRepCon()
     {
-        if ($this->globalUserRoleId == 2) {
-            //获取svn检出地址
-            $bindInfo = FunGetSubversionListen();
-            $checkoutHost = 'svn://'.$bindInfo['bindHost'];
-            if ($bindInfo['bindPort'] != '3690') {
-                $checkoutHost = 'svn://'.$bindInfo['bindHost'] . ':' . $bindInfo['bindPort'];
-            }
-
-            //获取SVN用户密码
-            $svnUserPass = FunGetPassByUser($this->globalPasswdContent, $this->globalUserName);
-            if ($svnUserPass == '0') {
-                FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($svnUserPass == '1') {
-                FunMessageExit(200, 0, '用户不存在'.$this->globalUserName);
-            }
-
-            //检查权限
-            if (!CheckSvnUserPathAutzh($checkoutHost, $this->requestPayload['rep_name'], $this->requestPayload['path'], $this->globalUserName, $svnUserPass)) {
-                FunMessageExit(200, 0, '无权限');
-            }
-        }
         /**
          * 有权限的开始路径
          * 
@@ -541,9 +557,9 @@ class svnrep extends controller
         } else {
             foreach ($result as $key => $value) {
                 $result[$key]['index'] = $key;
-            }
-            if ($value['userPri'] == '') {
-                $result[$key]['userPri'] = 'no';
+                if ($value['userPri'] == '') {
+                    $result[$key]['userPri'] = 'no';
+                }
             }
             FunMessageExit(200, 1, '成功', $result);
         }
@@ -591,6 +607,11 @@ class svnrep extends controller
          * 如果不对用户重复添加进行限制 则会导致用户的权限被重设为rw
          */
         //todo or no todo
+
+        /**
+         * 处理权限
+         */
+        $pri = $pri == 'no' ? '' : $pri;
 
         /**
          * 包括为已有权限的用户修改权限
@@ -657,6 +678,11 @@ class svnrep extends controller
         $pri = $this->requestPayload['pri'];
         $user = $this->requestPayload['user'];
 
+        /**
+         * 处理权限
+         */
+        $pri = $pri == 'no' ? '' : $pri;
+
         $result = FunUpdRepUserPri($this->globalAuthzContent, $user, $pri, $repName, $path);
 
         if ($result == '0') {
@@ -686,6 +712,11 @@ class svnrep extends controller
          * 如果不对分组重复添加进行限制 则会导致分组的权限被重设为rw
          */
         //todo or no todo
+
+        /**
+         * 处理权限
+         */
+        $pri = $pri == 'no' ? '' : $pri;
 
         /**
          * 包括为已有权限的分组修改权限
@@ -751,6 +782,11 @@ class svnrep extends controller
         $path = $this->requestPayload['path'];
         $pri = $this->requestPayload['pri'];
         $group = $this->requestPayload['group'];
+
+        /**
+         * 处理权限
+         */
+        $pri = $pri == 'no' ? '' : $pri;
 
         $result = FunUpdRepGroupPri($this->globalAuthzContent, $group, $pri, $repName, $path);
 

@@ -1,6 +1,11 @@
 <?php
-
-//declare(strict_types=1);
+/*
+ * @Author: witersen
+ * @Date: 2022-04-24 23:37:06
+ * @LastEditors: witersen
+ * @LastEditTime: 2022-04-26 18:53:08
+ * @Description: QQ:1801168257
+ */
 
 ini_set('display_errors', '1');
 
@@ -235,7 +240,7 @@ class Daemon
         if (isset($argv[1])) {
             $this->workMode = $argv[1];
             if (!in_array($this->workMode, $this->scripts)) {
-                exit('用法：php svnadmin.php [start | stop | coonsole]' . PHP_EOL);
+                exit('用法：php svnadmin.php [start | stop | console]' . PHP_EOL);
             }
             if ($this->workMode == 'start') {
                 $this->startDaemon();
@@ -245,7 +250,7 @@ class Daemon
                 $this->startConsole();
             }
         } else {
-            exit('用法：php svnadmin.php [start | stop | coonsole]' . PHP_EOL);
+            exit('用法：php svnadmin.php [start | stop | console]' . PHP_EOL);
         }
     }
 }

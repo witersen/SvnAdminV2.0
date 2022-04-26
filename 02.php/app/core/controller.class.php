@@ -1,6 +1,11 @@
 <?php
-
-//declare(strict_types=1);
+/*
+ * @Author: witersen
+ * @Date: 2022-04-24 23:37:05
+ * @LastEditors: witersen
+ * @LastEditTime: 2022-04-26 16:58:08
+ * @Description: QQ:1801168257
+ */
 
 /*
  * 控制器基类，所有的控制器都要继承此类

@@ -1344,7 +1344,37 @@ export default {
     /**
      * 获取用户仓库内容
      */
-    GetUserRepCon() {},
+    GetUserRepCon() {
+      var that = this;
+      that.loadingRepCon = true;
+      var data = {
+        rep_name: that.currentRepName,
+        path: that.currentRepTreePath,
+      };
+      that.$axios
+        .post("/api.php?c=svnrep&a=GetUserRepCon&t=web", data)
+        .then(function (response) {
+          that.loadingRepCon = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.tableDataRepCon = result.data.data;
+            that.breadRepPath = result.data.bread;
+            //更新检出地址
+            that.tempCheckout =
+              that.checkInfo.protocal +
+              that.checkInfo.prefix +
+              "/" +
+              that.currentRepName +
+              that.currentRepTreePath;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingRepCon = false;
+          console.log(error);
+        });
+    },
     /**
      * 点击某行获取仓库路径内容
      */
