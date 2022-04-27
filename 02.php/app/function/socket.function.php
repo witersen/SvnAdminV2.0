@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 16:58:58
+ * @LastEditTime: 2022-04-27 11:33:46
  * @Description: QQ:1801168257
  */
 
@@ -12,6 +12,10 @@
  */
 function FunShellExec($shell)
 {
+    //检测信息长度
+    if (strlen($shell) >= SOCKET_READ_LENGTH) {
+        FunMessageExit(200, 0, '数据长度超过' . SOCKET_READ_LENGTH . ' 请向上调整参数：SOCKET_READ_LENGTH');
+    }
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("error:" . socket_strerror(socket_last_error()));
     $server = socket_connect($socket, IPC_ADDRESS, (int)IPC_PORT);
     socket_write($socket, $shell);
