@@ -117,7 +117,21 @@ export default {
   computed: {},
   created() {},
   mounted() {
-    this.GetVeryfyCode();
+    var that =this;
+    if (sessionStorage.token) {
+      that.$Message.success("已有登录信息 自动跳转中...");
+      setTimeout(function () {
+        if (sessionStorage.user_role_id == 1) {
+          //管理员跳转到首页
+          that.$router.push({ name: "index" });
+        } else if (sessionStorage.user_role_id == 2) {
+          //用户跳转到仓库页
+          that.$router.push({ name: "repositoryInfo" });
+        }
+      }, 2000);
+    } else {
+      that.GetVeryfyCode();
+    }
   },
   methods: {
     //表单提交

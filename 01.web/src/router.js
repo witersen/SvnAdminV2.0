@@ -3,7 +3,8 @@ const routers = [
         name: 'login',
         path: '/login',
         meta: {
-            title: ''
+            title: '',
+            requireAuth: false
         },
         component: (resolve) => require(['./views/login/index.vue'], resolve)
     },
@@ -13,6 +14,7 @@ const routers = [
         redirect: { name: 'login' },
         meta: {
             title: 'SVNAdmin',
+            requireAuth: false
         },
         component: (resolve) => require(['./views/layout/basicLayout/index.vue'], resolve),
         children: [
@@ -22,6 +24,7 @@ const routers = [
                 meta: {
                     title: '信息统计',
                     icon: "ios-stats",
+                    requireAuth: true,
                     user_role_id: ['1'],
                     group: {
                         name: "仓库",
@@ -36,6 +39,7 @@ const routers = [
                 meta: {
                     title: 'SVN仓库',
                     icon: 'logo-buffer',
+                    requireAuth: true,
                     user_role_id: ['1', '2'],
                     group: {
                         name: "",
@@ -50,6 +54,7 @@ const routers = [
                 meta: {
                     title: 'SVN用户',
                     icon: 'md-person',
+                    requireAuth: true,
                     user_role_id: ['1'],
                     group: {
                         name: "",
@@ -64,6 +69,7 @@ const routers = [
                 meta: {
                     title: 'SVN分组',
                     icon: 'md-people',
+                    requireAuth: true,
                     user_role_id: ['1'],
                     group: {
                         name: "",
@@ -78,6 +84,7 @@ const routers = [
                 meta: {
                     title: '系统日志',
                     icon: 'md-bug',
+                    requireAuth: true,
                     user_role_id: ['1'],
                     group: {
                         name: "运维",
@@ -92,6 +99,7 @@ const routers = [
                 meta: {
                     title: '个人中心',
                     icon: 'md-cube',
+                    requireAuth: true,
                     user_role_id: ['1', '2'],
                     group: {
                         name: "高级",
@@ -106,6 +114,7 @@ const routers = [
                 meta: {
                     title: '系统配置',
                     icon: 'md-settings',
+                    requireAuth: true,
                     user_role_id: ['1'],
                     group: {
                         name: "",

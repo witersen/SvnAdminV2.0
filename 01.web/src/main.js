@@ -37,23 +37,27 @@ router.beforeEach((to, from, next) => {
     ViewUI.LoadingBar.start();
     Util.title(to.meta.title);
     //页面跳转逻辑
-    next();
-    // if (to.matched.some(m => m.meta.requireAuth)) {
-    //     if (window.sessionStorage.token) {
-    //         if (to.path == '/login') {
-    //             next({ path: '/residentManage' })
-    //         } else {
-    //             next();
-    //         }
-    //     } else {
-    //         next({ path: '/login' })
-    //     }
-    // } else if (to.path == '/login' && window.sessionStorage.token) {
-    //     next({ path: '/residentManage' })
-    // }
-    // else {
-    //     next();
-    // }
+    if (sessionStorage.token) {
+        if (to.path == '/login') {
+            //交给login页面处理
+            next();
+        }
+        if (to.matched.some(m => m.meta.requireAuth)) {
+            if (to.meta.user_role_id.includes(sessionStorage.user_role_id)) {
+                next();
+            } else {
+                next({ path: '/login' });
+            }
+        } else {
+            next();
+        }
+    } else {
+        if (to.path == '/login') {
+            next();
+        } else {
+            next({ path: '/login' })
+        }
+    }
 });
 
 //路由拦截器 afterEach
