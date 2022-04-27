@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 17:00:31
+ * @LastEditTime: 2022-04-27 11:48:17
  * @Description: QQ:1801168257
  */
 
@@ -97,14 +97,14 @@ define('REG_PASSWD_USER_PASSWD', "/^((%s)*[A-Za-z0-9-_.]+)\s*=(.*)/m");
  * 
  * %s => $group
  */
-define('REG_AUTHZ_GROUP_PRI_REPS', "/^\[(.*?):(.*?)\][A-za-z0-9_=@*\s]*?@%s[\s]*=[\s]*([rw]*)/m");
+define('REG_AUTHZ_GROUP_PRI_REPS', "/^\[(.*?):(.*?)\][A-za-z0-9_=@*\s]*?@%s[\s]*=[\s]*([rw]+)/m");
 
 /**
  * 匹配authz配置文件中某个用户有权限的仓库列表
  * 
  * %s => $user
  */
-define('REG_AUTHZ_USER_PRI_REPS', "/^\[(.*?):(.*?)\][A-za-z0-9_=@*\s]*?%s[\s]*=[\s]*([rw]*)/m");
+define('REG_AUTHZ_USER_PRI_REPS', "/^\[(.*?):(.*?)\][A-za-z0-9_=@*\s]*?%s[\s]*=[\s]*([rw]+)/m");
 
 /**
  * 匹配authz配置文件中所有用户有权限的仓库列表
@@ -117,8 +117,10 @@ define('REG_AUTHZ_ALL_HAVE_PRI_REPS', "/^\[(.*?):(.*?)\][A-za-z0-9_=@*\s]*?\*[\s
  * 匹配authz配置文件中所有用户有权限的仓库列表(配置*=不代表所有人无权限 只代表未设置的用户无权限)
  * 
  * *=
+ * 
+ * 存疑
  */
-define('REG_AUTHZ_ALL_NO_PRI_REPS', "/^\[(.*?):(.*?)\][A-za-z0-9_=@*\s]*?\*[\s]*=[\s]*([rw]*)/m");
+define('REG_AUTHZ_ALL_NO_PRI_REPS', "/^\[(.*?):(.*?)\][A-za-z0-9_=@*\s]*?\*[\s]*=[\s]*([rw]+)/m");
 
 /**
  * 匹配authz配置文件中指定仓库的指定路径 包含内容
