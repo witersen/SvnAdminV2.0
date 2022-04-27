@@ -3,12 +3,12 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 16:55:37
+ * @LastEditTime: 2022-04-27 18:23:46
  * @Description: QQ:1801168257
  */
 
-use SVNAdmin\SVN\Rep;
-use SVNAdmin\SVNRep\SVNRep;
+// use SVNAdmin\SVN\Rep;
+// use SVNAdmin\SVNRep\SVNRep;
 
 /**
  * 信息统计类
@@ -56,7 +56,7 @@ class statistics extends controller
         $cpuCount = (int)trim($cpuCount);
 
         //一分钟的平均负载 / （cpu总核数 * 2），超过100则为100 不超100为真实值取整
-        $percent = round($cpuLoad1Min / ($cpuCount * 2) * 100);
+        $percent = round($cpuLoad1Min / ($cpuCount * 2) * 100, 1);
         if ($percent > 100) {
             $percent = 100;
         }
@@ -124,7 +124,7 @@ class statistics extends controller
          * ----------cpu计算结束----------
          */
         $data['cpu'] = [
-            'percent' => $id,
+            'percent' => round($id, 1),
             'cpu' => $cpuModelArray,
             'cpuPhysical' => $cpuPhysical,
             'cpuPhysicalCore' => $cpuPhysicalCore,
@@ -153,7 +153,7 @@ class statistics extends controller
         $memUsed =  $memTotal - $memFree;
 
         //内存使用率
-        $percent = round($memUsed / $memTotal * 100);
+        $percent = round($memUsed / $memTotal * 100, 1);
 
         /**
          * ----------内存计算结束----------
@@ -231,10 +231,18 @@ class statistics extends controller
         $repCount = count(\SVNAdmin\SVN\Rep::GetSimpleRepList());
 
         //SVN用户数量
-        $userCount  = count(\SVNAdmin\SVN\User::GetSvnUserList(SVN_PASSWD_FILE));
+        $userCount = \SVNAdmin\SVN\User::GetSvnUserList($this->globalPasswdContent);
+        if ($userCount === '0') {
+            FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
+        }
+        $userCount  = count($userCount);
 
         //SVN分组数量
-        $groupCount = count(\SVNAdmin\SVN\Group::GetSvnGroupList(SVN_AUTHZ_FILE));
+        $groupCount = \SVNAdmin\SVN\Group::GetSvnGroupList($this->globalAuthzContent);
+        if ($userCount === '0') {
+            FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
+        }
+        $groupCount = count($groupCount);
 
         //运行日志数量
         $logCount = $this->database->count('logs', ['log_id[>]' => 0]);
