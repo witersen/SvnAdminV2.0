@@ -118,6 +118,14 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
+                <p>备份占用</p>
+                <h2 style="color: #28bcfe">{{ systemBrif.backupSize }}</h2>
+              </div>
+            </Card>
+          </Col>
+          <Col span="4">
+            <Card :dis-hover="true">
+              <div style="text-align: center">
                 <p>SVN仓库</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.repCount }}</h2>
               </div>
@@ -199,6 +207,7 @@ export default {
         repUser: 0,
         repGroup: 0,
         logCount: 0,
+        backupSize:0,
       },
     };
   },

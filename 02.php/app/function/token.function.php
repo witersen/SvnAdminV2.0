@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 16:59:54
+ * @LastEditTime: 2022-04-27 15:07:53
  * @Description: QQ:1801168257
  */
 
@@ -12,7 +12,8 @@ function FunCreateToken($userRoleId, $userName)
 {
     $nowTime = time();
     $startTime = $nowTime;
-    $endTime = $startTime + 86400;
+    //配置登录凭证过期时间为6个小时
+    $endTime = $nowTime + 60 * 60 * 6;
     $part1 = $userRoleId . '.' . $userName . '.' . $startTime . '.' . $endTime;
     $part2 = hash_hmac('md5', $part1, SIGNATURE);
     return $part1 . '.' . $part2;

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 16:57:31
+ * @LastEditTime: 2022-04-27 11:56:45
  * @Description: QQ:1801168257
  */
 
@@ -221,6 +221,9 @@ class statistics extends controller
         //仓库占用体积
         $repSize = FunFormatSize(FunGetDirSizeDu(SVN_REPOSITORY_PATH));
 
+        //备份占用体积
+        $backupSize = FunFormatSize(FunGetDirSizeDu(SVN_BACHUP_PATH));
+
         //SVN仓库数量
         $repCount = count(FunGetSimpleRepList());
 
@@ -239,7 +242,8 @@ class statistics extends controller
             'repCount' => $repCount,
             'repUser' => $userCount,
             'repGroup' => $groupCount,
-            'logCount' => $logCount
+            'logCount' => $logCount,
+            'backupSize' => $backupSize
         ]);
     }
 }

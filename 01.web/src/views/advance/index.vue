@@ -1,7 +1,7 @@
 <template>
   <div>
     <Card :bordered="false" :dis-hover="true">
-      <Tabs value="1">
+      <Tabs v-model="currentAdvanceTab" @on-click="SetCurrentAdvanceTab">
         <TabPane label="Subversion" name="1">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="140">
@@ -33,7 +33,7 @@
                     <span style="color: #ff9900" v-if="formSvn.installed == 0"
                       >未安装</span
                     >
-                    <span style="color: #2db7f5" v-if="formSvn.installed == 1"
+                    <span style="color: #f90" v-if="formSvn.installed == 1"
                       >未启动</span
                     >
                     <span style="color: #19be6b" v-if="formSvn.installed == 2"
@@ -45,13 +45,15 @@
                   </Col>
                   <Col span="6">
                     <Button
+                      :loading="loadingSvnserveStart"
                       type="success"
                       v-if="formSvn.installed == 1"
                       @click="Start"
                       >启动</Button
                     >
                     <Button
-                      type="success"
+                      :loading="loadingSvnserveStop"
+                      type="warning"
                       v-if="formSvn.installed == 2"
                       @click="Stop"
                       >停止</Button
@@ -329,6 +331,17 @@ export default {
   data() {
     return {
       /**
+       * tab
+       */
+      currentAdvanceTab: "1",
+
+      /**
+       * 加载
+       */
+      loadingSvnserveStart: false,
+      loadingSvnserveStop: false,
+
+      /**
        * subversion信息
        */
       formSvn: {
@@ -340,10 +353,12 @@ export default {
         enable: "",
         svnserveLog: "",
       },
+
       /**
        *
        */
       configList: [],
+
       /**
        * 对话框
        */
@@ -351,6 +366,7 @@ export default {
       modalAddRep: false,
       //编辑仓库信息
       modalEditRepName: false,
+
       /**
        * 表单
        */
@@ -361,63 +377,27 @@ export default {
         repNameOld: "",
         repNameNew: "",
       },
-      /**
-       * 表格
-       */
-      //仓库信息
-      tableRepColumn: [
-        {
-          title: "序号",
-          type: "index",
-        },
-        {
-          title: "用户名",
-          key: "repName",
-          tooltip: true,
-          sortable: true,
-        },
-        {
-          title: "密码",
-          key: "repRev",
-          tooltip: true,
-        },
-        {
-          title: "启用状态",
-          slot: "repStatus",
-          sortable: true,
-        },
-        {
-          title: "过期时间",
-          key: "repRemarks",
-          sortable: true,
-        },
-        {
-          title: "备注信息",
-          key: "repRemarks",
-        },
-        {
-          title: "其它",
-          slot: "action",
-          width: 180,
-        },
-      ],
-      tableRepData: [
-        {
-          repName: "xxxxxxxxxxxxxxxxxxxxxxxxxx",
-          repRev: 12,
-          repSize: 128,
-          repStatus: 0,
-        },
-      ],
     };
   },
   computed: {},
   created() {},
   mounted() {
+    if (!sessionStorage.currentAdvanceTab) {
+      sessionStorage.setItem("currentAdvanceTab", "1");
+    } else {
+      this.currentAdvanceTab = sessionStorage.currentAdvanceTab;
+    }
     this.GetDetail();
     this.GetConfig();
   },
   methods: {
+    /**
+     * 设置选中的标签
+     */
+    SetCurrentAdvanceTab(name) {
+      sessionStorage.setItem("currentAdvanceTab", name);
+      this.currentAdvanceTab = name;
+    },
     /**
      * 获取版本信息
      */
@@ -469,11 +449,63 @@ export default {
     /**
      * 启动SVN
      */
-    Start() {},
+    Start() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "以daomen方式启动svnserve服务",
+        content: "确定要启动svnserve服务吗吗？",
+        onOk: () => {
+          that.loadingSvnserveStart = true;
+          var data = {};
+          that.$axios
+            .post("/api.php?c=subversion&a=Start&t=web", data)
+            .then(function (response) {
+              that.loadingSvnserveStart = false;
+              var result = response.data;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetDetail();
+              } else {
+                that.$Message.error(result.message);
+              }
+            })
+            .catch(function (error) {
+              that.loadingSvnserveStart = false;
+              console.log(error);
+            });
+        },
+      });
+    },
     /**
      * 停止SVN
      */
-    Stop() {},
+    Stop() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "停止svnserve服务",
+        content: "确定要停止svnserve服务吗？",
+        onOk: () => {
+          that.loadingSvnserveStop = true;
+          var data = {};
+          that.$axios
+            .post("/api.php?c=subversion&a=Stop&t=web", data)
+            .then(function (response) {
+              that.loadingSvnserveStop = false;
+              var result = response.data;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetDetail();
+              } else {
+                that.$Message.error(result.message);
+              }
+            })
+            .catch(function (error) {
+              that.loadingSvnserveStop = false;
+              console.log(error);
+            });
+        },
+      });
+    },
     /**
      * 修改svnserve的绑定端口
      */

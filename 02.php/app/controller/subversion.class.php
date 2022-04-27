@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 16:57:36
+ * @LastEditTime: 2022-04-27 15:20:52
  * @Description: QQ:1801168257
  */
 
@@ -124,6 +124,8 @@ class subversion extends controller
      */
     function Start()
     {
+        FunShellExec("systemctl start svnserve");
+        FunMessageExit();
     }
 
     /**
@@ -131,6 +133,8 @@ class subversion extends controller
      */
     function Stop()
     {
+        FunShellExec("systemctl stop svnserve");
+        FunMessageExit();
     }
 
     /**

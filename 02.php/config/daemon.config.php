@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 17:00:18
+ * @LastEditTime: 2022-04-27 14:54:15
  * @Description: QQ:1801168257
  */
 
@@ -13,7 +13,7 @@
 
 /**
  * 程序与守护进程通信的本地地址
- * 不需要修改
+ * 不要修改
  */
 define('IPC_ADDRESS', '127.0.0.1');
 
