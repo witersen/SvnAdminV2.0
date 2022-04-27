@@ -3,9 +3,11 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 16:57:57
+ * @LastEditTime: 2022-04-27 16:41:35
  * @Description: QQ:1801168257
  */
+
+use SVNAdmin\svnUser\svnUser as SvnUserSvnUser;
 
 class svnuser extends controller
 {
@@ -28,7 +30,7 @@ class svnuser extends controller
      */
     function SyncUserToDb()
     {
-        $svnUserPassList =  FunGetSvnUserPassList($this->globalPasswdContent);
+        $svnUserPassList =  \SVNAdmin\SVN\User::GetSvnUserPassList($this->globalPasswdContent);
         if ($svnUserPassList == 0) {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -77,7 +79,7 @@ class svnuser extends controller
      */
     function GetAllUserList()
     {
-        $svnUserList = FunGetSvnUserList($this->globalPasswdContent);
+        $svnUserList = \SVNAdmin\SVN\User::GetSvnUserList($this->globalPasswdContent);
         if ($svnUserList == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         } else {
@@ -149,7 +151,7 @@ class svnuser extends controller
      */
     function EnableUser()
     {
-        $result = FunEnabledUser($this->globalPasswdContent, $this->requestPayload['svn_user_name']);
+        $result = \SVNAdmin\SVN\User::EnabledUser($this->globalPasswdContent, $this->requestPayload['svn_user_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -167,7 +169,7 @@ class svnuser extends controller
      */
     function DisableUser()
     {
-        $result = FunDisabledUser($this->globalPasswdContent, $this->requestPayload['svn_user_name']);
+        $result = \SVNAdmin\SVN\User::DisabledUser($this->globalPasswdContent, $this->requestPayload['svn_user_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -203,7 +205,7 @@ class svnuser extends controller
         FunCheckRepUser($this->requestPayload['svn_user_name']);
 
         //检查用户是否已存在
-        $result = FunAddSvnUser($this->globalPasswdContent, $this->requestPayload['svn_user_name'], $this->requestPayload['svn_user_pass']);
+        $result = \SVNAdmin\SVN\User::AddSvnUser($this->globalPasswdContent, $this->requestPayload['svn_user_name'], $this->requestPayload['svn_user_pass']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -236,7 +238,7 @@ class svnuser extends controller
     function EditUserPass()
     {
         //检查用户是否已存在
-        $result = FunUpdSvnUserPass($this->globalPasswdContent, $this->requestPayload['svn_user_name'], $this->requestPayload['svn_user_pass'], !$this->requestPayload['svn_user_status']);
+        $result = \SVNAdmin\SVN\User::UpdSvnUserPass($this->globalPasswdContent, $this->requestPayload['svn_user_name'], $this->requestPayload['svn_user_pass'], !$this->requestPayload['svn_user_status']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -268,7 +270,7 @@ class svnuser extends controller
     function DelUser()
     {
         //从passwd文件中全局删除
-        $resultPasswd = FunDelSvnUserPasswd($this->globalPasswdContent, $this->requestPayload['svn_user_name'], !$this->requestPayload['svn_user_status']);
+        $resultPasswd = \SVNAdmin\SVN\User::DelSvnUserPasswd($this->globalPasswdContent, $this->requestPayload['svn_user_name'], !$this->requestPayload['svn_user_status']);
 
         if ($resultPasswd == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
@@ -278,7 +280,7 @@ class svnuser extends controller
         }
 
         //从authz文件中删除
-        $resultAuthz = FunDelUserAuthz($this->globalAuthzContent, $this->requestPayload['svn_user_name']);
+        $resultAuthz = \SVNAdmin\SVN\User::DelUserAuthz($this->globalAuthzContent, $this->requestPayload['svn_user_name']);
 
         if ($resultAuthz == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');

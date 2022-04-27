@@ -3,9 +3,12 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 11:56:45
+ * @LastEditTime: 2022-04-27 16:55:37
  * @Description: QQ:1801168257
  */
+
+use SVNAdmin\SVN\Rep;
+use SVNAdmin\SVNRep\SVNRep;
 
 /**
  * 信息统计类
@@ -225,13 +228,13 @@ class statistics extends controller
         $backupSize = FunFormatSize(FunGetDirSizeDu(SVN_BACHUP_PATH));
 
         //SVN仓库数量
-        $repCount = count(FunGetSimpleRepList());
+        $repCount = count(\SVNAdmin\SVN\Rep::GetSimpleRepList());
 
         //SVN用户数量
-        $userCount  = count(FunGetSvnUserList(SVN_PASSWD_FILE));
+        $userCount  = count(\SVNAdmin\SVN\User::GetSvnUserList(SVN_PASSWD_FILE));
 
         //SVN分组数量
-        $groupCount = count(FunGetSvnGroupList(SVN_AUTHZ_FILE));
+        $groupCount = count(\SVNAdmin\SVN\Group::GetSvnGroupList(SVN_AUTHZ_FILE));
 
         //运行日志数量
         $logCount = $this->database->count('logs', ['log_id[>]' => 0]);

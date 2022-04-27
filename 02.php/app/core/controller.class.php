@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 16:58:08
+ * @LastEditTime: 2022-04-27 18:03:08
  * @Description: QQ:1801168257
  */
 
@@ -24,11 +24,11 @@ require_once BASE_PATH . '/config/version.config.php';
 
 //require model
 require_once BASE_PATH . '/app/model/conn.model.php';
+require_once BASE_PATH . '/app/model/util.model.php';
 
 //require function
 require_once BASE_PATH . '/app/function/array.function.php';
 require_once BASE_PATH . '/app/function/color.function.php';
-require_once BASE_PATH . '/app/function/config.function.php';
 require_once BASE_PATH . '/app/function/curl.function.php';
 require_once BASE_PATH . '/app/function/file.function.php';
 require_once BASE_PATH . '/app/function/json.function.php';
@@ -36,11 +36,6 @@ require_once BASE_PATH . '/app/function/regular.function.php';
 require_once BASE_PATH . '/app/function/return.function.php';
 require_once BASE_PATH . '/app/function/socket.function.php';
 require_once BASE_PATH . '/app/function/string.function.php';
-require_once BASE_PATH . '/app/function/subversion.function.php';
-require_once BASE_PATH . '/app/function/svnGroup.function.php';
-require_once BASE_PATH . '/app/function/svnHooks.function.php';
-require_once BASE_PATH . '/app/function/svnRep.function.php';
-require_once BASE_PATH . '/app/function/svnUser.function.php';
 require_once BASE_PATH . '/app/function/token.function.php';
 require_once BASE_PATH . '/app/function/update.function.php';
 
@@ -60,7 +55,7 @@ require_once BASE_PATH . '/app/controller/svnuser.class.php';
 require_once BASE_PATH . '/app/controller/update.class.php';
 
 //require extension
-require_once BASE_PATH . '/extension/Download/download.class.php';
+
 
 class controller
 {
