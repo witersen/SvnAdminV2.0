@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 18:03:08
+ * @LastEditTime: 2022-04-28 02:03:15
  * @Description: QQ:1801168257
  */
 
@@ -24,7 +24,6 @@ require_once BASE_PATH . '/config/version.config.php';
 
 //require model
 require_once BASE_PATH . '/app/model/conn.model.php';
-require_once BASE_PATH . '/app/model/util.model.php';
 
 //require function
 require_once BASE_PATH . '/app/function/array.function.php';
@@ -56,6 +55,14 @@ require_once BASE_PATH . '/app/controller/update.class.php';
 
 //require extension
 
+//require svnadmin
+require_once BASE_PATH . '/extension/SVNAdmin/src/core/Core.class.php';
+require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNGroup.class.php';
+require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNHooks.class.php';
+require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNInfo.class.php';
+require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNRep.class.php';
+require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNUser.class.php';
+
 
 class controller
 {
@@ -70,9 +77,14 @@ class controller
 
     public $requestPayload;
 
-    public $files;
-
     public $database;
+
+    //SVNAdmin对象
+    public $SVNAdminGroup;
+    public $SVNAdminHooks;
+    public $SVNAdminInfo;
+    public $SVNAdminRep;
+    public $SVNAdminUser;
 
     function __construct()
     {
@@ -95,21 +107,24 @@ class controller
         $this->globalPasswdContent = file_exists(SVN_PASSWD_FILE) ? file_get_contents(SVN_PASSWD_FILE) : '';
 
         /**
-         * 请求载体相关
+         * 请求载体
          */
         global $requestPayload;
         $this->requestPayload = $requestPayload;
 
         /**
-         * 文件
-         */
-        global $files;
-        $this->files = $files;
-
-        /**
          * 数据库连接
          */
         $this->database = (new conn())->GetConn();
+
+        /**
+         * svnadmin对象
+         */
+        $this->SVNAdminGroup = new \SVNAdmin\SVN\Group($this->globalAuthzContent, $this->globalPasswdContent);
+        $this->SVNAdminHooks = new \SVNAdmin\SVN\Hooks($this->globalAuthzContent, $this->globalPasswdContent);
+        $this->SVNAdminInfo = new \SVNAdmin\SVN\Info($this->globalAuthzContent, $this->globalPasswdContent);
+        $this->SVNAdminRep = new \SVNAdmin\SVN\Rep($this->globalAuthzContent, $this->globalPasswdContent);
+        $this->SVNAdminUser = new \SVNAdmin\SVN\User($this->globalAuthzContent, $this->globalPasswdContent);
     }
 
     /**

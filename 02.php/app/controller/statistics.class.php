@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 18:23:46
+ * @LastEditTime: 2022-04-28 01:53:50
  * @Description: QQ:1801168257
  */
 
@@ -228,17 +228,17 @@ class statistics extends controller
         $backupSize = FunFormatSize(FunGetDirSizeDu(SVN_BACHUP_PATH));
 
         //SVN仓库数量
-        $repCount = count(\SVNAdmin\SVN\Rep::GetSimpleRepList());
+        $repCount = count($this->SVNAdminRep->GetSimpleRepList());
 
         //SVN用户数量
-        $userCount = \SVNAdmin\SVN\User::GetSvnUserList($this->globalPasswdContent);
+        $userCount = $this->SVNAdminUser->GetSvnUserList($this->globalPasswdContent);
         if ($userCount === '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
         $userCount  = count($userCount);
 
         //SVN分组数量
-        $groupCount = \SVNAdmin\SVN\Group::GetSvnGroupList($this->globalAuthzContent);
+        $groupCount = $this->SVNAdminGroup->GetSvnGroupList($this->globalAuthzContent);
         if ($userCount === '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }

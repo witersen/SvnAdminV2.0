@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 16:55:47
+ * @LastEditTime: 2022-04-27 23:57:53
  * @Description: QQ:1801168257
  */
 
@@ -53,8 +53,10 @@ function FunArrayIsStrFolder($string)
  */
 function FunArrayValueEnabled(&$value, $key)
 {
-    if (substr($value, 0, strlen(REG_SVN_USER_DISABLED)) == REG_SVN_USER_DISABLED) {
-        $value = substr($value, strlen(REG_SVN_USER_DISABLED));
+    $REG_SVN_USER_DISABLED = '#disabled#';
+    
+    if (substr($value, 0, strlen($REG_SVN_USER_DISABLED)) == $REG_SVN_USER_DISABLED) {
+        $value = substr($value, strlen($REG_SVN_USER_DISABLED));
     }
 }
 

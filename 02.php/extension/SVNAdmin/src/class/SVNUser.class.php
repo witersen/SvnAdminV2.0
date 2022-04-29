@@ -3,14 +3,20 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:57:48
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 16:58:51
+ * @LastEditTime: 2022-04-28 01:21:18
  * @Description: QQ:1801168257
+ * @copyright: https://github.com/witersen/
  */
 
 namespace SVNAdmin\SVN;
 
-class User
+class User extends Core
 {
+    function __construct($authzFileContent, $passwdFileContent)
+    {
+        parent::__construct($authzFileContent, $passwdFileContent);
+    }
+
     /**
      * 不提供修改SVN用户名称的方法
      * 一个不变的用户对应SVN仓库所有的历史记录是非常有必要的
@@ -23,18 +29,18 @@ class User
      * 1        用户已存在
      * string   正常
      */
-    public static function AddSvnUser($passwdContent, $userName, $userPass)
+    function AddSvnUser($passwdContent, $userName, $userPass)
     {
         $userName = trim($userName);
         $userPass = trim($userPass);
-        preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
+        preg_match_all($this->REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 $userStr = "\n$userName=$userPass\n";
                 return $passwdContent . $userStr;
             } else {
-                preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[3], 'FunArrayValueTrim');
 
@@ -59,7 +65,7 @@ class User
     /**
      * 修改SVN用户(passwd文件中)
      */
-    public static function UpdSvnUserPasswd($passwdContent, $oldUserName, $newUserName)
+    function UpdSvnUserPasswd($passwdContent, $oldUserName, $newUserName)
     {
         //不提供此方法
     }
@@ -71,17 +77,17 @@ class User
      * 1        用户不存在
      * string   正常
      */
-    public static function DelSvnUserPasswd($passwdContent, $userName, $isDisabledUser = false)
+    function DelSvnUserPasswd($passwdContent, $userName, $isDisabledUser = false)
     {
         $userName = trim($userName);
-        $userName = $isDisabledUser ? (REG_SVN_USER_DISABLED . $userName) : $userName;
-        preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
+        $userName = $isDisabledUser ? ($this->REG_SVN_USER_DISABLED . $userName) : $userName;
+        preg_match_all($this->REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[3], 'FunArrayValueTrim');
                 if (in_array($userName, $resultPreg[1])) {
@@ -127,21 +133,21 @@ class User
      * 
      * )
      */
-    public static function GetSvnUserList($passwdContent)
+    function GetSvnUserList($passwdContent)
     {
-        preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
+        preg_match_all($this->REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 $result = [];
                 foreach ($resultPreg[1] as $value) {
                     $item = [];
-                    if (substr($value, 0, strlen(REG_SVN_USER_DISABLED)) == REG_SVN_USER_DISABLED) {
-                        $item['userName'] = substr($value, strlen(REG_SVN_USER_DISABLED));
+                    if (substr($value, 0, strlen($this->REG_SVN_USER_DISABLED)) == $this->REG_SVN_USER_DISABLED) {
+                        $item['userName'] = substr($value, strlen($this->REG_SVN_USER_DISABLED));
                         $item['disabled'] = '1';
                     } else {
                         $item['userName'] = $value;
@@ -184,22 +190,22 @@ class User
      * 
      * )
      */
-    public static function GetSvnUserPassList($passwdContent)
+    function GetSvnUserPassList($passwdContent)
     {
-        preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
+        preg_match_all($this->REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $tem1 = trim($passwdContentPreg[1][0]);
             if (empty($tem1)) {
                 return [];
             } else {
-                preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[3], 'FunArrayValueTrim');
                 $result = [];
                 foreach (array_combine($resultPreg[1], $resultPreg[3]) as $userName => $userPass) {
                     $item = [];
-                    if (substr($userName, 0, strlen(REG_SVN_USER_DISABLED)) == REG_SVN_USER_DISABLED) {
-                        $item['userName'] = substr($userName, strlen(REG_SVN_USER_DISABLED));
+                    if (substr($userName, 0, strlen($this->REG_SVN_USER_DISABLED)) == $this->REG_SVN_USER_DISABLED) {
+                        $item['userName'] = substr($userName, strlen($this->REG_SVN_USER_DISABLED));
                         $item['userPass'] = $userPass;
                         $item['disabled'] = '1';
                     } else {
@@ -223,17 +229,17 @@ class User
      * 1        用户不存在
      * string   正常
      */
-    public static function GetPassByUser($passwdContent, $userName, $isDisabledUser = false)
+    function GetPassByUser($passwdContent, $userName, $isDisabledUser = false)
     {
         $userName = trim($userName);
-        $userName = $isDisabledUser ? (REG_SVN_USER_DISABLED . $userName) : $userName;
-        preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
+        $userName = $isDisabledUser ? ($this->REG_SVN_USER_DISABLED . $userName) : $userName;
+        preg_match_all($this->REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[3], 'FunArrayValueTrim');
                 if (array_search($userName, $resultPreg[1]) !== false) {
@@ -254,18 +260,18 @@ class User
      * 1        用户不存在
      * string   正常
      */
-    public static function UpdSvnUserPass($passwdContent, $userName, $userPass, $isDisabledUser = false)
+    function UpdSvnUserPass($passwdContent, $userName, $userPass, $isDisabledUser = false)
     {
         $userName = trim($userName);
         $userPass = trim($userPass);
-        $userName = $isDisabledUser ? (REG_SVN_USER_DISABLED . $userName) : $userName;
-        preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
+        $userName = $isDisabledUser ? ($this->REG_SVN_USER_DISABLED . $userName) : $userName;
+        preg_match_all($this->REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[3], 'FunArrayValueTrim');
                 if (in_array($userName, $resultPreg[1])) {
@@ -300,16 +306,16 @@ class User
      *     [1] => group
      * )
      */
-    public static function GetSvnUserGroupList($authzContent, $userName)
+    function GetSvnUserGroupList($authzContent, $userName)
     {
         $userName = trim($userName);
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 $userArray = [];
@@ -341,10 +347,10 @@ class User
      *     [1] => rep2
      * )
      */
-    public static function GetUserPriRepListWithoutPri($authzContent, $userName)
+    function GetUserPriRepListWithoutPri($authzContent, $userName)
     {
         $userName = trim($userName);
-        preg_match_all(sprintf(REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             array_walk($authzContentPreg[1], 'FunArrayValueTrim');
             return $authzContentPreg[1];
@@ -374,10 +380,10 @@ class User
      *         )
      * )
      */
-    public static function GetUserPriRepListWithPri($authzContent, $userName)
+    function GetUserPriRepListWithPri($authzContent, $userName)
     {
         $userName = trim($userName);
-        preg_match_all(sprintf(REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             array_walk($authzContentPreg[1], 'FunArrayValueTrim');
             array_walk($authzContentPreg[3], 'FunArrayValueTrim');
@@ -417,10 +423,10 @@ class User
      *         )
      * )
      */
-    public static function GetUserPriRepListWithPriAndPath($authzContent, $userName)
+    function GetUserPriRepListWithPriAndPath($authzContent, $userName)
     {
         $userName = trim($userName);
-        preg_match_all(sprintf(REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             array_walk($authzContentPreg[1], 'FunArrayValueTrim');
             array_walk($authzContentPreg[2], 'FunArrayValueTrim');
@@ -445,7 +451,7 @@ class User
      *
      * string       正常
      */
-    public static function UpdUserAuthz($authzContent, $oldUserName, $newUserName)
+    function UpdUserAuthz($authzContent, $oldUserName, $newUserName)
     {
     }
 
@@ -457,16 +463,16 @@ class User
      * 0        文件格式错误(不存在[users]标识)
      * string   正常
      */
-    public static function DelUserAuthz($authzContent, $userName)
+    function DelUserAuthz($authzContent, $userName)
     {
         $userName = trim($userName);
         $content1 = "[groups]\n";
         $content2 = "";
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg1);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg1);
         if (array_key_exists(0, $authzContentPreg1[0])) {
             $temp1 = trim($authzContentPreg1[1][0]);
             if (!empty($temp1)) {
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg1[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg1[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 $groupContent = "";
@@ -494,23 +500,23 @@ class User
      * 1        要禁用的用户不存在
      * string   正常
      */
-    public static function DisabledUser($passwdContent, $userName)
+    function DisabledUser($passwdContent, $userName)
     {
         $userName = trim($userName);
-        preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
+        preg_match_all($this->REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[3], 'FunArrayValueTrim');
                 if (in_array($userName, $resultPreg[1])) {
                     $resultStr = "[users]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[3]) as $key => $value) {
                         if ($key == $userName) {
-                            $key = REG_SVN_USER_DISABLED . $key;
+                            $key = $this->REG_SVN_USER_DISABLED . $key;
                         }
                         $resultStr .= "$key=$value\n";
                     }
@@ -529,22 +535,22 @@ class User
      * 1        要启用的用户不存在
      * string   正常
      */
-    public static function EnabledUser($passwdContent, $userName)
+    function EnabledUser($passwdContent, $userName)
     {
         $userName = trim($userName);
-        preg_match_all(REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
+        preg_match_all($this->REG_PASSWD_USER_WITH_CON, $passwdContent, $passwdContentPreg);
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(sprintf(REG_PASSWD_USER_PASSWD, REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[3], 'FunArrayValueTrim');
-                if (in_array(REG_SVN_USER_DISABLED . $userName, $resultPreg[1])) {
+                if (in_array($this->REG_SVN_USER_DISABLED . $userName, $resultPreg[1])) {
                     $resultStr = "[users]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[3]) as $key => $value) {
-                        if ($key ==  REG_SVN_USER_DISABLED . $userName) {
+                        if ($key ==  $this->REG_SVN_USER_DISABLED . $userName) {
                             $key = $userName;
                         }
                         $resultStr .= "$key=$value\n";

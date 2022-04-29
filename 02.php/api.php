@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 17:01:57
+ * @LastEditTime: 2022-04-28 02:01:51
  * @Description: QQ:1801168257
  */
 
@@ -66,7 +66,6 @@ $requestPayload = !empty($requestPayload) ? json_decode($requestPayload, true) :
  * 	}
  * }
  */
-// $files = $_FILES;
 
 /**
  * 检查控制器和方法是否存在并实例化

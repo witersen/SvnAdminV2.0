@@ -10,7 +10,7 @@
           >
             <Form :label-width="100" v-if="user_role_id == 1">
               <FormItem label="管理员账户">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Input
                       v-model="formEditAdminUserName.displayUserName"
@@ -25,7 +25,7 @@
                 </Row>
               </FormItem>
               <FormItem label="管理员密码">
-                <Row :gutter="16">
+                <Row>
                   <Col span="12">
                     <Input type="password" value="******" readonly></Input>
                   </Col>
@@ -67,7 +67,10 @@
                 ></Input>
               </FormItem>
               <FormItem>
-                <Button type="primary" :loading="loadingEditSvnUserPass" @click="EditSvnUserPass"
+                <Button
+                  type="primary"
+                  :loading="loadingEditSvnUserPass"
+                  @click="EditSvnUserPass"
                   >确认修改</Button
                 >
               </FormItem>

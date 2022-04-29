@@ -32,7 +32,7 @@
             enter-button
             placeholder="通过所有信息搜索..."
             style="width: 100%"
-            @on-enter="GetLogList"
+            @on-search="SearchGetLogList"
         /></Col>
       </Row>
       <Table
@@ -142,6 +142,13 @@ export default {
     /**
      * 获取日志
      */
+    SearchGetLogList() {
+      if (this.searchKeywordLog == "") {
+        this.$Message.error("请输入搜索内容");
+        return;
+      }
+      this.GetLogList();
+    },
     GetLogList() {
       var that = this;
       that.loadingGetLogList = true;
@@ -208,13 +215,7 @@ export default {
         } = require("../../libs/export/Export2Excel");
 
         //这个是表头名称 可以是iveiw表格中表头属性的title的数组
-        const tHeader = [
-          "序号",
-          "操作人",
-          "日志类型",
-          "详细信息",
-          "操作时间",
-        ];
+        const tHeader = ["序号", "操作人", "日志类型", "详细信息", "操作时间"];
 
         //与表格数据配合 可以是iview表格中的key的数组
         const filterVal = [

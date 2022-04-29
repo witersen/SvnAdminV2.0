@@ -3,14 +3,20 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:55:52
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 16:55:12
+ * @LastEditTime: 2022-04-28 01:20:13
  * @Description: QQ:1801168257
+ * @copyright: https://github.com/witersen/
  */
 
 namespace SVNAdmin\SVN;
 
-class Group
+class Group extends \SVNAdmin\SVN\Core
 {
+    function __construct($authzFileContent, $passwdFileContent)
+    {
+        parent::__construct($authzFileContent, $passwdFileContent);
+    }
+
     /**
      * 添加分组
      * 
@@ -18,17 +24,17 @@ class Group
      * 1                分组已存在
      * string           正常
      */
-    public static function AddSvnGroup($authzContent, $groupName)
+    function AddSvnGroup($authzContent, $groupName)
     {
         $groupName = trim($groupName);
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 $groupContent = "[groups]\n$groupName=\n";
                 return str_replace($authzContentPreg[0][0], str_replace("[groups]", $groupContent, $authzContentPreg[0][0]), $authzContent);
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
@@ -59,16 +65,16 @@ class Group
      * 1            分组不存在
      * string       正常
      */
-    public static function DelSvnGroup($authzContent, $groupName)
+    function DelSvnGroup($authzContent, $groupName)
     {
         $groupName = trim($groupName);
         $content1 = "[groups]\n";
         $content2 = "";
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (!empty($temp1)) {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
@@ -110,17 +116,17 @@ class Group
      * 0            文件格式错误(不存在[groups]标识)
      * string       正常
      */
-    public static function UpdSvnGroup($authzContent, $oldGroup, $newGroup)
+    function UpdSvnGroup($authzContent, $oldGroup, $newGroup)
     {
         $oldGroup = trim($oldGroup);
         $newGroup = trim($newGroup);
         $content1 = "[groups]\n";
         $content2 = "";
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (!empty($temp1)) {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 $groupContent = "";
@@ -166,15 +172,15 @@ class Group
      *     [1] => group2
      * )
      */
-    public static function GetSvnGroupList($authzContent)
+    function GetSvnGroupList($authzContent)
     {
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 return $resultPreg[1];
             }
@@ -202,16 +208,16 @@ class Group
      *     [1] => group2
      * )
      */
-    public static function GetSvnGroupGroupList($authzContent, $groupName)
+    function GetSvnGroupGroupList($authzContent, $groupName)
     {
         $groupName = trim($groupName);
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
@@ -252,16 +258,16 @@ class Group
      *     [1] => user2
      * )
      */
-    public static function GetSvnUserListByGroup($authzContent, $groupName)
+    function GetSvnUserListByGroup($authzContent, $groupName)
     {
         $groupName = trim($groupName);
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
@@ -303,16 +309,16 @@ class Group
      *     [1] => group2
      * )
      */
-    public static function GetSvnGroupListByGroup($authzContent, $groupName)
+    function GetSvnGroupListByGroup($authzContent, $groupName)
     {
         $groupName = trim($groupName);
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
@@ -380,15 +386,15 @@ class Group
      *         )
      * )
      */
-    public static function GetSvnGroupUserAndGroupList($authzContent)
+    function GetSvnGroupUserAndGroupList($authzContent)
     {
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 $result = [];
@@ -423,17 +429,17 @@ class Group
      * 2        要添加的用户已存在该分组
      * string   正常
      */
-    public static function AddSvnGroupUser($authzContent, $groupName, $userName)
+    function AddSvnGroupUser($authzContent, $groupName, $userName)
     {
         $groupName = trim($groupName);
         $userName = trim($userName);
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
@@ -468,17 +474,17 @@ class Group
      * 2        要删除的用户不在该分组
      * string   正常
      */
-    public static function DelSvnGroupUser($authzContent, $groupName, $userName)
+    function DelSvnGroupUser($authzContent, $groupName, $userName)
     {
         $groupName = trim($groupName);
         $userName = trim($userName);
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
@@ -515,20 +521,20 @@ class Group
      * 3        不能添加本身
      * string   正常
      */
-    public static function AddSvnGroupGroup($authzContent, $groupName, $groupName2)
+    function AddSvnGroupGroup($authzContent, $groupName, $groupName2)
     {
         $groupName = trim($groupName);
         $groupName2 = trim($groupName2);
         if ($groupName == $groupName2) {
             return '3';
         }
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
@@ -563,17 +569,17 @@ class Group
      * 2        要删除的分组不在该分组
      * string   正常
      */
-    public static function DelSvnGroupGroup($authzContent, $groupName, $groupName2)
+    function DelSvnGroupGroup($authzContent, $groupName, $groupName2)
     {
         $groupName = trim($groupName);
         $groupName2 = trim($groupName2);
-        preg_match_all(REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_GROUP_WITH_CON, $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
@@ -614,10 +620,10 @@ class Group
      *     [1] => rep2
      * )
      */
-    public static function GetGroupPriRepListWithoutPri($authzContent, $groupName)
+    function GetGroupPriRepListWithoutPri($authzContent, $groupName)
     {
         $groupName = trim($groupName);
-        preg_match_all(sprintf(REG_AUTHZ_GROUP_PRI_REPS, $groupName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_GROUP_PRI_REPS, $groupName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             array_walk($authzContentPreg[1], 'FunArrayValueTrim');
             return $authzContentPreg[1];
@@ -647,10 +653,10 @@ class Group
      *         )
      * )
      */
-    public static function GetGroupPriRepListWithPri($authzContent, $groupName)
+    function GetGroupPriRepListWithPri($authzContent, $groupName)
     {
         $groupName = trim($groupName);
-        preg_match_all(sprintf(REG_AUTHZ_GROUP_PRI_REPS, $groupName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_GROUP_PRI_REPS, $groupName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             array_walk($authzContentPreg[1], 'FunArrayValueTrim');
             array_walk($authzContentPreg[3], 'FunArrayValueTrim');
@@ -670,10 +676,10 @@ class Group
     /**
      * 获取某个分组有权限的仓库列表以及对应的权限
      */
-    public static function GetGroupPriRepListWithPriAndPath($authzContent, $groupName)
+    function GetGroupPriRepListWithPriAndPath($authzContent, $groupName)
     {
         $groupName = trim($groupName);
-        preg_match_all(sprintf(REG_AUTHZ_GROUP_PRI_REPS, $groupName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_GROUP_PRI_REPS, $groupName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             array_walk($authzContentPreg[1], 'FunArrayValueTrim');
             array_walk($authzContentPreg[2], 'FunArrayValueTrim');

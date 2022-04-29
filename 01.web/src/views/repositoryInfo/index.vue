@@ -31,7 +31,7 @@
             search
             enter-button
             placeholder="通过SVN仓库名、备注搜索..."
-            @on-search="GetRepList"
+            @on-search="SearchGetRepList"
             v-model="searchKeywordRep"
             v-if="user_role_id == 1"
           />
@@ -386,7 +386,7 @@
     <Modal v-model="modalRepHooks" :title="titleModalRepHooks">
       <Form ref="formRepHooks" :model="formRepHooks" :label-width="60">
         <FormItem label="类型">
-          <Select v-model="formRepHooks.select">
+          <Select v-model="formRepHooks.select" :transfer="true">
             <Option
               v-for="item in formRepHooks.type"
               :value="item.value"
@@ -1098,11 +1098,18 @@ export default {
     /**
      * 获取仓库列表
      */
+    SearchGetRepList() {
+      if (this.searchKeywordRep == "") {
+        this.$Message.error("请输入搜索内容");
+        return;
+      }
+      this.GetRepList();
+    },
     GetRepList() {
       var that = this;
       that.loadingRep = true;
       that.tableDataRep = [];
-      that.totalRep = 0;
+      // that.totalRep = 0;
       var data = {
         pageSize: that.pageSizeRep,
         currentPage: that.pageCurrentRep,
@@ -1617,7 +1624,7 @@ export default {
         this.GetRepPathUserPri();
         this.GetRepPathGroupPri();
       } else {
-        this.$Message.error("不支持文件授权");
+        this.$Message.error("不建议使用文件授权");
       }
     },
     /**
@@ -2180,6 +2187,10 @@ export default {
     },
     ImportRep() {
       var that = this;
+      if (that.formUploadBackup.fileName == "") {
+        that.$Message.error("请先选择文件");
+        return;
+      }
       that.loadingImportBackup = true;
       var data = {
         rep_name: that.currentRepName,

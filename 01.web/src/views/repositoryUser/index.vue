@@ -21,7 +21,7 @@
             enter-button
             placeholder="通过SVN用户名、备注搜索..."
             style="width: 100%"
-            @on-enter="GetUserList"
+            @on-search="SearchGetUserList"
         /></Col>
       </Row>
       <Table
@@ -242,11 +242,18 @@ export default {
     /**
      * 获取SVN用户列表
      */
+    SearchGetUserList() {
+      if (this.searchKeywordUser == "") {
+        this.$Message.error("请输入搜索内容");
+        return;
+      }
+      this.GetUserList();
+    },
     GetUserList() {
       var that = this;
       that.loadingUser = true;
       that.tableDataUser = [];
-      that.totalUser = 0;
+      // that.totalUser = 0;
       var data = {
         pageSize: that.pageSizeUser,
         currentPage: that.pageCurrentUser,

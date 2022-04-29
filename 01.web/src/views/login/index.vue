@@ -36,7 +36,7 @@
               </Input>
             </FormItem>
             <FormItem>
-              <Select v-model="formUserLogin.user_role">
+              <Select v-model="formUserLogin.user_role" :transfer="true">
                 <Option value="1">管理人员</Option>
                 <Option value="2">SVN用户</Option>
               </Select>

@@ -3,14 +3,20 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:45:45
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 16:57:15
+ * @LastEditTime: 2022-04-28 01:21:14
  * @Description: QQ:1801168257
+ * @copyright: https://github.com/witersen/
  */
 
 namespace SVNAdmin\SVN;
 
-class Rep
+class Rep extends Core
 {
+    function __construct($authzFileContent, $passwdFileContent)
+    {
+        parent::__construct($authzFileContent, $passwdFileContent);
+    }
+
     /**
      * 获取某个仓库路径下有权限的用户列表
      * 
@@ -26,7 +32,7 @@ class Rep
      *     [1] => u2
      * )
      */
-    public static function GetRepUserListWithoutPri($authzContent, $repName, $repPath)
+    function GetRepUserListWithoutPri($authzContent, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -35,13 +41,13 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 return $resultPreg[1];
             }
@@ -74,7 +80,7 @@ class Rep
      *         )
      * )
      */
-    public static function GetRepUserListWithPri($authzContent, $repName, $repPath)
+    function GetRepUserListWithPri($authzContent, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -83,13 +89,13 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 $result = [];
@@ -123,7 +129,7 @@ class Rep
      *     [1] => g2
      * )
      */
-    public static function GetRepGroupListWithoutPri($authzContent, $repName, $repPath)
+    function GetRepGroupListWithoutPri($authzContent, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -132,13 +138,13 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 return $resultPreg[1];
             }
@@ -171,7 +177,7 @@ class Rep
      *         )
      * )
      */
-    public static function GetRepGroupListWithPri($authzContent, $repName, $repPath)
+    function GetRepGroupListWithPri($authzContent, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -180,13 +186,13 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
                 $result = [];
@@ -212,7 +218,7 @@ class Rep
      * 0        不存在该仓库路径的记录
      * string   正常 
      */
-    public static function SetRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
+    function SetRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -221,7 +227,7 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -229,12 +235,12 @@ class Rep
                 return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n$user=$privilege\n", $authzContent);
             } else {
                 //进一步判断有没有用户数据
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
 
                 //处理分组
-                preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
+                preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
                 array_walk($resultPregGroup[1], 'FunArrayValueTrim');
                 array_walk($resultPregGroup[2], 'FunArrayValueTrim');
 
@@ -287,7 +293,7 @@ class Rep
      * 1        已删除
      * string   正常
      */
-    public static function DelRepUserPri($authzContent, $user, $repName, $repPath)
+    function DelRepUserPri($authzContent, $user, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -296,19 +302,19 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
                 //进一步判断有没有用户数据
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
 
                 //处理分组
-                preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
+                preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
                 array_walk($resultPregGroup[1], 'FunArrayValueTrim');
                 array_walk($resultPregGroup[2], 'FunArrayValueTrim');
 
@@ -345,7 +351,7 @@ class Rep
      * 0        不存在该仓库路径的记录
      * string   正常
      */
-    public static function UpdRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
+    function UpdRepUserPri($authzContent, $user, $privilege, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -354,19 +360,19 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n$user=$privilege\n", $authzContent);
             } else {
                 //进一步判断有没有用户数据
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
 
                 //处理分组
-                preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
+                preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
                 array_walk($resultPregGroup[1], 'FunArrayValueTrim');
                 array_walk($resultPregGroup[2], 'FunArrayValueTrim');
 
@@ -402,7 +408,7 @@ class Rep
      * 0        不存在该仓库路径的记录
      * string   正常
      */
-    public static function SetRepGroupPri($authzContent, $group, $privilege, $repName, $repPath)
+    function SetRepGroupPri($authzContent, $group, $privilege, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -411,19 +417,19 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n@$group=$privilege\n", $authzContent);
             } else {
                 //进一步判断有没有分组数据
-                preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
+                preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
                 array_walk($resultPregGroup[1], 'FunArrayValueTrim');
                 array_walk($resultPregGroup[2], 'FunArrayValueTrim');
 
                 //处理用户
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
 
@@ -476,7 +482,7 @@ class Rep
      * 1        已删除
      * string   正常
      */
-    public static function DelRepGroupPri($authzContent, $group, $repName, $repPath)
+    function DelRepGroupPri($authzContent, $group, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -485,19 +491,19 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return '1';
             } else {
                 //进一步判断有没有分组数据
-                preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
+                preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
                 array_walk($resultPregGroup[1], 'FunArrayValueTrim');
                 array_walk($resultPregGroup[2], 'FunArrayValueTrim');
 
                 //处理用户
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
 
@@ -536,7 +542,7 @@ class Rep
      * 1        该仓库下不存在该分组
      * string   正常
      */
-    public static function UpdRepGroupPri($authzContent, $group, $privilege, $repName, $repPath)
+    function UpdRepGroupPri($authzContent, $group, $privilege, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -545,19 +551,19 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n@$group=$privilege\n", $authzContent);
             } else {
                 //进一步判断有没有分组数据
-                preg_match_all(REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
+                preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
                 array_walk($resultPregGroup[1], 'FunArrayValueTrim');
                 array_walk($resultPregGroup[2], 'FunArrayValueTrim');
 
                 //处理用户
-                preg_match_all(REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
+                preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
                 array_walk($resultPreg[1], 'FunArrayValueTrim');
                 array_walk($resultPreg[2], 'FunArrayValueTrim');
 
@@ -595,7 +601,7 @@ class Rep
      * 1        已存在
      * string   正常
      */
-    public static function SetRepAuthz($authzContent, $repName, $repPath)
+    function SetRepAuthz($authzContent, $repName, $repPath)
     {
         //处理路径结尾
         if ($repPath != '/') {
@@ -604,7 +610,7 @@ class Rep
             }
         }
 
-        preg_match_all(sprintf(REG_AUTHZ_REP_SPECIAL_PATH_WITHOUT_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITHOUT_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             return '1';
         } else {
@@ -618,9 +624,9 @@ class Rep
      * 1        已删除
      * string   正常
      */
-    public static function DelRepAuthz($authzContent, $repName)
+    function DelRepAuthz($authzContent, $repName)
     {
-        preg_match_all(sprintf(REG_AUTHZ_REP_ALL_PATH_WITH_CON, $repName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_ALL_PATH_WITH_CON, $repName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             foreach ($authzContentPreg[0] as $key => $value) {
                 $authzContent = str_replace($value, "", $authzContent);
@@ -642,9 +648,9 @@ class Rep
      * 正常数据
      * 
      */
-    public static function GetNoPathAndConRepAuthz($authzContent)
+    function GetNoPathAndConRepAuthz($authzContent)
     {
-        preg_match_all(REG_AUTHZ_ALL_REP_WITHOUT_PATH_AND_CON, $authzContent, $authzContentPreg);
+        preg_match_all($this->REG_AUTHZ_ALL_REP_WITHOUT_PATH_AND_CON, $authzContent, $authzContentPreg);
         array_walk($authzContentPreg[1], 'FunArrayValueTrim');
         return array_values(array_unique($authzContentPreg[1]));
     }
@@ -658,9 +664,9 @@ class Rep
      * 1        仓库不存在
      * string   正常
      */
-    public static function UpdRepAuthz($authzContent, $oldRepName, $newRepName)
+    function UpdRepAuthz($authzContent, $oldRepName, $newRepName)
     {
-        preg_match_all(sprintf(REG_AUTHZ_REP_ALL_PATH_WITHOUT_CON, $oldRepName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_ALL_PATH_WITHOUT_CON, $oldRepName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             foreach ($authzContentPreg[0] as $key => $value) {
                 $authzContent = str_replace($value, '[' . $newRepName . ':' . $authzContentPreg[1][$key] . ']', $authzContent);
@@ -693,10 +699,10 @@ class Rep
      *         )
      * )
      */
-    public static function GetAllHavePriRepListWithPri($authzContent)
+    function GetAllHavePriRepListWithPri($authzContent)
     {
         $userName = '*';
-        preg_match_all(sprintf(REG_AUTHZ_ALL_HAVE_PRI_REPS, $userName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_ALL_HAVE_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             array_walk($authzContentPreg[1], 'FunArrayValueTrim');
             array_walk($authzContentPreg[3], 'FunArrayValueTrim');
@@ -727,10 +733,10 @@ class Rep
      *     [1] => rep2
      * )
      */
-    public static function GetAllHavePriRepListWithoutPri($authzContent)
+    function GetAllHavePriRepListWithoutPri($authzContent)
     {
         $userName = '*';
-        preg_match_all(sprintf(REG_AUTHZ_ALL_HAVE_PRI_REPS, $userName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_ALL_HAVE_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             array_walk($authzContentPreg[1], 'FunArrayValueTrim');
             array_walk($authzContentPreg[3], 'FunArrayValueTrim');
@@ -748,10 +754,10 @@ class Rep
      * 获取所有用户都无权限的仓库列表
      * 用户匹配 *=
      */
-    public static function GetAllNoPriRepListWithoutPri($authzContent)
+    function GetAllNoPriRepListWithoutPri($authzContent)
     {
         $userName = '*';
-        preg_match_all(sprintf(REG_AUTHZ_ALL_NO_PRI_REPS, $userName), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_ALL_NO_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
             array_walk($authzContentPreg[1], 'FunArrayValueTrim');
             array_walk($authzContentPreg[3], 'FunArrayValueTrim');
@@ -770,7 +776,7 @@ class Rep
     /**
      * 获取SVN仓库列表
      */
-    public static function GetRepList()
+    function GetRepList()
     {
         $repArray = [];
         $file_arr = scandir(SVN_REPOSITORY_PATH);
@@ -798,7 +804,7 @@ class Rep
     /**
      * 获取简单SVN仓库列表
      */
-    public static function GetSimpleRepList()
+    function GetSimpleRepList()
     {
         $repArray = [];
         $file_arr = scandir(SVN_REPOSITORY_PATH);
@@ -821,7 +827,7 @@ class Rep
     /**
      * 初始化仓库结构为 trunk branches tags
      */
-    public static function InitRepStruct($repName, $initUser = "SVNAdmin", $initPass = "SVNAdmin")
+    function InitRepStruct($repName, $initUser = "SVNAdmin", $initPass = "SVNAdmin")
     {
         $randPrefix = FunGetRandStr();
         $tempPath = TEMP_PATH . $randPrefix;
@@ -853,7 +859,7 @@ class Rep
      * FSFS Shards Packed
      * FSFS Logical Addressing
      */
-    public static function GetRepInfo($repName)
+    function GetRepInfo($repName)
     {
         $repPath = SVN_REPOSITORY_PATH .  $repName;
 
@@ -861,7 +867,7 @@ class Rep
 
         $cmdResult = FunShellExec($svnadminInfoCmd);
 
-        preg_match_all(REG_REP_INFO, $cmdResult, $svnadminInfoPreg);
+        preg_match_all($this->REG_REP_INFO, $cmdResult, $svnadminInfoPreg);
 
         $svnadminInfoResult =  array_combine($svnadminInfoPreg[1], $svnadminInfoPreg[2]);
 
@@ -873,7 +879,7 @@ class Rep
     /**
      * 使用 svnlook tree $repPath 获取仓库的最新版本的目录树
      */
-    public static function GetRepTree($repName)
+    function GetRepTree($repName)
     {
         $repPath = SVN_REPOSITORY_PATH .  $repName;
         $svnadminInfoCmd = sprintf("svnlook tree '%s'", $repPath);
@@ -1016,7 +1022,7 @@ class Rep
      *         )
      * )
      */
-    public static function GetFolderStruct($complateArray, $fileIndex)
+    function GetFolderStruct($complateArray, $fileIndex)
     {
         //获取当前文件夹的目录内容 以子文件夹和子文件下标的形式返回
         $dirContent = self::GetFolderDirAndFiles($complateArray, $fileIndex);
@@ -1112,7 +1118,7 @@ class Rep
      *     [3] => 8
      * )
      */
-    public static function GetFolderDirAndFiles($complateArray, $fileIndex)
+    function GetFolderDirAndFiles($complateArray, $fileIndex)
     {
         $result = [];
         //末尾
@@ -1144,7 +1150,7 @@ class Rep
     /**
      * 检查仓库是否存在或者是否存在同名的文件夹
      */
-    public static function CheckRepExist($repName, $message = '仓库已经存在')
+    function CheckRepExist($repName, $message = '仓库已经存在')
     {
         clearstatcache();
         if (is_dir(SVN_REPOSITORY_PATH .  $repName)) {
@@ -1155,7 +1161,7 @@ class Rep
     /**
      * 检查仓库是否创建成功
      */
-    public static function CheckRepCreate($repName, $message = '仓库创建失败')
+    function CheckRepCreate($repName, $message = '仓库创建失败')
     {
         clearstatcache();
         if (!is_dir(SVN_REPOSITORY_PATH .  $repName)) {
@@ -1166,7 +1172,7 @@ class Rep
     /**
      * 检查仓库是否删除成功
      */
-    public static function CheckRepDelete($repName, $message = '仓库删除失败')
+    function CheckRepDelete($repName, $message = '仓库删除失败')
     {
         clearstatcache();
         if (is_dir(SVN_REPOSITORY_PATH .  $repName)) {
@@ -1177,7 +1183,7 @@ class Rep
     /**
      * 获取仓库的修订版本数量
      */
-    public static function GetRepRev($repName)
+    function GetRepRev($repName)
     {
         $cmd = sprintf("svnadmin info '%s' | grep 'Revisions' | awk '{print $2}'", SVN_REPOSITORY_PATH .  $repName);
         return (int)trim(FunShellExec($cmd));
@@ -1186,7 +1192,7 @@ class Rep
     /**
      * 获取仓库的属性内容（key-vlaue的形式）
      */
-    public static function GetRepDetail($repName)
+    function GetRepDetail($repName)
     {
         $cmd = sprintf("svnadmin info '%s'", SVN_REPOSITORY_PATH .  $repName);
         return trim(FunShellExec($cmd));
@@ -1199,7 +1205,7 @@ class Rep
      * 
      * 根据体积大小自动调整单位
      */
-    public static function GetRepRevFileSize($repName, $filePath)
+    function GetRepRevFileSize($repName, $filePath)
     {
         $cmd = sprintf("svnlook filesize '%s' '%s'", SVN_REPOSITORY_PATH . $repName, $filePath);
         $size = (int)trim(FunShellExec($cmd));
@@ -1209,7 +1215,7 @@ class Rep
     /**
      * 获取仓库下指定文件或者文件夹的最高修订版本
      */
-    public static function GetRepFileRev($repName, $filePath)
+    function GetRepFileRev($repName, $filePath)
     {
         $cmd = sprintf("svnlook history --limit 1 '%s' '%s'", SVN_REPOSITORY_PATH .  $repName, $filePath);
         $result = FunShellExec($cmd);
@@ -1222,7 +1228,7 @@ class Rep
     /**
      * 获取仓库下指定文件或者文件夹的作者
      */
-    public static function GetRepFileAuthor($repName, $rev)
+    function GetRepFileAuthor($repName, $rev)
     {
         $cmd = sprintf("svnlook author -r %s '%s'", $rev, SVN_REPOSITORY_PATH .  $repName);
         $result = FunShellExec($cmd);
@@ -1232,7 +1238,7 @@ class Rep
     /**
      * 获取仓库下指定文件或者文件夹的提交日期
      */
-    public static function GetRepFileDate($repName, $rev)
+    function GetRepFileDate($repName, $rev)
     {
         $cmd = sprintf("svnlook date -r %s '%s'", $rev, SVN_REPOSITORY_PATH .  $repName);
         $result = FunShellExec($cmd);
@@ -1242,7 +1248,7 @@ class Rep
     /**
      * 获取仓库下指定文件或者文件夹的提交日志
      */
-    public static function GetRepFileLog($repName, $rev)
+    function GetRepFileLog($repName, $rev)
     {
         $cmd = sprintf("svnlook log -r %s '%s'", $rev, SVN_REPOSITORY_PATH .  $repName);
         $result = FunShellExec($cmd);
@@ -1254,7 +1260,7 @@ class Rep
      * 
      * 默认为全版本
      */
-    public static function RepDump($repName, $backupName)
+    function RepDump($repName, $backupName)
     {
         $cmd = sprintf('svnadmin dump %s --quiet  > %s', SVN_REPOSITORY_PATH .  $repName, SVN_BACHUP_PATH .  $backupName);
         FunShellExec($cmd);
@@ -1263,7 +1269,7 @@ class Rep
     /**
      * 删除备份文件
      */
-    public static function DelRepBackup($fileName)
+    function DelRepBackup($fileName)
     {
         $cmd = sprintf("cd '%s' && rm -f './%s'", SVN_BACHUP_PATH, $fileName);
         FunShellExec($cmd);
@@ -1272,7 +1278,7 @@ class Rep
     /**
      * 使用 svnadmin load 导入仓库
      */
-    public static function RepLoad($repName, $fileName)
+    function RepLoad($repName, $fileName)
     {
         $cmd = sprintf("svnadmin load --quiet '%s' < '%s'", SVN_REPOSITORY_PATH .  $repName, SVN_BACHUP_PATH .  $fileName);
         $result = FunShellExec($cmd);
@@ -1282,7 +1288,7 @@ class Rep
     /**
      * 使用 svn list 为用户检查指令
      */
-    public static function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, $svnUserPass)
+    function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, $svnUserPass)
     {
         $cmd = sprintf("svn list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
         $result = FunShellExec($cmd);

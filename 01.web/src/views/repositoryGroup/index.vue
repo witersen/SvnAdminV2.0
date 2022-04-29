@@ -21,7 +21,7 @@
             enter-button
             placeholder="通过SVN分组名、备注搜索..."
             style="width: 100%"
-            @on-enter="GetGroupList"
+            @on-search="SearchGetGroupList"
         /></Col>
       </Row>
       <Table
@@ -331,11 +331,18 @@ export default {
     /**
      * 获取SVN分组列表
      */
+    SearchGetGroupList() {
+      if (this.searchKeywordGroup == "") {
+        this.$Message.error("请输入搜索内容");
+        return;
+      }
+      this.GetGroupList();
+    },
     GetGroupList() {
       var that = this;
       that.loadingGroup = true;
       that.tableGroupData = [];
-      that.totalGroup = 0;
+      // that.totalGroup = 0;
       var data = {
         pageSize: that.pageSizeGroup,
         currentPage: that.pageCurrentGroup,

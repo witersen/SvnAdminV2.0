@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 17:59:25
+ * @LastEditTime: 2022-04-28 02:09:41
  * @Description: QQ:1801168257
  */
 
@@ -43,7 +43,7 @@ class subversion extends controller
      */
     function GetCheckout()
     {
-        $result = \SVNAdmin\SVN\Info::GetSubversionListen();
+        $result = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
         $checkoutHost = $result[$result['enable']];
         if ($result['bindPort'] != '3690') {
             $checkoutHost .= ':' . $result['bindPort'];
@@ -60,7 +60,7 @@ class subversion extends controller
     function GetDetail()
     {
         //获取绑定主机、端口等信息
-        $bindInfo = \SVNAdmin\SVN\Info::GetSubversionListen();
+        $bindInfo = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
 
         //检测运行信息
         $runInfo = FunShellExec('ps auxf|grep -v "grep"|grep svnserve');

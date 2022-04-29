@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 11:34:42
+ * @LastEditTime: 2022-04-28 02:22:01
  * @Description: QQ:1801168257
  */
 
@@ -140,7 +140,7 @@ class Daemon
         $this->workMode == 'console' ? print_r(PHP_EOL . '---------result---------' . PHP_EOL . $result . PHP_EOL) : '';
 
         //处理没有返回内容的情况 否则 socket_write 遇到空内容会报错
-        $result = $result == '' ? ISNULL : $result;
+        $result = trim($result) == '' ? ISNULL : trim($result);
 
         //将结果返回给客户端
         socket_write($client, $result, strlen($result)) or die('启动失败：socket_write 错误' . PHP_EOL);

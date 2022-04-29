@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 18:10:28
+ * @LastEditTime: 2022-04-28 02:32:04
  * @Description: QQ:1801168257
  */
 
@@ -42,7 +42,7 @@ class svnrep extends controller
         FunCheckRepName($this->requestPayload['rep_name']);
 
         //检查仓库是否存在
-        \SVNAdmin\SVN\Rep::CheckRepExist($this->requestPayload['rep_name']);
+        $this->SVNAdminRep->CheckRepExist($this->requestPayload['rep_name']);
 
         //创建空仓库
         //解决创建中文仓库乱码问题
@@ -50,14 +50,14 @@ class svnrep extends controller
 
         if ($this->requestPayload['rep_type'] == '2') {
             //以指定的目录结构初始化仓库
-            \SVNAdmin\SVN\Rep::InitRepStruct($this->requestPayload['rep_name']);
+            $this->SVNAdminRep->InitRepStruct($this->requestPayload['rep_name']);
         }
 
         //检查是否创建成功
-        \SVNAdmin\SVN\Rep::CheckRepCreate($this->requestPayload['rep_name']);
+        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['rep_name']);
 
         //向authz写入仓库信息
-        $status = \SVNAdmin\SVN\Rep::SetRepAuthz($this->globalAuthzContent, $this->requestPayload['rep_name'], '/');
+        $status = $this->SVNAdminRep->SetRepAuthz($this->globalAuthzContent, $this->requestPayload['rep_name'], '/');
         if ($status != '1') {
             FunShellExec('echo \'' . $status . '\' > ' . SVN_AUTHZ_FILE);
         }
@@ -82,7 +82,7 @@ class svnrep extends controller
      */
     function SyncRepAndDb()
     {
-        $svnRepList = \SVNAdmin\SVN\Rep::GetSimpleRepList();
+        $svnRepList = $this->SVNAdminRep->GetSimpleRepList();
 
         $dbRepList = $this->database->select('svn_reps', [
             'rep_name',
@@ -97,7 +97,7 @@ class svnrep extends controller
                 //更新
                 $this->database->update('svn_reps', [
                     'rep_size' => FunGetDirSizeDu(SVN_REPOSITORY_PATH .  $value['rep_name']),
-                    'rep_rev' => \SVNAdmin\SVN\Rep::GetRepRev($value['rep_name'])
+                    'rep_rev' => $this->SVNAdminRep->GetRepRev($value['rep_name'])
                 ], [
                     'rep_name' => $value['rep_name']
                 ]);
@@ -110,7 +110,7 @@ class svnrep extends controller
                     'rep_name' => $value,
                     'rep_size' => FunGetDirSizeDu(SVN_REPOSITORY_PATH .  $value),
                     'rep_note' => '',
-                    'rep_rev' => \SVNAdmin\SVN\Rep::GetRepRev($value),
+                    'rep_rev' => $this->SVNAdminRep->GetRepRev($value),
                     'rep_uuid' => ''
                 ]);
             }
@@ -125,15 +125,15 @@ class svnrep extends controller
      */
     function SyncRepAndAuthz()
     {
-        $svnRepList = \SVNAdmin\SVN\Rep::GetSimpleRepList();
+        $svnRepList = $this->SVNAdminRep->GetSimpleRepList();
 
-        $svnRepAuthzList = \SVNAdmin\SVN\Rep::GetNoPathAndConRepAuthz($this->globalAuthzContent);
+        $svnRepAuthzList = $this->SVNAdminRep->GetNoPathAndConRepAuthz($this->globalAuthzContent);
 
         $authzContet = $this->globalAuthzContent;
 
         foreach ($svnRepList as $key => $value) {
             if (!in_array($value, $svnRepAuthzList)) {
-                $authzContet = \SVNAdmin\SVN\Rep::SetRepAuthz($authzContet, $value, '/');
+                $authzContet = $this->SVNAdminRep->SetRepAuthz($authzContet, $value, '/');
                 if ($authzContet == '1') {
                     FunMessageExit(200, 0, '同步到配置文件错误');
                 }
@@ -142,7 +142,7 @@ class svnrep extends controller
 
         foreach ($svnRepAuthzList as $key => $value) {
             if (!in_array($value, $svnRepList)) {
-                $authzContet = \SVNAdmin\SVN\Rep::DelRepAuthz($authzContet, $value);
+                $authzContet = $this->SVNAdminRep->DelRepAuthz($authzContet, $value);
                 if ($authzContet == '1') {
                     FunMessageExit(200, 0, '同步到配置文件错误');
                 }
@@ -164,14 +164,14 @@ class svnrep extends controller
         $userRepList = [];
 
         //获取用户有权限的仓库列表
-        $userRepList = array_merge($userRepList, \SVNAdmin\SVN\User::GetUserPriRepListWithPriAndPath($this->globalAuthzContent, $this->globalUserName));
+        $userRepList = array_merge($userRepList, $this->SVNAdminUser->GetUserPriRepListWithPriAndPath($this->globalAuthzContent, $this->globalUserName));
 
         //获取用户所在的所有分组
         $userGroupList = $this->Svngorup->GetSvnUserAllGroupList($this->globalUserName);
 
         //获取分组有权限的仓库路径列表
         foreach ($userGroupList as $value) {
-            $userRepList = array_merge($userRepList, \SVNAdmin\SVN\Group::GetGroupPriRepListWithPriAndPath($this->globalAuthzContent, $value));
+            $userRepList = array_merge($userRepList, $this->SVNAdminGroup->GetGroupPriRepListWithPriAndPath($this->globalAuthzContent, $value));
         }
 
         //按照全路径去重
@@ -370,14 +370,14 @@ class svnrep extends controller
          * 
          * 目的为使用当前SVN用户的身份来进行被授权过的路径的内容浏览
          */
-        $bindInfo = \SVNAdmin\SVN\Info::GetSubversionListen();
+        $bindInfo = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
         $checkoutHost = 'svn://' . $bindInfo['bindHost'];
         if ($bindInfo['bindPort'] != '3690') {
             $checkoutHost = 'svn://' . $bindInfo['bindHost'] . ':' . $bindInfo['bindPort'];
         }
 
         //获取SVN用户密码
-        $svnUserPass = \SVNAdmin\SVN\User::GetPassByUser($this->globalPasswdContent, $this->globalUserName);
+        $svnUserPass = $this->SVNAdminUser->GetPassByUser($this->globalPasswdContent, $this->globalUserName);
         if ($svnUserPass == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         } else if ($svnUserPass == '1') {
@@ -396,8 +396,11 @@ class svnrep extends controller
             if (strstr($result, 'svn: E170001: Authorization failed')) {
                 FunMessageExit(200, 0, '无访问权限');
             }
+            if(strstr($result,'svn: E220003: Invalid authz configuration')){
+                FunMessageExit(200, 0, '配置文件配置错误 请使用svnauthz-validate工具检查');
+            }
             if (strstr($result, 'svn: E170013: Unable to connect to a repository at URL')) {
-                FunMessageExit(200, 0, '其它错误');
+                FunMessageExit(200, 0, '其它错误' . $result);
             }
 
             $resultArray = explode("\n", trim($result));
@@ -413,16 +416,16 @@ class svnrep extends controller
             }
 
             //获取文件或者文件夹最年轻的版本号
-            $lastRev  = \SVNAdmin\SVN\Rep::GetRepFileRev($repName, $value);
+            $lastRev  = $this->SVNAdminRep->GetRepFileRev($repName, $value);
 
             //获取文件或者文件夹最年轻的版本的作者
-            $lastRevAuthor = \SVNAdmin\SVN\Rep::GetRepFileAuthor($repName, $lastRev);
+            $lastRevAuthor = $this->SVNAdminRep->GetRepFileAuthor($repName, $lastRev);
 
             //同上 日期
-            $lastRevDate = \SVNAdmin\SVN\Rep::GetRepFileDate($repName, $lastRev);
+            $lastRevDate = $this->SVNAdminRep->GetRepFileDate($repName, $lastRev);
 
             //同上 日志
-            $lastRevLog = \SVNAdmin\SVN\Rep::GetRepFileLog($repName, $lastRev);
+            $lastRevLog = $this->SVNAdminRep->GetRepFileLog($repName, $lastRev);
 
             $pathArray = explode('/', $value);
             $pathArray = array_values(array_filter($pathArray, 'FunArrayValueFilter'));
@@ -442,7 +445,7 @@ class svnrep extends controller
                 array_push($data, [
                     'resourceType' => 1,
                     'resourceName' => $pathArray[$pathArrayCount - 1],
-                    'fileSize' => \SVNAdmin\SVN\Rep::GetRepRevFileSize($repName, $value),
+                    'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($repName, $value),
                     'revAuthor' => $lastRevAuthor,
                     'revNum' => 'r' . $lastRev,
                     'revTime' => $lastRevDate,
@@ -482,7 +485,8 @@ class svnrep extends controller
             'data' => $data,
             'bread' => [
                 'path' => $breadPathArray,
-                'name' => $breadNameArray
+                'name' => $breadNameArray,
+                'test' => $result
             ]
         ]);
     }
@@ -510,16 +514,16 @@ class svnrep extends controller
         $data = [];
         foreach ($resultArray as $key => $value) {
             //获取文件或者文件夹最年轻的版本号
-            $lastRev  = \SVNAdmin\SVN\Rep::GetRepFileRev($this->requestPayload['rep_name'], $value);
+            $lastRev  = $this->SVNAdminRep->GetRepFileRev($this->requestPayload['rep_name'], $value);
 
             //获取文件或者文件夹最年轻的版本的作者
-            $lastRevAuthor = \SVNAdmin\SVN\Rep::GetRepFileAuthor($this->requestPayload['rep_name'], $lastRev);
+            $lastRevAuthor = $this->SVNAdminRep->GetRepFileAuthor($this->requestPayload['rep_name'], $lastRev);
 
             //同上 日期
-            $lastRevDate = \SVNAdmin\SVN\Rep::GetRepFileDate($this->requestPayload['rep_name'], $lastRev);
+            $lastRevDate = $this->SVNAdminRep->GetRepFileDate($this->requestPayload['rep_name'], $lastRev);
 
             //同上 日志
-            $lastRevLog = \SVNAdmin\SVN\Rep::GetRepFileLog($this->requestPayload['rep_name'], $lastRev);
+            $lastRevLog = $this->SVNAdminRep->GetRepFileLog($this->requestPayload['rep_name'], $lastRev);
 
             $pathArray = explode('/', $value);
             $pathArray = array_values(array_filter($pathArray, 'FunArrayValueFilter'));
@@ -539,7 +543,7 @@ class svnrep extends controller
                 array_push($data, [
                     'resourceType' => 1,
                     'resourceName' => $pathArray[$pathArrayCount - 1],
-                    'fileSize' => \SVNAdmin\SVN\Rep::GetRepRevFileSize($this->requestPayload['rep_name'], $value),
+                    'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($this->requestPayload['rep_name'], $value),
                     'revAuthor' => $lastRevAuthor,
                     'revNum' => 'r' . $lastRev,
                     'revTime' => $lastRevDate,
@@ -647,7 +651,7 @@ class svnrep extends controller
      */
     function GetRepPathUserPri()
     {
-        $result = \SVNAdmin\SVN\Rep::GetRepUserListWithPri($this->globalAuthzContent, $this->requestPayload['rep_name'], $this->requestPayload['path']);
+        $result = $this->SVNAdminRep->GetRepUserListWithPri($this->globalAuthzContent, $this->requestPayload['rep_name'], $this->requestPayload['path']);
         if ($result == '0') {
             //没有该路径的记录
             if ($this->requestPayload['path'] == '/') {
@@ -673,7 +677,7 @@ class svnrep extends controller
      */
     function GetRepPathGroupPri()
     {
-        $result = \SVNAdmin\SVN\Rep::GetRepGroupListWithPri($this->globalAuthzContent, $this->requestPayload['rep_name'], $this->requestPayload['path']);
+        $result = $this->SVNAdminRep->GetRepGroupListWithPri($this->globalAuthzContent, $this->requestPayload['rep_name'], $this->requestPayload['path']);
         if ($result == '0') {
             //没有该路径的记录
             if ($this->requestPayload['path'] == '/') {
@@ -720,20 +724,20 @@ class svnrep extends controller
          * 包括为已有权限的用户修改权限
          * 包括为没有权限的用户增加权限
          */
-        $result = \SVNAdmin\SVN\Rep::SetRepUserPri($this->globalAuthzContent, $user, $pri, $repName, $path);
+        $result = $this->SVNAdminRep->SetRepUserPri($this->globalAuthzContent, $user, $pri, $repName, $path);
 
         //没有该仓库路径记录
         if ($result == '0') {
 
             //没有该仓库路径记录 则进行插入
-            $result = \SVNAdmin\SVN\Rep::SetRepAuthz($this->globalAuthzContent, $repName, $path);
+            $result = $this->SVNAdminRep->SetRepAuthz($this->globalAuthzContent, $repName, $path);
 
             if ($result == '1') {
                 FunMessageExit(200, 1, '未知错误');
             }
 
             //重新添加权限
-            $result = \SVNAdmin\SVN\Rep::SetRepUserPri($result, $user, $pri, $repName, $path);
+            $result = $this->SVNAdminRep->SetRepUserPri($result, $user, $pri, $repName, $path);
 
             if ($result == '0') {
                 FunMessageExit(200, 1, '未知错误');
@@ -756,7 +760,7 @@ class svnrep extends controller
         $path = $this->requestPayload['path'];
         $user = $this->requestPayload['user'];
 
-        $result = \SVNAdmin\SVN\Rep::DelRepUserPri($this->globalAuthzContent, $user, $repName, $path);
+        $result = $this->SVNAdminRep->DelRepUserPri($this->globalAuthzContent, $user, $repName, $path);
 
         if ($result == '0') {
             FunMessageExit(200, 0, '不存在该仓库路径的记录');
@@ -786,7 +790,7 @@ class svnrep extends controller
          */
         $pri = $pri == 'no' ? '' : $pri;
 
-        $result = \SVNAdmin\SVN\Rep::UpdRepUserPri($this->globalAuthzContent, $user, $pri, $repName, $path);
+        $result = $this->SVNAdminRep->UpdRepUserPri($this->globalAuthzContent, $user, $pri, $repName, $path);
 
         if ($result == '0') {
             FunMessageExit(200, 0, '不存在该仓库路径的记录');
@@ -825,20 +829,20 @@ class svnrep extends controller
          * 包括为已有权限的分组修改权限
          * 包括为没有权限的分组增加权限
          */
-        $result = \SVNAdmin\SVN\Rep::SetRepGroupPri($this->globalAuthzContent, $group, $pri, $repName, $path);
+        $result = $this->SVNAdminRep->SetRepGroupPri($this->globalAuthzContent, $group, $pri, $repName, $path);
 
         //没有该仓库路径记录
         if ($result == '0') {
 
             //没有该仓库路径记录 则进行插入
-            $result = \SVNAdmin\SVN\Rep::SetRepAuthz($this->globalAuthzContent, $repName, $path);
+            $result = $this->SVNAdminRep->SetRepAuthz($this->globalAuthzContent, $repName, $path);
 
             if ($result == '1') {
                 FunMessageExit(200, 1, '未知错误');
             }
 
             //重新添加权限
-            $result = \SVNAdmin\SVN\Rep::SetRepGroupPri($result, $group, $pri, $repName, $path);
+            $result = $this->SVNAdminRep->SetRepGroupPri($result, $group, $pri, $repName, $path);
 
             if ($result == '0') {
                 FunMessageExit(200, 1, '未知错误');
@@ -861,7 +865,7 @@ class svnrep extends controller
         $path = $this->requestPayload['path'];
         $group = $this->requestPayload['group'];
 
-        $result = \SVNAdmin\SVN\Rep::DelRepGroupPri($this->globalAuthzContent, $group, $repName, $path);
+        $result = $this->SVNAdminRep->DelRepGroupPri($this->globalAuthzContent, $group, $repName, $path);
 
         if ($result == '0') {
             FunMessageExit(200, 0, '不存在该仓库路径的记录');
@@ -891,7 +895,7 @@ class svnrep extends controller
          */
         $pri = $pri == 'no' ? '' : $pri;
 
-        $result = \SVNAdmin\SVN\Rep::UpdRepGroupPri($this->globalAuthzContent, $group, $pri, $repName, $path);
+        $result = $this->SVNAdminRep->UpdRepGroupPri($this->globalAuthzContent, $group, $pri, $repName, $path);
 
         if ($result == '0') {
             FunMessageExit(200, 0, '不存在该仓库路径的记录');
@@ -915,16 +919,16 @@ class svnrep extends controller
         FunCheckRepName($this->requestPayload['new_rep_name']);
 
         //检查原仓库是否不存在
-        \SVNAdmin\SVN\Rep::CheckRepCreate($this->requestPayload['old_rep_name'], '要修改的仓库不存在');
+        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['old_rep_name'], '要修改的仓库不存在');
 
         //检查新仓库名是否存在
-        \SVNAdmin\SVN\Rep::CheckRepExist($this->requestPayload['new_rep_name'],  '已经存在同名仓库');
+        $this->SVNAdminRep->CheckRepExist($this->requestPayload['new_rep_name'],  '已经存在同名仓库');
 
         //从仓库目录修改仓库名称
         FunShellExec('mv ' . SVN_REPOSITORY_PATH .  $this->requestPayload['old_rep_name'] . ' ' . SVN_REPOSITORY_PATH . $this->requestPayload['new_rep_name']);
 
         //检查修改过的仓库名称是否存在
-        \SVNAdmin\SVN\Rep::CheckRepCreate($this->requestPayload['new_rep_name'], '修改仓库名称失败');
+        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['new_rep_name'], '修改仓库名称失败');
 
         //从数据库修改仓库名称
         $this->database->update('svn_reps', [
@@ -934,7 +938,7 @@ class svnrep extends controller
         ]);
 
         //从配置文件修改仓库名称
-        \SVNAdmin\SVN\Rep::UpdRepAuthz($this->globalAuthzContent, $this->requestPayload['old_rep_name'], $this->requestPayload['new_rep_name']);
+        $this->SVNAdminRep->UpdRepAuthz($this->globalAuthzContent, $this->requestPayload['old_rep_name'], $this->requestPayload['new_rep_name']);
 
         FunMessageExit();
     }
@@ -945,7 +949,7 @@ class svnrep extends controller
     function DelRep()
     {
         //从配置文件删除指定仓库的所有路径
-        $result = \SVNAdmin\SVN\Rep::DelRepAuthz($this->globalAuthzContent, $this->requestPayload['rep_name']);
+        $result = $this->SVNAdminRep->DelRepAuthz($this->globalAuthzContent, $this->requestPayload['rep_name']);
         if ($result != '1') {
             FunShellExec('echo \'' . $result . '\' > ' . SVN_AUTHZ_FILE);
         }
@@ -957,7 +961,7 @@ class svnrep extends controller
 
         //从仓库目录删除仓库文件夹
         FunShellExec('cd ' . SVN_REPOSITORY_PATH . ' && rm -rf ./' . $this->requestPayload['rep_name']);
-        \SVNAdmin\SVN\Rep::CheckRepDelete($this->requestPayload['rep_name']);
+        $this->SVNAdminRep->CheckRepDelete($this->requestPayload['rep_name']);
 
         //返回
         FunMessageExit();
@@ -968,7 +972,7 @@ class svnrep extends controller
      */
     function GetRepDetail()
     {
-        $result = \SVNAdmin\SVN\Rep::GetRepDetail($this->requestPayload['rep_name']);
+        $result = $this->SVNAdminRep->GetRepDetail($this->requestPayload['rep_name']);
         $resultArray = explode("\n", $result);
 
         $newArray = [];
@@ -1001,7 +1005,7 @@ class svnrep extends controller
      */
     function RepDump()
     {
-        \SVNAdmin\SVN\Rep::RepDump($this->requestPayload['rep_name'], $this->requestPayload['rep_name'] . '_' . date('YmdHis') . '_' . FunGetRandStr() . '.dump');
+        $this->SVNAdminRep->RepDump($this->requestPayload['rep_name'], $this->requestPayload['rep_name'] . '_' . date('YmdHis') . '_' . FunGetRandStr() . '.dump');
 
         FunMessageExit();
     }
@@ -1011,7 +1015,7 @@ class svnrep extends controller
      */
     function DelRepBackup()
     {
-        \SVNAdmin\SVN\Rep::DelRepBackup($this->requestPayload['fileName']);
+        $this->SVNAdminRep->DelRepBackup($this->requestPayload['fileName']);
 
         FunMessageExit();
     }
@@ -1147,10 +1151,10 @@ class svnrep extends controller
         }
 
         //检查操作的仓库是否存在
-        \SVNAdmin\SVN\Rep::CheckRepCreate($this->requestPayload['rep_name'], '仓库不存在');
+        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['rep_name'], '仓库不存在');
 
         //使用svndump
-        $result = \SVNAdmin\SVN\Rep::RepLoad($this->requestPayload['rep_name'], $this->requestPayload['fileName']);
+        $result = $this->SVNAdminRep->RepLoad($this->requestPayload['rep_name'], $this->requestPayload['fileName']);
 
         if ($result == ISNULL) {
             FunMessageExit();
@@ -1165,7 +1169,7 @@ class svnrep extends controller
     function GetRepHooks()
     {
         //检查仓库是否存在
-        \SVNAdmin\SVN\Rep::CheckRepCreate($this->requestPayload['rep_name'], '仓库不存在');
+        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['rep_name'], '仓库不存在');
 
         clearstatcache();
         if (!is_dir(SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name'] . '/' . 'hooks')) {

@@ -84,7 +84,7 @@ class personal extends controller
         }
 
         //获取SVN指定用户的密码
-        $result = \SVNAdmin\SVN\User::GetPassByUser($this->globalPasswdContent, $this->globalUserName);
+        $result = $this->SVNAdminUser->GetPassByUser($this->globalPasswdContent, $this->globalUserName);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -101,7 +101,7 @@ class personal extends controller
         }
 
         //修改SVN指定用户的密码
-        $result = \SVNAdmin\SVN\User::UpdSvnUserPass($this->globalPasswdContent, $this->globalUserName, $this->requestPayload['newPassword']);
+        $result = $this->SVNAdminUser->UpdSvnUserPass($this->globalPasswdContent, $this->globalUserName, $this->requestPayload['newPassword']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }

@@ -27,6 +27,7 @@
           style="line-height: 64px; position: absolute; top: 12px; left: 1%"
         />
         <Dropdown
+        :transfer="true"
           trigger="click"
           @on-click="LogOut"
           style="float: right; zindex: 99"
@@ -186,7 +187,8 @@ export default {
 
       //这里进行基于角色的过滤
       result = result.filter(
-        (item) => item.meta.user_role_id.indexOf(sessionStorage.user_role_id) != -1
+        (item) =>
+          item.meta.user_role_id.indexOf(sessionStorage.user_role_id) != -1
       );
 
       //转换为两层结构

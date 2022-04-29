@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 16:40:48
+ * @LastEditTime: 2022-04-28 01:54:26
  * @Description: QQ:1801168257
  */
 
@@ -28,9 +28,7 @@ class svngroup extends controller
      */
     function SyncGroupToDb()
     {
-        $svnAndGroupList =  \SVNAdmin\SVN\Group::GetSvnGroupUserAndGroupList($this->globalAuthzContent);
-
-
+        $svnAndGroupList =  $this->SVNAdminGroup->GetSvnGroupUserAndGroupList($this->globalAuthzContent);
 
         if ($svnAndGroupList == 0) {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
@@ -83,7 +81,7 @@ class svngroup extends controller
      */
     function GetAllGroupList()
     {
-        $svnGroupList = \SVNAdmin\SVN\Group::GetSvnGroupList($this->globalAuthzContent);
+        $svnGroupList = $this->SVNAdminGroup->GetSvnGroupList($this->globalAuthzContent);
         if ($svnGroupList == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         } else {
@@ -171,7 +169,7 @@ class svngroup extends controller
         FunCheckRepGroup($this->requestPayload['svn_group_name']);
 
         //检查用户是否已存在
-        $result = \SVNAdmin\SVN\Group::AddSvnGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
+        $result = $this->SVNAdminGroup->AddSvnGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -199,7 +197,7 @@ class svngroup extends controller
     function DelGroup()
     {
         //从authz文件删除
-        $result = \SVNAdmin\SVN\Group::DelSvnGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
+        $result = $this->SVNAdminGroup->DelSvnGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
 
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
@@ -226,7 +224,7 @@ class svngroup extends controller
         //新分组名称是否合法
         FunCheckRepGroup($this->requestPayload['groupNameNew']);
 
-        $svnGroupList = \SVNAdmin\SVN\Group::GetSvnGroupList($this->globalAuthzContent);
+        $svnGroupList = $this->SVNAdminGroup->GetSvnGroupList($this->globalAuthzContent);
 
         //旧分组是否存在
         if (!in_array($this->requestPayload['groupNameOld'], $svnGroupList)) {
@@ -238,7 +236,7 @@ class svngroup extends controller
             FunMessageExit(200, 0, '要修改的分组名称已经存在');
         }
 
-        $result = \SVNAdmin\SVN\Group::UpdSvnGroup($this->globalAuthzContent, $this->requestPayload['groupNameOld'], $this->requestPayload['groupNameNew']);
+        $result = $this->SVNAdminGroup->UpdSvnGroup($this->globalAuthzContent, $this->requestPayload['groupNameOld'], $this->requestPayload['groupNameNew']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -253,13 +251,13 @@ class svngroup extends controller
      */
     function GetGroupMember()
     {
-        $memberUserList = \SVNAdmin\SVN\Group::GetSvnUserListByGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
+        $memberUserList = $this->SVNAdminGroup->GetSvnUserListByGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
 
-        $memberGroupList = \SVNAdmin\SVN\Group::GetSvnGroupListByGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
+        $memberGroupList = $this->SVNAdminGroup->GetSvnGroupListByGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
 
-        $allGroupList = \SVNAdmin\SVN\Group::GetSvnGroupList($this->globalAuthzContent);
+        $allGroupList = $this->SVNAdminGroup->GetSvnGroupList($this->globalAuthzContent);
 
-        $allUserList = \SVNAdmin\SVN\User::GetSvnUserList($this->globalPasswdContent);
+        $allUserList = $this->SVNAdminUser->GetSvnUserList($this->globalPasswdContent);
 
         if ($memberUserList == '0' || $memberGroupList == '0' || $allGroupList == '0' || $allUserList == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
@@ -317,7 +315,7 @@ class svngroup extends controller
      */
     function GroupAddUser()
     {
-        $result = \SVNAdmin\SVN\Group::AddSvnGroupUser($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_user_name']);
+        $result = $this->SVNAdminGroup->AddSvnGroupUser($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_user_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -338,7 +336,7 @@ class svngroup extends controller
      */
     function GroupRemoveUser()
     {
-        $result = \SVNAdmin\SVN\Group::DelSvnGroupUser($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_user_name']);
+        $result = $this->SVNAdminGroup->DelSvnGroupUser($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_user_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -359,7 +357,7 @@ class svngroup extends controller
      */
     function GroupAddGroup()
     {
-        $result = \SVNAdmin\SVN\Group::AddSvnGroupGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_group_name_add']);
+        $result = $this->SVNAdminGroup->AddSvnGroupGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_group_name_add']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -391,7 +389,7 @@ class svngroup extends controller
      */
     function GroupRemoveGroup()
     {
-        $result = \SVNAdmin\SVN\Group::DelSvnGroupGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_group_name_del']);
+        $result = $this->SVNAdminGroup->DelSvnGroupGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_group_name_del']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -424,10 +422,10 @@ class svngroup extends controller
         $authzContent = $this->globalAuthzContent;
 
         //所有的分组列表
-        $allGroupList = \SVNAdmin\SVN\Group::GetSvnGroupList($authzContent);
+        $allGroupList = $this->SVNAdminGroup->GetSvnGroupList($authzContent);
 
         //用户所在的分组列表
-        $userGroupList = \SVNAdmin\SVN\User::GetSvnUserGroupList($authzContent, $userName);
+        $userGroupList = $this->SVNAdminUser->GetSvnUserGroupList($authzContent, $userName);
 
         //剩余的分组列表
         $leftGroupList = array_diff($allGroupList, $userGroupList);
@@ -436,7 +434,7 @@ class svngroup extends controller
         loop:
         $userGroupListBack = $userGroupList;
         foreach ($userGroupList as $group1) {
-            $newList = \SVNAdmin\SVN\Group::GetSvnGroupGroupList($authzContent, $group1);
+            $newList = $this->SVNAdminGroup->GetSvnGroupGroupList($authzContent, $group1);
             foreach ($leftGroupList as $key2 => $group2) {
                 if (in_array($group2, $newList)) {
                     array_push($userGroupList, $group2);
@@ -469,10 +467,10 @@ class svngroup extends controller
         $authzContent = $this->globalAuthzContent;
 
         //所有的分组列表
-        $allGroupList = \SVNAdmin\SVN\Group::GetSvnGroupList($authzContent);
+        $allGroupList = $this->SVNAdminGroup->GetSvnGroupList($authzContent);
 
         //分组所在的分组列表 
-        $groupGroupList = \SVNAdmin\SVN\Group::GetSvnGroupGroupList($authzContent, $parentGroupName);
+        $groupGroupList = $this->SVNAdminGroup->GetSvnGroupGroupList($authzContent, $parentGroupName);
 
         //剩余的分组列表
         $leftGroupList = array_diff($allGroupList, $groupGroupList);
@@ -481,7 +479,7 @@ class svngroup extends controller
         loop:
         $userGroupListBack = $groupGroupList;
         foreach ($groupGroupList as $group1) {
-            $newList = \SVNAdmin\SVN\Group::GetSvnGroupGroupList($authzContent, $group1);
+            $newList = $this->SVNAdminGroup->GetSvnGroupGroupList($authzContent, $group1);
             foreach ($leftGroupList as $key2 => $group2) {
                 if (in_array($group2, $newList)) {
                     array_push($groupGroupList, $group2);
