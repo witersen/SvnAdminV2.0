@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 16:56:59
+ * @LastEditTime: 2022-04-30 02:27:36
  * @Description: QQ:1801168257
  */
 
@@ -175,7 +175,7 @@ class common extends controller
 
         require_once BASE_PATH . '/extension/VerifyCode/VerifyCode.class.php';
 
-        $varification = new verification(134, 32, $code, BASE_PATH . '/data/test.png');
+        $varification = new verification(134, 32, $code);
 
         $imageString = $varification->CreateVerifacationImage();
 

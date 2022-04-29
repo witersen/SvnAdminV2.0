@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-28 02:32:04
+ * @LastEditTime: 2022-04-30 02:27:42
  * @Description: QQ:1801168257
  */
 
@@ -376,7 +376,11 @@ class svnrep extends controller
             $checkoutHost = 'svn://' . $bindInfo['bindHost'] . ':' . $bindInfo['bindPort'];
         }
 
-        //获取SVN用户密码
+        /**
+         * 获取SVN用户密码
+         * 
+         * 目的为使用该用户的权限进行操作 确保用户看到的就是所授权的
+         */
         $svnUserPass = $this->SVNAdminUser->GetPassByUser($this->globalPasswdContent, $this->globalUserName);
         if ($svnUserPass == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
@@ -384,39 +388,49 @@ class svnrep extends controller
             FunMessageExit(200, 0, '用户不存在' . $this->globalUserName);
         }
 
-        $cmdSvnList = sprintf("svn list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $checkoutHost . '/' . $repName . $path, $this->globalUserName, $svnUserPass);
-        $result = FunShellExec($cmdSvnList);
+        /**
+         * 使用svn list进行内容获取
+         */
+        $result = $this->SVNAdminRep->CheckSvnUserPathAutzh($checkoutHost, $repName, $path, $this->globalUserName, $svnUserPass);
 
-        if ($result == ISNULL) {
+        /**
+         * 判断结果是否为空
+         * 判断其他的意外情况
+         */
+        if ($result == '') {
             $resultArray = [];
         } else {
-            if (strstr($result, 'svn: E170001: Authentication error from server: Password incorrect')) {
-                FunMessageExit(200, 0, '密码错误');
-            }
-            if (strstr($result, 'svn: E170001: Authorization failed')) {
-                FunMessageExit(200, 0, '无访问权限');
-            }
-            if(strstr($result,'svn: E220003: Invalid authz configuration')){
-                FunMessageExit(200, 0, '配置文件配置错误 请使用svnauthz-validate工具检查');
-            }
-            if (strstr($result, 'svn: E170013: Unable to connect to a repository at URL')) {
-                FunMessageExit(200, 0, '其它错误' . $result);
-            }
-
-            $resultArray = explode("\n", trim($result));
+            $resultArray = explode("\n", $result);
         }
 
-        $data = [];
-        foreach ($resultArray as $key => $value) {
-            //补全路径
-            if (substr($path, strlen($path) - 1, 1) == '/') {
-                $value = $path .  $value;
-            } else {
-                $value = $path . '/' . $value;
+        /**
+         * 判断该条权限是否为文件授权而不是目录授权
+         * 
+         * 因为从authz文件返回的授权信息无论是文件还是路径都没有/ 因此需要在该用户有权限的情况下从svn list结果区分
+         * 如果结果为一条信息 + 不以/结尾 + 结果名称和请求信息相同，则判断为文件授权 需要另外处理
+         */
+        $isSingleFilePri = false;
+        if ($result != "") {
+            if (count($resultArray) == 1) {
+                if (substr($result, strlen($result) - 1, 1) != '/') {
+                    $tempArray = explode('/', $path);
+                    if ($result == $tempArray[count($tempArray) - 1]) {
+                        //确定为单文件授权
+                        $isSingleFilePri = true;
+                    }
+                }
             }
+        }
 
+        /**
+         * 获取版本号等文件详细信息
+         * 
+         * 此处也要针对但文件授权进行单独处理
+         */
+        $data = [];
+        if ($isSingleFilePri) {
             //获取文件或者文件夹最年轻的版本号
-            $lastRev  = $this->SVNAdminRep->GetRepFileRev($repName, $value);
+            $lastRev  = $this->SVNAdminRep->GetRepFileRev($repName, $path);
 
             //获取文件或者文件夹最年轻的版本的作者
             $lastRevAuthor = $this->SVNAdminRep->GetRepFileAuthor($repName, $lastRev);
@@ -427,35 +441,69 @@ class svnrep extends controller
             //同上 日志
             $lastRevLog = $this->SVNAdminRep->GetRepFileLog($repName, $lastRev);
 
-            $pathArray = explode('/', $value);
-            $pathArray = array_values(array_filter($pathArray, 'FunArrayValueFilter'));
-            $pathArrayCount = count($pathArray);
-            if (substr($value, strlen($value) - 1, 1) == '/') {
-                array_push($data, [
-                    'resourceType' => 2,
-                    'resourceName' => $pathArray[$pathArrayCount - 1],
-                    'fileSize' => '',
-                    'revAuthor' => $lastRevAuthor,
-                    'revNum' => 'r' . $lastRev,
-                    'revTime' => $lastRevDate,
-                    'revLog' => $lastRevLog,
-                    'fullPath' => $value
-                ]);
-            } else {
-                array_push($data, [
-                    'resourceType' => 1,
-                    'resourceName' => $pathArray[$pathArrayCount - 1],
-                    'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($repName, $value),
-                    'revAuthor' => $lastRevAuthor,
-                    'revNum' => 'r' . $lastRev,
-                    'revTime' => $lastRevDate,
-                    'revLog' => $lastRevLog,
-                    'fullPath' => $value
-                ]);
+            array_push($data, [
+                'resourceType' => 1,
+                'resourceName' => $tempArray[count($tempArray) - 1],
+                'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($repName, $path),
+                'revAuthor' => $lastRevAuthor,
+                'revNum' => 'r' . $lastRev,
+                'revTime' => $lastRevDate,
+                'revLog' => $lastRevLog,
+                'fullPath' => $path
+            ]);
+        } else {
+            foreach ($resultArray as $key => $value) {
+                //补全路径
+                if (substr($path, strlen($path) - 1, 1) == '/') {
+                    $value = $path .  $value;
+                } else {
+                    $value = $path . '/' . $value;
+                }
+
+                //获取文件或者文件夹最年轻的版本号
+                $lastRev  = $this->SVNAdminRep->GetRepFileRev($repName, $value);
+
+                //获取文件或者文件夹最年轻的版本的作者
+                $lastRevAuthor = $this->SVNAdminRep->GetRepFileAuthor($repName, $lastRev);
+
+                //同上 日期
+                $lastRevDate = $this->SVNAdminRep->GetRepFileDate($repName, $lastRev);
+
+                //同上 日志
+                $lastRevLog = $this->SVNAdminRep->GetRepFileLog($repName, $lastRev);
+
+                $pathArray = explode('/', $value);
+                $pathArray = array_values(array_filter($pathArray, 'FunArrayValueFilter'));
+                $pathArrayCount = count($pathArray);
+                if (substr($value, strlen($value) - 1, 1) == '/') {
+                    array_push($data, [
+                        'resourceType' => 2,
+                        'resourceName' => $pathArray[$pathArrayCount - 1],
+                        'fileSize' => '',
+                        'revAuthor' => $lastRevAuthor,
+                        'revNum' => 'r' . $lastRev,
+                        'revTime' => $lastRevDate,
+                        'revLog' => $lastRevLog,
+                        'fullPath' => $value
+                    ]);
+                } else {
+                    array_push($data, [
+                        'resourceType' => 1,
+                        'resourceName' => $pathArray[$pathArrayCount - 1],
+                        'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($repName, $value),
+                        'revAuthor' => $lastRevAuthor,
+                        'revNum' => 'r' . $lastRev,
+                        'revTime' => $lastRevDate,
+                        'revLog' => $lastRevLog,
+                        'fullPath' => $value
+                    ]);
+                }
             }
         }
 
-        //处理面包屑
+        /**
+         * 处理面包屑
+         */
         if ($path == '/') {
             $breadPathArray = ['/'];
             $breadNameArray = [$repName];
@@ -481,12 +529,17 @@ class svnrep extends controller
             }
         }
 
+        //针对单文件授权情况进行处理
+        if ($isSingleFilePri) {
+            unset($breadPathArray[count($breadPathArray) - 1]);
+            // unset($breadNameArray[count($breadNameArray) - 1]);
+        }
+
         FunMessageExit(200, 1, '', [
             'data' => $data,
             'bread' => [
                 'path' => $breadPathArray,
                 'name' => $breadNameArray,
-                'test' => $result
             ]
         ]);
     }
@@ -1156,7 +1209,7 @@ class svnrep extends controller
         //使用svndump
         $result = $this->SVNAdminRep->RepLoad($this->requestPayload['rep_name'], $this->requestPayload['fileName']);
 
-        if ($result == ISNULL) {
+        if ($result == '') {
             FunMessageExit();
         } else {
             FunMessageExit(200, 0, '导入错误', $result);

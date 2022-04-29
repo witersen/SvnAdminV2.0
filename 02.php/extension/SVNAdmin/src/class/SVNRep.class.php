@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:45:45
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-28 01:21:14
+ * @LastEditTime: 2022-04-30 02:26:16
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -1219,7 +1219,7 @@ class Rep extends Core
     {
         $cmd = sprintf("svnlook history --limit 1 '%s' '%s'", SVN_REPOSITORY_PATH .  $repName, $filePath);
         $result = FunShellExec($cmd);
-        $resultArray = explode("\n", trim($result));
+        $resultArray = explode("\n", $result);
         $content = preg_replace("/\s{2,}/", ' ', $resultArray[2]);
         $contentArray = explode(' ', $content);
         return trim($contentArray[1]);
@@ -1232,7 +1232,7 @@ class Rep extends Core
     {
         $cmd = sprintf("svnlook author -r %s '%s'", $rev, SVN_REPOSITORY_PATH .  $repName);
         $result = FunShellExec($cmd);
-        return trim($result);
+        return $result;
     }
 
     /**
@@ -1242,7 +1242,7 @@ class Rep extends Core
     {
         $cmd = sprintf("svnlook date -r %s '%s'", $rev, SVN_REPOSITORY_PATH .  $repName);
         $result = FunShellExec($cmd);
-        return trim($result);
+        return $result;
     }
 
     /**
@@ -1252,7 +1252,7 @@ class Rep extends Core
     {
         $cmd = sprintf("svnlook log -r %s '%s'", $rev, SVN_REPOSITORY_PATH .  $repName);
         $result = FunShellExec($cmd);
-        return trim($result);
+        return $result;
     }
 
     /**
@@ -1282,28 +1282,32 @@ class Rep extends Core
     {
         $cmd = sprintf("svnadmin load --quiet '%s' < '%s'", SVN_REPOSITORY_PATH .  $repName, SVN_BACHUP_PATH .  $fileName);
         $result = FunShellExec($cmd);
-        return trim($result);
+        return $result;
     }
 
     /**
-     * 使用 svn list 为用户检查指令
+     * 使用svn list进行内容获取
      */
     function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, $svnUserPass)
     {
         $cmd = sprintf("svn list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
         $result = FunShellExec($cmd);
         if (strstr($result, 'svn: E170001: Authentication error from server: Password incorrect')) {
-            //密码错误
-            return false;
+            FunMessageExit(200, 0, '密码错误');
         }
         if (strstr($result, 'svn: E170001: Authorization failed')) {
-            //没有权限
-            return false;
+            FunMessageExit(200, 0, '无访问权限');
+        }
+        if (strstr($result, 'svn: E220003: Invalid authz configuration')) {
+            FunMessageExit(200, 0, '配置文件配置错误 请使用svnauthz-validate工具检查');
         }
         if (strstr($result, 'svn: E170013: Unable to connect to a repository at URL')) {
-            //其它错误
-            return false;
+            FunMessageExit(200, 0, '其它错误' . $result);
         }
-        return true;
+        if (strstr($result, 'svn: warning: W160013:') || strstr($result, "svn: E200009: Could not list all targets because some targets don't exist")) {
+            // FunMessageExit(200, 0, '该路径在仓库不存在 请刷新以同步');
+            FunMessageExit(200, 0, '该路径在仓库已不在版本库中');
+        }
+        return $result;
     }
 }

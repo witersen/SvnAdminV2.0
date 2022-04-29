@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 11:33:46
+ * @LastEditTime: 2022-04-30 02:14:02
  * @Description: QQ:1801168257
  */
 
@@ -21,7 +21,7 @@ function FunShellExec($shell)
     socket_write($socket, $shell);
     $reply = socket_read($socket, (int)SOCKET_READ_LENGTH);
     socket_close($socket);
-    return $reply;
+    return $reply = $reply == ISNULL ? '' : $reply;
 }
 
 /**

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-28 02:09:41
+ * @LastEditTime: 2022-04-30 02:32:15
  * @Description: QQ:1801168257
  */
 
@@ -28,8 +28,8 @@ class subversion extends controller
     {
         $result = FunShellExec("ps auxf | grep -v 'grep' | grep svnserve");
 
-        if (trim($result) == ISNULL) {
-            FunMessageExit(200, 0, '请注意 subversion服务并未以daemon方式运行！ 如果非人为操作，请及时检查原因！');
+        if ($result == '') {
+            FunMessageExit(200, 0, 'svnserve服务未在运行，SVN用户将无法使用仓库浏览功能');
         } else {
             FunMessageExit();
         }
@@ -71,13 +71,13 @@ class subversion extends controller
         //检测安装状态
         //未知状态
         $installInfo = -1;
-        if ($runInfo == ISNULL && !$installInfo) {
+        if ($runInfo == '' && !$installInfo) {
             //未安装
             $installed = 0;
-        } else if ($runInfo == ISNULL && $installInfo) {
+        } else if ($runInfo == '' && $installInfo) {
             //安装未启动
             $installed = 1;
-        } else if ($runInfo != ISNULL && $installInfo) {
+        } else if ($runInfo != '' && $installInfo) {
             //运行中
             $installed = 2;
         }

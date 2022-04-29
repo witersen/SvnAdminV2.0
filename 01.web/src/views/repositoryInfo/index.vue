@@ -199,6 +199,7 @@
         <Table
           height="450"
           highlight-row
+          :no-data-text="noDataTextRepCon"
           :border="false"
           :loading="loadingRepCon"
           :show-header="false"
@@ -629,6 +630,11 @@ export default {
        * 搜索关键词
        */
       searchKeywordRep: "",
+
+      /**
+       * 表格无数据提示
+       */
+      noDataTextRepCon: "暂无数据",
 
       /**
        * 加载
@@ -1250,6 +1256,8 @@ export default {
      */
     ModalViewRep(rep_name) {
       var that = this;
+      //还原表格为空提示内容
+      that.noDataTextRepCon = "暂无数据";
       //通过按钮点击浏览 初始化路径和仓库名称
       that.currentRepTreePath = "/";
       that.currentRepName = rep_name;
@@ -1268,6 +1276,8 @@ export default {
      */
     ModalViewUserRep(rep_name, pri_path) {
       var that = this;
+      //还原表格为空提示内容
+      that.noDataTextRepCon = "暂无数据";
       //通过按钮点击浏览 初始化路径和仓库名称
       that.currentRepTreePath = pri_path;
       that.currentRepName = rep_name;
@@ -1278,7 +1288,21 @@ export default {
       //请求检出地址信息
       that.GetCheckout().then(function (response) {
         //在检出地址的成功回调中开始请求仓库内容
-        that.GetUserRepCon();
+        if (that.formStatusSubversion.status == true) {
+          that.GetUserRepCon();
+        } else {
+          that.loadingRepCon = false;
+          //设置表格提示信息
+          that.noDataTextRepCon =
+            "由于svnserve服务未启动，SVN用户只能复制检出地址而不能进行仓库内容浏览";
+          //更新检出地址
+          that.tempCheckout =
+            that.checkInfo.protocal +
+            that.checkInfo.prefix +
+            "/" +
+            that.currentRepName +
+            that.currentRepTreePath;
+        }
       });
     },
     /**
@@ -1619,13 +1643,9 @@ export default {
      * 点击目录树节点触发
      */
     ChangeSelectTreeNode(selectArray, currentItem) {
-      if (currentItem.resourceType == "2") {
-        this.currentRepTreePriPath = currentItem.fullPath;
-        this.GetRepPathUserPri();
-        this.GetRepPathGroupPri();
-      } else {
-        this.$Message.error("不建议使用文件授权");
-      }
+      this.currentRepTreePriPath = currentItem.fullPath;
+      this.GetRepPathUserPri();
+      this.GetRepPathGroupPri();
     },
     /**
      * 异步加载目录下的内容
