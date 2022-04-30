@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:45:45
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 02:26:16
+ * @LastEditTime: 2022-04-30 19:56:44
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -619,6 +619,29 @@ class Rep extends Core
     }
 
     /**
+     * 从配置文件删除指定仓库的指定路径
+     * 
+     * 1        已删除
+     * string   正常
+     */
+    function DelRepPath($authzContent, $repName, $repPath)
+    {
+        //处理路径结尾
+        if ($repPath != '/') {
+            if (substr($repPath, strlen($repPath) - 1, 1) == '/') {
+                $repPath = substr($repPath, 0, strlen($repPath) - 1);
+            }
+        }
+
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        if (array_key_exists(0, $authzContentPreg[0])) {
+            return str_replace($authzContentPreg[0][0], "", $authzContent);
+        } else {
+            return '1';
+        }
+    }
+
+    /**
      * 从配置文件删除指定仓库的所有路径
      *
      * 1        已删除
@@ -866,6 +889,7 @@ class Rep extends Core
         $svnadminInfoCmd = sprintf("svnadmin info '%s'", $repPath);
 
         $cmdResult = FunShellExec($svnadminInfoCmd);
+        $cmdResult = $cmdResult['result'];
 
         preg_match_all($this->REG_REP_INFO, $cmdResult, $svnadminInfoPreg);
 
@@ -884,6 +908,7 @@ class Rep extends Core
         $repPath = SVN_REPOSITORY_PATH .  $repName;
         $svnadminInfoCmd = sprintf("svnlook tree '%s'", $repPath);
         $cmdResult = FunShellExec($svnadminInfoCmd);
+        $cmdResult = $cmdResult['result'];
         // $cmdResult = shell_exec($svnadminInfoCmd);
         $treeArray = explode("\n", $cmdResult);
         //去除数组中的空字符串键值 通常为最后一项
@@ -1186,7 +1211,8 @@ class Rep extends Core
     function GetRepRev($repName)
     {
         $cmd = sprintf("svnadmin info '%s' | grep 'Revisions' | awk '{print $2}'", SVN_REPOSITORY_PATH .  $repName);
-        return (int)trim(FunShellExec($cmd));
+        $result = FunShellExec($cmd);
+        return (int)$result['result'];
     }
 
     /**
@@ -1195,7 +1221,8 @@ class Rep extends Core
     function GetRepDetail($repName)
     {
         $cmd = sprintf("svnadmin info '%s'", SVN_REPOSITORY_PATH .  $repName);
-        return trim(FunShellExec($cmd));
+        $result = FunShellExec($cmd);
+        return $result['result'];
     }
 
     /**
@@ -1208,7 +1235,8 @@ class Rep extends Core
     function GetRepRevFileSize($repName, $filePath)
     {
         $cmd = sprintf("svnlook filesize '%s' '%s'", SVN_REPOSITORY_PATH . $repName, $filePath);
-        $size = (int)trim(FunShellExec($cmd));
+        $result = FunShellExec($cmd);
+        $size = (int)$result['result'];
         return FunFormatSize($size);
     }
 
@@ -1219,6 +1247,7 @@ class Rep extends Core
     {
         $cmd = sprintf("svnlook history --limit 1 '%s' '%s'", SVN_REPOSITORY_PATH .  $repName, $filePath);
         $result = FunShellExec($cmd);
+        $result = $result['result'];
         $resultArray = explode("\n", $result);
         $content = preg_replace("/\s{2,}/", ' ', $resultArray[2]);
         $contentArray = explode(' ', $content);
@@ -1232,7 +1261,7 @@ class Rep extends Core
     {
         $cmd = sprintf("svnlook author -r %s '%s'", $rev, SVN_REPOSITORY_PATH .  $repName);
         $result = FunShellExec($cmd);
-        return $result;
+        return $result['result'];
     }
 
     /**
@@ -1242,7 +1271,7 @@ class Rep extends Core
     {
         $cmd = sprintf("svnlook date -r %s '%s'", $rev, SVN_REPOSITORY_PATH .  $repName);
         $result = FunShellExec($cmd);
-        return $result;
+        return $result['result'];
     }
 
     /**
@@ -1252,7 +1281,7 @@ class Rep extends Core
     {
         $cmd = sprintf("svnlook log -r %s '%s'", $rev, SVN_REPOSITORY_PATH .  $repName);
         $result = FunShellExec($cmd);
-        return $result;
+        return $result['result'];
     }
 
     /**
@@ -1292,22 +1321,31 @@ class Rep extends Core
     {
         $cmd = sprintf("svn list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
         $result = FunShellExec($cmd);
-        if (strstr($result, 'svn: E170001: Authentication error from server: Password incorrect')) {
-            FunMessageExit(200, 0, '密码错误');
+
+        if ($result['resultCode'] != 0) {
+            //: Authentication error from server: Password incorrect
+            if (strstr($result['error'], 'svn: E170001')) {
+                FunMessageExit(200, 0, '密码错误');
+            }
+            //: Authorization failed
+            if (strstr($result['error'], 'svn: E170001')) {
+                FunMessageExit(200, 0, '无访问权限');
+            }
+            //: Invalid authz configuration
+            if (strstr($result['error'], 'svn: E220003')) {
+                FunMessageExit(200, 0, '配置文件配置错误 请使用svnauthz-validate工具检查');
+            }
+            //: Unable to connect to a repository at URL
+            if (strstr($result['error'], 'svn: E170013')) {
+                FunMessageExit(200, 0, '无法连接到仓库');
+            }
+            //: Could not list all targets because some targets don't exist
+            if (strstr($result['error'], 'svn: warning: W160013') || strstr($result['error'], "svn: E200009")) {
+                FunMessageExit(200, 0, '该授权路径在仓库不存在 请刷新以同步');
+            }
+            FunMessageExit(200, 0, '其它错误' . $result['error']);
         }
-        if (strstr($result, 'svn: E170001: Authorization failed')) {
-            FunMessageExit(200, 0, '无访问权限');
-        }
-        if (strstr($result, 'svn: E220003: Invalid authz configuration')) {
-            FunMessageExit(200, 0, '配置文件配置错误 请使用svnauthz-validate工具检查');
-        }
-        if (strstr($result, 'svn: E170013: Unable to connect to a repository at URL')) {
-            FunMessageExit(200, 0, '其它错误' . $result);
-        }
-        if (strstr($result, 'svn: warning: W160013:') || strstr($result, "svn: E200009: Could not list all targets because some targets don't exist")) {
-            // FunMessageExit(200, 0, '该路径在仓库不存在 请刷新以同步');
-            FunMessageExit(200, 0, '该路径在仓库已不在版本库中');
-        }
-        return $result;
+
+        return $result['result'];
     }
 }

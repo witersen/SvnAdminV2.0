@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 17:58:13
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-28 02:09:18
+ * @LastEditTime: 2022-04-30 19:28:20
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -34,6 +34,7 @@ class Info extends Core
         $bindHost = '';
 
         $svnserveContent = FunShellExec('cat ' . $SVNSERVE_ENV_FILE);
+        $svnserveContent = $svnserveContent['result'];
 
         //匹配端口
         if (preg_match('/--listen-port[\s]+([0-9]+)/', $svnserveContent, $portMatchs) != 0) {
@@ -46,6 +47,7 @@ class Info extends Core
         }
 
         $listenContent = FunShellExec('cat ' . $LISTEN_FILE);
+        $listenContent = $listenContent['result'];
 
         if (!FunCheckJson($listenContent)) {
             //文件格式错误则初始化
@@ -73,6 +75,7 @@ class Info extends Core
         }
 
         $listenContent = FunShellExec('cat ' . $LISTEN_FILE);
+        $listenContent = $listenContent['result'];
         $listenArray = json_decode($listenContent, true);
 
         return [

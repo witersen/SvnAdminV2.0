@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 02:27:42
+ * @LastEditTime: 2022-04-30 19:57:12
  * @Description: QQ:1801168257
  */
 
@@ -149,7 +149,69 @@ class svnrep extends controller
             }
         }
 
-        FunShellExec('echo \'' . $authzContet . '\' > ' . SVN_AUTHZ_FILE);
+        if ($authzContet != $this->globalAuthzContent) {
+            FunShellExec('echo \'' . $authzContet . '\' > ' . SVN_AUTHZ_FILE);
+        }
+    }
+
+    /**
+     * 对用户有权限的仓库路径列表进行一一验证
+     * 
+     * 确保该仓库的路径存在于仓库的最新版本库中
+     * 
+     * 此方式可以清理掉因为目录/文件名进行修改/删除后造成的authz文件冗余 
+     * 但是此方式只能清理对此用户进行的有权限的授权 而不能清理无权限的情况
+     * 以后有时间会考虑对所有的路径进行扫描和清理[todo]
+     */
+    function SyncRepPathCheck()
+    {
+        //获取在authz文件配置的用户有权限的仓库路径列表
+        $userRepList = [];
+
+        //获取用户有权限的仓库列表
+        $userRepList = array_merge($userRepList, $this->SVNAdminUser->GetUserPriRepListWithPriAndPath($this->globalAuthzContent, $this->globalUserName));
+
+        //获取用户所在的所有分组
+        $userGroupList = $this->Svngorup->GetSvnUserAllGroupList($this->globalUserName);
+
+        //获取分组有权限的仓库路径列表
+        foreach ($userGroupList as $value) {
+            $userRepList = array_merge($userRepList, $this->SVNAdminGroup->GetGroupPriRepListWithPriAndPath($this->globalAuthzContent, $value));
+        }
+
+        //按照全路径去重
+        $tempArray = [];
+        foreach ($userRepList as $key => $value) {
+            if (in_array($value['unique'], $tempArray)) {
+                unset($userRepList[$key]);
+            } else {
+                array_push($tempArray, $value['unique']);
+            }
+        }
+
+        //处理不连续的下标
+        $userRepList = array_values($userRepList);
+
+        $authzContent = $this->globalAuthzContent;
+
+        foreach ($userRepList as $key => $value) {
+            $cmd = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", SVN_REPOSITORY_PATH .  $value['repName'], $value['priPath']);
+            $result = FunShellExec($cmd);
+
+            if (strstr($result['error'], 'svnlook: E160013:')) {
+                //路径在仓库不存在
+                //从配置文件删除指定仓库的指定路径
+                $tempResult = $this->SVNAdminRep->DelRepPath($authzContent, $value['repName'], $value['priPath']);
+                if ($tempResult != '1') {
+                    $authzContent = $tempResult;
+                }
+            }
+        }
+
+        //写入配置文件
+        if ($authzContent != $this->globalAuthzContent) {
+            FunShellExec('echo \'' . $authzContent . '\' > ' . SVN_AUTHZ_FILE);
+        }
     }
 
     /**
@@ -293,6 +355,23 @@ class svnrep extends controller
         $this->SyncRepAndAuthz();
 
         /**
+         * 及时更新
+         */
+        parent::UPdateAuthz();
+
+        /**
+         * 对用户有权限的仓库路径列表进行一一验证
+         * 
+         * 确保该仓库的路径存在于仓库的最新版本库中
+         */
+        $this->SyncRepPathCheck();
+
+        /**
+         * 及时更新
+         */
+        parent::UPdateAuthz();
+
+        /**
          * 用户有权限的仓库路径列表 => svn_user_pri_paths数据表
          * 
          * 1、列表中存在的但是数据表不存在则向数据表插入
@@ -353,7 +432,7 @@ class svnrep extends controller
             'rep_name' => $this->requestPayload['rep_name']
         ]);
 
-        FunMessageExit();
+        FunMessageExit(200, 1, '已保存');
     }
 
     /**
@@ -560,6 +639,7 @@ class svnrep extends controller
         //获取全路径的一层目录树
         $cmdSvnlookTree = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
+        $result = $result['result'];
         $resultArray = explode("\n", trim($result));
         unset($resultArray[0]);
         $resultArray = array_values($resultArray);
@@ -653,6 +733,7 @@ class svnrep extends controller
         //获取全路径的一层目录树
         $cmdSvnlookTree = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", SVN_REPOSITORY_PATH  . $this->requestPayload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
+        $result = $result['result'];
         $resultArray = explode("\n", trim($result));
         unset($resultArray[0]);
         $resultArray = array_values($resultArray);
@@ -1209,10 +1290,10 @@ class svnrep extends controller
         //使用svndump
         $result = $this->SVNAdminRep->RepLoad($this->requestPayload['rep_name'], $this->requestPayload['fileName']);
 
-        if ($result == '') {
+        if ($result['error'] == '') {
             FunMessageExit();
         } else {
-            FunMessageExit(200, 0, '导入错误', $result);
+            FunMessageExit(200, 0, '导入错误', $result['error']);
         }
     }
 
@@ -1294,7 +1375,8 @@ class svnrep extends controller
         foreach ($file_arr as $file_item) {
             if ($file_item != '.' && $file_item != '..') {
                 if (in_array($file_item, $hooks_file_list)) {
-                    $hooks_type_list[$file_item]['shell'] = FunShellExec(sprintf("cat '%s'", SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name'] . '/' . 'hooks' . '/' . $file_item));
+                    $temp = FunShellExec(sprintf("cat '%s'", SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name'] . '/' . 'hooks' . '/' . $file_item));
+                    $hooks_type_list[$file_item]['shell'] = $temp['result'];
                     $hooks_type_list[$file_item]['shell'] = trim($hooks_type_list[$file_item]['shell']);
                 }
             }

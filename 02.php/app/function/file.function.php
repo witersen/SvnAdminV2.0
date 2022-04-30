@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 16:58:42
+ * @LastEditTime: 2022-04-30 19:26:32
  * @Description: QQ:1801168257
  */
 
@@ -63,6 +63,7 @@ function FunGetDirSizeDu($path)
 {
     $cmd = sprintf("du -s '%s' | awk '{print $1}'", $path);
     $result =  FunShellExec($cmd);
+    $result = $result['result'];
     $result  = (int)trim($result) * 1024;
     return $result;
 }

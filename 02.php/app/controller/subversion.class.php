@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 02:32:15
+ * @LastEditTime: 2022-04-30 19:24:09
  * @Description: QQ:1801168257
  */
 
@@ -27,6 +27,7 @@ class subversion extends controller
     function GetStatus()
     {
         $result = FunShellExec("ps auxf | grep -v 'grep' | grep svnserve");
+        $result = $result['result'];
 
         if ($result == '') {
             FunMessageExit(200, 0, 'svnserve服务未在运行，SVN用户将无法使用仓库浏览功能');
@@ -64,6 +65,7 @@ class subversion extends controller
 
         //检测运行信息
         $runInfo = FunShellExec('ps auxf|grep -v "grep"|grep svnserve');
+        $runInfo = $runInfo['result'];
 
         //检测安装信息
         $installInfo = file_exists('/usr/bin/svnserve');
@@ -86,6 +88,7 @@ class subversion extends controller
         $version = '-';
         if ($installed != 0) {
             $versionInfo = FunShellExec('svnserve --version');
+            $versionInfo = $versionInfo['result'];
             preg_match_all(REG_SUBVERSION_VERSION, $versionInfo, $versionInfoPreg);
             if (array_key_exists(0, $versionInfoPreg[0])) {
                 $version = trim($versionInfoPreg[1][0]);

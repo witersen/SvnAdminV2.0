@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-28 02:03:15
+ * @LastEditTime: 2022-04-30 19:44:21
  * @Description: QQ:1801168257
  */
 
@@ -149,5 +149,15 @@ class controller
         }
         $arr = explode('.', $this->token);
         return $arr[1];
+    }
+
+    /**
+     * 重新从authz文件中读取内容
+     * 
+     * 由于有些操作会更改authz文件内容且其它操作依赖这一实时结果 因此需要及时更新
+     */
+    final function UPdateAuthz()
+    {
+        $this->globalAuthzContent = file_exists(SVN_AUTHZ_FILE) ? file_get_contents(SVN_AUTHZ_FILE) : '';
     }
 }

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-28 02:22:01
+ * @LastEditTime: 2022-04-30 19:59:26
  * @Description: QQ:1801168257
  */
 
@@ -34,7 +34,7 @@ class Daemon
     /**
      * 将程序变为守护进程
      */
-    private function initDaemon()
+    private function InitDeamon()
     {
         $pid = pcntl_fork();
         if ($pid < 0) {
@@ -64,13 +64,13 @@ class Daemon
             fclose(STDERR);
         }
         file_put_contents($this->pidFile, getmypid());
-        $this->initSocket();
+        $this->InitSocket();
     }
 
     /**
-     * 监听指定端口
+     * 创建TCP套接字并监听指定端口
      */
-    private function initSocket()
+    private function InitSocket()
     {
         //创建套接字
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or exit('启动失败：socket_create 错误' . PHP_EOL);
@@ -97,53 +97,65 @@ class Daemon
             if ($pid == -1) {
                 exit('启动失败：pcntl_fork 错误' . PHP_EOL);
             } else if ($pid == 0) {
-                $this->handleRequest($client);
+                $this->HandleRequest($client);
             } else {
             }
         }
     }
 
     /**
-     * socket程序接收和处理请求
+     * 接收TCP连接并处理指令
      */
-    private function handleRequest($client)
+    private function HandleRequest($client)
     {
         //接收客户端发送的数据
-        $data = socket_read($client, SOCKET_READ_LENGTH);
+        $cmmand = socket_read($client, SOCKET_READ_LENGTH);
 
-        //console
-        $this->workMode == 'console' ? print_r(PHP_EOL . '---------receive---------' . PHP_EOL . $data . PHP_EOL) : '';
-
-        if (trim($data) != '') {
-            /**
-             * shell_exec方法拿不到执行指令的错误抛出信息
-             */
-            // $result = shell_exec($data);
-
-            /**
-             * passthru会将所有的结果（包括正确的和错误的抛出信息输出）
-             * 可以使用 ob_start ob_get_contents ob_end_clean 拿到缓冲区的内容
-             * 
-             * 此方法在console调试模式下会导致 $result 变量拿不到值；
-             * 但是在daemon模式下 $result 变量可以拿到值（猜测是输入到终端与输出到缓冲区的影响）
-             */
-            ob_start();
-            passthru($data);
-            $result = ob_get_contents();
-            ob_end_clean();
-        } else {
-            //探测程序会发送空信息
-            $result = '';
+        //console模式
+        if ($this->workMode == 'console') {
+            echo PHP_EOL . '---------receive---------' . PHP_EOL;
+            echo $cmmand . PHP_EOL;
         }
 
-        //console
-        $this->workMode == 'console' ? print_r(PHP_EOL . '---------result---------' . PHP_EOL . $result . PHP_EOL) : '';
+        if (trim($cmmand) != '') {
+            //定义错误输出文件路径
+            $stderrFile = TEMP_PATH . uniqid();
 
-        //处理没有返回内容的情况 否则 socket_write 遇到空内容会报错
-        $result = trim($result) == '' ? ISNULL : trim($result);
+            //将标准错误重定向到文件
+            //使用状态码来标识错误信息
+            ob_start();
+            passthru($cmmand . " 2>$stderrFile", $resultCode);
+            $buffer = ob_get_contents();
+            ob_end_clean();
 
-        //将结果返回给客户端
-        socket_write($client, $result, strlen($result)) or die('启动失败：socket_write 错误' . PHP_EOL);
+            //将错误信息和正确信息分类收集
+            $result = [
+                'resultCode' => $resultCode,
+                'result' => trim($buffer),
+                'error' => file_get_contents($stderrFile)
+            ];
+
+            //销毁文件
+            unlink($stderrFile);
+        } else {
+            //探测程序会发送空信息
+            $result = [
+                'resultCode' => 0,
+                'result' => '',
+                'error' => ''
+            ];
+        }
+
+        //console模式
+        if ($this->workMode == 'console') {
+            echo PHP_EOL . '---------result---------' . PHP_EOL;
+            echo 'resultCode: ' . $result['resultCode'] . PHP_EOL;
+            echo 'result: ' . $result['result'] . PHP_EOL;
+            echo 'error: ' . $result['error'] . PHP_EOL;
+        }
+
+        //将结果序列化并返回
+        socket_write($client, serialize($result), strlen(serialize($result))) or die('失败：socket_write 错误' . PHP_EOL);
 
         //关闭会话
         socket_close($client);
@@ -155,7 +167,7 @@ class Daemon
     /**
      * 检查操作系统是否符合要求
      */
-    private function checkSysType()
+    private function CheckSysType()
     {
         if (PHP_OS != 'Linux') {
             exit('启动失败：当前操作系统不为Linux' . PHP_EOL);
@@ -173,7 +185,7 @@ class Daemon
     /**
      * 检查php版本是否符合要求
      */
-    private function checkPhpVersion()
+    private function CheckPhpVersion()
     {
         if (PHP_VERSION < Required_PHP_VERSION) {
             exit('启动失败：当前的PHP版本为：' . PHP_VERSION . '，要求的最低PHP版本为：' . Required_PHP_VERSION . PHP_EOL);
@@ -183,7 +195,7 @@ class Daemon
     /**
      * 检查需要的函数是否被禁用
      */
-    private function checkDisabledFunction()
+    private function CheckDisabledFunction()
     {
         $disabled_function = explode(',', ini_get('disable_functions'));
         $cli_needed_function = unserialize(CLI_NEEDED_FUNCTION);
@@ -200,7 +212,7 @@ class Daemon
     /**
      * 以守护进程模式工作
      */
-    private function startDaemon()
+    private function StartDaemon()
     {
         if (file_exists($this->pidFile)) {
             $pid = file_get_contents($this->pidFile);
@@ -209,13 +221,13 @@ class Daemon
                 exit('程序正在运行中' . PHP_EOL);
             }
         }
-        $this->initDaemon();
+        $this->InitDeamon();
     }
 
     /**
      * 关闭守护进程
      */
-    private function stopDaemon()
+    private function StopDaemon()
     {
         if (file_exists($this->pidFile)) {
             $pid = file_get_contents($this->pidFile);
@@ -227,27 +239,27 @@ class Daemon
     /**
      * 以控制台模式工作 用于调试
      */
-    private function startConsole()
+    private function StartConsole()
     {
-        $this->initSocket();
+        $this->InitSocket();
     }
 
-    public function run($argv)
+    public function Run($argv)
     {
-        $this->checkSysType();
-        $this->checkPhpVersion();
-        $this->checkDisabledFunction();
+        $this->CheckSysType();
+        $this->CheckPhpVersion();
+        $this->CheckDisabledFunction();
         if (isset($argv[1])) {
             $this->workMode = $argv[1];
             if (!in_array($this->workMode, $this->scripts)) {
                 exit('用法：php svnadmin.php [start | stop | console]' . PHP_EOL);
             }
             if ($this->workMode == 'start') {
-                $this->startDaemon();
+                $this->StartDaemon();
             } else if ($this->workMode == 'stop') {
-                $this->stopDaemon();
+                $this->StopDaemon();
             } else if ($this->workMode == 'console') {
-                $this->startConsole();
+                $this->StartConsole();
             }
         } else {
             exit('用法：php svnadmin.php [start | stop | console]' . PHP_EOL);
@@ -255,7 +267,10 @@ class Daemon
     }
 }
 
+/**
+ * 将工作模式限制在cli模式
+ */
 if (preg_match('/cli/i', php_sapi_name())) {
     $deamon = new Daemon();
-    $deamon->run($argv);
+    $deamon->Run($argv);
 }

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-28 01:53:50
+ * @LastEditTime: 2022-04-30 19:22:53
  * @Description: QQ:1801168257
  */
 
@@ -40,6 +40,7 @@ class statistics extends controller
          * ----------负载计算开始----------
          */
         $laodavg = FunShellExec("cat /proc/loadavg | awk '{print $1,$2,$3}'");
+        $laodavg = $laodavg['result'];
         $laodavgArray = explode(' ', $laodavg);
 
         //获取CPU15分钟前到现在的负载平均值
@@ -53,6 +54,7 @@ class statistics extends controller
 
         //获取cpu总核数
         $cpuCount  = FunShellExec('grep -c "model name" /proc/cpuinfo');
+        $cpuCount = $cpuCount['result'];
         $cpuCount = (int)trim($cpuCount);
 
         //一分钟的平均负载 / （cpu总核数 * 2），超过100则为100 不超100为真实值取整
@@ -91,12 +93,14 @@ class statistics extends controller
          * st steal             实时
          */
         $topResult = FunShellExec('top -b -n 1 | grep Cpu');
+        $topResult = $topResult['result'];
         preg_match('/ni,(.*?)id/', $topResult, $matches);
         $id = 100 - (float)trim($matches[1]);
 
         //cpu型号
         $cpuModelArray = [];
         $cpuModelName = FunShellExec("cat /proc/cpuinfo | grep 'model name' | uniq");
+        $cpuModelName = $cpuModelName['result'];
         $explodeArray = explode("\n", trim($cpuModelName));
         foreach ($explodeArray as $value) {
             if (trim($value) != '') {
@@ -107,10 +111,12 @@ class statistics extends controller
 
         //物理cpu个数
         $cpuPhysical = FunShellExec("cat /proc/cpuinfo | grep 'physical id' | sort -u | wc -l");
+        $cpuPhysical = $cpuPhysical['result'];
         $cpuPhysical = (int)trim($cpuPhysical);
 
         //每个物理cpu的物理核心数
         $cpuPhysicalCore = FunShellExec("cat /proc/cpuinfo | grep 'cpu cores' | wc -l");
+        $cpuPhysicalCore = $cpuPhysicalCore['result'];
         $cpuPhysicalCore = (int)trim($cpuPhysicalCore);
 
         //总物理核心数 = 物理cpu个数 * 每个物理cpu的物理核心数（每个物理cpu的物理核心数都一样吗？）
@@ -118,6 +124,7 @@ class statistics extends controller
 
         //逻辑核心总数（线程总数）
         $cpuProcessor = FunShellExec("cat /proc/cpuinfo | grep 'processor' | wc -l");
+        $cpuProcessor = $cpuProcessor['result'];
         $cpuProcessor = (int)trim($cpuProcessor);
 
         /**
@@ -143,10 +150,12 @@ class statistics extends controller
          */
         //物理内存总量
         $memTotal = FunShellExec("cat /proc/meminfo | grep 'MemTotal' | awk '{print $2}'");
+        $memTotal = $memTotal['result'];
         $memTotal = (int)trim($memTotal);
 
         //操作系统可用内存总量（没有使用空闲内存）
         $memFree =  FunShellExec("cat /proc/meminfo | grep 'MemAvailable' | awk '{print $2}'");
+        $memFree = $memFree['result'];
         $memFree = (int)trim($memFree);
 
         //操作系统已使用内存总量
@@ -177,6 +186,7 @@ class statistics extends controller
     function GetDisk()
     {
         $rs = FunShellExec('df -lh | grep -E "^(/)"');
+        $rs = $rs['result'];
 
         //将多个连续的空格换为一个
         $result = preg_replace("/\s{2,}/", ' ', $rs);
@@ -220,6 +230,7 @@ class statistics extends controller
     {
         //操作系统类型和版本
         $os = FunShellExec("cat /etc/redhat-release");
+        $os = $os['result'];
 
         //仓库占用体积
         $repSize = FunFormatSize(FunGetDirSizeDu(SVN_REPOSITORY_PATH));
