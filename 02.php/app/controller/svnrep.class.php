@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 19:57:12
+ * @LastEditTime: 2022-05-01 02:04:32
  * @Description: QQ:1801168257
  */
 
@@ -50,7 +50,7 @@ class svnrep extends controller
 
         if ($this->requestPayload['rep_type'] == '2') {
             //以指定的目录结构初始化仓库
-            $this->SVNAdminRep->InitRepStruct($this->requestPayload['rep_name']);
+            $this->SVNAdminRep->InitRepStruct(TEMPLETE_INIT_STRUTCT, SVN_REPOSITORY_PATH . $this->requestPayload['rep_name']);
         }
 
         //检查是否创建成功

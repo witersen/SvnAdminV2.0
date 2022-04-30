@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-26 17:00:45
+ * @LastEditTime: 2022-05-01 02:06:19
  * @Description: QQ:1801168257
  */
 
@@ -72,3 +72,13 @@ define('LISTEN_FILE', CONFIG_PATH . 'listen.json');
  * 消息通知配置 json文件
  */
 define('MESSAGE_FILE', CONFIG_PATH . 'message.json');
+
+/**
+ * 模板文件目录
+ */
+define('TEMPLETE_PATH', CONFIG_PATH . 'templete/');
+
+/**
+ * 初始化仓库结构模板
+ */
+define('TEMPLETE_INIT_STRUTCT', TEMPLETE_PATH . '01/');

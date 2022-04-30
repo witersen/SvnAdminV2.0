@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-27 14:54:15
+ * @LastEditTime: 2022-05-01 00:33:53
  * @Description: QQ:1801168257
  */
 
@@ -54,9 +54,3 @@ define('CLI_NEEDED_FUNCTION', serialize([
  * FPM模式需要解除禁止的函数
  */
 define('FPM_NEEDED_FUNCTION', serialize([]));
-
-/**
- * socket_write 遇到的空字符串替代方案
- * 无需修改
- */
-define('ISNULL', '-NULL-');

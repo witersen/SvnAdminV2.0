@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:45:45
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 19:56:44
+ * @LastEditTime: 2022-05-01 02:03:19
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -850,21 +850,9 @@ class Rep extends Core
     /**
      * 初始化仓库结构为 trunk branches tags
      */
-    function InitRepStruct($repName, $initUser = "SVNAdmin", $initPass = "SVNAdmin")
+    function InitRepStruct($templetePath, $repPath, $initUser = 'SVNAdmin', $initPass = 'SVNAdmin', $message = 'Initial structure')
     {
-        $randPrefix = FunGetRandStr();
-        $tempPath = TEMP_PATH . $randPrefix;
-        $repPath = SVN_REPOSITORY_PATH .  $repName;
-
-        $tempMkdirCmd = sprintf("mkdir -p %s", $tempPath);
-        $svnCheckoutCmd =  sprintf("svn checkout file:///%s --quiet --username %s --password %s %s", $repPath, $initUser, $initPass, $tempPath);
-        $repMkdirCmd = sprintf("mkdir -p %s/{trank/,branches/,tags/}", $tempPath);
-        $svnAddCmd = sprintf("svn add --quiet --username %s --password %s %s/*", $initUser, $initPass, $tempPath);
-        $svnCommitCmd = sprintf("svn commit --quiet --username %s --password %s --message 'Initial structure' %s/*", $initUser, $initPass, $tempPath);
-        $delDirCmd = sprintf("rm -rf %s", $tempPath);
-
-        $cmd = implode(';', [$tempMkdirCmd, $svnCheckoutCmd, $repMkdirCmd, $svnAddCmd, $svnCommitCmd, $delDirCmd]);
-
+        $cmd = sprintf("svn import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $templetePath, $repPath, $initUser, $initPass, $message);
         FunShellExec($cmd);
     }
 
