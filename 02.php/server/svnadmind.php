@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 19:59:26
+ * @LastEditTime: 2022-04-30 20:15:44
  * @Description: QQ:1801168257
  */
 
@@ -241,6 +241,13 @@ class Daemon
      */
     private function StartConsole()
     {
+        if (file_exists($this->pidFile)) {
+            $pid = file_get_contents($this->pidFile);
+            $result = trim(shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
+            if (strstr($result, $pid)) {
+                exit('程序正在运行中，请先停止' . PHP_EOL);
+            }
+        }
         $this->InitSocket();
     }
 
