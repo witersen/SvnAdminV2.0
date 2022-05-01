@@ -26,25 +26,25 @@ class personal extends controller
      */
     function EditAdminUserName()
     {
-        if ($this->requestPayload['userName'] != $this->requestPayload['confirm']) {
+        if ($this->payload['userName'] != $this->payload['confirm']) {
             FunMessageExit(200, 0, '输入不一致');
         }
 
-        if (trim($this->requestPayload['userName']) == '') {
+        if (trim($this->payload['userName']) == '') {
             FunMessageExit(200, 0, '用户名不合法');
         }
 
         $info = $this->database->get('admin_users', [
             'admin_user_name'
         ], [
-            'admin_user_name' => $this->requestPayload['userName']
+            'admin_user_name' => $this->payload['userName']
         ]);
         if ($info != null) {
             FunMessageExit(200, 0, '与已有用户冲突');
         }
 
         $this->database->update('admin_users', [
-            'admin_user_name' => $this->requestPayload['userName']
+            'admin_user_name' => $this->payload['userName']
         ], [
             'admin_user_name' => $this->globalUserName
         ]);
@@ -57,16 +57,16 @@ class personal extends controller
      */
     function EditAdminUserPass()
     {
-        if ($this->requestPayload['password'] != $this->requestPayload['confirm']) {
+        if ($this->payload['password'] != $this->payload['confirm']) {
             FunMessageExit(200, 0, '输入不一致');
         }
 
-        if (trim($this->requestPayload['password']) == '') {
+        if (trim($this->payload['password']) == '') {
             FunMessageExit(200, 0, '密码不合法');
         }
 
         $this->database->update('admin_users', [
-            'admin_user_pass' => $this->requestPayload['password']
+            'admin_user_pass' => $this->payload['password']
         ], [
             'admin_user_name' => $this->globalUserName
         ]);
@@ -79,7 +79,7 @@ class personal extends controller
      */
     function EditSvnUserPass()
     {
-        if ($this->requestPayload['newPassword'] != $this->requestPayload['confirm']) {
+        if ($this->payload['newPassword'] != $this->payload['confirm']) {
             FunMessageExit(200, 0, '输入不一致');
         }
 
@@ -92,16 +92,16 @@ class personal extends controller
             FunMessageExit(200, 0, '用户不存在');
         }
 
-        if (trim($this->requestPayload['newPassword']) == '') {
+        if (trim($this->payload['newPassword']) == '') {
             FunMessageExit(200, 0, '密码不合法');
         }
 
-        if ($result != $this->requestPayload['oldPassword']) {
+        if ($result != $this->payload['oldPassword']) {
             FunMessageExit(200, 0, '旧密码输入错误');
         }
 
         //修改SVN指定用户的密码
-        $result = $this->SVNAdminUser->UpdSvnUserPass($this->globalPasswdContent, $this->globalUserName, $this->requestPayload['newPassword']);
+        $result = $this->SVNAdminUser->UpdSvnUserPass($this->globalPasswdContent, $this->globalUserName, $this->payload['newPassword']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -112,7 +112,7 @@ class personal extends controller
         FunShellExec('echo \'' . $result . '\' > ' . SVN_PASSWD_FILE);
 
         $this->database->update('svn_users', [
-            'svn_user_pass' => $this->requestPayload['newPassword']
+            'svn_user_pass' => $this->payload['newPassword']
         ], [
             'svn_user_name' => $this->globalUserName
         ]);

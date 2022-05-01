@@ -42,7 +42,7 @@ class update extends controller
     /**
      * 检测新版本
      */
-    function CheckUpdate($requestPayload)
+    function CheckUpdate($payload)
     {
         foreach (unserialize(UPDATE_SERVER) as $key => $value) {
             $versionInfo = FunCurlRequest($value);
@@ -81,7 +81,7 @@ class update extends controller
     /**
      * 确认更新
      */
-    function StartUpdate($requestPayload)
+    function StartUpdate($payload)
     {
     }
 }

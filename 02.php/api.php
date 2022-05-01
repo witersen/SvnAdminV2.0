@@ -46,8 +46,8 @@ $type = isset($_GET['t']) ? $_GET['t'] : '';
  * 请求参数即Request Payload
  * Content-Type: application/json
  */
-$requestPayload = file_get_contents("php://input");
-$requestPayload = !empty($requestPayload) ? json_decode($requestPayload, true) : [];
+$payload = file_get_contents("php://input");
+$payload = !empty($payload) ? json_decode($payload, true) : [];
 
 /**
  * 获取文件信息

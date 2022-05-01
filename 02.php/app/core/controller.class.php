@@ -75,7 +75,7 @@ class controller
     public $globalAuthzContent;
     public $globalPasswdContent;
 
-    public $requestPayload;
+    public $payload;
 
     public $database;
 
@@ -109,8 +109,8 @@ class controller
         /**
          * 请求载体
          */
-        global $requestPayload;
-        $this->requestPayload = $requestPayload;
+        global $payload;
+        $this->payload = $payload;
 
         /**
          * 数据库连接

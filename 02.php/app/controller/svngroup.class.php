@@ -103,9 +103,9 @@ class svngroup extends controller
         //同步
         $this->SyncGroupToDb();
 
-        $pageSize = $this->requestPayload['pageSize'];
-        $currentPage = $this->requestPayload['currentPage'];
-        $searchKeyword = trim($this->requestPayload['searchKeyword']);
+        $pageSize = $this->payload['pageSize'];
+        $currentPage = $this->payload['currentPage'];
+        $searchKeyword = trim($this->payload['searchKeyword']);
 
         //分页
         $begin = $pageSize * ($currentPage - 1);
@@ -125,7 +125,7 @@ class svngroup extends controller
             ],
             'LIMIT' => [$begin, $pageSize],
             'ORDER' => [
-                $this->requestPayload['sortName']  => strtoupper($this->requestPayload['sortType'])
+                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
             ]
         ]);
 
@@ -152,9 +152,9 @@ class svngroup extends controller
     function EditGroupNote()
     {
         $this->database->update('svn_groups', [
-            'svn_group_note' => $this->requestPayload['svn_group_note']
+            'svn_group_note' => $this->payload['svn_group_note']
         ], [
-            'svn_group_name' => $this->requestPayload['svn_group_name']
+            'svn_group_name' => $this->payload['svn_group_name']
         ]);
 
         FunMessageExit();
@@ -166,10 +166,10 @@ class svngroup extends controller
     function CreateGroup()
     {
         //检查分组名是否合法
-        FunCheckRepGroup($this->requestPayload['svn_group_name']);
+        FunCheckRepGroup($this->payload['svn_group_name']);
 
         //检查用户是否已存在
-        $result = $this->SVNAdminGroup->AddSvnGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
+        $result = $this->SVNAdminGroup->AddSvnGroup($this->globalAuthzContent, $this->payload['svn_group_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -182,7 +182,7 @@ class svngroup extends controller
 
         //写入数据库
         $this->database->insert('svn_groups', [
-            'svn_group_name' => $this->requestPayload['svn_group_name'],
+            'svn_group_name' => $this->payload['svn_group_name'],
             'include_user_count' => 0,
             'include_group_count' => 0,
             'svn_group_note' => ''
@@ -197,7 +197,7 @@ class svngroup extends controller
     function DelGroup()
     {
         //从authz文件删除
-        $result = $this->SVNAdminGroup->DelSvnGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
+        $result = $this->SVNAdminGroup->DelSvnGroup($this->globalAuthzContent, $this->payload['svn_group_name']);
 
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
@@ -210,7 +210,7 @@ class svngroup extends controller
 
         //从数据库删除
         $this->database->delete('svn_groups', [
-            'svn_group_name' => $this->requestPayload['svn_group_name']
+            'svn_group_name' => $this->payload['svn_group_name']
         ]);
 
         FunMessageExit();
@@ -222,21 +222,21 @@ class svngroup extends controller
     function EditGroupName()
     {
         //新分组名称是否合法
-        FunCheckRepGroup($this->requestPayload['groupNameNew']);
+        FunCheckRepGroup($this->payload['groupNameNew']);
 
         $svnGroupList = $this->SVNAdminGroup->GetSvnGroupList($this->globalAuthzContent);
 
         //旧分组是否存在
-        if (!in_array($this->requestPayload['groupNameOld'], $svnGroupList)) {
+        if (!in_array($this->payload['groupNameOld'], $svnGroupList)) {
             FunMessageExit(200, 0, '当前分组不存在');
         }
 
         //新分组名称是否冲突
-        if (in_array($this->requestPayload['groupNameNew'], $svnGroupList)) {
+        if (in_array($this->payload['groupNameNew'], $svnGroupList)) {
             FunMessageExit(200, 0, '要修改的分组名称已经存在');
         }
 
-        $result = $this->SVNAdminGroup->UpdSvnGroup($this->globalAuthzContent, $this->requestPayload['groupNameOld'], $this->requestPayload['groupNameNew']);
+        $result = $this->SVNAdminGroup->UpdSvnGroup($this->globalAuthzContent, $this->payload['groupNameOld'], $this->payload['groupNameNew']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -251,9 +251,9 @@ class svngroup extends controller
      */
     function GetGroupMember()
     {
-        $memberUserList = $this->SVNAdminGroup->GetSvnUserListByGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
+        $memberUserList = $this->SVNAdminGroup->GetSvnUserListByGroup($this->globalAuthzContent, $this->payload['svn_group_name']);
 
-        $memberGroupList = $this->SVNAdminGroup->GetSvnGroupListByGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name']);
+        $memberGroupList = $this->SVNAdminGroup->GetSvnGroupListByGroup($this->globalAuthzContent, $this->payload['svn_group_name']);
 
         $allGroupList = $this->SVNAdminGroup->GetSvnGroupList($this->globalAuthzContent);
 
@@ -315,7 +315,7 @@ class svngroup extends controller
      */
     function GroupAddUser()
     {
-        $result = $this->SVNAdminGroup->AddSvnGroupUser($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_user_name']);
+        $result = $this->SVNAdminGroup->AddSvnGroupUser($this->globalAuthzContent, $this->payload['svn_group_name'], $this->payload['svn_user_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -336,7 +336,7 @@ class svngroup extends controller
      */
     function GroupRemoveUser()
     {
-        $result = $this->SVNAdminGroup->DelSvnGroupUser($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_user_name']);
+        $result = $this->SVNAdminGroup->DelSvnGroupUser($this->globalAuthzContent, $this->payload['svn_group_name'], $this->payload['svn_user_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -357,7 +357,7 @@ class svngroup extends controller
      */
     function GroupAddGroup()
     {
-        $result = $this->SVNAdminGroup->AddSvnGroupGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_group_name_add']);
+        $result = $this->SVNAdminGroup->AddSvnGroupGroup($this->globalAuthzContent, $this->payload['svn_group_name'], $this->payload['svn_group_name_add']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }
@@ -373,9 +373,9 @@ class svngroup extends controller
 
         //检查是否存在分组循环嵌套问题
         //获取分组所在的所有分组
-        $groupGroupList = $this->GetSvnGroupAllGroupList($this->requestPayload['svn_group_name']);
+        $groupGroupList = $this->GetSvnGroupAllGroupList($this->payload['svn_group_name']);
 
-        if (in_array($this->requestPayload['svn_group_name_add'], $groupGroupList)) {
+        if (in_array($this->payload['svn_group_name_add'], $groupGroupList)) {
             FunMessageExit(200, 0, '存在分组循环嵌套的情况');
         }
 
@@ -389,7 +389,7 @@ class svngroup extends controller
      */
     function GroupRemoveGroup()
     {
-        $result = $this->SVNAdminGroup->DelSvnGroupGroup($this->globalAuthzContent, $this->requestPayload['svn_group_name'], $this->requestPayload['svn_group_name_del']);
+        $result = $this->SVNAdminGroup->DelSvnGroupGroup($this->globalAuthzContent, $this->payload['svn_group_name'], $this->payload['svn_group_name_del']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[groups]标识)');
         }

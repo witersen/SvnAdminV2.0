@@ -3,9 +3,16 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 20:18:24
+ * @LastEditTime: 2022-05-01 21:03:26
  * @Description: QQ:1801168257
  */
+
+/**
+ * 将工作模式限制在cli模式
+ */
+if (!preg_match('/cli/i', php_sapi_name())) {
+    exit('require php-cli mode');
+}
 
 ini_set('display_errors', '1');
 
@@ -253,20 +260,23 @@ class Daemon
 
     public function Run($argv)
     {
-        $this->CheckSysType();
-        $this->CheckPhpVersion();
-        $this->CheckDisabledFunction();
+
         if (isset($argv[1])) {
             $this->workMode = $argv[1];
             if (!in_array($this->workMode, $this->scripts)) {
                 exit('用法：php svnadmin.php [start | stop | console]' . PHP_EOL);
             }
-            if ($this->workMode == 'start') {
-                $this->StartDaemon();
-            } else if ($this->workMode == 'stop') {
+            if ($this->workMode == 'stop') {
                 $this->StopDaemon();
-            } else if ($this->workMode == 'console') {
-                $this->StartConsole();
+            } else {
+                $this->CheckSysType();
+                $this->CheckPhpVersion();
+                $this->CheckDisabledFunction();
+                if ($this->workMode == 'start') {
+                    $this->StartDaemon();
+                } else if ($this->workMode == 'console') {
+                    $this->StartConsole();
+                }
             }
         } else {
             exit('用法：php svnadmin.php [start | stop | console]' . PHP_EOL);
@@ -274,10 +284,5 @@ class Daemon
     }
 }
 
-/**
- * 将工作模式限制在cli模式
- */
-if (preg_match('/cli/i', php_sapi_name())) {
-    $deamon = new Daemon();
-    $deamon->Run($argv);
-}
+$deamon = new Daemon();
+$deamon->Run($argv);

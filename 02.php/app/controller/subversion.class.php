@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-01 02:25:57
+ * @LastEditTime: 2022-05-02 00:55:54
  * @Description: QQ:1801168257
  */
 
@@ -46,7 +46,7 @@ class subversion extends controller
     {
         $result = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
         $checkoutHost = $result[$result['enable']];
-        if ($result['bindPort'] != '3690') {
+        if ($result['bindPort'] != 3690) {
             $checkoutHost .= ':' . $result['bindPort'];
         }
         FunMessageExit(200, 1, '成功', [
@@ -100,10 +100,10 @@ class subversion extends controller
         FunMessageExit(200, 1, '成功', [
             'version' => $version,
             'installed' => $installed,
-            'bindPort' => $bindInfo['bindPort'],
+            'bindPort' => (int)$bindInfo['bindPort'],
             'bindHost' => $bindInfo['bindHost'],
             'manageHost' => $bindInfo['manageHost'],
-            'enable' => $bindInfo[$bindInfo['enable']],
+            'enable' => $bindInfo['enable'],
             'svnserveLog' => SVNSERVE_LOG_FILE
         ]);
     }
@@ -145,13 +145,32 @@ class subversion extends controller
      */
     function EditPort()
     {
-        //获取现在的端口于与要修改的端口对比检查是否相同
+        //port不能为空
+
+        //获取现在的端口与要修改的端口对比检查是否相同
         $result = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
 
-        //停止svnserve
-        FunShellExec("systemctl stop svnserve");
+        if ($this->payload['bindPort'] == $result['bindPort']) {
+            FunMessageExit(200, 0, '无需更换，端口相同');
+        }
 
-        //更换端口
+        //停止svnserve
+        FunShellExec('systemctl stop svnserve');
+
+        //重新构建配置文件内容
+        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", SVN_REPOSITORY_PATH, SVN_CONF_FILE, SVNSERVE_LOG_FILE, $this->payload['bindPort'], $result['bindHost']);
+
+        //写入配置文件
+        FunShellExec('echo \'' . $config . '\' > ' . SVNSERVE_ENV_FILE);
+
+        //启动svnserve
+        $result = FunShellExec('systemctl start svnserve');
+
+        if ($result['resultCode'] != 0) {
+            FunMessageExit(200, 0, '启动异常' . $result['error']);
+        } else {
+            FunMessageExit();
+        }
     }
 
     /**
@@ -159,6 +178,33 @@ class subversion extends controller
      */
     function EditHost()
     {
+        //host不能为空
+        //不能带前缀如http或者https
+
+        //获取现在的绑定主机与要修改的主机对比检查是否相同
+        $result = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
+
+        if ($this->payload['bindHost'] == $result['bindHost']) {
+            FunMessageExit(200, 0, '无需更换，地址相同');
+        }
+
+        //停止svnserve
+        FunShellExec('systemctl stop svnserve');
+
+        //重新构建配置文件内容
+        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", SVN_REPOSITORY_PATH, SVN_CONF_FILE, SVNSERVE_LOG_FILE, $result['bindPort'], $this->payload['bindHost']);
+
+        //写入配置文件
+        FunShellExec('echo \'' . $config . '\' > ' . SVNSERVE_ENV_FILE);
+
+        //启动svnserve
+        $result = FunShellExec('systemctl start svnserve');
+
+        if ($result['resultCode'] != 0) {
+            FunMessageExit(200, 0, '启动异常' . $result['error']);
+        } else {
+            FunMessageExit();
+        }
     }
 
     /**
@@ -166,6 +212,24 @@ class subversion extends controller
      */
     function EditManageHost()
     {
+        //不能为空
+        //不能带前缀如http或者https
+        
+        $result = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
+
+        if ($this->payload['manageHost'] == $result['manageHost']) {
+            FunMessageExit(200, 0, '无需更换，地址相同');
+        }
+
+        //更新内容
+        FunShellExec('echo \'' . json_encode([
+            'bindPort' => $result['bindPort'],
+            'bindHost' => $result['bindHost'],
+            'manageHost' => $this->payload['manageHost'],
+            'enable' => $result['enable']
+        ]) . '\' > ' . LISTEN_FILE);
+
+        FunMessageExit();
     }
 
     /**
@@ -173,6 +237,19 @@ class subversion extends controller
      */
     function EditEnable()
     {
+        $result = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
+
+        //enable的值可为 manageHost、bindHost
+
+        //更新内容
+        FunShellExec('echo \'' . json_encode([
+            'bindPort' => $result['bindPort'],
+            'bindHost' => $result['bindHost'],
+            'manageHost' => $result['manageHost'],
+            'enable' => $this->payload['enable']
+        ]) . '\' > ' . LISTEN_FILE);
+
+        FunMessageExit();
     }
 
     /**

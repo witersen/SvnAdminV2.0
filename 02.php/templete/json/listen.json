@@ -1,6 +1,6 @@
 {
-    "bindPort": "",
-    "bindHost": "",
-    "manageHost": "",
-    "enable": ""
+    "bindPort": 3690,
+    "bindHost": "0.0.0.0",
+    "manageHost": "127.0.0.1",
+    "enable": "manageHost"
 }

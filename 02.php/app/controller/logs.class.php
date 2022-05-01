@@ -26,9 +26,9 @@ class logs extends controller
      */
     function GetLogList()
     {
-        $pageSize = $this->requestPayload['pageSize'];
-        $currentPage = $this->requestPayload['currentPage'];
-        $searchKeyword = trim($this->requestPayload['searchKeyword']);
+        $pageSize = $this->payload['pageSize'];
+        $currentPage = $this->payload['currentPage'];
+        $searchKeyword = trim($this->payload['searchKeyword']);
 
         //分页
         $begin = $pageSize * ($currentPage - 1);

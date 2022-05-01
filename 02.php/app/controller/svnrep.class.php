@@ -32,41 +32,41 @@ class svnrep extends controller
     function CreateRep()
     {
         //检查表单
-        FunCheckForm($this->requestPayload, [
+        FunCheckForm($this->payload, [
             'rep_name' => ['type' => 'string', 'notNull' => true],
             'rep_note' => ['type' => 'string', 'notNull' => false],
             'rep_type' => ['type' => 'string', 'notNull' => true],
         ]);
 
         //检查仓库名是否合法
-        FunCheckRepName($this->requestPayload['rep_name']);
+        FunCheckRepName($this->payload['rep_name']);
 
         //检查仓库是否存在
-        $this->SVNAdminRep->CheckRepExist($this->requestPayload['rep_name']);
+        $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
 
         //创建空仓库
         //解决创建中文仓库乱码问题
-        FunShellExec('export LC_CTYPE=en_US.UTF-8 &&  svnadmin create ' . SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name']);
+        FunShellExec('export LC_CTYPE=en_US.UTF-8 &&  svnadmin create ' . SVN_REPOSITORY_PATH .  $this->payload['rep_name']);
 
-        if ($this->requestPayload['rep_type'] == '2') {
+        if ($this->payload['rep_type'] == '2') {
             //以指定的目录结构初始化仓库
-            $this->SVNAdminRep->InitRepStruct(TEMPLETE_INIT_STRUTCT, SVN_REPOSITORY_PATH . $this->requestPayload['rep_name']);
+            $this->SVNAdminRep->InitRepStruct(TEMPLETE_INIT_STRUTCT, SVN_REPOSITORY_PATH . $this->payload['rep_name']);
         }
 
         //检查是否创建成功
-        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['rep_name']);
+        $this->SVNAdminRep->CheckRepCreate($this->payload['rep_name']);
 
         //向authz写入仓库信息
-        $status = $this->SVNAdminRep->SetRepAuthz($this->globalAuthzContent, $this->requestPayload['rep_name'], '/');
+        $status = $this->SVNAdminRep->SetRepAuthz($this->globalAuthzContent, $this->payload['rep_name'], '/');
         if ($status != '1') {
             FunShellExec('echo \'' . $status . '\' > ' . SVN_AUTHZ_FILE);
         }
 
         //写入数据库
         $this->database->insert('svn_reps', [
-            'rep_name' => $this->requestPayload['rep_name'],
+            'rep_name' => $this->payload['rep_name'],
             'rep_size' => 0,
-            'rep_note' => $this->requestPayload['rep_note'],
+            'rep_note' => $this->payload['rep_note'],
             'rep_rev' => 0,
             'rep_uuid' => 0
         ]);
@@ -293,9 +293,9 @@ class svnrep extends controller
          */
         $this->SyncRepAndDb();
 
-        $pageSize = $this->requestPayload['pageSize'];
-        $currentPage = $this->requestPayload['currentPage'];
-        $searchKeyword = trim($this->requestPayload['searchKeyword']);
+        $pageSize = $this->payload['pageSize'];
+        $currentPage = $this->payload['currentPage'];
+        $searchKeyword = trim($this->payload['searchKeyword']);
 
         //分页
         $begin = $pageSize * ($currentPage - 1);
@@ -316,7 +316,7 @@ class svnrep extends controller
             ],
             'LIMIT' => [$begin, $pageSize],
             'ORDER' => [
-                $this->requestPayload['sortName']  => strtoupper($this->requestPayload['sortType'])
+                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
             ]
         ]);
 
@@ -379,9 +379,9 @@ class svnrep extends controller
          */
         $this->SyncUserRepAndDb();
 
-        $pageSize = $this->requestPayload['pageSize'];
-        $currentPage = $this->requestPayload['currentPage'];
-        $searchKeyword = trim($this->requestPayload['searchKeyword']);
+        $pageSize = $this->payload['pageSize'];
+        $currentPage = $this->payload['currentPage'];
+        $searchKeyword = trim($this->payload['searchKeyword']);
 
         //分页
         $begin = $pageSize * ($currentPage - 1);
@@ -399,7 +399,7 @@ class svnrep extends controller
             ],
             'LIMIT' => [$begin, $pageSize],
             'ORDER' => [
-                'rep_name'  => strtoupper($this->requestPayload['sortType'])
+                'rep_name'  => strtoupper($this->payload['sortType'])
             ],
             'svn_user_name' => $this->globalUserName
         ]);
@@ -427,9 +427,9 @@ class svnrep extends controller
     function EditRepNote()
     {
         $this->database->update('svn_reps', [
-            'rep_note' => $this->requestPayload['rep_note']
+            'rep_note' => $this->payload['rep_note']
         ], [
-            'rep_name' => $this->requestPayload['rep_name']
+            'rep_name' => $this->payload['rep_name']
         ]);
 
         FunMessageExit(200, 1, '已保存');
@@ -440,9 +440,9 @@ class svnrep extends controller
      */
     function GetUserRepCon()
     {
-        $path = $this->requestPayload['path'];
+        $path = $this->payload['path'];
 
-        $repName = $this->requestPayload['rep_name'];
+        $repName = $this->payload['rep_name'];
 
         /**
          * 获取svn检出地址
@@ -637,10 +637,10 @@ class svnrep extends controller
          * 管理员为 /
          * SVN用户为管理员设定的路径值
          */
-        $path = $this->requestPayload['path'];
+        $path = $this->payload['path'];
 
         //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name'], $path);
+        $cmdSvnlookTree = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", SVN_REPOSITORY_PATH .  $this->payload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
         $result = $result['result'];
         $resultArray = explode("\n", trim($result));
@@ -650,16 +650,16 @@ class svnrep extends controller
         $data = [];
         foreach ($resultArray as $key => $value) {
             //获取文件或者文件夹最年轻的版本号
-            $lastRev  = $this->SVNAdminRep->GetRepFileRev($this->requestPayload['rep_name'], $value);
+            $lastRev  = $this->SVNAdminRep->GetRepFileRev($this->payload['rep_name'], $value);
 
             //获取文件或者文件夹最年轻的版本的作者
-            $lastRevAuthor = $this->SVNAdminRep->GetRepFileAuthor($this->requestPayload['rep_name'], $lastRev);
+            $lastRevAuthor = $this->SVNAdminRep->GetRepFileAuthor($this->payload['rep_name'], $lastRev);
 
             //同上 日期
-            $lastRevDate = $this->SVNAdminRep->GetRepFileDate($this->requestPayload['rep_name'], $lastRev);
+            $lastRevDate = $this->SVNAdminRep->GetRepFileDate($this->payload['rep_name'], $lastRev);
 
             //同上 日志
-            $lastRevLog = $this->SVNAdminRep->GetRepFileLog($this->requestPayload['rep_name'], $lastRev);
+            $lastRevLog = $this->SVNAdminRep->GetRepFileLog($this->payload['rep_name'], $lastRev);
 
             $pathArray = explode('/', $value);
             $pathArray = array_values(array_filter($pathArray, 'FunArrayValueFilter'));
@@ -679,7 +679,7 @@ class svnrep extends controller
                 array_push($data, [
                     'resourceType' => 1,
                     'resourceName' => $pathArray[$pathArrayCount - 1],
-                    'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($this->requestPayload['rep_name'], $value),
+                    'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($this->payload['rep_name'], $value),
                     'revAuthor' => $lastRevAuthor,
                     'revNum' => 'r' . $lastRev,
                     'revTime' => $lastRevDate,
@@ -695,7 +695,7 @@ class svnrep extends controller
         //处理面包屑
         if ($path == '/') {
             $breadPathArray = ['/'];
-            $breadNameArray = [$this->requestPayload['rep_name']];
+            $breadNameArray = [$this->payload['rep_name']];
         } else {
             $pathArray = explode('/', $path);
             //将全路径处理为带有/的数组
@@ -709,7 +709,7 @@ class svnrep extends controller
             }
             //处理为递增的路径数组
             $breadPathArray = ['/'];
-            $breadNameArray = [$this->requestPayload['rep_name']];
+            $breadNameArray = [$this->payload['rep_name']];
             $tempPath = '/';
             for ($i = 1; $i < count($tempArray); $i += 2) {
                 $tempPath .= $tempArray[$i] . $tempArray[$i + 1];
@@ -734,10 +734,10 @@ class svnrep extends controller
      */
     function GetRepTree()
     {
-        $path = $this->requestPayload['path'];
+        $path = $this->payload['path'];
 
         //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", SVN_REPOSITORY_PATH  . $this->requestPayload['rep_name'], $path);
+        $cmdSvnlookTree = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", SVN_REPOSITORY_PATH  . $this->payload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
         $result = $result['result'];
         $resultArray = explode("\n", trim($result));
@@ -776,7 +776,7 @@ class svnrep extends controller
                     'expand' => true,
                     'loading' => false,
                     'resourceType' => 2,
-                    'title' => $this->requestPayload['rep_name'] . '/',
+                    'title' => $this->payload['rep_name'] . '/',
                     'fullPath' => '/',
                     'children' => $data
                 ]
@@ -791,10 +791,10 @@ class svnrep extends controller
      */
     function GetRepPathUserPri()
     {
-        $result = $this->SVNAdminRep->GetRepUserListWithPri($this->globalAuthzContent, $this->requestPayload['rep_name'], $this->requestPayload['path']);
+        $result = $this->SVNAdminRep->GetRepUserListWithPri($this->globalAuthzContent, $this->payload['rep_name'], $this->payload['path']);
         if ($result == '0') {
             //没有该路径的记录
-            if ($this->requestPayload['path'] == '/') {
+            if ($this->payload['path'] == '/') {
                 //不正常 没有写入仓库记录
                 FunMessageExit(200, 0, '该仓库没有被写入配置文件！请刷新仓库列表以同步');
             } else {
@@ -817,10 +817,10 @@ class svnrep extends controller
      */
     function GetRepPathGroupPri()
     {
-        $result = $this->SVNAdminRep->GetRepGroupListWithPri($this->globalAuthzContent, $this->requestPayload['rep_name'], $this->requestPayload['path']);
+        $result = $this->SVNAdminRep->GetRepGroupListWithPri($this->globalAuthzContent, $this->payload['rep_name'], $this->payload['path']);
         if ($result == '0') {
             //没有该路径的记录
-            if ($this->requestPayload['path'] == '/') {
+            if ($this->payload['path'] == '/') {
                 //不正常 没有写入仓库记录
                 FunMessageExit(200, 0, '该仓库没有被写入配置文件！请刷新仓库列表以同步');
             } else {
@@ -843,10 +843,10 @@ class svnrep extends controller
      */
     function AddRepPathUserPri()
     {
-        $repName = $this->requestPayload['rep_name'];
-        $path = $this->requestPayload['path'];
-        $pri = $this->requestPayload['pri'];
-        $user = $this->requestPayload['user'];
+        $repName = $this->payload['rep_name'];
+        $path = $this->payload['path'];
+        $pri = $this->payload['pri'];
+        $user = $this->payload['user'];
 
         /**
          * 这里要进行重复添加用户的判断操作
@@ -896,9 +896,9 @@ class svnrep extends controller
      */
     function DelRepPathUserPri()
     {
-        $repName = $this->requestPayload['rep_name'];
-        $path = $this->requestPayload['path'];
-        $user = $this->requestPayload['user'];
+        $repName = $this->payload['rep_name'];
+        $path = $this->payload['path'];
+        $user = $this->payload['user'];
 
         $result = $this->SVNAdminRep->DelRepUserPri($this->globalAuthzContent, $user, $repName, $path);
 
@@ -920,10 +920,10 @@ class svnrep extends controller
      */
     function EditRepPathUserPri()
     {
-        $repName = $this->requestPayload['rep_name'];
-        $path = $this->requestPayload['path'];
-        $pri = $this->requestPayload['pri'];
-        $user = $this->requestPayload['user'];
+        $repName = $this->payload['rep_name'];
+        $path = $this->payload['path'];
+        $pri = $this->payload['pri'];
+        $user = $this->payload['user'];
 
         /**
          * 处理权限
@@ -948,10 +948,10 @@ class svnrep extends controller
      */
     function AddRepPathGroupPri()
     {
-        $repName = $this->requestPayload['rep_name'];
-        $path = $this->requestPayload['path'];
-        $pri = $this->requestPayload['pri'];
-        $group = $this->requestPayload['group'];
+        $repName = $this->payload['rep_name'];
+        $path = $this->payload['path'];
+        $pri = $this->payload['pri'];
+        $group = $this->payload['group'];
 
         /**
          * 这里要进行重复添加分组的判断操作
@@ -1001,9 +1001,9 @@ class svnrep extends controller
      */
     function DelRepPathGroupPri()
     {
-        $repName = $this->requestPayload['rep_name'];
-        $path = $this->requestPayload['path'];
-        $group = $this->requestPayload['group'];
+        $repName = $this->payload['rep_name'];
+        $path = $this->payload['path'];
+        $group = $this->payload['group'];
 
         $result = $this->SVNAdminRep->DelRepGroupPri($this->globalAuthzContent, $group, $repName, $path);
 
@@ -1025,10 +1025,10 @@ class svnrep extends controller
      */
     function EditRepPathGroupPri()
     {
-        $repName = $this->requestPayload['rep_name'];
-        $path = $this->requestPayload['path'];
-        $pri = $this->requestPayload['pri'];
-        $group = $this->requestPayload['group'];
+        $repName = $this->payload['rep_name'];
+        $path = $this->payload['path'];
+        $pri = $this->payload['pri'];
+        $group = $this->payload['group'];
 
         /**
          * 处理权限
@@ -1056,29 +1056,29 @@ class svnrep extends controller
     function EditRepName()
     {
         //检查新仓库名是否合法
-        FunCheckRepName($this->requestPayload['new_rep_name']);
+        FunCheckRepName($this->payload['new_rep_name']);
 
         //检查原仓库是否不存在
-        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['old_rep_name'], '要修改的仓库不存在');
+        $this->SVNAdminRep->CheckRepCreate($this->payload['old_rep_name'], '要修改的仓库不存在');
 
         //检查新仓库名是否存在
-        $this->SVNAdminRep->CheckRepExist($this->requestPayload['new_rep_name'],  '已经存在同名仓库');
+        $this->SVNAdminRep->CheckRepExist($this->payload['new_rep_name'],  '已经存在同名仓库');
 
         //从仓库目录修改仓库名称
-        FunShellExec('mv ' . SVN_REPOSITORY_PATH .  $this->requestPayload['old_rep_name'] . ' ' . SVN_REPOSITORY_PATH . $this->requestPayload['new_rep_name']);
+        FunShellExec('mv ' . SVN_REPOSITORY_PATH .  $this->payload['old_rep_name'] . ' ' . SVN_REPOSITORY_PATH . $this->payload['new_rep_name']);
 
         //检查修改过的仓库名称是否存在
-        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['new_rep_name'], '修改仓库名称失败');
+        $this->SVNAdminRep->CheckRepCreate($this->payload['new_rep_name'], '修改仓库名称失败');
 
         //从数据库修改仓库名称
         $this->database->update('svn_reps', [
-            'rep_name' => $this->requestPayload['new_rep_name']
+            'rep_name' => $this->payload['new_rep_name']
         ], [
-            'rep_name' => $this->requestPayload['old_rep_name']
+            'rep_name' => $this->payload['old_rep_name']
         ]);
 
         //从配置文件修改仓库名称
-        $this->SVNAdminRep->UpdRepAuthz($this->globalAuthzContent, $this->requestPayload['old_rep_name'], $this->requestPayload['new_rep_name']);
+        $this->SVNAdminRep->UpdRepAuthz($this->globalAuthzContent, $this->payload['old_rep_name'], $this->payload['new_rep_name']);
 
         FunMessageExit();
     }
@@ -1089,19 +1089,19 @@ class svnrep extends controller
     function DelRep()
     {
         //从配置文件删除指定仓库的所有路径
-        $result = $this->SVNAdminRep->DelRepAuthz($this->globalAuthzContent, $this->requestPayload['rep_name']);
+        $result = $this->SVNAdminRep->DelRepAuthz($this->globalAuthzContent, $this->payload['rep_name']);
         if ($result != '1') {
             FunShellExec('echo \'' . $result . '\' > ' . SVN_AUTHZ_FILE);
         }
 
         //从数据库中删除
         $this->database->delete('svn_reps', [
-            'rep_name' => $this->requestPayload['rep_name']
+            'rep_name' => $this->payload['rep_name']
         ]);
 
         //从仓库目录删除仓库文件夹
-        FunShellExec('cd ' . SVN_REPOSITORY_PATH . ' && rm -rf ./' . $this->requestPayload['rep_name']);
-        $this->SVNAdminRep->CheckRepDelete($this->requestPayload['rep_name']);
+        FunShellExec('cd ' . SVN_REPOSITORY_PATH . ' && rm -rf ./' . $this->payload['rep_name']);
+        $this->SVNAdminRep->CheckRepDelete($this->payload['rep_name']);
 
         //返回
         FunMessageExit();
@@ -1112,7 +1112,7 @@ class svnrep extends controller
      */
     function GetRepDetail()
     {
-        $result = $this->SVNAdminRep->GetRepDetail($this->requestPayload['rep_name']);
+        $result = $this->SVNAdminRep->GetRepDetail($this->payload['rep_name']);
         $resultArray = explode("\n", $result);
 
         $newArray = [];
@@ -1145,7 +1145,7 @@ class svnrep extends controller
      */
     function RepDump()
     {
-        $this->SVNAdminRep->RepDump($this->requestPayload['rep_name'], $this->requestPayload['rep_name'] . '_' . date('YmdHis') . '_' . FunGetRandStr() . '.dump');
+        $this->SVNAdminRep->RepDump($this->payload['rep_name'], $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . FunGetRandStr() . '.dump');
 
         FunMessageExit();
     }
@@ -1155,7 +1155,7 @@ class svnrep extends controller
      */
     function DelRepBackup()
     {
-        $this->SVNAdminRep->DelRepBackup($this->requestPayload['fileName']);
+        $this->SVNAdminRep->DelRepBackup($this->payload['fileName']);
 
         FunMessageExit();
     }
@@ -1173,9 +1173,9 @@ class svnrep extends controller
      */
     function DownloadRepBackup1()
     {
-        $filePath = SVN_BACHUP_PATH .  $this->requestPayload['fileName'];
+        $filePath = SVN_BACHUP_PATH .  $this->payload['fileName'];
 
-        $fileName = $this->requestPayload['fileName'];
+        $fileName = $this->payload['fileName'];
 
         //以只读和二进制模式打开文件
         $fp = @fopen($filePath, 'rb');
@@ -1234,7 +1234,7 @@ class svnrep extends controller
      */
     function DownloadRepBackup2()
     {
-        $filePath = SVN_BACHUP_PATH .  $this->requestPayload['fileName'];
+        $filePath = SVN_BACHUP_PATH .  $this->payload['fileName'];
 
         //文件类型
         $mimeType = 'application/octet-stream';
@@ -1286,15 +1286,15 @@ class svnrep extends controller
     function ImportRep()
     {
         //检查备份文件是否存在
-        if (!file_exists(SVN_BACHUP_PATH .  $this->requestPayload['fileName'])) {
+        if (!file_exists(SVN_BACHUP_PATH .  $this->payload['fileName'])) {
             FunMessageExit(200, 0, '备份文件不存在');
         }
 
         //检查操作的仓库是否存在
-        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['rep_name'], '仓库不存在');
+        $this->SVNAdminRep->CheckRepCreate($this->payload['rep_name'], '仓库不存在');
 
         //使用svndump
-        $result = $this->SVNAdminRep->RepLoad($this->requestPayload['rep_name'], $this->requestPayload['fileName']);
+        $result = $this->SVNAdminRep->RepLoad($this->payload['rep_name'], $this->payload['fileName']);
 
         if ($result['error'] == '') {
             FunMessageExit();
@@ -1309,10 +1309,10 @@ class svnrep extends controller
     function GetRepHooks()
     {
         //检查仓库是否存在
-        $this->SVNAdminRep->CheckRepCreate($this->requestPayload['rep_name'], '仓库不存在');
+        $this->SVNAdminRep->CheckRepCreate($this->payload['rep_name'], '仓库不存在');
 
         clearstatcache();
-        if (!is_dir(SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name'] . '/' . 'hooks')) {
+        if (!is_dir(SVN_REPOSITORY_PATH .  $this->payload['rep_name'] . '/' . 'hooks')) {
             FunMessageExit(200, 0, '仓库不存在或文件损坏');
         }
 
@@ -1376,12 +1376,12 @@ class svnrep extends controller
             'post-revprop-change'
         ];
 
-        $file_arr = scandir(SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name'] . '/' . 'hooks');
+        $file_arr = scandir(SVN_REPOSITORY_PATH .  $this->payload['rep_name'] . '/' . 'hooks');
 
         foreach ($file_arr as $file_item) {
             if ($file_item != '.' && $file_item != '..') {
                 if (in_array($file_item, $hooks_file_list)) {
-                    $temp = FunShellExec(sprintf("cat '%s'", SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name'] . '/' . 'hooks' . '/' . $file_item));
+                    $temp = FunShellExec(sprintf("cat '%s'", SVN_REPOSITORY_PATH .  $this->payload['rep_name'] . '/' . 'hooks' . '/' . $file_item));
                     $hooks_type_list[$file_item]['shell'] = $temp['result'];
                     $hooks_type_list[$file_item]['shell'] = trim($hooks_type_list[$file_item]['shell']);
                 }
@@ -1396,7 +1396,7 @@ class svnrep extends controller
      */
     function EditRepHook()
     {
-        $cmd = sprintf("echo '%s' > '%s'", trim($this->requestPayload['content']), SVN_REPOSITORY_PATH .  $this->requestPayload['rep_name'] . '/hooks/' . $this->requestPayload['type']);
+        $cmd = sprintf("echo '%s' > '%s'", trim($this->payload['content']), SVN_REPOSITORY_PATH .  $this->payload['rep_name'] . '/hooks/' . $this->payload['type']);
 
         FunShellExec($cmd);
 

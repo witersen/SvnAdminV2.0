@@ -10,6 +10,7 @@
                   <Col span="12">
                     <span>{{ formSvn.version }}</span>
                   </Col>
+                  <Col span="1"> </Col>
                   <Col span="6">
                     <Button
                       type="error"
@@ -43,6 +44,7 @@
                       >未知</span
                     >
                   </Col>
+                  <Col span="1"> </Col>
                   <Col span="6">
                     <Button
                       :loading="loadingSvnserveStart"
@@ -64,25 +66,45 @@
               <FormItem label="svnserve绑定端口">
                 <Row>
                   <Col span="12">
-                    <span>{{ formSvn.bindPort }}</span>
+                    <InputNumber
+                      :min="1"
+                      v-model="tempBindPort"
+                      @on-change="ChangeEditPort"
+                    ></InputNumber>
                   </Col>
+                  <Col span="1"> </Col>
                   <Col span="6">
-                    <Button type="warning" @click="ModalEditPort">修改</Button>
+                    <Button
+                      type="warning"
+                      @click="EditPort"
+                      :disabled="disabledEditPort"
+                      :loading="loadingEditPort"
+                      >修改</Button
+                    >
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="svnserve绑定主机名">
                 <Row>
                   <Col span="12">
-                    <span>{{ formSvn.bindHost }}</span>
+                    <Input
+                      v-model="tempBindHost"
+                      @on-change="ChangeEditHost"
+                      placeholder="默认地址：0.0.0.0"
+                    />
                   </Col>
+                  <Col span="1"> </Col>
                   <Col span="6">
                     <Tooltip
                       :transfer="true"
                       max-width="350"
                       content="请注意，如果您的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。如果绑定失败，建议配置使用管理系统主机名代替检出地址。"
                     >
-                      <Button type="warning" @click="ModalEditHost"
+                      <Button
+                        type="warning"
+                        @click="EditHost"
+                        :disabled="disabledEditHost"
+                        :loading="loadingEditHost"
                         >修改</Button
                       >
                     </Tooltip>
@@ -92,10 +114,19 @@
               <FormItem label="管理系统主机名">
                 <Row>
                   <Col span="12">
-                    <span>{{ formSvn.manageHost }}</span>
+                    <Input
+                      v-model="tempManageHost"
+                      @on-change="ChangeEditManageHost"
+                      placeholder="默认地址：127.0.0.1"
+                    />
                   </Col>
+                  <Col span="1"> </Col>
                   <Col span="6">
-                    <Button type="warning" @click="ModalEditManageHost"
+                    <Button
+                      type="warning"
+                      @click="EditManageHost"
+                      :disabled="disabledEditManageHost"
+                      :loading="loadingEditManageHost"
                       >修改</Button
                     >
                   </Col>
@@ -108,23 +139,11 @@
                       v-model="formSvn.enable"
                       @on-change="EditEnable"
                     >
-                      <Radio :label="formSvn.bindHost"></Radio>
-                      <Radio :label="formSvn.manageHost"></Radio>
+                      <Radio label="bindHost">svnserve绑定主机名</Radio>
+                      <Radio label="manageHost">管理系统主机名</Radio>
                     </RadioGroup>
                   </Col>
                   <Col span="6"> </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="svnserve运行日志">
-                <Row>
-                  <Col span="12">
-                    <span>{{ formSvn.svnserveLog }}</span>
-                  </Col>
-                  <Col span="6">
-                    <Button type="success" @click="ViewSvnserveLog"
-                      >查看</Button
-                    >
-                  </Col>
                 </Row>
               </FormItem>
             </Form>
@@ -331,6 +350,23 @@ export default {
   data() {
     return {
       /**
+       * 临变量
+       */
+      //svnserve绑定端口
+      tempBindPort: 0,
+      //svnserve绑定主机名
+      tempBindHost: "",
+      //管理系统主机名称
+      tempManageHost: "",
+
+      /**
+       * 控制修改状态
+       */
+      disabledEditPort: true,
+      disabledEditHost: true,
+      disabledEditManageHost: true,
+
+      /**
        * tab
        */
       currentAdvanceTab: "1",
@@ -338,8 +374,16 @@ export default {
       /**
        * 加载
        */
+      //启动svnserve
       loadingSvnserveStart: false,
+      //停止svnserve
       loadingSvnserveStop: false,
+      //更换绑定地址
+      loadingEditHost: false,
+      //更换绑定主机
+      loadingEditPort: false,
+      //更换管理系统地址
+      loadingEditManageHost: false,
 
       /**
        * subversion信息
@@ -399,7 +443,7 @@ export default {
       this.currentAdvanceTab = name;
     },
     /**
-     * 获取版本信息
+     * 获取subversion的详细信息
      */
     GetDetail() {
       var that = this;
@@ -410,6 +454,14 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.formSvn = result.data;
+            //为临时变量赋值
+            that.tempBindPort = result.data.bindPort;
+            that.tempBindHost = result.data.bindHost;
+            that.tempManageHost = result.data.manageHost;
+            //初始化禁用按钮
+            that.disabledEditPort = true;
+            that.disabledEditHost = true;
+            that.disabledEditManageHost = true;
           } else {
             that.$Message.error(result.message);
           }
@@ -418,6 +470,36 @@ export default {
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
+    },
+    /**
+     * 修改端口的值 触发重新计算按钮的禁用状态
+     */
+    ChangeEditPort(value) {
+      if (this.tempBindPort == this.formSvn.bindPort) {
+        this.disabledEditPort = true;
+      } else {
+        this.disabledEditPort = false;
+      }
+    },
+    /**
+     * 修改地址的值 触发重新计算按钮的禁用状态
+     */
+    ChangeEditHost(event) {
+      if (this.tempBindHost == this.formSvn.bindHost) {
+        this.disabledEditHost = true;
+      } else {
+        this.disabledEditHost = false;
+      }
+    },
+    /**
+     * 修改管理系统主机名的值 触发重新计算按钮的禁用状态
+     */
+    ChangeEditManageHost(event) {
+      if (this.tempManageHost == this.formSvn.manageHost) {
+        this.disabledEditManageHost = true;
+      } else {
+        this.disabledEditManageHost = false;
+      }
     },
     /**
      * 获取配置文件信息
@@ -513,51 +595,132 @@ export default {
     /**
      * 修改svnserve的绑定端口
      */
-    ModalEditPort() {},
-    EditPort() {},
+    EditPort() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "更换svnserve服务绑定端口",
+        content:
+          "确定要更换svnserve服务绑定端口吗？此操作会使svnserve服务停止并重新启动！",
+        onOk: () => {
+          that.loadingEditPort = true;
+          var data = {
+            bindPort: that.tempBindPort,
+          };
+          that.$axios
+            .post("/api.php?c=subversion&a=EditPort&t=web", data)
+            .then(function (response) {
+              that.loadingEditPort = false;
+              var result = response.data;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetDetail();
+              } else {
+                that.GetDetail();
+                that.$Message.error(result.message);
+              }
+            })
+            .catch(function (error) {
+              that.loadingEditPort = false;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        },
+      });
+    },
     /**
      * 修改svnserve的绑定主机
      */
-    ModalEditHost() {},
-    EditHost() {},
+    EditHost() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "更换svnserve服务绑定主机",
+        content:
+          "确定要更换svnserve服务绑定主机吗？此操作会使svnserve服务停止并重新启动！",
+        onOk: () => {
+          that.loadingEditHost = true;
+          var data = {
+            bindHost: that.tempBindHost,
+          };
+          that.$axios
+            .post("/api.php?c=subversion&a=EditHost&t=web", data)
+            .then(function (response) {
+              that.loadingEditHost = false;
+              var result = response.data;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetDetail();
+              } else {
+                that.GetDetail();
+                that.$Message.error(result.message);
+              }
+            })
+            .catch(function (error) {
+              that.loadingEditHost = false;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        },
+      });
+    },
     /**
      * 修改管理系统主机名
      */
-    ModalEditManageHost() {},
-    EditManageHost() {},
+    EditManageHost() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "更换管理系统主机名",
+        content:
+          "确定要更换管理系统主机名吗？此操作不会影响svnserve服务的状态！",
+        onOk: () => {
+          that.loadingEditManageHost = true;
+          var data = {
+            manageHost: that.tempManageHost,
+          };
+          that.$axios
+            .post("/api.php?c=subversion&a=EditManageHost&t=web", data)
+            .then(function (response) {
+              that.loadingEditManageHost = false;
+              var result = response.data;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetDetail();
+              } else {
+                that.GetDetail();
+                that.$Message.error(result.message);
+              }
+            })
+            .catch(function (error) {
+              that.loadingEditManageHost = false;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        },
+      });
+    },
     /**
      * 修改检出地址
      */
-    EditEnable(value) {},
-    /**
-     * 查看svnserve运行日志
-     */
-    ViewSvnserveLog() {},
-
-    /**
-     * 添加仓库
-     */
-    ModalAddRep() {
-      this.modalAddRep = true;
-    },
-    AddRep() {},
-    /**
-     * 编辑仓库名称
-     */
-    ModalEditRepName(index, repName) {
-      this.modalEditRepName = true;
-    },
-    EditRepName() {},
-    /**
-     * 删除仓库
-     *
-     */
-    DelRep(index, repName) {
-      this.$Modal.confirm({
-        title: "删除SVN用户-xxxxx用户",
-        content: "确定要删除该用户吗？<br/>该操作不可逆！",
-        onOk: () => {},
-      });
+    EditEnable(value) {
+      var that = this;
+      var data = {
+        enable: value,
+      };
+      that.$axios
+        .post("/api.php?c=subversion&a=EditEnable&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetDetail();
+          } else {
+            that.GetDetail();
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
     },
   },
 };

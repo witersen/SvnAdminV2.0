@@ -97,9 +97,9 @@ class svnuser extends controller
         //将SVN用户数据同步到数据库
         $this->SyncUserToDb();
 
-        $pageSize = $this->requestPayload['pageSize'];
-        $currentPage = $this->requestPayload['currentPage'];
-        $searchKeyword = trim($this->requestPayload['searchKeyword']);
+        $pageSize = $this->payload['pageSize'];
+        $currentPage = $this->payload['currentPage'];
+        $searchKeyword = trim($this->payload['searchKeyword']);
 
         //分页
         $begin = $pageSize * ($currentPage - 1);
@@ -120,7 +120,7 @@ class svnuser extends controller
             ],
             'LIMIT' => [$begin, $pageSize],
             'ORDER' => [
-                $this->requestPayload['sortName']  => strtoupper($this->requestPayload['sortType'])
+                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
             ]
         ]);
 
@@ -151,7 +151,7 @@ class svnuser extends controller
      */
     function EnableUser()
     {
-        $result = $this->SVNAdminUser->EnabledUser($this->globalPasswdContent, $this->requestPayload['svn_user_name']);
+        $result = $this->SVNAdminUser->EnabledUser($this->globalPasswdContent, $this->payload['svn_user_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -169,7 +169,7 @@ class svnuser extends controller
      */
     function DisableUser()
     {
-        $result = $this->SVNAdminUser->DisabledUser($this->globalPasswdContent, $this->requestPayload['svn_user_name']);
+        $result = $this->SVNAdminUser->DisabledUser($this->globalPasswdContent, $this->payload['svn_user_name']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -188,9 +188,9 @@ class svnuser extends controller
     function EditUserNote()
     {
         $this->database->update('svn_users', [
-            'svn_user_note' => $this->requestPayload['svn_user_note']
+            'svn_user_note' => $this->payload['svn_user_note']
         ], [
-            'svn_user_name' => $this->requestPayload['svn_user_name']
+            'svn_user_name' => $this->payload['svn_user_name']
         ]);
 
         FunMessageExit();
@@ -202,10 +202,10 @@ class svnuser extends controller
     function CreateUser()
     {
         //检查用户名是否合法
-        FunCheckRepUser($this->requestPayload['svn_user_name']);
+        FunCheckRepUser($this->payload['svn_user_name']);
 
         //检查用户是否已存在
-        $result = $this->SVNAdminUser->AddSvnUser($this->globalPasswdContent, $this->requestPayload['svn_user_name'], $this->requestPayload['svn_user_pass']);
+        $result = $this->SVNAdminUser->AddSvnUser($this->globalPasswdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -214,7 +214,7 @@ class svnuser extends controller
         }
 
         //检查密码是否不为空
-        if (trim($this->requestPayload['svn_user_pass']) == '') {
+        if (trim($this->payload['svn_user_pass']) == '') {
             FunMessageExit(200, 0, '密码不能为空');
         }
 
@@ -223,8 +223,8 @@ class svnuser extends controller
 
         //写入数据库
         $this->database->insert('svn_users', [
-            'svn_user_name' => $this->requestPayload['svn_user_name'],
-            'svn_user_pass' => $this->requestPayload['svn_user_pass'],
+            'svn_user_name' => $this->payload['svn_user_name'],
+            'svn_user_pass' => $this->payload['svn_user_pass'],
             'svn_user_status' => 1,
             'svn_user_note' => ''
         ]);
@@ -238,7 +238,7 @@ class svnuser extends controller
     function EditUserPass()
     {
         //检查用户是否已存在
-        $result = $this->SVNAdminUser->UpdSvnUserPass($this->globalPasswdContent, $this->requestPayload['svn_user_name'], $this->requestPayload['svn_user_pass'], !$this->requestPayload['svn_user_status']);
+        $result = $this->SVNAdminUser->UpdSvnUserPass($this->globalPasswdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass'], !$this->payload['svn_user_status']);
         if ($result == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
         }
@@ -247,7 +247,7 @@ class svnuser extends controller
         }
 
         //检查密码是否不为空
-        if (trim($this->requestPayload['svn_user_pass']) == '') {
+        if (trim($this->payload['svn_user_pass']) == '') {
             FunMessageExit(200, 0, '密码不能为空');
         }
 
@@ -256,9 +256,9 @@ class svnuser extends controller
 
         //写入数据库
         $this->database->update('svn_users', [
-            'svn_user_pass' => $this->requestPayload['svn_user_pass'],
+            'svn_user_pass' => $this->payload['svn_user_pass'],
         ], [
-            'svn_user_name' => $this->requestPayload['svn_user_name']
+            'svn_user_name' => $this->payload['svn_user_name']
         ]);
 
         FunMessageExit();
@@ -270,7 +270,7 @@ class svnuser extends controller
     function DelUser()
     {
         //从passwd文件中全局删除
-        $resultPasswd = $this->SVNAdminUser->DelSvnUserPasswd($this->globalPasswdContent, $this->requestPayload['svn_user_name'], !$this->requestPayload['svn_user_status']);
+        $resultPasswd = $this->SVNAdminUser->DelSvnUserPasswd($this->globalPasswdContent, $this->payload['svn_user_name'], !$this->payload['svn_user_status']);
 
         if ($resultPasswd == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
@@ -280,7 +280,7 @@ class svnuser extends controller
         }
 
         //从authz文件中删除
-        $resultAuthz = $this->SVNAdminUser->DelUserAuthz($this->globalAuthzContent, $this->requestPayload['svn_user_name']);
+        $resultAuthz = $this->SVNAdminUser->DelUserAuthz($this->globalAuthzContent, $this->payload['svn_user_name']);
 
         if ($resultAuthz == '0') {
             FunMessageExit(200, 0, '文件格式错误(不存在[users]标识)');
@@ -288,7 +288,7 @@ class svnuser extends controller
 
         //从数据删除
         $this->database->delete('svn_users', [
-            'svn_user_name' => $this->requestPayload['svn_user_name']
+            'svn_user_name' => $this->payload['svn_user_name']
         ]);
 
         FunShellExec('echo \'' . $resultAuthz . '\' > ' . SVN_AUTHZ_FILE);

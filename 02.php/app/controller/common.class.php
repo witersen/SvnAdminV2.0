@@ -40,8 +40,8 @@ class common extends controller
         $codeResult = $this->database->get('verification_code', [
             'end_time'
         ], [
-            'uuid' => $this->requestPayload['uuid'],
-            'code' => $this->requestPayload['code'],
+            'uuid' => $this->payload['uuid'],
+            'code' => $this->payload['code'],
         ]);
         if ($codeResult == null) {
             FunMessageExit(200, 0, '验证码错误', $codeResult);
@@ -50,26 +50,26 @@ class common extends controller
             FunMessageExit(200, 0, '验证码过期');
         }
 
-        FunCheckForm($this->requestPayload, [
+        FunCheckForm($this->payload, [
             'user_name' => ['type' => 'string', 'notNull' => true],
             'user_pass' => ['type' => 'string', 'notNull' => true],
             'user_role' => ['type' => 'string', 'notNull' => true],
         ]);
 
-        if ($this->requestPayload['user_role'] == 1) {
+        if ($this->payload['user_role'] == 1) {
             $result = $this->database->get('admin_users', [
                 'admin_user_id',
                 'admin_user_name',
                 'admin_user_phone',
                 'admin_user_email'
             ], [
-                'admin_user_name' => $this->requestPayload['user_name'],
-                'admin_user_password' => $this->requestPayload['user_pass']
+                'admin_user_name' => $this->payload['user_name'],
+                'admin_user_password' => $this->payload['user_pass']
             ]);
             if ($result == null) {
                 FunMessageExit(200, 0, '账号密码错误');
             }
-        } else if ($this->requestPayload['user_role'] == 2) {
+        } else if ($this->payload['user_role'] == 2) {
             //进行用户数据同步
             $this->Svnuser->SyncUserToDb();
 
@@ -79,8 +79,8 @@ class common extends controller
                 'svn_user_pass',
                 'svn_user_status'
             ], [
-                'svn_user_name' => $this->requestPayload['user_name'],
-                'svn_user_pass' => $this->requestPayload['user_pass']
+                'svn_user_name' => $this->payload['user_name'],
+                'svn_user_pass' => $this->payload['user_pass']
             ]);
             if ($result == null) {
                 FunMessageExit(200, 0, '登陆失败');
@@ -93,16 +93,16 @@ class common extends controller
         $this->Logs->InsertLog(
             '用户登录',
             '登陆成功 '
-                . '账号：' . $this->requestPayload['user_name'] . ' '
+                . '账号：' . $this->payload['user_name'] . ' '
                 . 'IP地址：' . $_SERVER["REMOTE_ADDR"],
-            $this->requestPayload['user_name']
+            $this->payload['user_name']
         );
 
         FunMessageExit(200, 1, '登陆成功', [
-            'token' => FunCreateToken($this->requestPayload['user_role'], $this->requestPayload['user_name']),
-            'user_name' => $this->requestPayload['user_name'],
-            'user_role_name' => $this->requestPayload['user_role'] == 1 ? '管理人员' : 'SVN用户',
-            'user_role_id' => $this->requestPayload['user_role']
+            'token' => FunCreateToken($this->payload['user_role'], $this->payload['user_name']),
+            'user_name' => $this->payload['user_name'],
+            'user_role_name' => $this->payload['user_role'] == 1 ? '管理人员' : 'SVN用户',
+            'user_role_id' => $this->payload['user_role']
         ]);
     }
 

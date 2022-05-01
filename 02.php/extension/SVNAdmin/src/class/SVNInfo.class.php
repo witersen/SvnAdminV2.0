@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 17:58:13
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 19:28:20
+ * @LastEditTime: 2022-05-02 00:23:14
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -33,7 +33,7 @@ class Info extends Core
         $bindPort = '';
         $bindHost = '';
 
-        $svnserveContent = FunShellExec('cat ' . $SVNSERVE_ENV_FILE);
+        $svnserveContent = FunShellExec(sprintf("cat '%s'", $SVNSERVE_ENV_FILE));
         $svnserveContent = $svnserveContent['result'];
 
         //匹配端口
@@ -46,13 +46,13 @@ class Info extends Core
             $bindHost = trim($hostMatchs[1]);
         }
 
-        $listenContent = FunShellExec('cat ' . $LISTEN_FILE);
+        $listenContent = FunShellExec(sprintf("cat '%s'", $LISTEN_FILE));
         $listenContent = $listenContent['result'];
 
         if (!FunCheckJson($listenContent)) {
             //文件格式错误则初始化
             FunShellExec('echo \'' . json_encode([
-                'bindPort' => $bindPort == '' ? '3690' : $bindPort,
+                'bindPort' => $bindPort == '' ? 3690 : $bindPort,
                 'bindHost' => $bindHost == '' ? '0.0.0.0' : $bindHost,
                 'manageHost' => '127.0.0.1',
                 'enable' => $bindHost == '' ? 'manageHost' : 'bindHost'
@@ -61,7 +61,7 @@ class Info extends Core
             //更新内容
             $listenArray = json_decode($listenContent, true);
             if ($listenArray['bindPort'] != $bindPort) {
-                $listenArray['bindPort'] = $bindPort == '' ? '3690' : $bindHost;
+                $listenArray['bindPort'] = $bindPort == '' ? 3690 : $bindPort;
             }
             if ($listenArray['bindHost'] != $bindHost) {
                 $listenArray['bindHost'] = $bindHost == '' ? '0.0.0.0' : $bindHost;
@@ -74,7 +74,7 @@ class Info extends Core
             ]) . '\' > ' . $LISTEN_FILE);
         }
 
-        $listenContent = FunShellExec('cat ' . $LISTEN_FILE);
+        $listenContent = FunShellExec(sprintf("cat '%s'", $LISTEN_FILE));
         $listenContent = $listenContent['result'];
         $listenArray = json_decode($listenContent, true);
 
