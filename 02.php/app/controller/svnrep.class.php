@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-01 02:04:32
+ * @LastEditTime: 2022-05-01 15:20:35
  * @Description: QQ:1801168257
  */
 
@@ -580,6 +580,9 @@ class svnrep extends controller
             }
         }
 
+        //按照文件夹在前、文件在后的顺序进行字典排序
+        array_multisort(FunArrayColumn($data, 'resourceType'), SORT_DESC, $data);
+
         /**
          * 处理面包屑
          */
@@ -685,6 +688,9 @@ class svnrep extends controller
                 ]);
             }
         }
+
+        //按照文件夹在前、文件在后的顺序进行字典排序
+        array_multisort(FunArrayColumn($data, 'resourceType'), SORT_DESC, $data);
 
         //处理面包屑
         if ($path == '/') {
