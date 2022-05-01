@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 19:24:09
+ * @LastEditTime: 2022-05-01 02:25:57
  * @Description: QQ:1801168257
  */
 
@@ -145,6 +145,13 @@ class subversion extends controller
      */
     function EditPort()
     {
+        //获取现在的端口于与要修改的端口对比检查是否相同
+        $result = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
+
+        //停止svnserve
+        FunShellExec("systemctl stop svnserve");
+
+        //更换端口
     }
 
     /**

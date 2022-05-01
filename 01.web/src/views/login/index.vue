@@ -117,7 +117,7 @@ export default {
   computed: {},
   created() {},
   mounted() {
-    var that =this;
+    var that = this;
     if (sessionStorage.token) {
       that.$Message.success("已有登录信息 自动跳转中...");
       setTimeout(function () {
@@ -165,6 +165,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     //登录
@@ -210,6 +211,7 @@ export default {
         .catch(function (error) {
           that.loadingLogin = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
   },

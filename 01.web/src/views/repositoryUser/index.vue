@@ -86,7 +86,7 @@
         />
       </Card>
     </Card>
-    <Modal v-model="modalCreateUser" title="新建SVN用户" @on-ok="CreateUser">
+    <Modal v-model="modalCreateUser" title="新建SVN用户">
       <Form :model="formCreateUser" :label-width="80">
         <FormItem label="用户名">
           <Input v-model="formCreateUser.svn_user_name"></Input>
@@ -103,7 +103,20 @@
             v-model="formCreateUser.svn_user_pass"
           ></Input>
         </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            @click="CreateUser"
+            :loading="loadingCreateUser"
+            >确定</Button
+          >
+        </FormItem>
       </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalCreateUser = false"
+          >取消</Button
+        >
+      </div>
     </Modal>
     <Modal
       v-model="modalEditUserPass"
@@ -114,7 +127,20 @@
         <FormItem label="新密码">
           <Input v-model="formEditUser.svn_user_pass"></Input>
         </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            @click="EditUserPass"
+            :loading="loadingEditUserPass"
+            >确定</Button
+          >
+        </FormItem>
       </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalEditUserPass = false"
+          >取消</Button
+        >
+      </div>
     </Modal>
   </div>
 </template>
@@ -147,6 +173,10 @@ export default {
        */
       //用户列表
       loadingUser: true,
+      //创建用户
+      loadingCreateUser: false,
+      //修改用户密码
+      loadingEditUserPass:false,
 
       /**
        * 对话框
@@ -277,6 +307,7 @@ export default {
         .catch(function (error) {
           that.loadingUser = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -309,6 +340,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -332,6 +364,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -355,6 +388,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -375,6 +409,7 @@ export default {
     },
     CreateUser() {
       var that = this;
+      that.loadingCreateUser = true;
       var data = {
         svn_user_name: that.formCreateUser.svn_user_name,
         svn_user_pass: that.formCreateUser.svn_user_pass,
@@ -382,16 +417,20 @@ export default {
       that.$axios
         .post("/api.php?c=svnuser&a=CreateUser&t=web", data)
         .then(function (response) {
+          that.loadingCreateUser = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
+            that.modalCreateUser = false;
             that.GetUserList();
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
+          that.loadingCreateUser = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -411,6 +450,7 @@ export default {
     },
     EditUserPass() {
       var that = this;
+      that.loadingEditUserPass = true;
       var data = {
         svn_user_name: that.formEditUser.svn_user_name,
         svn_user_pass: that.formEditUser.svn_user_pass,
@@ -420,8 +460,10 @@ export default {
       that.$axios
         .post("/api.php?c=svnuser&a=EditUserPass&t=web", data)
         .then(function (response) {
+          that.loadingEditUserPass = false;
           var result = response.data;
           if (result.status == 1) {
+            that.modalEditUserPass = false;
             that.$Message.success(result.message);
             that.GetUserList();
           } else {
@@ -429,7 +471,9 @@ export default {
           }
         })
         .catch(function (error) {
+          that.loadingEditUserPass = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -459,6 +503,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
             });
         },
       });

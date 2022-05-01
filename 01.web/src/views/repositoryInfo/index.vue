@@ -147,7 +147,7 @@
       </Card>
     </Card>
     <!-- 对话框-新建SVN仓库 -->
-    <Modal v-model="modalCreateRep" title="新建SVN仓库" @on-ok="CreateRep">
+    <Modal v-model="modalCreateRep" title="新建SVN仓库">
       <Form :model="formRepAdd" :label-width="80">
         <FormItem label="仓库名称">
           <Input v-model="formRepAdd.rep_name"></Input>
@@ -172,7 +172,17 @@
             </Radio>
           </RadioGroup>
         </FormItem>
+        <FormItem>
+          <Button type="primary" @click="CreateRep" :loading="loadingCreateRep"
+            >确定</Button
+          >
+        </FormItem>
       </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalCreateRep = false"
+          >取消</Button
+        >
+      </div>
     </Modal>
     <!-- 对话框-仓库浏览 -->
     <Modal v-model="modalViewRep" fullscreen :title="titleModalViewRep">
@@ -223,7 +233,7 @@
         </Table>
       </Card>
       <div slot="footer">
-        <Button type="primary" @click="modalViewRep = false">取消</Button>
+        <Button type="primary" ghost @click="modalViewRep = false">取消</Button>
       </div>
     </Modal>
     <!-- 对话框-备份仓库 -->
@@ -233,10 +243,9 @@
           <Button
             type="primary"
             ghost
-            size="small"
             @click="RepDump"
             :loading="loadingRepDump"
-            >备份(svndump)</Button
+            >备份(dump)</Button
           >
         </Col>
       </Row>
@@ -261,7 +270,7 @@
         </template>
       </Table>
       <div slot="footer">
-        <Button type="primary" @click="modalRepDump = false">取消</Button>
+        <Button type="primary" ghost @click="modalRepDump = false">取消</Button>
       </div>
     </Modal>
     <!-- 对话框-仓库权限 -->
@@ -300,6 +309,7 @@
                       <Button icon="ios-add" @click="ModalRepAllUser"></Button>
                       <Button
                         icon="ios-remove"
+                        :loading="loadingDelRepPathUserPri"
                         @click="DelRepPathUserPri"
                       ></Button>
                     </ButtonGroup>
@@ -320,11 +330,6 @@
                         <span>读写</span>
                       </Radio>
                     </RadioGroup>
-                  </FormItem>
-                  <FormItem>
-                    <Button ghost type="primary" @click="EditRepPathUserPri"
-                      >修改权限（针对当前）</Button
-                    >
                   </FormItem>
                 </Form>
               </TabPane>
@@ -348,6 +353,7 @@
                       <Button
                         icon="ios-remove"
                         @click="DelRepPathGroupPri"
+                        :loading="loadingDelRepPathGroupPri"
                       ></Button>
                     </ButtonGroup>
                   </FormItem>
@@ -368,11 +374,6 @@
                       </Radio>
                     </RadioGroup>
                   </FormItem>
-                  <FormItem>
-                    <Button ghost type="primary" @click="EditRepPathGroupPri"
-                      >修改权限（针对当前）</Button
-                    >
-                  </FormItem>
                 </Form>
               </TabPane>
             </Tabs>
@@ -380,7 +381,7 @@
         </Col>
       </Row>
       <div slot="footer">
-        <Button type="primary" @click="modalRepPri = false">取消</Button>
+        <Button type="primary" ghost @click="modalRepPri = false">取消</Button>
       </div>
     </Modal>
     <!-- 对话框-钩子配置 -->
@@ -436,9 +437,10 @@
             </template>
           </Table>
         </TabPane>
-        <TabPane label="转储">
-          <Form :model="formRepImport" :label-width="90">
-            <FormItem label="dump文件">
+        <TabPane label="恢复">
+          <Alert>可以将通过svnadmin dump方式生成的备份文件导入到当前仓库</Alert>
+          <Form :model="formRepImport" :label-width="100">
+            <FormItem label="备份文件位置">
               <RadioGroup
                 vertical
                 @on-change="ChangeRadioUploadType"
@@ -504,7 +506,7 @@
             <FormItem v-if="formUploadBackup.selectType == '2'">
               <Alert type="warning" show-icon
                 >不了解svnadmin
-                dump指令的用户建议只将转储文件导入到空仓库而不是已经包含修订版本的非空仓库</Alert
+                dump指令的用户建议将备份文件只导入到空仓库而不是已经包含修订版本的非空仓库</Alert
               >
               <Button
                 type="primary"
@@ -518,29 +520,42 @@
         </TabPane>
       </Tabs>
       <div slot="footer">
-        <Button type="primary" @click="modalRepAdvance = false">取消</Button>
+        <Button type="primary" ghost @click="modalRepAdvance = false"
+          >取消</Button
+        >
       </div>
     </Modal>
     <!-- 对话框-编辑仓库名称 -->
-    <Modal
-      v-model="modalEditRepName"
-      :title="titleModalEditRepName"
-      @on-ok="EditRepName"
-    >
+    <Modal v-model="modalEditRepName" :title="titleModalEditRepName">
       <Form :model="formRepEdit" :label-width="80">
         <FormItem label="仓库名称">
           <Input v-model="formRepEdit.new_rep_name"></Input>
         </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            :loading="loadingEditRepName"
+            @click="EditRepName"
+            >确定</Button
+          >
+        </FormItem>
       </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalEditRepName = false"
+          >取消</Button
+        >
+      </div>
     </Modal>
     <!-- 对话框-选择SVN用户 -->
     <Modal
       v-model="modalRepAllUser"
       title="选择SVN用户（添加的用户权限都会被重置为rw）"
       @on-ok="AddRepPathUserPri"
+      :loading="loadingAddRepPathUserPri"
     >
       <Table
-        height="350"
+        :height="350"
+        size="small"
         highlight-row
         :show-header="false"
         :columns="tableColumnAllUser"
@@ -559,6 +574,7 @@
       v-model="modalRepAllGroup"
       title="选择SVN分组（添加的用户权限都会被重置为rw）"
       @on-ok="AddRepPathGroupPri"
+      :loading="loadingAddRepPathGroupPri"
     >
       <Table
         height="350"
@@ -641,6 +657,8 @@ export default {
        */
       //所有仓库列表
       loadingRep: true,
+      //创建仓库
+      loadingCreateRep: false,
       //用户仓库列表
       loadingUserRep: true,
       //仓库内容列表
@@ -649,8 +667,16 @@ export default {
       loadingRepTree: true,
       //某个仓库路径的用户权限
       loadingRepPathUserPri: true,
+      //为路径添加用户授权
+      loadingAddRepPathUserPri: true,
+      //去除路径的用户权限
+      loadingDelRepPathUserPri: false,
       //某个仓库路径的分组权限
       loadingRepPathGroupPri: true,
+      //为仓库路径添加分组权限
+      loadingAddRepPathGroupPri: true,
+      //删除仓库路径的分组权限
+      loadingDelRepPathGroupPri: false,
       //全部的SVN用户列表
       loadingAllUserList: true,
       //全部的SVN分组列表
@@ -665,6 +691,8 @@ export default {
       loadingUploadBackup: false,
       //导入备份文件
       loadingImportBackup: false,
+      //修改仓库名称
+      loadingEditRepName: false,
 
       /**
        * 临时变量
@@ -940,6 +968,7 @@ export default {
         {
           title: "文件名",
           key: "fileName",
+          tooltip: true,
         },
         {
           title: "文件大小",
@@ -957,6 +986,7 @@ export default {
         {
           title: "文件名",
           key: "fileName",
+          tooltip: true,
         },
         {
           title: "大小",
@@ -1069,6 +1099,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
 
@@ -1080,6 +1111,7 @@ export default {
     },
     CreateRep() {
       var that = this;
+      that.loadingCreateRep = true;
       var data = {
         rep_name: that.formRepAdd.rep_name,
         rep_note: that.formRepAdd.rep_note,
@@ -1088,6 +1120,7 @@ export default {
       that.$axios
         .post("/api.php?c=svnrep&a=CreateRep&t=web", data)
         .then(function (response) {
+          that.loadingCreateRep = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
@@ -1097,7 +1130,9 @@ export default {
           }
         })
         .catch(function (error) {
+          that.loadingCreateRep = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
 
@@ -1139,6 +1174,7 @@ export default {
         .catch(function (error) {
           that.loadingRep = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1198,6 +1234,7 @@ export default {
         .catch(function (error) {
           that.loadingUserRep = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1248,6 +1285,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
 
@@ -1334,6 +1372,7 @@ export default {
           })
           .catch(function (error) {
             console.log(error);
+            that.$Message.error("出错了 请联系管理员！");
             reject(error);
           });
       });
@@ -1370,6 +1409,7 @@ export default {
         .catch(function (error) {
           that.loadingRepCon = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1404,6 +1444,7 @@ export default {
         .catch(function (error) {
           that.loadingRepCon = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1480,6 +1521,7 @@ export default {
         .catch(function (error) {
           that.loadingRepBackupList = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     RepDump() {
@@ -1503,6 +1545,7 @@ export default {
         .catch(function (error) {
           that.loadingRepDump = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1535,6 +1578,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1562,6 +1606,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
             });
         },
       });
@@ -1616,6 +1661,7 @@ export default {
           })
           .catch(function (error) {
             console.log(error);
+            that.$Message.error("出错了 请联系管理员！");
             reject(error);
           });
       });
@@ -1712,6 +1758,7 @@ export default {
         .catch(function (error) {
           that.loadingRepPathUserPri = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1734,6 +1781,9 @@ export default {
       } else {
         this.tableDataRepPathUserPri[this.currentRepPriUserIndex].userPri =
           value;
+
+        //发起请求
+        this.EditRepPathUserPri();
       }
     },
     /**
@@ -1746,6 +1796,7 @@ export default {
         that.$Message.error("未选择用户");
         return;
       }
+      that.loadingDelRepPathUserPri = true;
       var data = {
         rep_name: that.currentRepName,
         path: that.currentRepTreePriPath,
@@ -1754,6 +1805,7 @@ export default {
       that.$axios
         .post("/api.php?c=svnrep&a=DelRepPathUserPri&t=web", data)
         .then(function (response) {
+          that.loadingDelRepPathUserPri = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
@@ -1763,7 +1815,9 @@ export default {
           }
         })
         .catch(function (error) {
+          that.loadingDelRepPathUserPri = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1796,6 +1850,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1812,6 +1867,7 @@ export default {
       that.$axios
         .post("/api.php?c=svnrep&a=AddRepPathUserPri&t=web", data)
         .then(function (response) {
+          that.modalRepAllUser = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
@@ -1821,7 +1877,9 @@ export default {
           }
         })
         .catch(function (error) {
+          that.modalRepAllUser = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1856,6 +1914,7 @@ export default {
         .catch(function (error) {
           that.loadingAllUserList = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1895,6 +1954,7 @@ export default {
         .catch(function (error) {
           that.loadingRepPathGroupPri = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1921,6 +1981,9 @@ export default {
       } else {
         this.tableDataRepPathGroupPri[this.currentRepPriGroupIndex].groupPri =
           value;
+
+        //发起请求
+        this.EditRepPathGroupPri();
       }
     },
     /**
@@ -1933,6 +1996,7 @@ export default {
         that.$Message.error("未选择分组");
         return;
       }
+      that.loadingDelRepPathGroupPri = true;
       var data = {
         rep_name: that.currentRepName,
         path: that.currentRepTreePriPath,
@@ -1941,6 +2005,7 @@ export default {
       that.$axios
         .post("/api.php?c=svnrep&a=DelRepPathGroupPri&t=web", data)
         .then(function (response) {
+          that.loadingDelRepPathGroupPri = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
@@ -1950,7 +2015,9 @@ export default {
           }
         })
         .catch(function (error) {
+          that.loadingDelRepPathGroupPri = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -1984,6 +2051,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -2000,6 +2068,7 @@ export default {
       that.$axios
         .post("/api.php?c=svnrep&a=AddRepPathGroupPri&t=web", data)
         .then(function (response) {
+          that.modalRepAllGroup = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
@@ -2009,7 +2078,9 @@ export default {
           }
         })
         .catch(function (error) {
+          that.modalRepAllGroup = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -2044,6 +2115,7 @@ export default {
         .catch(function (error) {
           that.loadingAllGroupList = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -2086,6 +2158,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -2111,6 +2184,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
 
@@ -2154,6 +2228,7 @@ export default {
         .catch(function (error) {
           that.loadingRepDetail = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -2232,6 +2307,7 @@ export default {
         .catch(function (error) {
           that.loadingImportBackup = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
 
@@ -2250,6 +2326,7 @@ export default {
     },
     EditRepName() {
       var that = this;
+      that.loadingEditRepName = true;
       var data = {
         old_rep_name: that.formRepEdit.old_rep_name,
         new_rep_name: that.formRepEdit.new_rep_name,
@@ -2257,16 +2334,20 @@ export default {
       that.$axios
         .post("/api.php?c=svnrep&a=EditRepName&t=web", data)
         .then(function (response) {
+          that.loadingEditRepName = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
+            that.modalEditRepName = false;
             that.GetRepList();
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
+          that.loadingEditRepName = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
 
@@ -2296,6 +2377,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
             });
         },
       });

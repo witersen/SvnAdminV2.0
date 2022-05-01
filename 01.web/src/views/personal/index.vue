@@ -179,6 +179,7 @@ export default {
         .catch(function (error) {
           that.modalEditAdminUserName = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -208,6 +209,7 @@ export default {
         .catch(function (error) {
           that.modalEditAdminUserPass = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -237,6 +239,7 @@ export default {
         .catch(function (error) {
           that.loadingEditSvnUserPass = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -263,6 +266,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
   },

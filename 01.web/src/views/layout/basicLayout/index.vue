@@ -27,7 +27,7 @@
           style="line-height: 64px; position: absolute; top: 12px; left: 1%"
         />
         <Dropdown
-        :transfer="true"
+          :transfer="true"
           trigger="click"
           @on-click="LogOut"
           style="float: right; zindex: 99"
@@ -156,6 +156,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     // 退出登录下拉组件

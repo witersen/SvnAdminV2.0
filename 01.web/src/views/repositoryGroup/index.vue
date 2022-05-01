@@ -83,7 +83,20 @@
             >分组名只能包含字母、数字、破折号、下划线、点。</Alert
           >
         </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            @click="CreateGroup"
+            :loading="loadingCreateGroup"
+            >确定</Button
+          >
+        </FormItem>
       </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalAddGroup = false"
+          >取消</Button
+        >
+      </div>
     </Modal>
     <Modal
       v-model="modalEditGroupName"
@@ -99,7 +112,20 @@
             >分组名只能包含字母、数字、破折号、下划线、点。</Alert
           >
         </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            @click="EditGroupName"
+            :loading="loadingEditGroupName"
+            >确定</Button
+          >
+        </FormItem>
       </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalEditGroupName = false"
+          >取消</Button
+        >
+      </div>
     </Modal>
     <Modal v-model="modalGetGroupMember" :title="titleGetGroupMember">
       <Tabs type="card">
@@ -149,7 +175,7 @@
         </TabPane>
       </Tabs>
       <div slot="footer">
-        <Button type="primary" @click="modalGetGroupMember = false"
+        <Button type="primary" ghost @click="modalGetGroupMember = false"
           >取消</Button
         >
       </div>
@@ -189,6 +215,10 @@ export default {
       loadingRepAllUser: true,
       //分组分组成员
       loadingRepAllGroup: true,
+      //创建分组
+      loadingCreateGroup: false,
+      //编辑分组名称
+      loadingEditGroupName: false,
 
       /**
        * 临时变量
@@ -366,6 +396,7 @@ export default {
         .catch(function (error) {
           that.loadingGroup = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -389,6 +420,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -399,22 +431,27 @@ export default {
     },
     CreateGroup() {
       var that = this;
+      that.loadingCreateGroup = true;
       var data = {
         svn_group_name: that.formCreateGroup.svn_group_name,
       };
       that.$axios
         .post("/api.php?c=svngroup&a=CreateGroup&t=web", data)
         .then(function (response) {
+          that.loadingCreateGroup = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
+            that.modalAddGroup = false;
             that.GetGroupList();
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
+          that.loadingCreateGroup = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -432,6 +469,7 @@ export default {
     },
     EditGroupName() {
       var that = this;
+      that.loadingEditGroupName = true;
       var data = {
         groupNameOld: that.formEditGroupName.groupNameOld,
         groupNameNew: that.formEditGroupName.groupNameNew,
@@ -439,16 +477,20 @@ export default {
       that.$axios
         .post("/api.php?c=svngroup&a=EditGroupName&t=web", data)
         .then(function (response) {
+          that.loadingEditGroupName = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
+            that.modalEditGroupName = false;
             that.GetGroupList();
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
+          that.loadingEditGroupName = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -476,6 +518,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
             });
         },
       });
@@ -522,6 +565,7 @@ export default {
           that.loadingRepAllUser = false;
           that.loadingRepAllGroup = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -567,6 +611,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -592,6 +637,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -617,6 +663,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -642,6 +689,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
   },

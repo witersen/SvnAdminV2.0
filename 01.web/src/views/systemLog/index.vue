@@ -14,6 +14,7 @@
             icon="ios-trash-outline"
             type="warning"
             ghost
+            :loading="loadingClearLogs"
             @click="ClearLogs"
             >清空日志</Button
           >
@@ -80,6 +81,8 @@ export default {
        * 加载
        */
       loadingGetLogList: true,
+      //清空日志
+      loadingClearLogs: false,
 
       /**
        * 表格
@@ -153,7 +156,7 @@ export default {
       var that = this;
       that.loadingGetLogList = true;
       that.tableDataLog = [];
-      that.totalLog = 0;
+      // that.totalLog = 0;
       var data = {
         pageSize: that.pageSizeLog,
         currentPage: that.pageCurrentLog,
@@ -175,6 +178,7 @@ export default {
         .catch(function (error) {
           that.loadingGetLogList = false;
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -186,10 +190,12 @@ export default {
         title: "清空日志",
         content: "确定要清空日志记录吗？此操作不可逆！",
         onOk: () => {
+          that.loadingClearLogs = true;
           var data = {};
           that.$axios
             .post("/api.php?c=logs&a=ClearLogs&t=web", data)
             .then(function (response) {
+              that.loadingClearLogs = false;
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
@@ -199,7 +205,9 @@ export default {
               }
             })
             .catch(function (error) {
+              that.loadingClearLogs = false;
               console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
             });
         },
       });

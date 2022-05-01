@@ -416,6 +416,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -436,6 +437,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -472,6 +474,7 @@ export default {
             .catch(function (error) {
               that.loadingSvnserveStart = false;
               console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
             });
         },
       });
@@ -502,6 +505,7 @@ export default {
             .catch(function (error) {
               that.loadingSvnserveStop = false;
               console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
             });
         },
       });

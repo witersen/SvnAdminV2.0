@@ -7,7 +7,7 @@
       </p>
       <div>
         <Row>
-          <Col span="4" >
+          <Col span="4">
             <div class="statusTop">负载状态</div>
             <Tooltip placement="bottom" max-width="200">
               <Circle
@@ -207,7 +207,7 @@ export default {
         repUser: 0,
         repGroup: 0,
         logCount: 0,
-        backupSize:0,
+        backupSize: 0,
       },
     };
   },
@@ -247,6 +247,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -268,6 +269,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
@@ -289,6 +291,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
   },
