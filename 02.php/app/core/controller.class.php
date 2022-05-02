@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-04-30 19:44:21
+ * @LastEditTime: 2022-05-02 23:01:23
  * @Description: QQ:1801168257
  */
 
@@ -54,12 +54,15 @@ require_once BASE_PATH . '/app/controller/svnuser.class.php';
 require_once BASE_PATH . '/app/controller/update.class.php';
 
 //require extension
+require_once BASE_PATH . '/extension/PHPMailer-6.6.0/src/Exception.php';
+require_once BASE_PATH . '/extension/PHPMailer-6.6.0/src/PHPMailer.php';
+require_once BASE_PATH . '/extension/PHPMailer-6.6.0/src/SMTP.php';
+require_once BASE_PATH . '/extension/PHPMailer-6.6.0/language/phpmailer.lang-zh_cn.php';
 
 //require svnadmin
 require_once BASE_PATH . '/extension/SVNAdmin/src/core/Core.class.php';
 require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNGroup.class.php';
 require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNHooks.class.php';
-require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNInfo.class.php';
 require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNRep.class.php';
 require_once BASE_PATH . '/extension/SVNAdmin/src/class/SVNUser.class.php';
 
@@ -122,7 +125,6 @@ class controller
          */
         $this->SVNAdminGroup = new \SVNAdmin\SVN\Group($this->globalAuthzContent, $this->globalPasswdContent);
         $this->SVNAdminHooks = new \SVNAdmin\SVN\Hooks($this->globalAuthzContent, $this->globalPasswdContent);
-        $this->SVNAdminInfo = new \SVNAdmin\SVN\Info($this->globalAuthzContent, $this->globalPasswdContent);
         $this->SVNAdminRep = new \SVNAdmin\SVN\Rep($this->globalAuthzContent, $this->globalPasswdContent);
         $this->SVNAdminUser = new \SVNAdmin\SVN\User($this->globalAuthzContent, $this->globalPasswdContent);
     }

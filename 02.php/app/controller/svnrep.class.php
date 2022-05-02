@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-01 15:20:35
+ * @LastEditTime: 2022-05-02 23:20:05
  * @Description: QQ:1801168257
  */
 
@@ -12,6 +12,7 @@
 class svnrep extends controller
 {
     private $Svngorup;
+    private $Subversion;
 
     function __construct()
     {
@@ -24,6 +25,7 @@ class svnrep extends controller
          * 其它自定义操作
          */
         $this->Svngorup = new svngroup();
+        $this->Subversion = new subversion();
     }
 
     /**
@@ -449,7 +451,7 @@ class svnrep extends controller
          * 
          * 目的为使用当前SVN用户的身份来进行被授权过的路径的内容浏览
          */
-        $bindInfo = $this->SVNAdminInfo->GetSubversionListen(SVNSERVE_ENV_FILE, LISTEN_FILE);
+        $bindInfo = $this->Subversion->GetSvnserveListen();
         $checkoutHost = 'svn://' . $bindInfo['bindHost'];
         if ($bindInfo['bindPort'] != '3690') {
             $checkoutHost = 'svn://' . $bindInfo['bindHost'] . ':' . $bindInfo['bindPort'];
@@ -1108,7 +1110,7 @@ class svnrep extends controller
     }
 
     /**
-     * 获取仓库的属性内容（key-vlaue的形式）
+     * 获取仓库的属性内容（key-value的形式）
      */
     function GetRepDetail()
     {

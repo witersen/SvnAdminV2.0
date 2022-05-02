@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-01 02:06:19
+ * @LastEditTime: 2022-05-02 23:08:48
  * @Description: QQ:1801168257
  */
 
@@ -57,21 +57,6 @@ define('SVNSERVE_LOG_FILE', SVNADMIN_LOG_PATH . 'svnserve.log');
  * 临时数据目录
  */
 define('TEMP_PATH', CONFIG_PATH . 'temp/');
-
-/**
- * mail配置 json文件
- */
-define('MAIL_FILE', CONFIG_PATH . 'mail.json');
-
-/**
- * svnserve监听端口和主机配置 json文件
- */
-define('LISTEN_FILE', CONFIG_PATH . 'listen.json');
-
-/**
- * 消息通知配置 json文件
- */
-define('MESSAGE_FILE', CONFIG_PATH . 'message.json');
 
 /**
  * 模板文件目录

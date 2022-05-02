@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:45:45
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-01 02:03:19
+ * @LastEditTime: 2022-05-02 23:20:09
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -1204,7 +1204,7 @@ class Rep extends Core
     }
 
     /**
-     * 获取仓库的属性内容（key-vlaue的形式）
+     * 获取仓库的属性内容（key-value的形式）
      */
     function GetRepDetail($repName)
     {
