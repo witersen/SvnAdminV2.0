@@ -235,7 +235,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=statistics&a=GetDisk&t=web", data)
+        .post("/api/Statistics/GetDisk?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -257,7 +257,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=statistics&a=GetSystemStatus&t=web", data)
+        .post("/api/Statistics/GetSystemStatus?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -279,7 +279,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=statistics&a=GetSystemAnalysis&t=web", data)
+        .post("/api/Statistics/GetSystemAnalysis?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

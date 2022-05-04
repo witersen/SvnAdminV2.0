@@ -146,10 +146,10 @@ export default {
      * 获取日志
      */
     SearchGetLogList() {
-      if (this.searchKeywordLog == "") {
-        this.$Message.error("请输入搜索内容");
-        return;
-      }
+      // if (this.searchKeywordLog == "") {
+      //   this.$Message.error("请输入搜索内容");
+      //   return;
+      // }
       this.GetLogList();
     },
     GetLogList() {
@@ -163,7 +163,7 @@ export default {
         searchKeyword: that.searchKeywordLog,
       };
       that.$axios
-        .post("/api.php?c=logs&a=GetLogList&t=web", data)
+        .post("/api/Logs/GetLogList?t=web", data)
         .then(function (response) {
           that.loadingGetLogList = false;
           var result = response.data;
@@ -193,7 +193,7 @@ export default {
           that.loadingClearLogs = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=logs&a=ClearLogs&t=web", data)
+            .post("/api/Logs/ClearLogs?t=web", data)
             .then(function (response) {
               that.loadingClearLogs = false;
               var result = response.data;

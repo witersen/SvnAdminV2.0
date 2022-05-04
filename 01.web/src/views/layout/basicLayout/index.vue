@@ -140,7 +140,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=common&a=Logout&t=web", data)
+        .post("/api/Unimportant/Logout?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

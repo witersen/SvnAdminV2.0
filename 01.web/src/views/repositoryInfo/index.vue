@@ -462,7 +462,7 @@
                 multiple
                 :on-success="UploadSuccess"
                 :before-upload="BeforeUpload"
-                action="/api.php?c=svnrep&a=UploadBackup&t=web"
+                action="/api/Svnrep/UploadBackup?t=web"
                 name="file"
                 :headers="{ token: token }"
               >
@@ -1088,7 +1088,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=subversion&a=GetStatus&t=web", data)
+        .post("/api/Svn/GetStatus?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1118,9 +1118,10 @@ export default {
         rep_type: that.formRepAdd.rep_type,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=CreateRep&t=web", data)
+        .post("/api/Svnrep/CreateRep?t=web", data)
         .then(function (response) {
           that.loadingCreateRep = false;
+          that.modalCreateRep = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
@@ -1140,10 +1141,10 @@ export default {
      * 获取仓库列表
      */
     SearchGetRepList() {
-      if (this.searchKeywordRep == "") {
-        this.$Message.error("请输入搜索内容");
-        return;
-      }
+      // if (this.searchKeywordRep == "") {
+      //   this.$Message.error("请输入搜索内容");
+      //   return;
+      // }
       this.GetRepList();
     },
     GetRepList() {
@@ -1159,7 +1160,7 @@ export default {
         sortType: that.sortType,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=GetRepList&t=web", data)
+        .post("/api/Svnrep/GetRepList?t=web", data)
         .then(function (response) {
           that.loadingRep = false;
           var result = response.data;
@@ -1219,7 +1220,7 @@ export default {
         sortType: that.sortType,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=GetSvnUserRepList&t=web", data)
+        .post("/api/Svnrep/GetSvnUserRepList?t=web", data)
         .then(function (response) {
           that.loadingUserRep = false;
           var result = response.data;
@@ -1274,7 +1275,7 @@ export default {
         rep_note: that.tableDataRep[index].rep_note,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=EditRepNote&t=web", data)
+        .post("/api/Svnrep/EditRepNote?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1359,7 +1360,7 @@ export default {
       var data = {};
       return new Promise(function (resolve, reject) {
         that.$axios
-          .post("/api.php?c=subversion&a=GetCheckout&t=web", data)
+          .post("/api/Svn/GetCheckout?t=web", data)
           .then(function (response) {
             var result = response.data;
             if (result.status == 1) {
@@ -1388,7 +1389,7 @@ export default {
         path: that.currentRepTreePath,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=GetRepCon&t=web", data)
+        .post("/api/Svnrep/GetRepCon?t=web", data)
         .then(function (response) {
           that.loadingRepCon = false;
           var result = response.data;
@@ -1423,7 +1424,7 @@ export default {
         path: that.currentRepTreePath,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=GetUserRepCon&t=web", data)
+        .post("/api/Svnrep/GetUserRepCon?t=web", data)
         .then(function (response) {
           that.loadingRepCon = false;
           var result = response.data;
@@ -1508,7 +1509,7 @@ export default {
       that.tableDataBackup = [];
       var data = {};
       that.$axios
-        .post("/api.php?c=svnrep&a=GetBackupList&t=web", data)
+        .post("/api/Svnrep/GetBackupList?t=web", data)
         .then(function (response) {
           that.loadingRepBackupList = false;
           var result = response.data;
@@ -1531,7 +1532,7 @@ export default {
         rep_name: that.currentRepName,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=RepDump&t=web", data)
+        .post("/api/Svnrep/RepDump?t=web", data)
         .then(function (response) {
           that.loadingRepDump = false;
           var result = response.data;
@@ -1558,7 +1559,7 @@ export default {
       };
       that.$axios.setAttribute;
       that.$axios
-        .post("/api.php?c=svnrep&a=DownloadRepBackup&t=web", data, {
+        .post("/api/Svnrep/DownloadRepBackup?t=web", data, {
           responseType: "blob",
         })
         .then(function (response) {
@@ -1594,7 +1595,7 @@ export default {
             fileName: fileName,
           };
           that.$axios
-            .post("/api.php?c=svnrep&a=DelRepBackup&t=web", data)
+            .post("/api/Svnrep/DelRepBackup?t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
@@ -1655,7 +1656,7 @@ export default {
       };
       return new Promise(function (resolve, reject) {
         that.$axios
-          .post("/api.php?c=svnrep&a=GetRepTree&t=web", data)
+          .post("/api/Svnrep/GetRepTree?t=web", data)
           .then(function (response) {
             resolve(response);
           })
@@ -1745,7 +1746,7 @@ export default {
         path: that.currentRepTreePriPath,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=GetRepPathUserPri&t=web", data)
+        .post("/api/Svnrep/GetRepPathUserPri?t=web", data)
         .then(function (response) {
           that.loadingRepPathUserPri = false;
           var result = response.data;
@@ -1803,7 +1804,7 @@ export default {
         user: that.currentRepPriUser,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=DelRepPathUserPri&t=web", data)
+        .post("/api/Svnrep/DelRepPathUserPri?t=web", data)
         .then(function (response) {
           that.loadingDelRepPathUserPri = false;
           var result = response.data;
@@ -1838,7 +1839,7 @@ export default {
           .userName,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=EditRepPathUserPri&t=web", data)
+        .post("/api/Svnrep/EditRepPathUserPri?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1865,7 +1866,7 @@ export default {
         user: that.currentRepPriAddUser,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=AddRepPathUserPri&t=web", data)
+        .post("/api/Svnrep/AddRepPathUserPri?t=web", data)
         .then(function (response) {
           that.modalRepAllUser = false;
           var result = response.data;
@@ -1901,7 +1902,7 @@ export default {
       that.loadingAllUserList = true;
       var data = {};
       that.$axios
-        .post("/api.php?c=svnuser&a=GetAllUserList&t=web", data)
+        .post("/api/Svnuser/GetAllUserList?t=web", data)
         .then(function (response) {
           that.loadingAllUserList = false;
           var result = response.data;
@@ -1941,7 +1942,7 @@ export default {
         path: that.currentRepTreePriPath,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=GetRepPathGroupPri&t=web", data)
+        .post("/api/Svnrep/GetRepPathGroupPri?t=web", data)
         .then(function (response) {
           that.loadingRepPathGroupPri = false;
           var result = response.data;
@@ -2003,7 +2004,7 @@ export default {
         group: that.currentRepPriGroup,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=DelRepPathGroupPri&t=web", data)
+        .post("/api/Svnrep/DelRepPathGroupPri?t=web", data)
         .then(function (response) {
           that.loadingDelRepPathGroupPri = false;
           var result = response.data;
@@ -2039,7 +2040,7 @@ export default {
           that.tableDataRepPathGroupPri[that.currentRepPriGroupIndex].groupName,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=EditRepPathGroupPri&t=web", data)
+        .post("/api/Svnrep/EditRepPathGroupPri?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -2066,7 +2067,7 @@ export default {
         group: that.currentRepPriAddGroup,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=AddRepPathGroupPri&t=web", data)
+        .post("/api/Svnrep/AddRepPathGroupPri?t=web", data)
         .then(function (response) {
           that.modalRepAllGroup = false;
           var result = response.data;
@@ -2102,7 +2103,7 @@ export default {
       that.loadingAllGroupList = true;
       var data = {};
       that.$axios
-        .post("/api.php?c=svngroup&a=GetAllGroupList&t=web", data)
+        .post("/api/Svngroup/GetAllGroupList?t=web", data)
         .then(function (response) {
           that.loadingAllGroupList = false;
           var result = response.data;
@@ -2147,7 +2148,7 @@ export default {
         rep_name: that.currentRepName,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=GetRepHooks&t=web", data)
+        .post("/api/Svnrep/GetRepHooks?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -2172,7 +2173,7 @@ export default {
         content: that.formRepHooks.type[that.formRepHooks.select].shell,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=EditRepHook&t=web", data)
+        .post("/api/Svnrep/EditRepHook?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -2215,7 +2216,7 @@ export default {
         rep_name: that.currentRepName,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=GetRepDetail&t=web", data)
+        .post("/api/Svnrep/GetRepDetail?t=web", data)
         .then(function (response) {
           that.loadingRepDetail = false;
           var result = response.data;
@@ -2292,7 +2293,7 @@ export default {
         fileName: that.formUploadBackup.fileName,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=ImportRep&t=web", data)
+        .post("/api/Svnrep/ImportRep?t=web", data)
         .then(function (response) {
           that.loadingImportBackup = false;
           var result = response.data;
@@ -2332,7 +2333,7 @@ export default {
         new_rep_name: that.formRepEdit.new_rep_name,
       };
       that.$axios
-        .post("/api.php?c=svnrep&a=EditRepName&t=web", data)
+        .post("/api/Svnrep/EditRepName?t=web", data)
         .then(function (response) {
           that.loadingEditRepName = false;
           var result = response.data;
@@ -2365,7 +2366,7 @@ export default {
             rep_name: rep_name,
           };
           that.$axios
-            .post("/api.php?c=svnrep&a=DelRep&t=web", data)
+            .post("/api/Svnrep/DelRep?t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {

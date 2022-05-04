@@ -4,7 +4,7 @@
       <Tabs v-model="currentAdvanceTab" @on-click="SetCurrentAdvanceTab">
         <TabPane label="Subversion" name="1">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Form :label-width="140">
+            <Form :label-width="100" label-position="left">
               <FormItem label="Subversion">
                 <Row>
                   <Col span="12">
@@ -63,7 +63,7 @@
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="svnserve绑定端口">
+              <FormItem label="绑定端口">
                 <Row>
                   <Col span="12">
                     <InputNumber
@@ -84,7 +84,7 @@
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="svnserve绑定主机名">
+              <FormItem label="绑定主机">
                 <Row>
                   <Col span="12">
                     <Input
@@ -111,7 +111,7 @@
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="管理系统主机名">
+              <FormItem label="自定义主机">
                 <Row>
                   <Col span="12">
                     <Input
@@ -139,8 +139,8 @@
                       v-model="formSvn.enable"
                       @on-change="EditEnable"
                     >
-                      <Radio label="bindHost">svnserve绑定主机名</Radio>
-                      <Radio label="manageHost">管理系统主机名</Radio>
+                      <Radio label="bindHost">绑定主机</Radio>
+                      <Radio label="manageHost">自定义主机</Radio>
                     </RadioGroup>
                   </Col>
                   <Col span="6"> </Col>
@@ -150,8 +150,8 @@
           </Card>
         </TabPane>
         <TabPane label="配置文件" name="2">
-          <Card :bordered="false" :dis-hover="true" style="width: 600px">
-            <Form :label-width="160">
+          <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Form :label-width="120" label-position="left">
               <FormItem
                 :label="item.key"
                 v-for="(item, index) in configList"
@@ -167,66 +167,157 @@
           </Card>
         </TabPane>
         <TabPane label="邮件服务" name="3">
-          <Card :bordered="false" :dis-hover="true" style="width: 600px">
-            <Form :label-width="140">
+          <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Form :label-width="100" label-position="left">
               <FormItem label="SMTP主机">
                 <Row>
                   <Col span="12">
-                    <Input value="2.4.0"></Input>
+                    <Input v-model="formMailSmtp.host"></Input>
+                  </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="加密">
+                <Row>
+                  <Col span="12">
+                    <RadioGroup
+                      v-model="formMailSmtp.encryption"
+                      @on-change="ChangeEncryption"
+                    >
+                      <Radio label="none">
+                        <span>无</span>
+                      </Radio>
+                      <Radio label="SSL">
+                        <span>SSL</span>
+                      </Radio>
+                      <Radio label="TLS">
+                        <span>TLS</span>
+                      </Radio>
+                    </RadioGroup>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="对于大多数服务器，建议使用TLS。 如果您的SMTP提供商同时提供SSL和TLS选项，我们建议您使用TLS。"
+                    >
+                      <Button type="info">tips</Button>
+                    </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="SMTP端口">
                 <Row>
                   <Col span="12">
-                    <Input value="2.4.0"></Input>
+                    <InputNumber
+                      :min="1"
+                      v-model="formMailSmtp.port"
+                    ></InputNumber>
+                  </Col>
+                  <Col span="1"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="自动TLS" v-if="formMailSmtp.encryption != 'TLS'">
+                <Row>
+                  <Col span="12">
+                    <Switch v-model="formMailSmtp.autotls">
+                      <Icon type="md-checkmark" slot="open"></Icon>
+                      <Icon type="md-close" slot="close"></Icon>
+                    </Switch>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="默认情况下，如果服务器支持TLS加密，则会自动使用TLS加密（推荐）。在某些情况下，由于服务器配置错误可能会导致问题，则需要将其禁用。"
+                    >
+                      <Button type="info">tips</Button>
+                    </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="SMTP用户名">
+              <FormItem label="认证">
                 <Row>
                   <Col span="12">
-                    <Input value="2.4.0"></Input>
+                    <Switch v-model="formMailSmtp.auth">
+                      <Icon type="md-checkmark" slot="open"></Icon>
+                      <Icon type="md-close" slot="close"></Icon>
+                    </Switch>
                   </Col>
+                  <!-- <Alert
+                    >默认情况下，如果服务器支持TLS加密，则会自动使用TLS加密（推荐）。在某些情况下，由于服务器配置错误可能会导致问题，则需要将其禁用。</Alert
+                  > -->
                 </Row>
               </FormItem>
-              <FormItem label="SMTP密码">
+              <FormItem label="SMTP用户名" v-if="formMailSmtp.auth">
                 <Row>
                   <Col span="12">
-                    <Input value="2.4.0"></Input>
+                    <Input v-model="formMailSmtp.user"></Input>
                   </Col>
+                  <Col span="1"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="SMTP密码" v-if="formMailSmtp.auth">
+                <Row>
+                  <Col span="12">
+                    <Input
+                      v-model="formMailSmtp.pass"
+                      type="password"
+                      password
+                    ></Input>
+                  </Col>
+                  <Col span="1"> </Col>
                 </Row>
               </FormItem>
               <FormItem label="发件人邮箱">
                 <Row>
                   <Col span="12">
-                    <Input value="2.4.0"></Input>
+                    <Input
+                      v-model="formMailSmtp.from"
+                      placeholder="默认与用户名相同，需要为邮件格式"
+                    ></Input>
                   </Col>
+                  <Col span="1"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="测试接收邮箱">
+              <FormItem label="测试邮箱">
                 <Row>
                   <Col span="12">
-                    <Input value="2.4.0"></Input>
+                    <Input
+                      v-model="formMailSmtp.to"
+                      placeholder="测试邮箱不会被保存"
+                    ></Input>
                   </Col>
+                  <Col span="1"> </Col>
                   <Col span="6">
-                    <Button type="success">发送测试邮件</Button>
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="发送测试邮件会使用当前表单填写的配置信息而不是已经保存过的配置信息。全局默认的发送超时时间为10s，如有需要请自行修改。"
+                    >
+                      <Button
+                        type="success"
+                        @click="SendTest"
+                        :loading="loadingSendTest"
+                        >发送</Button
+                      >
+                    </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="默认启用状态">
+              <FormItem label="启用状态">
                 <Row>
                   <Col span="12">
-                    <Switch>
+                    <Switch v-model="formMailSmtp.status">
                       <Icon type="md-checkmark" slot="open"></Icon>
                       <Icon type="md-close" slot="close"></Icon>
                     </Switch>
                   </Col>
                 </Row>
               </FormItem>
-
               <FormItem>
-                <Button type="primary">保存</Button>
+                <Button type="primary" @click="EditEmail">保存</Button>
               </FormItem>
             </Form>
           </Card>
@@ -245,16 +336,6 @@
                 </Row>
               </FormItem>
               <FormItem label="用户密码修改">
-                <Row>
-                  <Col span="12">
-                    <Switch>
-                      <Icon type="md-checkmark" slot="open"></Icon>
-                      <Icon type="md-close" slot="close"></Icon>
-                    </Switch>
-                  </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="任务计划执行失败">
                 <Row>
                   <Col span="12">
                     <Switch>
@@ -358,6 +439,8 @@ export default {
       tempBindHost: "",
       //管理系统主机名称
       tempManageHost: "",
+      //测试邮箱
+      tempTestEmail: "",
 
       /**
        * 控制修改状态
@@ -384,6 +467,8 @@ export default {
       loadingEditPort: false,
       //更换管理系统地址
       loadingEditManageHost: false,
+      //发送测试邮件
+      loadingSendTest: false,
 
       /**
        * subversion信息
@@ -406,20 +491,31 @@ export default {
       /**
        * 对话框
        */
-      //新建仓库
-      modalAddRep: false,
-      //编辑仓库信息
-      modalEditRepName: false,
 
       /**
        * 表单
        */
-      //新建仓库
-      formRepAdd: {},
-      //编辑仓库
-      formRepEdit: {
-        repNameOld: "",
-        repNameNew: "",
+      //邮件服务
+      formMailSmtp: {
+        host: "",
+        auth: "",
+        user: "",
+        pass: "",
+        encryption: "",
+        autotls: true,
+        port: 0,
+        to: "",
+        from: "",
+
+        // autotls: true,
+        // auth: false,
+        // host: "",
+        // encryption: "none",
+        // port: 25,
+        // user: "",
+        // pass: "",
+        // from: "",
+        status: false,
       },
     };
   },
@@ -433,6 +529,7 @@ export default {
     }
     this.GetDetail();
     this.GetConfig();
+    this.GetEmail();
   },
   methods: {
     /**
@@ -449,7 +546,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=subversion&a=GetDetail&t=web", data)
+        .post("/api/Svn/GetDetail?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -502,13 +599,113 @@ export default {
       }
     },
     /**
+     * 获取邮件配置信息
+     */
+    GetEmail() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api/Mail/GetEmail?t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.formMailSmtp = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 更换加密选择 触发
+     */
+    ChangeEncryption(value) {
+      //自动推荐默认端口
+      if (value == "none") {
+        this.formMailSmtp.port = 25;
+      } else if (value == "SSL") {
+        this.formMailSmtp.port = 465;
+      } else if (value == "TLS") {
+        this.formMailSmtp.port = 587;
+      }
+    },
+    /**
+     * 修改邮件配置信息
+     */
+    EditEmail() {
+      var that = this;
+      var data = {
+        host: that.formMailSmtp.host,
+        auth: that.formMailSmtp.auth,
+        user: that.formMailSmtp.user,
+        pass: that.formMailSmtp.pass,
+        encryption: that.formMailSmtp.encryption,
+        autotls: that.formMailSmtp.autotls,
+        port: that.formMailSmtp.port,
+        from: that.formMailSmtp.from,
+        status: that.formMailSmtp.status,
+      };
+      that.$axios
+        .post("/api/Mail/EditEmail?t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetEmail();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 发送测试邮件
+     */
+    SendTest() {
+      var that = this;
+      that.loadingSendTest = true;
+      var data = {
+        host: that.formMailSmtp.host,
+        auth: that.formMailSmtp.auth,
+        user: that.formMailSmtp.user,
+        pass: that.formMailSmtp.pass,
+        encryption: that.formMailSmtp.encryption,
+        autotls: that.formMailSmtp.autotls,
+        port: that.formMailSmtp.port,
+        to: that.formMailSmtp.to,
+        from: that.formMailSmtp.from,
+      };
+      that.$axios
+        .post("/api/Mail/SendTest?t=web", data)
+        .then(function (response) {
+          that.loadingSendTest = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingSendTest = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
      * 获取配置文件信息
      */
     GetConfig() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=subversion&a=GetConfig&t=web", data)
+        .post("/api/Svn/GetConfig?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -542,7 +739,7 @@ export default {
           that.loadingSvnserveStart = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=subversion&a=Start&t=web", data)
+            .post("/api/Svn/Start?t=web", data)
             .then(function (response) {
               that.loadingSvnserveStart = false;
               var result = response.data;
@@ -573,7 +770,7 @@ export default {
           that.loadingSvnserveStop = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=subversion&a=Stop&t=web", data)
+            .post("/api/Svn/Stop?t=web", data)
             .then(function (response) {
               that.loadingSvnserveStop = false;
               var result = response.data;
@@ -607,7 +804,7 @@ export default {
             bindPort: that.tempBindPort,
           };
           that.$axios
-            .post("/api.php?c=subversion&a=EditPort&t=web", data)
+            .post("/api/Svn/EditPort?t=web", data)
             .then(function (response) {
               that.loadingEditPort = false;
               var result = response.data;
@@ -642,7 +839,7 @@ export default {
             bindHost: that.tempBindHost,
           };
           that.$axios
-            .post("/api.php?c=subversion&a=EditHost&t=web", data)
+            .post("/api/Svn/EditHost?t=web", data)
             .then(function (response) {
               that.loadingEditHost = false;
               var result = response.data;
@@ -677,7 +874,7 @@ export default {
             manageHost: that.tempManageHost,
           };
           that.$axios
-            .post("/api.php?c=subversion&a=EditManageHost&t=web", data)
+            .post("/api/Svn/EditManageHost?t=web", data)
             .then(function (response) {
               that.loadingEditManageHost = false;
               var result = response.data;
@@ -706,7 +903,7 @@ export default {
         enable: value,
       };
       that.$axios
-        .post("/api.php?c=subversion&a=EditEnable&t=web", data)
+        .post("/api/Svn/EditEnable?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

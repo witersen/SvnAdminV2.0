@@ -79,12 +79,7 @@
         </TabPane>
       </Tabs>
     </Card>
-    <Modal
-      v-model="modalEditAdminUserName"
-      title="修改管理员账号"
-      :loading="loadingEditAdminUserName"
-      @on-ok="EditAdminUserName"
-    >
+    <Modal v-model="modalEditAdminUserName" title="修改管理员账号">
       <Form :model="formEditAdminUserName" :label-width="80">
         <FormItem label="新账号">
           <Input v-model="formEditAdminUserName.userName"></Input>
@@ -92,14 +87,22 @@
         <FormItem label="确认">
           <Input v-model="formEditAdminUserName.confirm"></Input>
         </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            :loading="loadingEditAdminUserName"
+            @click="EditAdminUserName"
+            >确定</Button
+          >
+        </FormItem>
       </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalEditAdminUserName = false"
+          >取消</Button
+        >
+      </div>
     </Modal>
-    <Modal
-      v-model="modalEditAdminUserPass"
-      title="修改管理员密码"
-      :loading="loadingEditAdminUserPass"
-      @on-ok="EditAdminUserPass"
-    >
+    <Modal v-model="modalEditAdminUserPass" title="修改管理员密码">
       <Form :model="formEditAdminUserPass" :label-width="80">
         <FormItem label="新密码">
           <Input v-model="formEditAdminUserPass.password"></Input>
@@ -107,7 +110,20 @@
         <FormItem label="确认">
           <Input v-model="formEditAdminUserPass.confirm"></Input>
         </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            :loading="loadingEditAdminUserPass"
+            @click="EditAdminUserPass"
+            >确定</Button
+          >
+        </FormItem>
       </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalEditAdminUserPass = false"
+          >取消</Button
+        >
+      </div>
     </Modal>
   </div>
 </template>
@@ -125,8 +141,8 @@ export default {
       /**
        * 加载
        */
-      loadingEditAdminUserName: true,
-      loadingEditAdminUserPass: true,
+      loadingEditAdminUserName: false,
+      loadingEditAdminUserPass: false,
       loadingEditSvnUserPass: false,
       /**
        * 表单
@@ -160,24 +176,27 @@ export default {
     },
     EditAdminUserName() {
       var that = this;
+      that.loadingEditAdminUserName = true;
       var data = {
         userName: that.formEditAdminUserName.userName,
         confirm: that.formEditAdminUserName.confirm,
       };
       that.$axios
-        .post("/api.php?c=personal&a=EditAdminUserName&t=web", data)
+        .post("/api/Personal/EditAdminUserName?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
+            that.loadingEditAdminUserName = false;
+            that.modalEditAdminUserName = false;
             that.$Message.success(result.message);
             that.LogOut();
           } else {
+            that.loadingEditAdminUserName = false;
             that.$Message.error(result.message);
           }
-          that.modalEditAdminUserName = false;
         })
         .catch(function (error) {
-          that.modalEditAdminUserName = false;
+          that.loadingEditAdminUserName = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -190,24 +209,27 @@ export default {
     },
     EditAdminUserPass() {
       var that = this;
+      that.loadingEditAdminUserPass = true;
       var data = {
         password: that.formEditAdminUserPass.password,
         confirm: that.formEditAdminUserPass.confirm,
       };
       that.$axios
-        .post("/api.php?c=personal&a=EditAdminUserPass&t=web", data)
+        .post("/api/Personal/EditAdminUserPass?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
+            that.loadingEditAdminUserPass = false;
+            that.modalEditAdminUserPass = false;
             that.$Message.success(result.message);
             that.LogOut();
           } else {
+            that.loadingEditAdminUserPass = false;
             that.$Message.error(result.message);
           }
-          that.modalEditAdminUserPass = false;
         })
         .catch(function (error) {
-          that.modalEditAdminUserPass = false;
+          that.loadingEditAdminUserPass = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -225,7 +247,7 @@ export default {
         confirm: that.formEditSvnUserPass.confirm,
       };
       that.$axios
-        .post("/api.php?c=personal&a=EditSvnUserPass&t=web", data)
+        .post("/api/Personal/EditSvnUserPass?t=web", data)
         .then(function (response) {
           that.loadingEditSvnUserPass = false;
           var result = response.data;
@@ -250,7 +272,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=common&a=Logout&t=web", data)
+        .post("/api/Unimportant/Logout?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

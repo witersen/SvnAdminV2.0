@@ -153,7 +153,7 @@ export default {
       that.loadingGetVeryfyCode = "loading......";
       var data = {};
       that.$axios
-        .post("/api.php?c=common&a=GetVeryfyCode&t=web", data)
+        .post("/api/Unimportant/GetVeryfyCode?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -180,7 +180,7 @@ export default {
         code: that.formUserLogin.code,
       };
       that.$axios
-        .post("/api.php?c=common&a=Login&t=web", data)
+        .post("/api/Unimportant/Login?t=web", data)
         .then(function (response) {
           that.loadingLogin = false;
           var result = response.data;

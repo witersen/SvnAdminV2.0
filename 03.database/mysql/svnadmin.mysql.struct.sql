@@ -95,6 +95,32 @@ LOCK TABLES `logs` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `options`
+--
+
+DROP TABLE IF EXISTS `options`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `options` (
+  `option_id` int(11) NOT NULL AUTO_INCREMENT,
+  `option_name` varchar(191) NOT NULL,
+  `option_value` longtext NOT NULL,
+  `option_description` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`option_id`),
+  UNIQUE KEY `option_name_UNIQUE` (`option_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='全局配置项';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `options`
+--
+
+LOCK TABLES `options` WRITE;
+/*!40000 ALTER TABLE `options` DISABLE KEYS */;
+/*!40000 ALTER TABLE `options` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `svn_groups`
 --
 
@@ -145,6 +171,33 @@ CREATE TABLE `svn_reps` (
 LOCK TABLES `svn_reps` WRITE;
 /*!40000 ALTER TABLE `svn_reps` DISABLE KEYS */;
 /*!40000 ALTER TABLE `svn_reps` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `svn_user_pri_paths`
+--
+
+DROP TABLE IF EXISTS `svn_user_pri_paths`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `svn_user_pri_paths` (
+  `svnn_user_pri_path_id` int(11) NOT NULL AUTO_INCREMENT,
+  `rep_name` varchar(1000) NOT NULL COMMENT '仓库名称',
+  `pri_path` mediumtext NOT NULL COMMENT '仓库路径',
+  `rep_pri` varchar(45) DEFAULT NULL COMMENT '该用户所拥有的权限',
+  `svn_user_name` varchar(200) NOT NULL COMMENT '该路径的权限的拥有人',
+  `unique` varchar(20000) NOT NULL COMMENT '使用仓库名和路径和权限拼接的唯一值',
+  PRIMARY KEY (`svnn_user_pri_path_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SVN用户有权限的仓库路径';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `svn_user_pri_paths`
+--
+
+LOCK TABLES `svn_user_pri_paths` WRITE;
+/*!40000 ALTER TABLE `svn_user_pri_paths` DISABLE KEYS */;
+/*!40000 ALTER TABLE `svn_user_pri_paths` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -217,4 +270,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-04-23 15:07:58
+-- Dump completed on 2022-05-04 20:27:12

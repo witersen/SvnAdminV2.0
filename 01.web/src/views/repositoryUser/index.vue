@@ -273,10 +273,10 @@ export default {
      * 获取SVN用户列表
      */
     SearchGetUserList() {
-      if (this.searchKeywordUser == "") {
-        this.$Message.error("请输入搜索内容");
-        return;
-      }
+      // if (this.searchKeywordUser == "") {
+      //   this.$Message.error("请输入搜索内容");
+      //   return;
+      // }
       this.GetUserList();
     },
     GetUserList() {
@@ -292,7 +292,7 @@ export default {
         sortType: that.sortType,
       };
       that.$axios
-        .post("/api.php?c=svnuser&a=GetUserList&t=web", data)
+        .post("/api/Svnuser/GetUserList?t=web", data)
         .then(function (response) {
           that.loadingUser = false;
           var result = response.data;
@@ -329,7 +329,7 @@ export default {
         svn_user_name: svn_user_name,
       };
       that.$axios
-        .post("/api.php?c=svnuser&a=EnableUser&t=web", data)
+        .post("/api/Svnuser/EnableUser?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -352,7 +352,7 @@ export default {
         svn_user_name: svn_user_name,
       };
       that.$axios
-        .post("/api.php?c=svnuser&a=DisableUser&t=web", data)
+        .post("/api/Svnuser/DisableUser?t=web", data)
         .then(function (response) {
           that.loadingUser = false;
           var result = response.data;
@@ -377,7 +377,7 @@ export default {
         svn_user_note: that.tableDataUser[index].svn_user_note,
       };
       that.$axios
-        .post("/api.php?c=svnuser&a=EditUserNote&t=web", data)
+        .post("/api/Svnuser/EditUserNote?t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -415,7 +415,7 @@ export default {
         svn_user_pass: that.formCreateUser.svn_user_pass,
       };
       that.$axios
-        .post("/api.php?c=svnuser&a=CreateUser&t=web", data)
+        .post("/api/Svnuser/CreateUser?t=web", data)
         .then(function (response) {
           that.loadingCreateUser = false;
           var result = response.data;
@@ -458,7 +458,7 @@ export default {
           that.tableDataUser[that.formEditUser.index].svn_user_status,
       };
       that.$axios
-        .post("/api.php?c=svnuser&a=EditUserPass&t=web", data)
+        .post("/api/Svnuser/EditUserPass?t=web", data)
         .then(function (response) {
           that.loadingEditUserPass = false;
           var result = response.data;
@@ -491,7 +491,7 @@ export default {
             svn_user_status: that.tableDataUser[index].svn_user_status,
           };
           that.$axios
-            .post("/api.php?c=svnuser&a=DelUser&t=web", data)
+            .post("/api/Svnuser/DelUser?t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
