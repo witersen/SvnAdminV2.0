@@ -23,8 +23,6 @@ Vue.use(VueClipboard)
 Vue.use(VueRouter);
 Vue.use(ViewUI);
 
-// import streamSaver from 'streamsaver'
-
 // 路由配置
 const RouterConfig = {
     mode: 'hash',

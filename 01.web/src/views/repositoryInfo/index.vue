@@ -590,6 +590,7 @@
 </template>
 
 <script>
+import { WritableStream } from "web-streams-polyfill/ponyfill";
 export default {
   data() {
     return {
@@ -1554,33 +1555,46 @@ export default {
      */
     DownloadRepBackup(fileName) {
       var that = this;
-      var data = {
-        fileName: fileName,
-      };
-      that.$axios.setAttribute;
-      that.$axios
-        .post("/api/Svnrep/DownloadRepBackup?t=web", data, {
-          responseType: "blob",
-        })
-        .then(function (response) {
-          let url = window.URL.createObjectURL(
-            new Blob([response.data], { type: "application/octet-stream" })
-          );
-          let link = document.createElement("a");
-          link.style.display = "none";
-          link.href = url;
-          link.setAttribute("download", fileName);
-          document.body.appendChild(link);
-          link.click();
-          //释放url对象所占资源
-          window.URL.revokeObjectURL(url);
-          //用完删除
-          document.body.removeChild(link);
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
+      const streamSaver = require("../../libs/streamsaver/StreamSaver");
+      fetch("/api/Svnrep/DownloadRepBackup?t=web", {
+        headers: {
+          "Content-Type": "application/json",
+          token: that.token,
+        },
+        method: "POST",
+        body: JSON.stringify({
+          fileName: fileName,
+        }),
+      }).then((response) => {
+        // These code section is adapted from an example of the StreamSaver.js
+        // https://jimmywarting.github.io/StreamSaver.js/examples/fetch.html
+
+        // If the WritableStream is not available (Firefox, Safari), take it from the ponyfill
+        if (!window.WritableStream) {
+          streamSaver.WritableStream = WritableStream;
+          window.WritableStream = WritableStream;
+        }
+
+        const fileStream = streamSaver.createWriteStream(fileName);
+        const readableStream = response.body;
+
+        // More optimized
+        if (readableStream.pipeTo) {
+          return readableStream.pipeTo(fileStream);
+        }
+
+        window.writer = fileStream.getWriter();
+
+        const reader = response.body.getReader();
+        const pump = () =>
+          reader
+            .read()
+            .then((res) =>
+              res.done ? writer.close() : writer.write(res.value).then(pump)
+            );
+
+        pump();
+      });
     },
     /**
      * 删除备份文件
