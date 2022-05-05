@@ -317,7 +317,12 @@
                 </Row>
               </FormItem>
               <FormItem>
-                <Button type="primary" @click="EditEmail">保存</Button>
+                <Button
+                  type="primary"
+                  @click="EditEmail"
+                  :loading="loadingEditEmail"
+                  >保存</Button
+                >
               </FormItem>
             </Form>
           </Card>
@@ -469,6 +474,8 @@ export default {
       loadingEditManageHost: false,
       //发送测试邮件
       loadingSendTest: false,
+      //保存邮件配置信息
+      loadingEditEmail: false,
 
       /**
        * subversion信息
@@ -637,6 +644,7 @@ export default {
      */
     EditEmail() {
       var that = this;
+      that.loadingEditEmail = true;
       var data = {
         host: that.formMailSmtp.host,
         auth: that.formMailSmtp.auth,
@@ -651,6 +659,7 @@ export default {
       that.$axios
         .post("/api/Mail/EditEmail?t=web", data)
         .then(function (response) {
+          that.loadingEditEmail = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
@@ -660,6 +669,7 @@ export default {
           }
         })
         .catch(function (error) {
+          that.loadingEditEmail = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });

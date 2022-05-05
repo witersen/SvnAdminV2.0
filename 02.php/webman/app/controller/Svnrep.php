@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-04 19:00:12
+ * @LastEditTime: 2022-05-05 15:49:48
  * @Description: QQ:1801168257
  */
 
@@ -1182,9 +1182,10 @@ class Svnrep extends Core
     /**
      * 下载备份文件
      */
-    public function DownloadRepBackup()
+    public function DownloadRepBackup(Request $request)
     {
-        $this->DownloadRepBackup2();
+        $filePath = $this->config_svnadmin_svn['backup_base_path'] .  $this->payload['fileName'];
+        return response()->download($filePath);
     }
 
     /**
@@ -1269,32 +1270,66 @@ class Svnrep extends Core
     }
 
     /**
+     * 下载大文件
+     */
+    function send_file($connection, $file_name)
+    {
+        if (!is_file($file_name)) {
+            $connection->send("HTTP/1.0 404 File Not Found\r\nContent-Length: 18\r\n\r\n404 File Not Found", true);
+            return;
+        }
+
+        // ======发送http头======
+        $file_size = filesize($file_name);
+        $header = "HTTP/1.1 200 OK\r\n";
+        // 这里写的Content-Type是pdf，如果不是pdf文件请修改Content-Type的值
+        // mime对应关系参见 https://github.com/walkor/Workerman/blob/master/Protocols/Http/mime.types#L30
+        $header .= "Content-Type: application/pdf\r\n";
+        $header .= "Connection: keep-alive\r\n";
+        $header .= "Content-Length: $file_size\r\n\r\n";
+        $connection->send($header, true);
+
+        // ======分段发送文件内容=======
+        $connection->fileHandler = fopen($file_name, 'r');
+        $do_write = function () use ($connection) {
+            // 对应客户端的连接发送缓冲区未满时
+            while (empty($connection->bufferFull)) {
+                // 从磁盘读取文件
+                $buffer = fread($connection->fileHandler, 8192);
+                // 读不到数据说明文件读到末尾了
+                if ($buffer === '' || $buffer === false) {
+                    return;
+                }
+                $connection->send($buffer, true);
+            }
+        };
+        // 发生连接发送缓冲区满事件时设置一个标记bufferFull
+        $connection->onBufferFull = function ($connection) {
+            // 赋值一个bufferFull临时变量给链接对象，标记发送缓冲区满，暂停do_write发送
+            $connection->bufferFull = true;
+        };
+        // 当发送缓冲区数据发送完毕时触发
+        $connection->onBufferDrain = function ($connection) use ($do_write) {
+            $connection->bufferFull = false;
+            $do_write();
+        };
+        // 执行发送
+        $do_write();
+    }
+
+    /**
      * 上传文件到备份文件夹
      */
-    public function UploadBackup()
+    public function UploadBackup(Request $request)
     {
-
-        if (array_key_exists('file', $_FILES)) {
-            //扩展名
-            $fileType =  substr(strrchr($_FILES['file']['name'], '.'), 1);
-
-            //文件名
-            $fileName = $_FILES['file']['name'];
-
-            //备份文件夹
-            $localFilePath = $this->config_svnadmin_svn['backup_base_path'] .  $fileName;
-
-            //保存
-            $cmd = sprintf("mv '%s' '%s'", $_FILES['file']['tmp_name'], $localFilePath);
-            passthru($cmd);
-            // move_uploaded_file($_FILES['file']['tmp_name'], $localFilePath);
-
+        $file = $request->file('file');
+        if ($file && $file->isValid()) {
+            $localFilePath = $this->config_svnadmin_svn['backup_base_path'] .  $file->getUploadName();
+            $file->move($localFilePath);
             return message();
-        } else {
-            $data['status'] = 0;
-            $data['message'] = '参数不完整';
-            return $data;
         }
+
+        return message(200, 0, '上传失败');
     }
 
     /**

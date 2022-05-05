@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-04 19:54:25
+ * @LastEditTime: 2022-05-05 14:38:32
  * @Description: QQ:1801168257
  */
 
@@ -149,7 +149,7 @@ class Svngroup extends Core
             'svn_group_name' => $this->payload['svn_group_name']
         ]);
 
-        return message();
+        return message(200, 1, '已保存');
     }
 
     /**
