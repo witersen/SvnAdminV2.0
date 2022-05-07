@@ -264,7 +264,10 @@
             @click="DownloadRepBackup(row.fileName)"
             >下载</Button
           >
-          <Button type="error" size="small" @click="DelRepBackup(row.fileName)"
+          <Button
+            type="error"
+            size="small"
+            @click="DelRepBackup(row.fileName)"
             >删除</Button
           >
         </template>

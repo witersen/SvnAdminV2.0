@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:21:35
+ * @LastEditTime: 2022-05-07 17:03:32
  * @Description: QQ:1801168257
  */
 
@@ -1199,7 +1199,7 @@ class Svnrep extends Base
     public function DownloadRepBackup()
     {
         $filePath = $this->config_svn['backup_base_path'] .  $this->payload['fileName'];
-        $this->DownloadRepBackup1($filePath, $this->payload['fileName']);
+        $this->DownloadRepBackup2($filePath, $this->payload['fileName']);
     }
 
     /**

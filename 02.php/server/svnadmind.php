@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 02:02:57
+ * @LastEditTime: 2022-05-07 19:33:17
  * @Description: QQ:1801168257
  */
 
@@ -136,7 +136,7 @@ class Daemon
             //将标准错误重定向到文件
             //使用状态码来标识错误信息
             ob_start();
-            FunShellExec($cmmand . " 2>$stderrFile", $resultCode);
+            passthru($cmmand . " 2>$stderrFile", $resultCode);
             $buffer = ob_get_contents();
             ob_end_clean();
 
@@ -207,7 +207,7 @@ class Daemon
     /**
      * 检查需要的函数是否被禁用
      */
-    private function CheckDisabledFunction()
+    private function CheckDisabledFun()
     {
         $disabled_function = explode(',', ini_get('disable_functions'));
         $cli_needed_function = $this->config_daemon['CLI_NEEDED_FUNCTION'];
@@ -219,6 +219,15 @@ class Daemon
         if (!empty($cli_needed_function)) {
             exit('启动失败：需要的以下函数被禁用：' . PHP_EOL . implode(' ', $cli_needed_function) . PHP_EOL);
         }
+    }
+
+    /**
+     * 更新密钥
+     */
+    private function UpdateSign()
+    {
+        $signCon = sprintf("<?php\n\nreturn ['signature' => '%s'];", uniqid());
+        file_put_contents(BASE_PATH . '/../config/sign.php', $signCon);
     }
 
     /**
@@ -276,8 +285,9 @@ class Daemon
             } else {
                 $this->CheckSysType();
                 $this->CheckPhpVersion();
-                $this->CheckDisabledFunction();
+                $this->CheckDisabledFun();
                 if ($this->workMode == 'start') {
+                    $this->UpdateSign();
                     $this->StartDaemon();
                 } else if ($this->workMode == 'console') {
                     $this->StartConsole();

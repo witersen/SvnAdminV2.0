@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 13:58:27
+ * @LastEditTime: 2022-05-07 19:14:22
  * @Description: QQ:1801168257
  */
 
@@ -51,6 +51,24 @@ class Mail extends Base
     public function SendTest()
     {
         $result = $this->ServiceMail->SendTest();
+        json2($result);
+    }
+
+    /**
+     * 获取消息推送信息配置
+     */
+    public function GetPush()
+    {
+        $result = $this->ServiceMail->GetPush();
+        json2($result);
+    }
+
+    /**
+     * 修改推送选项
+     */
+    function EditPush()
+    {
+        $result = $this->ServiceMail->EditPush();
         json2($result);
     }
 }

@@ -168,7 +168,7 @@
         </TabPane>
         <TabPane label="邮件服务" name="3">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Form :label-width="100" label-position="left">
+            <Form :label-width="120" label-position="left">
               <FormItem label="SMTP主机">
                 <Row>
                   <Col span="12">
@@ -330,20 +330,14 @@
         <TabPane label="消息推送" name="4">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
-              <FormItem label="用户登录">
+              <FormItem
+                :label="item.note"
+                v-for="(item, index) in listPush"
+                :key="index"
+              >
                 <Row>
                   <Col span="12">
-                    <Switch>
-                      <Icon type="md-checkmark" slot="open"></Icon>
-                      <Icon type="md-close" slot="close"></Icon>
-                    </Switch>
-                  </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="用户密码修改">
-                <Row>
-                  <Col span="12">
-                    <Switch>
+                    <Switch v-model="listPush[index].enable">
                       <Icon type="md-checkmark" slot="open"></Icon>
                       <Icon type="md-close" slot="close"></Icon>
                     </Switch>
@@ -351,33 +345,12 @@
                 </Row>
               </FormItem>
               <FormItem>
-                <Button type="primary">保存</Button>
+                <Button type="primary" :loading="loadingEditPush" @click="EditPush">保存</Button>
               </FormItem>
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="系统安全" name="5">
-          <Card :bordered="false" :dis-hover="true" style="width: 600px">
-            <Form :label-width="140">
-              <FormItem label="token">
-                1、本系统使用token进行鉴权和登录状态保持<br />
-                2、密钥 + 算法 = token<br />
-                3、密钥泄露会导致token被伪造从而登录本系统<br />
-                4、定期重置密钥可以增加系统的安全性<br />
-                5、重置密钥后所有管理系统在线用户会被下线<br />
-              </FormItem>
-              <FormItem label="密钥">
-                <Row>
-                  <Col span="12">
-                    <Input type="password" readonly value="2.4.0"></Input>
-                  </Col>
-                  <Col span="6"> <Button type="primary">重置</Button></Col>
-                </Row>
-              </FormItem>
-            </Form>
-          </Card>
-        </TabPane>
-        <TabPane label="系统更新" name="6">
+        <TabPane label="系统更新" name="5">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">
@@ -460,6 +433,11 @@ export default {
       currentAdvanceTab: "1",
 
       /**
+       *
+       */
+      listPush: [],
+
+      /**
        * 加载
        */
       //启动svnserve
@@ -476,6 +454,8 @@ export default {
       loadingSendTest: false,
       //保存邮件配置信息
       loadingEditEmail: false,
+      //保存推送配置信息
+      loadingEditPush:false,
 
       /**
        * subversion信息
@@ -537,6 +517,7 @@ export default {
     this.GetDetail();
     this.GetConfig();
     this.GetEmail();
+    this.GetPush();
   },
   methods: {
     /**
@@ -725,6 +706,54 @@ export default {
           }
         })
         .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 获取消息推送配置
+     */
+    GetPush() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Mail&a=GetPush&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.listPush = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 修改信息
+     */
+    EditPush() {
+      var that = this;
+      that.loadingEditPush = true;
+      var data = {
+        listPush: that.listPush,
+      };
+      that.$axios
+        .post("/api.php?c=Mail&a=EditPush&t=web", data)
+        .then(function (response) {
+          that.loadingEditPush = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetPush();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingEditPush = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });

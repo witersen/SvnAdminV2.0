@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-06 22:53:10
+ * @LastEditTime: 2022-05-07 19:13:42
  * @Description: QQ:1801168257
  */
 
@@ -257,5 +257,76 @@ class Mail extends Base
         );
 
         return message(200, $result === true ? 1 : 0, $result === true ? '发送成功' : $result);
+    }
+
+    /**
+     * 获取消息推送信息配置
+     */
+    public function GetPush()
+    {
+        $message_push = $this->database->get('options', [
+            'option_value'
+        ], [
+            'option_name' => 'message_push'
+        ]);
+
+        $message_push_null = [
+            [
+                'trigger' => 'Common/Login',
+                'type' => 'mail',
+                'note' => '用户登录',
+                'enable' => false,
+            ],
+            [
+                'trigger' => 'Personal/EditAdminUserName',
+                'type' => 'mail',
+                'note' => '管理人员修改账户名',
+                'enable' => false,
+            ],
+            [
+                'trigger' => 'Personal/EditAdminUserPass',
+                'type' => 'mail',
+                'note' => '管理人员修改密码',
+                'enable' => false,
+            ],
+            [
+                'trigger' => 'Personal/EditSvnUserPass',
+                'type' => 'mail',
+                'note' => 'SVN用户修改密码',
+                'enable' => false,
+            ],
+        ];
+
+        if ($message_push == null) {
+            $this->database->insert('options', [
+                'option_name' => 'message_push',
+                'option_value' => serialize($message_push_null),
+                'option_description' => ''
+            ]);
+            return message(200, 1, '成功', $message_push_null);
+        }
+        if ($message_push['option_value'] == '') {
+            $this->database->update('options', [
+                'option_value' => serialize($message_push_null),
+            ], [
+                'option_name' => 'message_push',
+            ]);
+            return message(200, 1, '成功', $message_push_null);
+        }
+
+        return message(200, 1, '成功', unserialize($message_push['option_value']));
+    }
+
+    /**
+     * 修改推送选项
+     */
+    function EditPush()
+    {
+        $this->database->update('options', [
+            'option_value' => serialize($this->payload['listPush'])
+        ], [
+            'option_name' => 'message_push'
+        ]);
+        return message();
     }
 }
