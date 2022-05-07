@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 13:37:33
+ * @LastEditTime: 2022-05-07 14:52:13
  * @Description: QQ:1801168257
  */
 
@@ -45,8 +45,8 @@ class Common extends Base
      */
     public function Logout()
     {
-        $this->ServiceCommon->Logout();
-        json2();
+        $result = $this->ServiceCommon->Logout();
+        json2($result);
     }
 
     /**

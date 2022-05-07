@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 12:11:45
+ * @LastEditTime: 2022-05-07 15:15:50
  * @Description: QQ:1801168257
  */
 
@@ -34,6 +34,9 @@ class Common extends Base
      */
     public function Login()
     {
+        //清理过期token
+        $this->CleanBlack();
+
         $codeResult = $this->database->get('verification_code', [
             'end_time'
         ], [
@@ -118,9 +121,6 @@ class Common extends Base
      */
     public function Logout()
     {
-        //清理过期token
-        $this->CleanBlack();
-
         //加入本token
         $this->AddBlack();
 

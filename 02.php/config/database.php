@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-07 00:38:48
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:46:35
+ * @LastEditTime: 2022-05-07 14:48:43
  * @Description: QQ:1801168257
  */
 
@@ -13,10 +13,10 @@
  */
 return [
     'database_type' => 'mysql',
-    'server' => 'test.demo.com',
+    'server' => 'sas2.witersen.com',
     'database_name' => 'svnadmin',
-    'username' => 'useranme',
-    'password' => 'password',
+    'username' => 'svnadmin',
+    'password' => 'svnadmin',
     'charset' => 'utf8mb4',
     'collation' => 'utf8mb4_general_ci',
     'port' => 3306,
