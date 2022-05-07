@@ -182,7 +182,7 @@ export default {
         confirm: that.formEditAdminUserName.confirm,
       };
       that.$axios
-        .post("/api/Personal/EditAdminUserName?t=web", data)
+        .post("/api.php?c=Personal&a=EditAdminUserName&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -215,7 +215,7 @@ export default {
         confirm: that.formEditAdminUserPass.confirm,
       };
       that.$axios
-        .post("/api/Personal/EditAdminUserPass?t=web", data)
+        .post("/api.php?c=Personal&a=EditAdminUserPass&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -247,7 +247,7 @@ export default {
         confirm: that.formEditSvnUserPass.confirm,
       };
       that.$axios
-        .post("/api/Personal/EditSvnUserPass?t=web", data)
+        .post("/api.php?c=Personal&a=EditSvnUserPass&t=web", data)
         .then(function (response) {
           that.loadingEditSvnUserPass = false;
           var result = response.data;
@@ -272,7 +272,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api/Unimportant/Logout?t=web", data)
+        .post("/api.php?c=Common&a=Logout&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

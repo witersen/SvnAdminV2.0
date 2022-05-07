@@ -553,7 +553,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api/Svn/GetDetail?t=web", data)
+        .post("/api.php?c=Svn&a=GetDetail&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -612,7 +612,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api/Mail/GetEmail?t=web", data)
+        .post("/api.php?c=Mail&a=GetEmail&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -657,7 +657,7 @@ export default {
         status: that.formMailSmtp.status,
       };
       that.$axios
-        .post("/api/Mail/EditEmail?t=web", data)
+        .post("/api.php?c=Mail&a=EditEmail&t=web", data)
         .then(function (response) {
           that.loadingEditEmail = false;
           var result = response.data;
@@ -692,7 +692,7 @@ export default {
         from: that.formMailSmtp.from,
       };
       that.$axios
-        .post("/api/Mail/SendTest?t=web", data)
+        .post("/api.php?c=Mail&a=SendTest&t=web", data)
         .then(function (response) {
           that.loadingSendTest = false;
           var result = response.data;
@@ -715,7 +715,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api/Svn/GetConfig?t=web", data)
+        .post("/api.php?c=Svn&a=GetConfig&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -749,7 +749,7 @@ export default {
           that.loadingSvnserveStart = true;
           var data = {};
           that.$axios
-            .post("/api/Svn/Start?t=web", data)
+            .post("/api.php?c=Svn&a=Start&t=web", data)
             .then(function (response) {
               that.loadingSvnserveStart = false;
               var result = response.data;
@@ -780,7 +780,7 @@ export default {
           that.loadingSvnserveStop = true;
           var data = {};
           that.$axios
-            .post("/api/Svn/Stop?t=web", data)
+            .post("/api.php?c=Svn&a=Stop&t=web", data)
             .then(function (response) {
               that.loadingSvnserveStop = false;
               var result = response.data;
@@ -814,7 +814,7 @@ export default {
             bindPort: that.tempBindPort,
           };
           that.$axios
-            .post("/api/Svn/EditPort?t=web", data)
+            .post("/api.php?c=Svn&a=EditPort&t=web", data)
             .then(function (response) {
               that.loadingEditPort = false;
               var result = response.data;
@@ -849,7 +849,7 @@ export default {
             bindHost: that.tempBindHost,
           };
           that.$axios
-            .post("/api/Svn/EditHost?t=web", data)
+            .post("/api.php?c=Svn&a=EditHost&t=web", data)
             .then(function (response) {
               that.loadingEditHost = false;
               var result = response.data;
@@ -884,7 +884,7 @@ export default {
             manageHost: that.tempManageHost,
           };
           that.$axios
-            .post("/api/Svn/EditManageHost?t=web", data)
+            .post("/api.php?c=Svn&a=EditManageHost&t=web", data)
             .then(function (response) {
               that.loadingEditManageHost = false;
               var result = response.data;
@@ -913,7 +913,7 @@ export default {
         enable: value,
       };
       that.$axios
-        .post("/api/Svn/EditEnable?t=web", data)
+        .post("/api.php?c=Svn&a=EditEnable&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

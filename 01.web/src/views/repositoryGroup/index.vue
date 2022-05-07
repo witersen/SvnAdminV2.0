@@ -381,7 +381,7 @@ export default {
         sortType: that.sortType,
       };
       that.$axios
-        .post("/api/Svngroup/GetGroupList?t=web", data)
+        .post("/api.php?c=Svngroup&a=GetGroupList&t=web", data)
         .then(function (response) {
           that.loadingGroup = false;
           var result = response.data;
@@ -409,7 +409,7 @@ export default {
         svn_group_note: that.tableGroupData[index].svn_group_note,
       };
       that.$axios
-        .post("/api/Svngroup/EditGroupNote?t=web", data)
+        .post("/api.php?c=Svngroup&a=EditGroupNote&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -436,7 +436,7 @@ export default {
         svn_group_name: that.formCreateGroup.svn_group_name,
       };
       that.$axios
-        .post("/api/Svngroup/CreateGroup?t=web", data)
+        .post("/api.php?c=Svngroup&a=CreateGroup&t=web", data)
         .then(function (response) {
           that.loadingCreateGroup = false;
           var result = response.data;
@@ -475,7 +475,7 @@ export default {
         groupNameNew: that.formEditGroupName.groupNameNew,
       };
       that.$axios
-        .post("/api/Svngroup/EditGroupName?t=web", data)
+        .post("/api.php?c=Svngroup&a=EditGroupName&t=web", data)
         .then(function (response) {
           that.loadingEditGroupName = false;
           var result = response.data;
@@ -506,7 +506,7 @@ export default {
             svn_group_name: svn_group_name,
           };
           that.$axios
-            .post("/api/Svngroup/DelGroup?t=web", data)
+            .post("/api.php?c=Svngroup&a=DelGroup&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
@@ -549,7 +549,7 @@ export default {
         svn_group_name: that.currentSelectGroupName,
       };
       that.$axios
-        .post("/api/Svngroup/GetGroupMember?t=web", data)
+        .post("/api.php?c=Svngroup&a=GetGroupMember&t=web", data)
         .then(function (response) {
           that.loadingRepAllUser = false;
           that.loadingRepAllGroup = false;
@@ -598,7 +598,7 @@ export default {
         svn_user_name: userName,
       };
       that.$axios
-        .post("/api/Svngroup/GroupAddUser?t=web", data)
+        .post("/api.php?c=Svngroup&a=GroupAddUser&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -624,7 +624,7 @@ export default {
         svn_user_name: userName,
       };
       that.$axios
-        .post("/api/Svngroup/GroupRemoveUser?t=web", data)
+        .post("/api.php?c=Svngroup&a=GroupRemoveUser&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -650,7 +650,7 @@ export default {
         svn_group_name_add: groupName,
       };
       that.$axios
-        .post("/api/Svngroup/GroupAddGroup?t=web", data)
+        .post("/api.php?c=Svngroup&a=GroupAddGroup&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -676,7 +676,7 @@ export default {
         svn_group_name_del: groupName,
       };
       that.$axios
-        .post("/api/Svngroup/GroupRemoveGroup?t=web", data)
+        .post("/api.php?c=Svngroup&a=GroupRemoveGroup&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

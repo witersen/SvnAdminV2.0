@@ -163,7 +163,7 @@ export default {
         searchKeyword: that.searchKeywordLog,
       };
       that.$axios
-        .post("/api/Logs/GetLogList?t=web", data)
+        .post("/api.php?c=Logs&a=GetLogList&t=web", data)
         .then(function (response) {
           that.loadingGetLogList = false;
           var result = response.data;
@@ -193,7 +193,7 @@ export default {
           that.loadingClearLogs = true;
           var data = {};
           that.$axios
-            .post("/api/Logs/ClearLogs?t=web", data)
+            .post("/api.php?c=Logs&a=ClearLogs&t=web", data)
             .then(function (response) {
               that.loadingClearLogs = false;
               var result = response.data;
