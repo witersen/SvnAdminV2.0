@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 19:33:17
+ * @LastEditTime: 2022-05-08 21:45:35
  * @Description: QQ:1801168257
  */
 
@@ -199,25 +199,24 @@ class Daemon
      */
     private function CheckPhpVersion()
     {
-        if (PHP_VERSION < $this->config_daemon['Required_PHP_VERSION']) {
-            exit('启动失败：当前的PHP版本为：' . PHP_VERSION . '，要求的最低PHP版本为：' . $this->config_daemon['Required_PHP_VERSION'] . PHP_EOL);
+        if (PHP_VERSION < '5.5') {
+            exit('支持的最低PHP版本为 5.5 而不是 ' . PHP_VERSION . PHP_EOL);
+        } else if (PHP_VERSION >= '8.0') {
+            exit('支持的最高PHP版本低于 8.0 而不是 ' . PHP_VERSION . PHP_EOL);
         }
     }
 
     /**
-     * 检查需要的函数是否被禁用
+     * 检查cli模式需要的函数是否被禁用
      */
     private function CheckDisabledFun()
     {
-        $disabled_function = explode(',', ini_get('disable_functions'));
-        $cli_needed_function = $this->config_daemon['CLI_NEEDED_FUNCTION'];
-        foreach ($cli_needed_function as $key => $value) {
-            if (!in_array($value, $disabled_function)) {
-                unset($cli_needed_function[$key]);
+        $require_functions = ['shell_exec', 'passthru', 'pcntl_signal', 'pcntl_fork', 'pcntl_wait'];
+        $disable_functions = explode(',', ini_get('disable_functions'));
+        foreach ($disable_functions as $disable) {
+            if (in_array(trim($disable), $require_functions)) {
+                exit("启动失败：需要的 $disable 函数被禁用");
             }
-        }
-        if (!empty($cli_needed_function)) {
-            exit('启动失败：需要的以下函数被禁用：' . PHP_EOL . implode(' ', $cli_needed_function) . PHP_EOL);
         }
     }
 
@@ -228,6 +227,41 @@ class Daemon
     {
         $signCon = sprintf("<?php\n\nreturn ['signature' => '%s'];", uniqid());
         file_put_contents(BASE_PATH . '/../config/sign.php', $signCon);
+    }
+
+    /**
+     * 检测升级
+     */
+    private function SelectUpdate()
+    {
+    }
+
+    /**
+     * 升级到指定版本
+     */
+    private function Update()
+    {
+    }
+
+    /**
+     * 安装SVNAdmin
+     */
+    private function InstallSVNAdmin()
+    {
+    }
+
+    /**
+     * 安装Subversion
+     */
+    private function InstallSubversion()
+    {
+    }
+
+    /**
+     * 初始化Subversion
+     */
+    private function InitSubversion()
+    {
     }
 
     /**

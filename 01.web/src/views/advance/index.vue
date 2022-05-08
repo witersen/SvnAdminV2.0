@@ -245,9 +245,6 @@
                       <Icon type="md-close" slot="close"></Icon>
                     </Switch>
                   </Col>
-                  <!-- <Alert
-                    >默认情况下，如果服务器支持TLS加密，则会自动使用TLS加密（推荐）。在某些情况下，由于服务器配置错误可能会导致问题，则需要将其禁用。</Alert
-                  > -->
                 </Row>
               </FormItem>
               <FormItem label="SMTP用户名" v-if="formMailSmtp.auth">
@@ -345,7 +342,12 @@
                 </Row>
               </FormItem>
               <FormItem>
-                <Button type="primary" :loading="loadingEditPush" @click="EditPush">保存</Button>
+                <Button
+                  type="primary"
+                  :loading="loadingEditPush"
+                  @click="EditPush"
+                  >保存</Button
+                >
               </FormItem>
             </Form>
           </Card>
@@ -354,44 +356,42 @@
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">
-                <Badge> v2.3 </Badge>
+                <Badge> {{ version.current_verson }} </Badge>
               </FormItem>
-              <FormItem label="支持PHP-FPM版本">
+              <FormItem label="支持PHP版本">
                 <Row>
                   <Col span="12">
-                    <span>5.4+</span>
-                  </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="支持PHP-CLI版本">
-                <Row>
-                  <Col span="12">
-                    <span>5.4+</span>
+                    <span>{{ version.php_version }}</span>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="支持数据库">
                 <Row>
                   <Col span="12">
-                    <span>MySQL、sqlite</span>
+                    <span>{{ version.database }}</span>
                   </Col>
                 </Row>
               </FormItem>
               <FormItem label="开源地址">
                 <Row>
                   <Badge>
-                    <a href="" target="_blank">GitHub</a>
+                    <a :href="version.github" target="_blank">GitHub</a>
                   </Badge>
                 </Row>
                 <Row>
                   <Badge>
-                    <a href="" target="_blank">Gitee</a>
+                    <a :href="version.gitee" target="_blank">Gitee</a>
                   </Badge>
                 </Row>
               </FormItem>
               <FormItem>
-                <Tooltip max-width="300" content="111" placement="top" transfer>
-                  <Button type="primary" @click="CheckUpdate()"
+                <Tooltip
+                  max-width="300"
+                  content="此操作是通过读取位于GitHub和Gitee公开仓库(witersen/update)的配置文件进行软件更新检测 所以需要软件所在主机能够访问外网"
+                  placement="top"
+                  transfer
+                >
+                  <Button type="primary" :loading="loadingCheckUpdate" @click="CheckUpdate()"
                     >检测更新</Button
                   >
                 </Tooltip>
@@ -401,6 +401,34 @@
         </TabPane>
       </Tabs>
     </Card>
+    <Modal v-model="modalSofawareUpdateGet" title="最新版本信息">
+      <Form ref="formSoftwareNew" :model="formSoftwareNew" :label-width="90">
+        <FormItem label="最新版本">
+          <Badge dot>
+            {{ formSoftwareNew.latestVersion }}
+          </Badge>
+        </FormItem>
+        <FormItem label="升级类型">
+          <Badge>
+            {{ formSoftwareNew.updateStep }}
+          </Badge>
+        </FormItem>
+        <FormItem label="修复bug">
+          <i-input
+            v-html="formSoftwareNew.fixedContent"
+            type="textarea"
+            autosize
+          ></i-input>
+        </FormItem>
+        <FormItem label="新增功能">
+          <i-input
+            v-html="formSoftwareNew.newContent"
+            type="textarea"
+            autosize
+          ></i-input>
+        </FormItem>
+      </Form>
+    </Modal>
   </div>
 </template>
 
@@ -433,9 +461,15 @@ export default {
       currentAdvanceTab: "1",
 
       /**
-       *
+       * 版本信息
        */
-      listPush: [],
+      version: {
+        current_verson: "2.3",
+        php_version: "5.5 <= PHP < 8.0",
+        database: "MYSQL、SQLite",
+        github: "https://github.com/witersen/svnAdminV2.0",
+        gitee: "https://gitee.com/witersen/SvnAdminV2.0",
+      },
 
       /**
        * 加载
@@ -455,7 +489,9 @@ export default {
       //保存邮件配置信息
       loadingEditEmail: false,
       //保存推送配置信息
-      loadingEditPush:false,
+      loadingEditPush: false,
+      //检测更新
+      loadingCheckUpdate:false,
 
       /**
        * subversion信息
@@ -471,13 +507,17 @@ export default {
       },
 
       /**
-       *
+       * list
        */
+      //配置文件
       configList: [],
+      //消息推送配置
+      listPush: [],
 
       /**
        * 对话框
        */
+      modalSofawareUpdateGet: false,
 
       /**
        * 表单
@@ -503,6 +543,14 @@ export default {
         // pass: "",
         // from: "",
         status: false,
+      },
+      //新版本信息
+      formSoftwareNew: {
+        newContent: "",
+        latestVersion: "",
+        fixedContent: "",
+        updateType: "",
+        updateStep: "",
       },
     };
   },
@@ -956,6 +1004,32 @@ export default {
         .catch(function (error) {
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    //检测更新
+    CheckUpdate() {
+      var that = this;
+      that.loadingCheckUpdate = true;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Update&a=CheckUpdate&t=web", data)
+        .then(function (response) {
+          that.loadingCheckUpdate = false;
+          var result = response.data;
+          if (result.status == 1) {
+            if (result.data != "") {
+              that.formSoftwareNew = result.data;
+              that.modalSofawareUpdateGet = true;
+            } else {
+              that.$Message.success(result.message);
+            }
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingCheckUpdate = false;
+          console.log(error);
         });
     },
   },

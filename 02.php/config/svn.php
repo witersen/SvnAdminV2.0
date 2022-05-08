@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 01:25:25
+ * @LastEditTime: 2022-05-08 23:33:10
  * @Description: QQ:1801168257
  */
 
@@ -55,17 +55,27 @@ return [
     'svn_passwd_file' => $home_path . 'passwd',
 
     /**
-     * 备份文件夹
+     * svnserve pid文件
+     */
+    'svnserve_pid_file' => $home_path . 'svnserve.pid',
+
+    /**
+     * svnserve 自启动文件
+     */
+    'svnserve_service_file' => '/usr/lib/systemd/system/svnserve.service',
+
+    /**
+     * 备份目录
      */
     'backup_base_path' => $backup_base_path,
 
     /**
-     * 日志文件夹
+     * 日志目录
      */
     'log_base_path' => $log_base_path,
 
     /**
-     * svnserve运行日志
+     * svnserve 运行日志文件
      */
     'svnserve_log_file' => $log_base_path . 'svnserve.log',
 

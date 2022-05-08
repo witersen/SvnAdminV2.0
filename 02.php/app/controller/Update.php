@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:08:55
+ * @LastEditTime: 2022-05-07 19:42:42
  * @Description: QQ:1801168257
  */
 
@@ -25,15 +25,6 @@ class Update extends Base
         parent::__construct();
 
         $this->ServiceUpdate = new ServiceUpdate();
-    }
-
-    /**
-     * 获取当前版本信息
-     */
-    public function GetVersion()
-    {
-        $result = $this->ServiceUpdate->GetVersion();
-        json2($result);
     }
 
     /**

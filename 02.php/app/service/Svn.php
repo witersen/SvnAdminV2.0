@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-06 21:38:12
+ * @LastEditTime: 2022-05-08 20:30:34
  * @Description: QQ:1801168257
  */
 
@@ -51,6 +51,45 @@ class Svn extends Base
     }
 
     /**
+     * 获取Subversion的安装情况
+     * 
+     * 0 未安装
+     * 1 已安装未运行
+     * 2 已安装运行中
+     * -1 未知
+     */
+    public function GetSubversion()
+    {
+        //检测是否有正在运行的进程
+        $isRun = FunShellExec('ps auxf|grep -v "grep"|grep svnserve');
+        $isRun = $isRun['result'] == '' ? false : true;
+
+        //检测安装程序是否存在于环境变量
+        $isInstall =  FunShellExec('whereis svnserve');
+        $isInstall = $isInstall['result'] == 'svnserve:' ? false : true;
+
+        //运行中+未加入环境变量
+        if ($isRun && !$isInstall) {
+            return 2;
+        }
+
+        //运行中+已加入环境变量
+        if ($isRun && $isInstall) {
+            return 1;
+        }
+
+        //未运行+未加入环境变量
+        if (!$isRun && !$isInstall) {
+            return 0;
+        }
+
+        //未运行+已加入环境变量
+        if (!$isRun && $isInstall) {
+            return 2;
+        }
+    }
+
+    /**
      * 获取Subversion的详细信息
      */
     public function GetDetail()
@@ -58,28 +97,10 @@ class Svn extends Base
         //获取绑定主机、端口等信息
         $bindInfo = $this->GetSvnserveListen();
 
-        //检测运行信息
-        $runInfo = FunShellExec('ps auxf|grep -v "grep"|grep svnserve');
-        $runInfo = $runInfo['result'];
+        //获取安装和运行状态
+        $installed = $this->GetSubversion();
 
-        //检测安装信息
-        $installInfo = file_exists('/usr/bin/svnserve');
-
-        //检测安装状态
-        //未知状态
-        $installInfo = -1;
-        if ($runInfo == '' && !$installInfo) {
-            //未安装
-            $installed = 0;
-        } else if ($runInfo == '' && $installInfo) {
-            //安装未启动
-            $installed = 1;
-        } else if ($runInfo != '' && $installInfo) {
-            //运行中
-            $installed = 2;
-        }
-
-        //检测subversion版本
+        //获取Subversion版本
         $version = '-';
         if ($installed != 0) {
             $versionInfo = FunShellExec('svnserve --version');

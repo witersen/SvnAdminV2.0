@@ -3,8 +3,12 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 11:17:34
+ * @LastEditTime: 2022-05-08 21:43:14
  * @Description: QQ:1801168257
+ */
+
+/**
+ * 需要PHP版本大于等于5.5同时小于8.0
  */
 
 /**
@@ -68,6 +72,28 @@ $payload = !empty($payload) ? json_decode($payload, true) : [];
  * 	}
  * }
  */
+
+//检测PHP版本
+if (PHP_VERSION < '5.5') {
+    json1(200, 0, '支持的最低PHP版本为 5.5 而不是 ' . PHP_VERSION);
+} else if (PHP_VERSION >= '8.0') {
+    json1(200, 0, '支持的最高PHP版本低于 8.0 而不是 ' . PHP_VERSION);
+}
+
+//检测open_basedir
+if (ini_get('open_basedir') != '') {
+    json1(200, 0, '需要关闭open_basedir');
+}
+
+//检测禁用函数
+$require_functions = ['shell_exec', 'passthru'];
+$disable_functions = explode(',', ini_get('disable_functions'));
+foreach ($disable_functions as $disable) {
+    if (in_array(trim($disable), $require_functions)) {
+        json1(200, 0, "需要的 $disable 函数被禁用");
+    }
+}
+
 
 //检测守护进程状态
 $state = FunDetectState();

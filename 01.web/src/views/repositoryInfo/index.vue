@@ -264,10 +264,7 @@
             @click="DownloadRepBackup(row.fileName)"
             >下载</Button
           >
-          <Button
-            type="error"
-            size="small"
-            @click="DelRepBackup(row.fileName)"
+          <Button type="error" size="small" @click="DelRepBackup(row.fileName)"
             >删除</Button
           >
         </template>
@@ -1077,6 +1074,18 @@ export default {
   computed: {},
   created() {},
   mounted() {
+    // abort so it dose not look stuck
+    // window.onunload = () => {
+    //   console.log('test-start');
+    //   console.log(window.WritableStream);
+    //   console.log(writer);
+    //   console.log('test-end');
+      
+
+    //   writableStream.abort();
+    //   // also possible to call abosrt on the writer you got from `getWriter()`
+    //   writer.abort();
+    // };
     this.GetStatus();
     if (this.user_role_id == 1) {
       this.GetRepList();

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 00:44:27
+ * @LastEditTime: 2022-05-08 21:44:53
  * @Description: QQ:1801168257
  */
 
@@ -36,25 +36,4 @@ return [
      * socket 处理并发的最大队列长度
      */
     'SOCKET_LISTEN_BACKLOG' => 2000,
-
-    /**
-     * 当前程序支持的最低PHP版本
-     */
-    'Required_PHP_VERSION' => '5.5',
-
-    /**
-     * CLI程序需要解除禁止的函数
-     */
-    'CLI_NEEDED_FUNCTION' => [
-        'pcntl_fork',
-        'pcntl_signal',
-        'pcntl_wait',
-        'shell_exec'
-    ],
-
-    /**
-     * FPM模式需要解除禁止的函数
-     */
-    'FPM_NEEDED_FUNCTION' => [],
-
 ];

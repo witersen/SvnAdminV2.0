@@ -1,0 +1,81 @@
+{
+    "version": "2.3",
+    "number": 8,
+    "fixd": {
+        "con": [
+            {
+                "title": "1",
+                "content": "修复SVN仓库权限配置的bug"
+            },
+            {
+                "title": "2",
+                "content": "完善用户权限控制逻辑"
+            }
+        ]
+    },
+    "add": {
+        "con": [
+            {
+                "title": "1",
+                "content": "支持文件级授权"
+            },
+            {
+                "title": "2",
+                "content": "支持目录浏览"
+            },
+            {
+                "title": "3",
+                "content": "支持仓库备份与恢复"
+            },
+            {
+                "title": "4",
+                "content": "支持SVN用户禁用与启动"
+            },
+            {
+                "title": "5",
+                "content": "支持用户级日志记录"
+            },
+            {
+                "title": "6",
+                "content": "兼容PHP5.5+"
+            }
+        ]
+    },
+    "remove": {
+        "con": [
+            {
+                "title": "1",
+                "content": "暂时移除仓库钩子的配置功能"
+            }
+        ]
+    },
+    "update": {
+        "rely": {
+            "version": {
+                "SVNAdmin": []
+            }
+        },
+        "step": [
+            {
+                "title": "1",
+                "content": "php ${your_path}/server/install.php"
+            }
+        ],
+        "release": {
+            "download": [
+                {
+                    "nodeName": "gitee.com",
+                    "releaseUrl": ""
+                },
+                {
+                    "nodeName": "github.com",
+                    "releaseUrl": ""
+                },
+                {
+                    "nodeName": "witersen.com",
+                    "releaseUrl": "https://download.witersen.com/SVNAdmin/SVNAdmin-2.3.zip"
+                }
+            ]
+        }
+    }
+}

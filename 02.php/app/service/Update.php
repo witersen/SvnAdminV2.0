@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:25:15
+ * @LastEditTime: 2022-05-07 20:01:24
  * @Description: QQ:1801168257
  */
 
@@ -17,22 +17,9 @@ class Update extends Base
     }
 
     /**
-     * 获取当前版本信息
-     */
-    public function GetVersion()
-    {
-        return message(200, 1, '成功', [
-            'current_verson' => $this->config_version['version'],
-            'github' => 'https://github.com/witersen/svnAdminV2.0',
-            'gitee' => 'https://gitee.com/witersen/SvnAdminV2.0',
-            'author' => 'https://www.witersen.com'
-        ]);
-    }
-
-    /**
      * 检测新版本
      */
-    public function CheckUpdate($payload)
+    public function CheckUpdate()
     {
         foreach ($this->config_update['update_server'] as $key => $value) {
             $versionInfo = FunCurlRequest($value);
@@ -60,7 +47,7 @@ class Update extends Base
     /**
      * 确认更新
      */
-    public function StartUpdate($payload)
+    public function StartUpdate()
     {
     }
 }

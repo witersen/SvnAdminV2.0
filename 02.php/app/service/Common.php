@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 15:15:50
+ * @LastEditTime: 2022-05-08 13:50:51
  * @Description: QQ:1801168257
  */
 
@@ -126,7 +126,7 @@ class Common extends Base
 
         $this->Logs->InsertLog(
             '用户注销',
-            '账号：' . $this->userName . 'IP地址：' . $_SERVER["REMOTE_ADDR"],
+            '账号：' . $this->userName . ' IP地址：' . $_SERVER["REMOTE_ADDR"],
             $this->userName
         );
 

@@ -1,0 +1,15 @@
+{
+	"latestVersion": "2.3",
+	"fixedContent": [
+        ""
+    ],
+	"newContent": [
+        ""
+    ],
+	"updateType": "1",
+	"updateStep": "需要管理员手动更新 1、基于现有版本手动升级的用户 (1)停止守护进程 php svnadmind.php stop (2)删除当前版本的程序代码 (3)按照GitHub文档进行全新安装 2、全新安装的用户 (1)按照GitHub文档进行全新安装",
+	"releaseNode": {
+		"gitee": "",
+		"github": ""
+	}
+}
