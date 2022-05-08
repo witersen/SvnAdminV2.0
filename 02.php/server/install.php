@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-08 13:31:07
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-08 23:48:45
+ * @LastEditTime: 2022-05-09 01:23:06
  * @Description: QQ:1801168257
  */
 
@@ -63,6 +63,7 @@ class Install
         $this->config_update = Config::get('update');
         $this->config_version = Config::get('version');
     }
+
     /**
      * 检测SVNAdmin的新版本并选择更新
      */
@@ -73,29 +74,57 @@ class Install
         //获取当前版本可升级的版本信息
 
         foreach ($this->config_update['update_server'] as $value) {
-            //检测
-            $versionInfo = FunCurlRequest($value);
-            //未超时
-            if ($versionInfo != null) {
-                //json转换
-                $versionInfo = json_decode($versionInfo, true);
-                $latestVersion = $versionInfo['latestVersion'];
-                if ($latestVersion == $this->config_version['version']) {
-                    return message(200, 1, '当前版本为最新版');
-                } else if ($latestVersion > $this->config_version['version']) {
-                    return message(200, 1, '有更新', [
-                        'latestVersion' => $versionInfo['latestVersion'],
-                        'fixedContent' => implode('<br>', $versionInfo['fixedContent']) == '' ? '暂无内容' : implode('<br>', $versionInfo['fixedContent']),
-                        'newContent' => implode('<br>', $versionInfo['newContent']) == '' ? '暂无内容' : implode('<br>', $versionInfo['newContent']),
-                        'updateType' => $versionInfo['updateType'],
-                        'updateStep' => $versionInfo['updateStep']
-                    ]);
-                } else if ($latestVersion < $this->config_version['version']) {
-                    return message(200, 0, '系统版本错误');
+
+            $result = FunCurlRequest($value);
+
+            if ($result == null) {
+                echo '节点访问超时，切换下一节点' . PHP_EOL;
+                continue;
+            }
+
+            //json转换
+            $result = json_decode($result, true);
+
+            $version = $result['version'];
+            if ($this->config_version['version'] == $version) {
+                exit('当前为最新版：' . $version . PHP_EOL);
+            }
+            if ($this->config_version['version'] < $version) {
+                echo '有新版本：' . $version . PHP_EOL;
+
+                echo '修复内容如下：' . PHP_EOL;
+                foreach ($result['fixd']['con'] as $value) {
+                    echo '    [' . $value['title'] . ']' . ' ' . $value['content'] . PHP_EOL;
                 }
+
+                echo '新增内容如下：' . PHP_EOL;
+                foreach ($result['add']['con'] as $value) {
+                    echo '    [' . $value['title'] . ']' . ' ' . $value['content'] . PHP_EOL;
+                }
+
+                echo '移除内容如下：' . PHP_EOL;
+                foreach ($result['remove']['con'] as $value) {
+                    echo '    [' . $value['title'] . ']' . ' ' . $value['content'] . PHP_EOL;
+                }
+
+                echo "确定要升级到 $version 版本吗[y/n]：";
+
+                $answer = strtolower(trim(fgets(STDIN)));
+
+                if (!in_array($answer, ['y', 'n'])) {
+                    exit('不正确的选项！' . PHP_EOL);
+                }
+
+                if ($answer == 'n') {
+                    exit('已取消！' . PHP_EOL);
+                }
+
+                //下载并执行升级脚本
+                
+
+                echo '===============================================' . PHP_EOL;
             }
         }
-        return message(200, 0, '检测更新超时');
     }
 
     /**
@@ -130,13 +159,6 @@ class Install
      * 卸载Subversion
      */
     function UninstallSubversion()
-    {
-    }
-
-    /**
-     * 获取当前安装的Subversion信息
-     */
-    function DetectSubversion()
     {
     }
 
@@ -181,6 +203,8 @@ class Install
          */
         $templete_path = BASE_PATH . '../templete/';
 
+        echo '创建相关目录' . PHP_EOL;
+
         //创建SVNAdmin软件配置信息的主目录
         mkdir($this->config_svn['home_path'], 0700, true);
 
@@ -195,6 +219,8 @@ class Install
 
         //创建临时数据目录
         mkdir($this->config_svn['home_path'], 0700, true);
+
+        echo '创建相关文件' . PHP_EOL;
 
         //写入svnserve环境变量文件
         $con_svnserve_env_file = file_get_contents($templete_path . 'svnserve/svnserve');
@@ -222,41 +248,29 @@ class Install
         /**
          * 将svnserve注册为系统服务
          */
-        echo '===============================================' . PHP_EOL;
         echo '清理之前注册的svnserve服务' . PHP_EOL;
 
         shell_exec('systemctl stop svnserve.service');
         shell_exec('systemctl disable svnserve.service');
-
-        echo '===============================================' . PHP_EOL;
 
         $con_svnserve_service_file = file_get_contents($templete_path . 'svnserve/svnserve.service');
         $con_svnserve_service_file = sprintf($con_svnserve_service_file, $this->config_svn['svnserve_env_file'], trim($installPath), $this->config_svn['svnserve_pid_file']);
         file_put_contents($this->config_svn['svnserve_service_file'], $con_svnserve_service_file);
 
         //启动
-        echo '===============================================' . PHP_EOL;
         echo '开始启动svnserve服务' . PHP_EOL;
 
         passthru('systemctl start svnserve');
 
-        echo '===============================================' . PHP_EOL;
-
         //开机自启动
-        echo '===============================================' . PHP_EOL;
         echo '将svnserve服务加入到开机自启动' . PHP_EOL;
 
         passthru('systemctl enable svnserve');
 
-        echo '===============================================' . PHP_EOL;
-
         //查看状态
-        echo '===============================================' . PHP_EOL;
         echo 'svnserve安装成功，打印运行状态：' . PHP_EOL;
 
         passthru('systemctl status svnserve');
-
-        echo '===============================================' . PHP_EOL;
     }
 
     /**
@@ -334,6 +348,7 @@ class Install
             $this->ConfigSubversion();
         } else if ($answer == 3) {
             //检测SVNAdmin的新版本
+            $this->DetectUpdate();
         }
     }
 }

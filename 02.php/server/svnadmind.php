@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-08 21:45:35
+ * @LastEditTime: 2022-05-09 00:00:19
  * @Description: QQ:1801168257
  */
 
@@ -227,41 +227,6 @@ class Daemon
     {
         $signCon = sprintf("<?php\n\nreturn ['signature' => '%s'];", uniqid());
         file_put_contents(BASE_PATH . '/../config/sign.php', $signCon);
-    }
-
-    /**
-     * 检测升级
-     */
-    private function SelectUpdate()
-    {
-    }
-
-    /**
-     * 升级到指定版本
-     */
-    private function Update()
-    {
-    }
-
-    /**
-     * 安装SVNAdmin
-     */
-    private function InstallSVNAdmin()
-    {
-    }
-
-    /**
-     * 安装Subversion
-     */
-    private function InstallSubversion()
-    {
-    }
-
-    /**
-     * 初始化Subversion
-     */
-    private function InitSubversion()
-    {
     }
 
     /**

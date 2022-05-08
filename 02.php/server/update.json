@@ -1,6 +1,5 @@
 {
-    "version": "2.3",
-    "number": 8,
+    "version": "2.4",
     "fixd": {
         "con": [
             {
@@ -50,11 +49,6 @@
         ]
     },
     "update": {
-        "rely": {
-            "version": {
-                "SVNAdmin": []
-            }
-        },
         "step": [
             {
                 "title": "1",
@@ -65,17 +59,24 @@
             "download": [
                 {
                     "nodeName": "gitee.com",
-                    "releaseUrl": ""
+                    "package": ""
                 },
                 {
                     "nodeName": "github.com",
-                    "releaseUrl": ""
+                    "package": ""
                 },
                 {
                     "nodeName": "witersen.com",
-                    "releaseUrl": "https://download.witersen.com/SVNAdmin/SVNAdmin-2.3.zip"
+                    "package": "https://download.witersen.com/SVNAdmin/SVNAdmin-2.3.zip"
                 }
             ]
-        }
+        },
+        "update": [
+            {
+                "source": "2.3",
+                "dest": "2.4",
+                "package": ""
+            }
+        ]
     }
 }
