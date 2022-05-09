@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-08 13:31:07
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 13:06:47
+ * @LastEditTime: 2022-05-09 16:28:17
  * @Description: QQ:1801168257
  */
 
@@ -79,6 +79,7 @@ class Install
 
             if ($json == null) {
                 echo '节点 ' . $value1['nodeName'] . ' 访问超时，切换下一节点' . PHP_EOL;
+                echo '===============================================' . PHP_EOL;
                 continue;
             }
 
@@ -88,7 +89,9 @@ class Install
             $last = $array['version'];
 
             if ($this->config_version['version'] == $last) {
-                exit('当前为最新版：' . $last . PHP_EOL);
+                echo '当前为最新版：' . $last . PHP_EOL;
+                echo '===============================================' . PHP_EOL;
+                exit();
             }
             if ($this->config_version['version'] < $last) {
                 echo '有新版本：' . $last . PHP_EOL;
@@ -113,11 +116,15 @@ class Install
                 $answer = strtolower(trim(fgets(STDIN)));
 
                 if (!in_array($answer, ['y', 'n'])) {
-                    exit('不正确的选项！' . PHP_EOL);
+                    echo '不正确的选项！'  . PHP_EOL;
+                    echo '===============================================' . PHP_EOL;
+                    exit();
                 }
 
                 if ($answer == 'n') {
-                    exit('已取消！' . PHP_EOL);
+                    echo '已取消！' . PHP_EOL;
+                    echo '===============================================' . PHP_EOL;
+                    exit();
                 }
 
                 //下载并执行升级脚本
@@ -128,19 +135,24 @@ class Install
                     'dest' => $last
                 ];
                 if (!in_array($current, $forList)) {
-                    exit('没有合适的升级包，请尝试直接手动安装最新版！' . PHP_EOL);
+                    echo '没有合适的升级包，请尝试直接手动安装最新版！' . PHP_EOL;
+                    echo '===============================================' . PHP_EOL;
+                    exit();
                 }
                 $index = array_search($current, $forList);
                 $update_download_url = $packages[$index]['url'];
                 $update_zip = FunCurlRequest($update_download_url);
                 if ($update_zip == null) {
                     echo '从节点 ' . $value1['nodeName'] . ' 下载升级包超时，切换下一节点' . PHP_EOL;
+                    echo '===============================================' . PHP_EOL;
                     continue;
                 }
                 file_put_contents(BASE_PATH . '/update.zip', $update_zip);
                 shell_exec('unzip ' . BASE_PATH . '/update.zip');
                 if (!is_dir(BASE_PATH . '/update')) {
-                    exit('解压升级包出错，请尝试手动解压并执行升级程序！' . PHP_EOL);
+                    echo '解压升级包出错，请尝试手动解压并执行升级程序！' . PHP_EOL;
+                    echo '===============================================' . PHP_EOL;
+                    exit();
                 }
 
                 echo '正在执行升级程序' . PHP_EOL;
@@ -149,7 +161,9 @@ class Install
 
                 shell_exec(sprintf("cd '%s' && rm -rf ./update && rm -f update.zip", BASE_PATH));
 
-                exit('升级成功！请重启守护进程文件使部分配置文件生效' . PHP_EOL);
+                echo '升级成功！请重启守护进程文件使部分配置文件生效' . PHP_EOL;
+                echo '===============================================' . PHP_EOL;
+                exit();
             }
         }
     }
@@ -184,54 +198,96 @@ class Install
          * 1、检测Subversion的安装情况
          */
         //检测是否有正在运行的进程
-        $isRun = shell_exec('ps auxf|grep -v "grep"|grep svnserve') == '' ? false : true;
-
-        //检测安装程序是否存在于环境变量
-        $installPath = shell_exec('which svnserve');
-        $isInstall = shell_exec('whereis svnserve') == 'svnserve:' ? false : true;
-
-        //正在运行中但是没有安装或者subversion的相关程序没有被加入环境变量
-        if ($isRun && !$isInstall) {
-            exit('需要将Subversion相关程序加入到环境变量后重试！' . PHP_EOL);
+        if (shell_exec('ps auxf|grep -v "grep"|grep svnserve') != '') {
+            echo '请先手动停止正在运行的 svnserve 程序后重试！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
         }
 
-        //正在运行中并且subversion的相关程序已经被加入环境变量
-        if ($isRun && $isInstall) {
-            //停止svnserve
-            exit('请先手动停止正在运行的svnserve程序后重试' . PHP_EOL);
+        /**
+         * 2、令用户手动选择配置程序的路径
+         */
+        $needBin = [
+            'svn' => '',
+            'svnadmin' => '',
+            'svnlook' => '',
+            'svnserve' => '',
+            'svnversion' => '',
+            'svnsync' => '',
+            'svnrdump' => '',
+            'svndumpfilter' => '',
+            'svnmucc' => ''
+        ];
+
+        foreach ($needBin as $key => $value) {
+            echo "请输入 $key 程序位置：" . PHP_EOL;
+            echo '自动检测到以下程序路径：' . PHP_EOL;
+            passthru("which $key 2>/dev/null");
+            echo '请输入回车使用默认检测路径或手动输入：';
+            $binPath = fgets(STDIN);
+            if ($binPath == '') {
+                echo '输入不能为空！' . PHP_EOL;
+                echo '===============================================' . PHP_EOL;
+                exit();
+            }
+            if ($binPath == "\n") {
+                $binPath = trim(shell_exec("which $key 2>/dev/null"));
+                if ($binPath == '') {
+                    echo "未检测到 $key ，请手动输入程序路径！" . PHP_EOL;
+                    echo '===============================================' . PHP_EOL;
+                    exit();
+                }
+            } else {
+                $binPath = trim($binPath);
+            }
+            echo "$key 程序位置：$binPath" . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            $needBin[$key] = $binPath;
         }
 
-        //不在运行中并且没有安装或者subversion的相关程序没有被加入环境变量
-        if (!$isRun && !$isInstall) {
-            exit('需要安装Subversion或者需要将已安装的Subversion相关程序加入到环境变量后重试！' . PHP_EOL);
-        }
+        $binCon = <<<CON
+        <?php
+        
+        return [
+            'svn' => '{$needBin['svn']}',
+            'svnadmin' => '{$needBin['svnadmin']}',
+            'svnlook' => '{$needBin['svnlook']}',
+            'svnserve' => '{$needBin['svnserve']}',
+            'svnversion' => '{$needBin['svnversion']}',
+            'svnsync' => '{$needBin['svnsync']}',
+            'svnrdump' => '{$needBin['svnrdump']}',
+            'svndumpfilter' => '{$needBin['svndumpfilter']}',
+            'svnmucc' => '{$needBin['svnmucc']}'
+        ];
+CON;
 
-        //不在运行中并且subversion的相关程序已经被加入环境变量
-        if (!$isRun && $isInstall) {
-            //相关文件配置
-        }
+        file_put_contents(BASE_PATH . '/../config/bin.php', $binCon);
 
         /**
          * 相关文件配置
          */
-        $templete_path = BASE_PATH . '../templete/';
+        $templete_path = BASE_PATH . '/../templete/';
 
         echo '创建相关目录' . PHP_EOL;
 
+        clearstatcache();
+
         //创建SVNAdmin软件配置信息的主目录
-        mkdir($this->config_svn['home_path'], 0700, true);
+        is_dir($this->config_svn['home_path']) ? '' : mkdir($this->config_svn['home_path'], 0700, true);
 
         //创建SVN仓库父目录
-        mkdir($this->config_svn['rep_base_path'], 0700, true);
+        is_dir($this->config_svn['rep_base_path']) ? '' : mkdir($this->config_svn['rep_base_path'], 0700, true);
 
         //创建备份目录
-        mkdir($this->config_svn['home_path'], 0700, true);
+        is_dir($this->config_svn['backup_base_path']) ? '' : mkdir($this->config_svn['backup_base_path'], 0700, true);
 
         //创建日志目录
-        mkdir($this->config_svn['home_path'], 0700, true);
+        is_dir($this->config_svn['log_base_path']) ? '' : mkdir($this->config_svn['log_base_path'], 0700, true);
 
         //创建临时数据目录
-        mkdir($this->config_svn['home_path'], 0700, true);
+        is_dir($this->config_svn['temp_base_path']) ? '' : mkdir($this->config_svn['temp_base_path'], 0700, true);
+
+        echo '===============================================' . PHP_EOL;
 
         echo '创建相关文件' . PHP_EOL;
 
@@ -241,7 +297,7 @@ class Install
         file_put_contents($this->config_svn['svnserve_env_file'], $con_svnserve_env_file);
 
         //写入SVN仓库权限配置文件
-        $con_svn_conf_file = file_get_contents($templete_path . 'svnserve/svnserve.confg');
+        $con_svn_conf_file = file_get_contents($templete_path . 'svnserve/svnserve.conf');
         file_put_contents($this->config_svn['svn_conf_file'], $con_svn_conf_file);
 
         //写入authz文件
@@ -258,6 +314,8 @@ class Install
         //创建pid文件
         file_put_contents($this->config_svn['svnserve_pid_file'], '');
 
+        echo '===============================================' . PHP_EOL;
+
         /**
          * 将svnserve注册为系统服务
          */
@@ -266,24 +324,36 @@ class Install
         shell_exec('systemctl stop svnserve.service');
         shell_exec('systemctl disable svnserve.service');
 
+        echo '===============================================' . PHP_EOL;
+
+        echo '注册新的svnserve服务' . PHP_EOL;
+
         $con_svnserve_service_file = file_get_contents($templete_path . 'svnserve/svnserve.service');
-        $con_svnserve_service_file = sprintf($con_svnserve_service_file, $this->config_svn['svnserve_env_file'], trim($installPath), $this->config_svn['svnserve_pid_file']);
+        $con_svnserve_service_file = sprintf($con_svnserve_service_file, $this->config_svn['svnserve_env_file'], $needBin['svnserve'], $this->config_svn['svnserve_pid_file']);
         file_put_contents($this->config_svn['svnserve_service_file'], $con_svnserve_service_file);
+
+        echo '===============================================' . PHP_EOL;
 
         //启动
         echo '开始启动svnserve服务' . PHP_EOL;
 
         passthru('systemctl start svnserve');
 
+        echo '===============================================' . PHP_EOL;
+
         //开机自启动
         echo '将svnserve服务加入到开机自启动' . PHP_EOL;
 
         passthru('systemctl enable svnserve');
 
+        echo '===============================================' . PHP_EOL;
+
         //查看状态
         echo 'svnserve安装成功，打印运行状态：' . PHP_EOL;
 
         passthru('systemctl status svnserve');
+
+        echo '===============================================' . PHP_EOL;
     }
 
     /**
@@ -294,7 +364,7 @@ class Install
         echo '===============SVNAdmin==================' . PHP_EOL;
 
         foreach ($this->scripts as $value) {
-            echo '（' . $value['index'] . '）' . $value['note'] . PHP_EOL;
+            echo '[' . $value['index'] . '] ' . $value['note'] . PHP_EOL;
         }
 
         echo '===============================================' . PHP_EOL;
@@ -338,6 +408,8 @@ class Install
             echo '===============================================' . PHP_EOL;
 
             echo '请注意SVNAdmin支持管理的Subversion版本为1.8+！' . PHP_EOL;
+
+            echo '===============================================' . PHP_EOL;
 
             echo '请输入要安装的Subversion版本（推荐Subversion-1.10）：';
 
