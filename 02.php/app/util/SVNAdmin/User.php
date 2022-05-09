@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:57:48
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-04 17:15:02
+ * @LastEditTime: 2022-05-09 16:37:46
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -12,9 +12,9 @@ namespace SVNAdmin\SVN;
 
 class User extends Core
 {
-    function __construct($authzFileContent, $passwdFileContent, $config_svn)
+    function __construct($authzFileContent, $passwdFileContent, $config_svn, $config_bin)
     {
-        parent::__construct($authzFileContent, $passwdFileContent, $config_svn);
+        parent::__construct($authzFileContent, $passwdFileContent, $config_svn, $config_bin);
     }
 
     /**

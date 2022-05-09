@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 23:19:24
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-04 17:14:16
+ * @LastEditTime: 2022-05-09 16:36:56
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -203,13 +203,26 @@ class Core
      */
     protected $REG_REP_INFO = "/(.*):[\S]*(.*)/m";
 
+    /**
+     * 配置文件svn内容
+     *
+     * @var array
+     */
     protected $config_svn;
 
+    /**
+     * 配置文件bin内容
+     *
+     * @var array
+     */
+    protected $config_bin;
 
-    function __construct($authzFileContent, $passwdFileContent, $config_svn)
+
+    function __construct($authzFileContent, $passwdFileContent, $config_svn, $config_bin)
     {
         $this->authzFileContent = $authzFileContent;
         $this->passwdFileContent = $passwdFileContent;
         $this->config_svn = $config_svn;
+        $this->config_bin = $config_bin;
     }
 }

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-08 20:30:34
+ * @LastEditTime: 2022-05-09 17:04:19
  * @Description: QQ:1801168257
  */
 
@@ -103,7 +103,7 @@ class Svn extends Base
         //获取Subversion版本
         $version = '-';
         if ($installed != 0) {
-            $versionInfo = FunShellExec('svnserve --version');
+            $versionInfo = FunShellExec(sprintf("'%s' --version", $this->config_bin['svnserve']));
             $versionInfo = $versionInfo['result'];
             preg_match_all($this->config_reg['REG_SUBVERSION_VERSION'], $versionInfo, $versionInfoPreg);
             if (array_key_exists(0, $versionInfoPreg[0])) {

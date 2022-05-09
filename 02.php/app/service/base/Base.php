@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-06 18:42:00
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 12:11:18
+ * @LastEditTime: 2022-05-09 16:38:22
  * @Description: QQ:1801168257
  */
 
@@ -36,6 +36,7 @@ class Base
     public $database;
 
     //配置信息
+    public $config_bin;
     private $config_routers;
     private $config_database;
     public $config_version;
@@ -65,7 +66,8 @@ class Base
         global $payload;
 
         //配置信息
-        $this->config_routers =  Config::get('router');                 //路由
+        $this->config_bin =  Config::get('bin');                       //可执行文件路径
+        $this->config_routers =  Config::get('router');                //路由
         $this->config_database = Config::get('database');              //数据库配置
         $this->config_version = Config::get('version');                //版本
         $this->config_update = Config::get('update');                  //升级检测
@@ -139,9 +141,9 @@ class Base
         /**
          * 10、svnadmin对象
          */
-        $this->SVNAdminGroup = new Group($this->authzContent, $this->passwdContent, $this->config_svn);
-        $this->SVNAdminRep = new Rep($this->authzContent, $this->passwdContent, $this->config_svn);
-        $this->SVNAdminUser = new User($this->authzContent, $this->passwdContent, $this->config_svn);
+        $this->SVNAdminGroup = new Group($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
+        $this->SVNAdminRep = new Rep($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
+        $this->SVNAdminUser = new User($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
 
         /**
          * 11、检查对象

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-08 20:59:18
+ * @LastEditTime: 2022-05-09 17:08:00
  * @Description: QQ:1801168257
  */
 
@@ -57,7 +57,8 @@ class Svnrep extends Base
 
         //创建空仓库
         //解决创建中文仓库乱码问题
-        FunShellExec('export LC_CTYPE=en_US.UTF-8 &&  svnadmin create ' . $this->config_svn['rep_base_path'] .  $this->payload['rep_name']);
+        $cmd = sprintf("export LC_CTYPE=en_US.UTF-8 &&  '%s' create " . $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $this->config_bin['svnadmin']);
+        FunShellExec($cmd);
 
         if ($this->payload['rep_type'] == '2') {
             //以指定的目录结构初始化仓库
@@ -209,7 +210,7 @@ class Svnrep extends Base
         $authzContent = $this->authzContent;
 
         foreach ($userRepList as $key => $value) {
-            $cmd = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", $this->config_svn['rep_base_path'] .  $value['repName'], $value['priPath']);
+            $cmd = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $value['repName'], $value['priPath']);
             $result = FunShellExec($cmd);
 
             if (strstr($result['error'], 'svnlook: E160013:')) {
@@ -658,7 +659,7 @@ class Svnrep extends Base
         $path = $this->payload['path'];
 
         //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $path);
+        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'],$this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
         $result = $result['result'];
         $resultArray = explode("\n", trim($result));
@@ -755,7 +756,7 @@ class Svnrep extends Base
         $path = $this->payload['path'];
 
         //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("svnlook tree  '%s' --full-paths --non-recursive '%s'", $this->config_svn['rep_base_path']  . $this->payload['rep_name'], $path);
+        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'],$this->config_svn['rep_base_path']  . $this->payload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
         $result = $result['result'];
         $resultArray = explode("\n", trim($result));

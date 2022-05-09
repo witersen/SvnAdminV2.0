@@ -28,9 +28,8 @@ CREATE TABLE `admin_users` (
   `admin_user_password` varchar(45) NOT NULL COMMENT '用户密码',
   `admin_user_phone` char(11) DEFAULT NULL COMMENT '用户手机号',
   `admin_user_email` varchar(45) DEFAULT NULL COMMENT '用户邮箱',
-  `admin_user_salt` varchar(45) NOT NULL COMMENT '盐值',
   PRIMARY KEY (`admin_user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='管理系统用户';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='管理系统用户';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,6 +38,7 @@ CREATE TABLE `admin_users` (
 
 LOCK TABLES `admin_users` WRITE;
 /*!40000 ALTER TABLE `admin_users` DISABLE KEYS */;
+INSERT INTO `admin_users` VALUES (1,'admin','admin',NULL,NULL);
 /*!40000 ALTER TABLE `admin_users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -270,4 +270,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-04 20:27:12
+-- Dump completed on 2022-05-09 14:22:54

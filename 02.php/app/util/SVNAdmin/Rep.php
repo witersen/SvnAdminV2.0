@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:45:45
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-04 19:18:45
+ * @LastEditTime: 2022-05-09 16:58:20
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -12,9 +12,9 @@ namespace SVNAdmin\SVN;
 
 class Rep extends Core
 {
-    function __construct($authzFileContent, $passwdFileContent, $config_svn)
+    function __construct($authzFileContent, $passwdFileContent, $config_svn, $config_bin)
     {
-        parent::__construct($authzFileContent, $passwdFileContent, $config_svn);
+        parent::__construct($authzFileContent, $passwdFileContent, $config_svn, $config_bin);
     }
 
     /**
@@ -852,7 +852,7 @@ class Rep extends Core
      */
     function InitRepStruct($templetePath, $repPath, $initUser = 'SVNAdmin', $initPass = 'SVNAdmin', $message = 'Initial structure')
     {
-        $cmd = sprintf("svn import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $templetePath, $repPath, $initUser, $initPass, $message);
+        $cmd = sprintf("'%s' import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $this->config_bin['svn'], $templetePath, $repPath, $initUser, $initPass, $message);
         FunShellExec($cmd);
     }
 
@@ -874,7 +874,7 @@ class Rep extends Core
     {
         $repPath = $this->config_svn['rep_base_path'] .  $repName;
 
-        $svnadminInfoCmd = sprintf("svnadmin info '%s'", $repPath);
+        $svnadminInfoCmd = sprintf("'%s' info '%s'", $this->config_bin['svnadmin'], $repPath);
 
         $cmdResult = FunShellExec($svnadminInfoCmd);
         $cmdResult = $cmdResult['result'];
@@ -894,7 +894,7 @@ class Rep extends Core
     function GetRepTree($repName)
     {
         $repPath = $this->config_svn['rep_base_path'] .  $repName;
-        $svnadminInfoCmd = sprintf("svnlook tree '%s'", $repPath);
+        $svnadminInfoCmd = sprintf("'%s' tree '%s'", $this->config_bin['svnlook'], $repPath);
         $cmdResult = FunShellExec($svnadminInfoCmd);
         $cmdResult = $cmdResult['result'];
         // $cmdResult = FunShellExec($svnadminInfoCmd);
@@ -1198,20 +1198,22 @@ class Rep extends Core
 
     /**
      * 获取仓库的修订版本数量
+     * svnadmin info
      */
     function GetRepRev($repName)
     {
-        $cmd = sprintf("svnadmin info '%s' | grep 'Revisions' | awk '{print $2}'", $this->config_svn['rep_base_path'] .  $repName);
+        $cmd = sprintf("'%s' info '%s' | grep 'Revisions' | awk '{print $2}'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName);
         $result = FunShellExec($cmd);
         return (int)$result['result'];
     }
 
     /**
      * 获取仓库的属性内容（key-value的形式）
+     * svnadmin info
      */
     function GetRepDetail($repName)
     {
-        $cmd = sprintf("svnadmin info '%s'", $this->config_svn['rep_base_path'] .  $repName);
+        $cmd = sprintf("'%s' info '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName);
         $result = FunShellExec($cmd);
         return $result['result'];
     }
@@ -1222,10 +1224,12 @@ class Rep extends Core
      * 目前为默认最新版本
      * 
      * 根据体积大小自动调整单位
+     * 
+     * svnlook file
      */
     function GetRepRevFileSize($repName, $filePath)
     {
-        $cmd = sprintf("svnlook filesize '%s' '%s'", $this->config_svn['rep_base_path'] . $repName, $filePath);
+        $cmd = sprintf("'%s' filesize '%s' '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] . $repName, $filePath);
         $result = FunShellExec($cmd);
         $size = (int)$result['result'];
         return FunFormatSize($size);
@@ -1233,10 +1237,12 @@ class Rep extends Core
 
     /**
      * 获取仓库下指定文件或者文件夹的最高修订版本
+     * 
+     * svnlook history
      */
     function GetRepFileRev($repName, $filePath)
     {
-        $cmd = sprintf("svnlook history --limit 1 '%s' '%s'", $this->config_svn['rep_base_path'] .  $repName, $filePath);
+        $cmd = sprintf("'%s' history --limit 1 '%s' '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $repName, $filePath);
         $result = FunShellExec($cmd);
         $result = $result['result'];
         $resultArray = explode("\n", $result);
@@ -1247,30 +1253,36 @@ class Rep extends Core
 
     /**
      * 获取仓库下指定文件或者文件夹的作者
+     * 
+     * svnlook author
      */
     function GetRepFileAuthor($repName, $rev)
     {
-        $cmd = sprintf("svnlook author -r %s '%s'", $rev, $this->config_svn['rep_base_path'] .  $repName);
+        $cmd = sprintf("'%s' author -r %s '%s'", $this->config_bin['svnlook'], $rev, $this->config_svn['rep_base_path'] .  $repName);
         $result = FunShellExec($cmd);
         return $result['result'];
     }
 
     /**
      * 获取仓库下指定文件或者文件夹的提交日期
+     * 
+     * svnlook date
      */
     function GetRepFileDate($repName, $rev)
     {
-        $cmd = sprintf("svnlook date -r %s '%s'", $rev, $this->config_svn['rep_base_path'] .  $repName);
+        $cmd = sprintf("'%s' date -r %s '%s'", $this->config_bin['svnlook'], $rev, $this->config_svn['rep_base_path'] .  $repName);
         $result = FunShellExec($cmd);
         return $result['result'];
     }
 
     /**
      * 获取仓库下指定文件或者文件夹的提交日志
+     * 
+     * svnlook log
      */
     function GetRepFileLog($repName, $rev)
     {
-        $cmd = sprintf("svnlook log -r %s '%s'", $rev, $this->config_svn['rep_base_path'] .  $repName);
+        $cmd = sprintf("'%s' log -r %s '%s'", $this->config_bin['svnlook'], $rev, $this->config_svn['rep_base_path'] .  $repName);
         $result = FunShellExec($cmd);
         return $result['result'];
     }
@@ -1282,7 +1294,7 @@ class Rep extends Core
      */
     function RepDump($repName, $backupName)
     {
-        $cmd = sprintf('svnadmin dump %s --quiet  > %s', $this->config_svn['rep_base_path'] .  $repName, $this->config_svn['backup_base_path'] .  $backupName);
+        $cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName, $this->config_svn['backup_base_path'] .  $backupName);
         FunShellExec($cmd);
     }
 
@@ -1300,7 +1312,7 @@ class Rep extends Core
      */
     function RepLoad($repName, $fileName)
     {
-        $cmd = sprintf("svnadmin load --quiet '%s' < '%s'", $this->config_svn['rep_base_path'] .  $repName, $this->config_svn['backup_base_path'] .  $fileName);
+        $cmd = sprintf("'%s' load --quiet '%s' < '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName, $this->config_svn['backup_base_path'] .  $fileName);
         $result = FunShellExec($cmd);
         return $result;
     }
@@ -1310,7 +1322,7 @@ class Rep extends Core
      */
     function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, $svnUserPass)
     {
-        $cmd = sprintf("svn list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
+        $cmd = sprintf("'%s' list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $this->config_bin['svn'], $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
         $result = FunShellExec($cmd);
 
         if ($result['resultCode'] != 0) {
