@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 00:26:12
+ * @LastEditTime: 2022-05-09 11:41:24
  * @Description: QQ:1801168257
  */
 
@@ -12,8 +12,17 @@
  */
 return [
     'update_server' => [
-        // 'https://gitee.com/witersen/update/raw/master/SvnAdmin/update2.json',
-        // 'https://raw.githubusercontent.com/witersen/update/master/SvnAdmin/update2.json',
-        'http://dev.witersen.com/server/update.json'
+        // [
+        //     'nodeName' => 'gitee.com',
+        //     'url' => 'https://gitee.com/witersen/update/raw/master/SvnAdmin/update2.json'
+        // ],
+        // [
+        //     'nodeName' => 'github.com',
+        //     'url' => 'https://gitee.com/witersen/update/raw/master/SvnAdmin/update2.json'
+        // ],
+        [
+            'nodeName' => 'witersen.com',
+            'url' => 'http://dev.witersen.com/server/update.json'
+        ]
     ]
 ];

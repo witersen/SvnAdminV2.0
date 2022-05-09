@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 20:01:24
+ * @LastEditTime: 2022-05-09 11:41:40
  * @Description: QQ:1801168257
  */
 
@@ -22,7 +22,7 @@ class Update extends Base
     public function CheckUpdate()
     {
         foreach ($this->config_update['update_server'] as $key => $value) {
-            $versionInfo = FunCurlRequest($value);
+            $versionInfo = FunCurlRequest($value['url']);
             if ($versionInfo != null) {
                 $versionInfo = json_decode($versionInfo, true);
                 $latestVersion = $versionInfo['latestVersion'];

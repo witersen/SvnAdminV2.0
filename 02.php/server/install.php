@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-08 13:31:07
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 01:23:06
+ * @LastEditTime: 2022-05-09 13:06:47
  * @Description: QQ:1801168257
  */
 
@@ -73,41 +73,42 @@ class Install
         //对升级服务器地址进行轮询
         //获取当前版本可升级的版本信息
 
-        foreach ($this->config_update['update_server'] as $value) {
+        foreach ($this->config_update['update_server'] as $key1 => $value1) {
 
-            $result = FunCurlRequest($value);
+            $json = FunCurlRequest($value1['url']);
 
-            if ($result == null) {
-                echo '节点访问超时，切换下一节点' . PHP_EOL;
+            if ($json == null) {
+                echo '节点 ' . $value1['nodeName'] . ' 访问超时，切换下一节点' . PHP_EOL;
                 continue;
             }
 
-            //json转换
-            $result = json_decode($result, true);
+            //json => array
+            $array = json_decode($json, true);
 
-            $version = $result['version'];
-            if ($this->config_version['version'] == $version) {
-                exit('当前为最新版：' . $version . PHP_EOL);
+            $last = $array['version'];
+
+            if ($this->config_version['version'] == $last) {
+                exit('当前为最新版：' . $last . PHP_EOL);
             }
-            if ($this->config_version['version'] < $version) {
-                echo '有新版本：' . $version . PHP_EOL;
+            if ($this->config_version['version'] < $last) {
+                echo '有新版本：' . $last . PHP_EOL;
 
                 echo '修复内容如下：' . PHP_EOL;
-                foreach ($result['fixd']['con'] as $value) {
-                    echo '    [' . $value['title'] . ']' . ' ' . $value['content'] . PHP_EOL;
+                foreach ($array['fixd']['con'] as $cons) {
+                    echo '    [' . $cons['title'] . ']' . ' ' . $cons['content'] . PHP_EOL;
                 }
 
                 echo '新增内容如下：' . PHP_EOL;
-                foreach ($result['add']['con'] as $value) {
-                    echo '    [' . $value['title'] . ']' . ' ' . $value['content'] . PHP_EOL;
+                foreach ($array['add']['con'] as $cons) {
+                    echo '    [' . $cons['title'] . ']' . ' ' . $cons['content'] . PHP_EOL;
                 }
 
                 echo '移除内容如下：' . PHP_EOL;
-                foreach ($result['remove']['con'] as $value) {
-                    echo '    [' . $value['title'] . ']' . ' ' . $value['content'] . PHP_EOL;
+                foreach ($array['remove']['con'] as $cons) {
+                    echo '    [' . $cons['title'] . ']' . ' ' . $cons['content'] . PHP_EOL;
                 }
 
-                echo "确定要升级到 $version 版本吗[y/n]：";
+                echo "确定要升级到 $last 版本吗[y/n]：";
 
                 $answer = strtolower(trim(fgets(STDIN)));
 
@@ -120,18 +121,37 @@ class Install
                 }
 
                 //下载并执行升级脚本
-                
+                $packages = $array['update']['download'][$key1]['packages'];
+                $forList = array_column($packages, 'for');
+                $current = [
+                    'source' => $this->config_version['version'],
+                    'dest' => $last
+                ];
+                if (!in_array($current, $forList)) {
+                    exit('没有合适的升级包，请尝试直接手动安装最新版！' . PHP_EOL);
+                }
+                $index = array_search($current, $forList);
+                $update_download_url = $packages[$index]['url'];
+                $update_zip = FunCurlRequest($update_download_url);
+                if ($update_zip == null) {
+                    echo '从节点 ' . $value1['nodeName'] . ' 下载升级包超时，切换下一节点' . PHP_EOL;
+                    continue;
+                }
+                file_put_contents(BASE_PATH . '/update.zip', $update_zip);
+                shell_exec('unzip ' . BASE_PATH . '/update.zip');
+                if (!is_dir(BASE_PATH . '/update')) {
+                    exit('解压升级包出错，请尝试手动解压并执行升级程序！' . PHP_EOL);
+                }
 
-                echo '===============================================' . PHP_EOL;
+                echo '正在执行升级程序' . PHP_EOL;
+
+                passthru('php ' . BASE_PATH . '/update/index.php');
+
+                shell_exec(sprintf("cd '%s' && rm -rf ./update && rm -f update.zip", BASE_PATH));
+
+                exit('升级成功！请重启守护进程文件使部分配置文件生效' . PHP_EOL);
             }
         }
-    }
-
-    /**
-     * 升级到指定版本的SVNAdmin
-     */
-    function UpdateSVNAdmin()
-    {
     }
 
     /**
@@ -152,13 +172,6 @@ class Install
      * 将SVNAdmin加入监控 如果检测到异常退出则自动重启
      */
     function Monitor()
-    {
-    }
-
-    /**
-     * 卸载Subversion
-     */
-    function UninstallSubversion()
     {
     }
 

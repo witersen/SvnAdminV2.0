@@ -48,6 +48,22 @@
             }
         ]
     },
+    "release": {
+        "download": [
+            {
+                "nodeName": "gitee.com",
+                "url": ""
+            },
+            {
+                "nodeName": "github.com",
+                "url": ""
+            },
+            {
+                "nodeName": "witersen.com",
+                "url": "https://download.witersen.com/SVNAdmin/SVNAdmin-2.3.zip"
+            }
+        ]
+    },
     "update": {
         "step": [
             {
@@ -55,27 +71,63 @@
                 "content": "php ${your_path}/server/install.php"
             }
         ],
-        "release": {
-            "download": [
-                {
-                    "nodeName": "gitee.com",
-                    "package": ""
-                },
-                {
-                    "nodeName": "github.com",
-                    "package": ""
-                },
-                {
-                    "nodeName": "witersen.com",
-                    "package": "https://download.witersen.com/SVNAdmin/SVNAdmin-2.3.zip"
-                }
-            ]
-        },
-        "update": [
+        "download": [
             {
-                "source": "2.3",
-                "dest": "2.4",
-                "package": ""
+                "nodeName": "gitee.com",
+                "packages": [
+                    {
+                        "for": {
+                            "source": "2.3",
+                            "dest": "2.4"
+                        },
+                        "url": "xxx"
+                    },
+                    {
+                        "for": {
+                            "source": "2.3",
+                            "dest": "2.5"
+                        },
+                        "url": "xxx"
+                    }
+                ]
+            },
+            {
+                "nodeName": "github.com",
+                "packages": [
+                    {
+                        "for": {
+                            "source": "2.3",
+                            "dest": "2.4"
+                        },
+                        "url": "xxx"
+                    },
+                    {
+                        "for": {
+                            "source": "2.3",
+                            "dest": "2.5"
+                        },
+                        "url": "xxx"
+                    }
+                ]
+            },
+            {
+                "nodeName": "witersen.com",
+                "packages": [
+                    {
+                        "for": {
+                            "source": "2.3",
+                            "dest": "2.4"
+                        },
+                        "url": "xxx"
+                    },
+                    {
+                        "for": {
+                            "source": "2.3",
+                            "dest": "2.5"
+                        },
+                        "url": "xxx"
+                    }
+                ]
             }
         ]
     }
