@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-08 13:31:07
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 16:28:17
+ * @LastEditTime: 2022-05-09 17:39:28
  * @Description: QQ:1801168257
  */
 
@@ -264,7 +264,7 @@ CON;
         file_put_contents(BASE_PATH . '/../config/bin.php', $binCon);
 
         /**
-         * 相关文件配置
+         * 3、相关文件配置
          */
         $templete_path = BASE_PATH . '/../templete/';
 
@@ -317,7 +317,17 @@ CON;
         echo '===============================================' . PHP_EOL;
 
         /**
-         * 将svnserve注册为系统服务
+         * 4、配置SQLite数据库文件
+         */
+        echo '配置并启用SQLite数据库' . PHP_EOL;
+        copy($templete_path . '/database/sqlite/svnadmin.db', $this->config_svn['home_path'] . 'svnadmin.db');
+        echo '===============================================' . PHP_EOL;
+
+        //配置SQLite数据库文件的父目录权限配置为777 解决无法写入且不报错的问题
+        shell_exec('chmod 777 ' . $this->config_svn['home_path']);
+
+        /**
+         * 5、将svnserve注册为系统服务
          */
         echo '清理之前注册的svnserve服务' . PHP_EOL;
 

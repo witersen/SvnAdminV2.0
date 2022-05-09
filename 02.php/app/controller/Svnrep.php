@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:29:39
+ * @LastEditTime: 2022-05-09 18:54:31
  * @Description: QQ:1801168257
  */
 
@@ -224,6 +224,15 @@ class Svnrep extends Base
     public function DownloadRepBackup()
     {
         $this->ServiceSvnrep->DownloadRepBackup();
+    }
+
+    /**
+     * 获取上传限制
+     */
+    public function GetUploadLimit()
+    {
+        $result = $this->ServiceSvnrep->GetUploadLimit();
+        json2($result);
     }
 
     /**

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 17:08:00
+ * @LastEditTime: 2022-05-09 18:57:10
  * @Description: QQ:1801168257
  */
 
@@ -659,7 +659,7 @@ class Svnrep extends Base
         $path = $this->payload['path'];
 
         //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'],$this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $path);
+        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
         $result = $result['result'];
         $resultArray = explode("\n", trim($result));
@@ -756,7 +756,7 @@ class Svnrep extends Base
         $path = $this->payload['path'];
 
         //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'],$this->config_svn['rep_base_path']  . $this->payload['rep_name'], $path);
+        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path']  . $this->payload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
         $result = $result['result'];
         $resultArray = explode("\n", trim($result));
@@ -1279,10 +1279,39 @@ class Svnrep extends Base
     }
 
     /**
+     * 获取上传限制
+     */
+    public function GetUploadLimit()
+    {
+        $file_uploads = ini_get('file_uploads');
+        if ($file_uploads == 0 || $file_uploads == false || strtolower($file_uploads) == 'off') {
+            $file_uploads = false;
+        } else {
+            $file_uploads = true;
+        }
+
+        // $webServer = strtolower($_SERVER['SERVER_SOFTWARE']);
+        // if (strpos($webServer, 'nginx')) {
+        //     $client_max_body_size = '';
+        // }
+
+        return message(200, 1, '成功', [
+            'file_uploads' => $file_uploads,
+            'upload_max_filesize' => ini_get('upload_max_filesize'),
+            'post_max_size' => ini_get('post_max_size'),
+        ]);
+    }
+
+    /**
      * 上传文件到备份文件夹
      */
     public function UploadBackup()
     {
+        $file_uploads = ini_get('file_uploads');
+        if ($file_uploads == 0 || $file_uploads == false || strtolower($file_uploads) == 'off') {
+            return message(200, 0, '文件上传功能关闭');
+        }
+
         if (array_key_exists('file', $_FILES)) {
             //扩展名
             $fileType =  substr(strrchr($_FILES['file']['name'], '.'), 1);

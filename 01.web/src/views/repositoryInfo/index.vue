@@ -450,8 +450,14 @@
                   <span>从本地上传</span>
                 </Radio>
                 <Alert type="warning" show-icon
-                  >1、大文件建议通过FTP等方式上传<br />2、注意重复文件会自动覆盖</Alert
-                >
+                  >1、大文件建议通过FTP等方式上传<br />
+                  2、PHP上传限制参数如下：<br/><br/>
+                  file_uploads：{{uploadLimit.file_uploads==true?'开启':'关闭'}}<br/>
+                  upload_max_filesize：{{uploadLimit.upload_max_filesize}}<br/>
+                  post_max_size：{{uploadLimit.post_max_size}}<br/><br/>
+                  3、还要注意web服务器的限制<br/><br/>
+                  如Nginx需考虑 client_max_body_size 等参数
+                  </Alert>
                 <Radio label="2">
                   <span>从服务器选择</span>
                 </Radio>
@@ -740,6 +746,12 @@ export default {
       /**
        * 表单
        */
+      //上传限制
+      uploadLimit: {
+        file_uploads: true,
+        upload_max_filesize: 0,
+        post_max_size: 0,
+      },
       //新建SVN仓库
       formRepAdd: {
         rep_name: "",
@@ -1080,7 +1092,6 @@ export default {
     //   console.log(window.WritableStream);
     //   console.log(writer);
     //   console.log('test-end');
-      
 
     //   writableStream.abort();
     //   // also possible to call abosrt on the writer you got from `getWriter()`
@@ -2233,6 +2244,8 @@ export default {
       this.modalRepAdvance = true;
       //请求数据
       this.GetRepDetail();
+      //获取上传限制
+      this.GetUploadSize();
     },
     /**
      * 获取仓库的属性内容（key-vlaue的形式）
@@ -2283,9 +2296,31 @@ export default {
      */
     ChangeRadioUploadType(value) {
       this.formUploadBackup.selectType = value;
-      if (value == "2") {
+      if (value == "1") {
+        //获取php上传限制信息
+        this.GetUploadSize();
+      } else if (value == "2") {
         this.GetBackupList();
       }
+    },
+    //获取上传限制
+    GetUploadSize() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Svnrep&a=GetUploadLimit&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.uploadLimit = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
     },
     //上传前
     BeforeUpload() {
