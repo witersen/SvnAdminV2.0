@@ -386,7 +386,10 @@
                   placement="top"
                   transfer
                 >
-                  <Button type="primary" :loading="loadingCheckUpdate" @click="CheckUpdate()"
+                  <Button
+                    type="primary"
+                    :loading="loadingCheckUpdate"
+                    @click="CheckUpdate()"
                     >检测更新</Button
                   >
                 </Tooltip>
@@ -397,32 +400,82 @@
       </Tabs>
     </Card>
     <Modal v-model="modalSofawareUpdateGet" title="最新版本信息">
-      <Form ref="formSoftwareNew" :model="formSoftwareNew" :label-width="90">
-        <FormItem label="最新版本">
-          <Badge dot>
-            {{ formSoftwareNew.latestVersion }}
-          </Badge>
-        </FormItem>
-        <FormItem label="升级类型">
-          <Badge>
-            {{ formSoftwareNew.updateStep }}
-          </Badge>
-        </FormItem>
-        <FormItem label="修复bug">
-          <i-input
-            v-html="formSoftwareNew.fixedContent"
-            type="textarea"
-            autosize
-          ></i-input>
-        </FormItem>
-        <FormItem label="新增功能">
-          <i-input
-            v-html="formSoftwareNew.newContent"
-            type="textarea"
-            autosize
-          ></i-input>
-        </FormItem>
-      </Form>
+      <Scroll>
+        <Form ref="formUpdate" :model="formUpdate" :label-width="90">
+          <FormItem label="最新版本">
+            <Badge dot>
+              {{ formUpdate.version }}
+            </Badge>
+          </FormItem>
+          <FormItem label="修复内容">
+            <ul style="list-style: none">
+              <li v-for="(item, index) in formUpdate.fixd.con" :key="index">
+                <span> [{{ item.title }}] {{ item.content }} </span>
+              </li>
+            </ul>
+          </FormItem>
+          <FormItem label="新增内容">
+            <ul style="list-style: none">
+              <li v-for="(item, index) in formUpdate.add.con" :key="index">
+                <span> [{{ item.title }}] {{ item.content }} </span>
+              </li>
+            </ul>
+          </FormItem>
+          <FormItem label="移除内容">
+            <ul style="list-style: none">
+              <li v-for="(item, index) in formUpdate.remove.con" :key="index">
+                <span> [{{ item.title }}] {{ item.content }} </span>
+              </li>
+            </ul>
+          </FormItem>
+          <FormItem label="移除内容">
+            <ul style="list-style: none">
+              <li v-for="(item, index) in formUpdate.remove.con" :key="index">
+                <span> [{{ item.title }}] {{ item.content }} </span>
+              </li>
+            </ul>
+          </FormItem>
+          <FormItem label="完整程序包">
+            <ul style="list-style: none">
+              <li
+                v-for="(item, index) in formUpdate.release.download"
+                :key="index"
+              >
+                [{{ index + 1 }}] {{ item.nodeName }}节点
+                <ul style="list-style: none">
+                  <li>
+                    <a :href="item.url" target="_blank">下载</a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </FormItem>
+          <FormItem label="升级程序包">
+            <ul style="list-style: none">
+              <li
+                v-for="(item1, index1) in formUpdate.update.download"
+                :key="index1"
+              >
+                [{{ index1 + 1 }}] {{ item1.nodeName }}节点
+                <ul style="list-style: none">
+                  <li v-for="(item2, index2) in item1.packages" :key="index2">
+                    <a :href="item2.url" target="_blank"
+                      >{{ item2.for.source }} -> {{ item2.for.dest }}</a
+                    >
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </FormItem>
+          <FormItem label="升级步骤">
+            <ul style="list-style: none">
+              <li v-for="(item, index) in formUpdate.update.step" :key="index">
+                <span> [{{ item.title }}] {{ item.content }} </span>
+              </li>
+            </ul>
+          </FormItem>
+        </Form>
+      </Scroll>
     </Modal>
   </div>
 </template>
@@ -462,7 +515,7 @@ export default {
         current_verson: "2.3",
         php_version: "5.5 <= PHP < 8.0",
         database: "MYSQL、SQLite",
-        github: "https://github.com/witersen/svnAdminV2.0",
+        github: "https://github.com/witersen/SvnAdminV2.0",
         gitee: "https://gitee.com/witersen/SvnAdminV2.0",
       },
 
@@ -486,7 +539,7 @@ export default {
       //保存推送配置信息
       loadingEditPush: false,
       //检测更新
-      loadingCheckUpdate:false,
+      loadingCheckUpdate: false,
 
       /**
        * subversion信息
@@ -528,24 +581,142 @@ export default {
         port: 0,
         to: "",
         from: "",
-
-        // autotls: true,
-        // auth: false,
-        // host: "",
-        // encryption: "none",
-        // port: 25,
-        // user: "",
-        // pass: "",
-        // from: "",
         status: false,
       },
       //新版本信息
-      formSoftwareNew: {
-        newContent: "",
-        latestVersion: "",
-        fixedContent: "",
-        updateType: "",
-        updateStep: "",
+      formUpdate: {
+        version: "2.4",
+        fixd: {
+          con: [
+            {
+              title: "1",
+              content: "修复SVN仓库权限配置的bug",
+            },
+            {
+              title: "2",
+              content: "完善用户权限控制逻辑",
+            },
+          ],
+        },
+        add: {
+          con: [
+            {
+              title: "1",
+              content: "支持文件级授权",
+            },
+            {
+              title: "2",
+              content: "支持目录浏览",
+            },
+            {
+              title: "3",
+              content: "支持仓库备份与恢复",
+            },
+            {
+              title: "4",
+              content: "支持SVN用户禁用与启动",
+            },
+            {
+              title: "5",
+              content: "支持用户级日志记录",
+            },
+            {
+              title: "6",
+              content: "兼容PHP5.5+",
+            },
+          ],
+        },
+        remove: {
+          con: [
+            {
+              title: "1",
+              content: "暂时移除仓库钩子的配置功能",
+            },
+          ],
+        },
+        release: {
+          download: [
+            {
+              nodeName: "gitee.com",
+              url: "",
+            },
+            {
+              nodeName: "github.com",
+              url: "",
+            },
+            {
+              nodeName: "witersen.com",
+              url: "https://download.witersen.com/SVNAdmin/SVNAdmin-2.3.zip",
+            },
+          ],
+        },
+        update: {
+          step: [
+            {
+              title: "1",
+              content: "php ${your_path}/server/install.php",
+            },
+          ],
+          download: [
+            {
+              nodeName: "gitee.com",
+              packages: [
+                {
+                  for: {
+                    source: "2.3",
+                    dest: "2.4",
+                  },
+                  url: "xxx",
+                },
+                {
+                  for: {
+                    source: "2.3",
+                    dest: "2.5",
+                  },
+                  url: "xxx",
+                },
+              ],
+            },
+            {
+              nodeName: "github.com",
+              packages: [
+                {
+                  for: {
+                    source: "2.3",
+                    dest: "2.4",
+                  },
+                  url: "xxx",
+                },
+                {
+                  for: {
+                    source: "2.3",
+                    dest: "2.5",
+                  },
+                  url: "xxx",
+                },
+              ],
+            },
+            {
+              nodeName: "witersen.com",
+              packages: [
+                {
+                  for: {
+                    source: "2.3",
+                    dest: "2.4",
+                  },
+                  url: "xxx",
+                },
+                {
+                  for: {
+                    source: "2.3",
+                    dest: "2.5",
+                  },
+                  url: "xxx",
+                },
+              ],
+            },
+          ],
+        },
       },
     };
   },
@@ -1013,7 +1184,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             if (result.data != "") {
-              that.formSoftwareNew = result.data;
+              that.formUpdate = result.data;
               that.modalSofawareUpdateGet = true;
             } else {
               that.$Message.success(result.message);

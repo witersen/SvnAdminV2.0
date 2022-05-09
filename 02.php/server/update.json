@@ -68,7 +68,11 @@
         "step": [
             {
                 "title": "1",
-                "content": "php ${your_path}/server/install.php"
+                "content": "登录服务器控制台"
+            },
+            {
+                "title": "2",
+                "content": "执行命令 php ${your_path}/server/install.php"
             }
         ],
         "download": [

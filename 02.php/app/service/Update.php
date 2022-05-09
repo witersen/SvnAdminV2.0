@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 11:41:40
+ * @LastEditTime: 2022-05-10 00:01:53
  * @Description: QQ:1801168257
  */
 
@@ -21,33 +21,28 @@ class Update extends Base
      */
     public function CheckUpdate()
     {
-        foreach ($this->config_update['update_server'] as $key => $value) {
-            $versionInfo = FunCurlRequest($value['url']);
-            if ($versionInfo != null) {
-                $versionInfo = json_decode($versionInfo, true);
-                $latestVersion = $versionInfo['latestVersion'];
-                if ($latestVersion == $this->config_version['version']) {
-                    return message(200, 1, '当前版本为最新版');
-                } else if ($latestVersion > $this->config_version['version']) {
-                    return message(200, 1, '有更新', [
-                        'latestVersion' => $versionInfo['latestVersion'],
-                        'fixedContent' => implode('<br>', $versionInfo['fixedContent']) == '' ? '暂无内容' : implode('<br>', $versionInfo['fixedContent']),
-                        'newContent' => implode('<br>', $versionInfo['newContent']) == '' ? '暂无内容' : implode('<br>', $versionInfo['newContent']),
-                        'updateType' => $versionInfo['updateType'],
-                        'updateStep' => $versionInfo['updateStep']
-                    ]);
-                } else if ($latestVersion < $this->config_version['version']) {
-                    return message(200, 0, '系统版本错误');
-                }
+        foreach ($this->config_update['update_server'] as $key1 => $value1) {
+
+            $json = FunCurlRequest($value1['url']);
+
+            if ($json == null) {
+                continue;
+            }
+
+            //json => array
+            $array = json_decode($json, true);
+
+            $last = $array['version'];
+
+            if ($this->config_version['version'] == $last) {
+                return message(200, 1, '当前为最新版');
+            }
+
+            if ($this->config_version['version'] < $last) {
+                return message(200, 1, '有新版本', $array);
             }
         }
-        return message(200, 0, '检测更新超时');
-    }
 
-    /**
-     * 确认更新
-     */
-    public function StartUpdate()
-    {
+        return message(200, 0, '检测超时');
     }
 }
