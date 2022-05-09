@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 17:35:57
+ * @LastEditTime: 2022-05-09 21:11:05
  * @Description: QQ:1801168257
  */
 
@@ -99,7 +99,7 @@ $state = FunDetectState();
 if ($state == 0) {
     json1(401, 0, '守护进程响应超时');
 } else if ($state == 2) {
-    json1(401, 0, '守护进程未启动');
+    json1(401, 0, '后台程序未启动');
 }
 
 /**

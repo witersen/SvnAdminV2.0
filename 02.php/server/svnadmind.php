@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 00:00:19
+ * @LastEditTime: 2022-05-09 22:30:20
  * @Description: QQ:1801168257
  */
 
@@ -85,13 +85,21 @@ class Daemon
     private function InitSocket()
     {
         //创建套接字
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or exit('启动失败：socket_create 错误' . PHP_EOL);
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or exit('启动失败：socket_create 错误：' . socket_strerror(socket_last_error()) . PHP_EOL);
+
+        //设置可重复使用端口号
+        if (!socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1)) {
+            exit('启动失败：设置套接字选项错误：' . socket_strerror(socket_last_error()) . PHP_EOL);
+        }
 
         //绑定地址和端口
         socket_bind($socket, $this->config_daemon['IPC_ADDRESS'], $this->config_daemon['IPC_PORT']) or exit('启动失败：socket_bind 错误，可能是由于频繁启动，端口未释放，请稍后重试或检查端口冲突' . PHP_EOL);
 
-        //设置可重复使用端口号
-        socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
+        $rval = socket_get_option($socket, SOL_SOCKET, SO_REUSEADDR);
+
+        if ($rval === false) {
+            exit('启动失败：无法获取套接字选项：' . socket_strerror(socket_last_error()) . PHP_EOL);
+        }
 
         //监听 设置并发队列的最大长度
         socket_listen($socket, $this->config_daemon['SOCKET_LISTEN_BACKLOG']);
@@ -241,6 +249,8 @@ class Daemon
                 exit('程序正在运行中' . PHP_EOL);
             }
         }
+        $this->UpdateSign();
+        echo '已在启动时自动更改系统的加密密钥，正在登录的用户会退出登录' . PHP_EOL;
         $this->InitDeamon();
     }
 
@@ -265,7 +275,7 @@ class Daemon
             $pid = file_get_contents($this->pidFile);
             $result = trim(shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
             if (strstr($result, $pid)) {
-                exit('程序正在运行中，请先停止' . PHP_EOL);
+                exit('无法进入调试模式，请先停止后台程序' . PHP_EOL);
             }
         }
         $this->InitSocket();
@@ -286,7 +296,6 @@ class Daemon
                 $this->CheckPhpVersion();
                 $this->CheckDisabledFun();
                 if ($this->workMode == 'start') {
-                    $this->UpdateSign();
                     $this->StartDaemon();
                 } else if ($this->workMode == 'console') {
                     $this->StartConsole();

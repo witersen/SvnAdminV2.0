@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-06 18:42:00
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 16:38:22
+ * @LastEditTime: 2022-05-09 21:10:15
  * @Description: QQ:1801168257
  */
 
@@ -203,7 +203,7 @@ class Base
             return [
                 'code' => 401,
                 'status' => 0,
-                'message' => '非法请求',
+                'message' => 'token为空',
                 'data' => []
             ];
         }
@@ -213,7 +213,7 @@ class Base
             return [
                 'code' => 401,
                 'status' => 0,
-                'message' => '非法请求',
+                'message' => 'token格式错误',
                 'data' => []
             ];
         }
@@ -226,7 +226,7 @@ class Base
                 return [
                     'code' => 401,
                     'status' => 0,
-                    'message' => '非法请求',
+                    'message' => 'token格式错误',
                     'data' => []
                 ];
             }
@@ -239,7 +239,7 @@ class Base
             return [
                 'code' => 401,
                 'status' => 0,
-                'message' => '非法请求',
+                'message' => 'token校验失败',
                 'data' => []
             ];
         }

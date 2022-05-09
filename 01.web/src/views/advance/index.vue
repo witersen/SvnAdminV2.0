@@ -12,18 +12,13 @@
                   </Col>
                   <Col span="1"> </Col>
                   <Col span="6">
-                    <Button
-                      type="error"
-                      v-if="formSvn.installed == 1 || formSvn.installed == 2"
-                      @click="UnInstall"
-                      >卸载</Button
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="可以使用系统提供的 install.php 文件在命令行模式下进行Subversion安装和初始化等操作"
                     >
-                    <Button
-                      type="primary"
-                      v-if="formSvn.installed == 0"
-                      @click="Install"
-                      >安装</Button
-                    >
+                      <Button type="info">tips</Button>
+                    </Tooltip>
                   </Col>
                   <Col span="6"> </Col>
                 </Row>

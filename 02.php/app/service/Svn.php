@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 17:04:19
+ * @LastEditTime: 2022-05-09 20:52:21
  * @Description: QQ:1801168257
  */
 
@@ -25,7 +25,7 @@ class Svn extends Base
         $result = $result['result'];
 
         if ($result == '') {
-            return message(200, 0, 'svnserve服务未在运行，SVN用户将无法使用仓库浏览功能');
+            return message(200, 0, 'svnserve服务未在运行，SVN用户将无法使用系统的仓库在线内容浏览功能');
         } else {
             return message();
         }
@@ -75,7 +75,7 @@ class Svn extends Base
 
         //运行中+已加入环境变量
         if ($isRun && $isInstall) {
-            return 1;
+            return 2;
         }
 
         //未运行+未加入环境变量
@@ -85,7 +85,7 @@ class Svn extends Base
 
         //未运行+已加入环境变量
         if (!$isRun && $isInstall) {
-            return 2;
+            return 1;
         }
     }
 
