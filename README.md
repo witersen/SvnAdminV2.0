@@ -11,7 +11,7 @@
 
 6、支持功能：SVN仓库管理、SVN用户管理、SVN分组管理、目录授权、目录浏览、Hooks管理、在线dump备份、在线备份恢复、SVN用户禁用、服务器状态管理、日志管理、消息通知、更新检测...
 
-7、旧版本演示地址：http://svnadmin.witersen.com (默认的用户名与密码都为 administrator)
+7、新版本演示地址：http://svnadmin.witersen.com (默认的用户名与密码都为 admin)
 
 8、GitHub地址：https://github.com/witersen/SvnAdminV2.0 Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
 
