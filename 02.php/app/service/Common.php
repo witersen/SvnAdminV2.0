@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-08 13:50:51
+ * @LastEditTime: 2022-05-10 14:43:54
  * @Description: QQ:1801168257
  */
 
@@ -20,6 +20,7 @@ class Common extends Base
      */
     private $Svnuser;
     private $Logs;
+    private $Mail;
 
     function __construct()
     {
@@ -27,6 +28,7 @@ class Common extends Base
 
         $this->Svnuser = new Svnuser();
         $this->Logs = new Logs();
+        $this->Mail = new Mail();
     }
 
     /**
@@ -96,13 +98,15 @@ class Common extends Base
             }
         }
 
+        //日志
         $this->Logs->InsertLog(
             '用户登录',
-            '登陆成功 '
-                . '账号：' . $this->payload['user_name'] . ' '
-                . 'IP地址：' . $_SERVER["REMOTE_ADDR"],
-            $this->payload['user_name']
+            sprintf("账号 %s IP地址", $this->payload['user_name'], $_SERVER["REMOTE_ADDR"]),
+            $this->userName
         );
+
+        //邮件
+        $this->Mail->SendMail('Common/Login', '用户登录成功通知', '账号：' . $this->payload['user_name'] . ' ' . 'IP地址：' . $_SERVER["REMOTE_ADDR"] . ' ' . '时间：' . date('Y-m-d H:i:s'));
 
         return message(200, 1, '登陆成功', [
             'token' => parent::CreateToken($this->payload['user_role'], $this->payload['user_name']),
@@ -124,9 +128,10 @@ class Common extends Base
         //加入本token
         $this->AddBlack();
 
+        //日志
         $this->Logs->InsertLog(
             '用户注销',
-            '账号：' . $this->userName . ' IP地址：' . $_SERVER["REMOTE_ADDR"],
+            sprintf("账号 %s IP地址", $this->userName, $_SERVER["REMOTE_ADDR"]),
             $this->userName
         );
 

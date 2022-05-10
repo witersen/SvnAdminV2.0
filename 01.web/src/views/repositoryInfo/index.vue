@@ -385,8 +385,12 @@
       </div>
     </Modal>
     <!-- 对话框-钩子配置 -->
-    <Modal v-model="modalRepHooks" :title="titleModalRepHooks">
-      <Form ref="formRepHooks" :model="formRepHooks" :label-width="60">
+    <Modal
+      v-model="modalRepHooks"
+      :title="titleModalRepHooks"
+      class-name="hooks"
+    >
+      <!-- <Form ref="formRepHooks" :model="formRepHooks" :label-width="60">
         <FormItem label="类型">
           <Select v-model="formRepHooks.select" :transfer="true">
             <Option
@@ -411,9 +415,153 @@
             >应用（针对当前）</Button
           >
         </FormItem>
-      </Form>
+      </Form> -->
+      <Tabs type="card">
+        <TabPane label="仓库钩子">
+          <Card :bordered="false" :dis-hover="true" class="my-modal">
+            <Scroll>
+              <List>
+                <Divider orientation="left" size="small">Commit</Divider>
+                <ListItem>
+                  <ListItemMeta description="Start-commit hook" />
+                  <template slot="action">
+                    <li>
+                      <span>编辑</span>
+                    </li>
+                    <li>
+                      <span>移除</span>
+                    </li>
+                  </template>
+                </ListItem>
+                <ListItem>
+                  <ListItemMeta title="Pre-commit hook" />
+                  <template slot="action">
+                    <li>
+                      <span>编辑</span>
+                    </li>
+                    <li>
+                      <span>移除</span>
+                    </li>
+                  </template>
+                </ListItem>
+                <ListItem>
+                  <ListItemMeta title="Post-commit hook" />
+                  <template slot="action">
+                    <li>
+                      <span>编辑</span>
+                    </li>
+                    <li>
+                      <span>移除</span>
+                    </li>
+                  </template>
+                </ListItem>
+                <Divider orientation="left" size="small">Locks</Divider>
+                <ListItem>
+                  <ListItemMeta title="Pre-lock hook" />
+                  <template slot="action">
+                    <li>
+                      <span>编辑</span>
+                    </li>
+                    <li>
+                      <span>移除</span>
+                    </li>
+                  </template>
+                </ListItem>
+                <ListItem>
+                  <ListItemMeta title="Post-lock hook" />
+                  <template slot="action">
+                    <li>
+                      <span>编辑</span>
+                    </li>
+                    <li>
+                      <span>移除</span>
+                    </li>
+                  </template>
+                </ListItem>
+                <ListItem>
+                  <ListItemMeta title="Pre-unlock hook" />
+                  <template slot="action">
+                    <li>
+                      <span>编辑</span>
+                    </li>
+                    <li>
+                      <span>移除</span>
+                    </li>
+                  </template>
+                </ListItem>
+                <ListItem>
+                  <ListItemMeta title="Post-unlock hook" />
+                  <template slot="action">
+                    <li>
+                      <span>编辑</span>
+                    </li>
+                    <li>
+                      <span>移除</span>
+                    </li>
+                  </template>
+                </ListItem>
+                <Divider orientation="left" size="small"
+                  >Revision property change</Divider
+                >
+                <ListItem>
+                  <ListItemMeta title="Pre-reversion property change hook" />
+                  <template slot="action">
+                    <li>
+                      <span>编辑</span>
+                    </li>
+                    <li>
+                      <span>移除</span>
+                    </li>
+                  </template>
+                </ListItem>
+                <ListItem>
+                  <ListItemMeta title="Post-reversion property change hook" />
+                  <template slot="action">
+                    <li>
+                      <span>编辑</span>
+                    </li>
+                    <li>
+                      <span>移除</span>
+                    </li>
+                  </template>
+                </ListItem>
+              </List>
+            </Scroll>
+          </Card>
+        </TabPane>
+        <TabPane label="常用钩子">
+          <Scroll>
+            <List :border="true">
+              <ListItem>
+                <ListItemMeta
+                  title="Precommit hook"
+                  description="This is description, this is description."
+                />
+                <template slot="action">
+                  <li>
+                    <span>查看</span>
+                  </li>
+                </template>
+              </ListItem>
+              <ListItem>
+                <ListItemMeta
+                  title="Precommit hook"
+                  description="This is description, this is description."
+                />
+                <template slot="action">
+                  <li>
+                    <span>查看</span>
+                  </li>
+                </template>
+              </ListItem>
+            </List>
+          </Scroll>
+        </TabPane>
+      </Tabs>
       <div slot="footer">
-        <Button type="primary" @click="modalRepAdvance = false">取消</Button>
+        <Button type="primary" ghost @click="modalRepHooks = false"
+          >取消</Button
+        >
       </div>
     </Modal>
     <!-- 对话框-高级 -->
@@ -451,13 +599,16 @@
                 </Radio>
                 <Alert type="warning" show-icon
                   >1、大文件建议通过FTP等方式上传<br />
-                  2、PHP上传限制参数如下：<br/><br/>
-                  file_uploads：{{uploadLimit.file_uploads==true?'开启':'关闭'}}<br/>
-                  upload_max_filesize：{{uploadLimit.upload_max_filesize}}<br/>
-                  post_max_size：{{uploadLimit.post_max_size}}<br/><br/>
-                  3、还要注意web服务器的限制<br/><br/>
+                  2、PHP上传限制参数如下：<br /><br />
+                  file_uploads：{{
+                    uploadLimit.file_uploads == true ? "开启" : "关闭"
+                  }}<br />
+                  upload_max_filesize：{{ uploadLimit.upload_max_filesize
+                  }}<br />
+                  post_max_size：{{ uploadLimit.post_max_size }}<br /><br />
+                  3、还要注意web服务器的限制<br /><br />
                   如Nginx需考虑 client_max_body_size 等参数
-                  </Alert>
+                </Alert>
                 <Radio label="2">
                   <span>从服务器选择</span>
                 </Radio>
@@ -642,7 +793,7 @@ export default {
        */
       //所有仓库
       pageCurrentRep: 1,
-      pageSizeRep: 10,
+      pageSizeRep: 20,
       totalRep: 0,
       //用户仓库
       pageCurrentUserRep: 1,
@@ -2450,5 +2601,41 @@ export default {
 };
 </script>
 
-<style >
+<style lang="less">
+// .hooks {
+//   .ivu-modal-body {
+//     padding: 0px 16px 0px 16px;
+//   }
+// }
+.my-modal {
+  // 卡片
+  .ivu-card-body {
+    padding: 0px 16px 0px 16px;
+  }
+
+  // 分割线
+  .ivu-divider-inner-text {
+    // color: #2db7f5;
+    color: #5cadff;
+  }
+  // 列表
+  .ivu-list-split .ivu-list-item {
+    border-bottom: 0px;
+  }
+  .ivu-list-item {
+    padding: 2px 0px;
+  }
+  //列表选项颜色
+  .ivu-list-item-meta-title {
+    color: #515a6e;
+  }
+  .ivu-list-item-meta-description {
+    // color: #2db7f5;
+    color: #ff9900;
+  }
+  //编辑和移除按钮
+  span {
+    color: #515a6e;
+  }
+}
 </style>

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 19:13:42
+ * @LastEditTime: 2022-05-10 14:31:29
  * @Description: QQ:1801168257
  */
 
@@ -167,10 +167,16 @@ class Mail extends Base
             'pass' => '',
 
             //发件人 一般与SMTP用户名相同 需要为邮箱格式
-            'from' => '',
+            'from' => ['address' => '', 'name' => ''],
 
             //启用状态
-            'status' => false
+            'status' => false,
+
+            //收件人邮箱
+            'to' => [],
+
+            //发送超时时间
+            'timeout' => 5
         ];
 
         if ($mail_smtp == null) {
@@ -209,6 +215,8 @@ class Mail extends Base
                 'pass' => $this->payload['pass'],
                 'from' => $this->payload['from'],
                 'status' => $this->payload['status'],
+                'to' => $this->payload['to'],
+                'timeout' => $this->payload['timeout']
             ])
         ], [
             'option_name' => 'mail_smtp'
@@ -231,13 +239,73 @@ class Mail extends Base
         $subject = "SVNAdmin的测试邮件";
         $body = "此邮件为SVNAdmin系统发送的测试邮件，当您收到此邮件，代表您的邮件服务已经配置正确。";
         $to = [
-            ['address' => $this->payload['to'], 'name' => '']
+            ['address' => $this->payload['test'], 'name' => '']
         ];
         $cc = [];
         $bcc = [];
         $reply = [];
-        $from = ['address' => $this->payload['from'], 'name' => ''];
-        $timeout = 10;
+        $from =  $this->payload['from'];
+        $timeout = $this->payload['timeout'];
+        $result = $this->Send(
+            $host,
+            $auth,
+            $user,
+            $pass,
+            $encryption,
+            $autotls,
+            $port,
+            $subject,
+            $body,
+            $to,
+            $cc,
+            $bcc,
+            $reply,
+            $from,
+            $timeout
+        );
+
+        return message(200, $result === true ? 1 : 0, $result === true ? '发送成功' : $result);
+    }
+
+    /**
+     * 发送通知邮件
+     */
+    public function SendMail($trigger, $subject, $body)
+    {
+        $mail_smtp = $this->GetEmail();
+        $mail_smtp = $mail_smtp['data'];
+
+        //检查邮件服务是否启用
+        if (!$mail_smtp['status']) {
+            return message(200, 0, '邮件服务未开启');
+        }
+
+        //检查触发条件
+        $message_push = $this->GetPush();
+        $message_push = $message_push['data'];
+
+        $triggers = array_column($message_push, 'trigger');
+        if (!in_array($trigger, $triggers)) {
+            return message(200, 0, '触发条件不存在');
+        }
+        $options = array_combine($triggers, array_column($message_push, 'enable'));
+        if (!$options[$trigger]) {
+            return message(200, 0, '触发条件未开启');
+        }
+
+        $host = $mail_smtp['host'];
+        $auth = $mail_smtp['auth'];
+        $user = $mail_smtp['user'];
+        $pass = $mail_smtp['pass'];
+        $encryption = $mail_smtp['encryption'];
+        $autotls = $mail_smtp['autotls'];
+        $port = $mail_smtp['port'];
+        $to = $mail_smtp['to'];
+        $cc = [];
+        $bcc = [];
+        $reply = [];
+        $from = $mail_smtp['from'];
+        $timeout = $mail_smtp['timeout'];
         $result = $this->Send(
             $host,
             $auth,

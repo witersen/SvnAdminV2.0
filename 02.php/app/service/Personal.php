@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-06 21:38:02
+ * @LastEditTime: 2022-05-10 14:22:43
  * @Description: QQ:1801168257
  */
 
@@ -11,9 +11,18 @@ namespace app\service;
 
 class Personal extends Base
 {
+    /**
+     * 其它服务层对象
+     *
+     * @var object
+     */
+    private $Mail;
+
     function __construct()
     {
         parent::__construct();
+
+        $this->Mail = new Mail();
     }
 
     /**
@@ -44,6 +53,9 @@ class Personal extends Base
             'admin_user_name' => $this->userName
         ]);
 
+        //邮件
+        $this->Mail->SendMail('Personal/EditAdminUserName', '管理人员修改账号通知', '原账号：' . $this->userName . ' ' . '新账号：' . $this->payload['userName'] . ' ' . '时间：' . date('Y-m-d H:i:s'));
+
         return message(200, 1, '修改密码成功');
     }
 
@@ -65,6 +77,9 @@ class Personal extends Base
         ], [
             'admin_user_name' => $this->userName
         ]);
+
+        //邮件
+        $this->Mail->SendMail('Personal/EditAdminUserPass', '管理人员修改密码通知', '账号：' . $this->userName . ' '  . '时间：' . date('Y-m-d H:i:s'));
 
         return message(200, 1, '修改密码成功');
     }
@@ -111,6 +126,9 @@ class Personal extends Base
         ], [
             'svn_user_name' => $this->userName
         ]);
+
+        //邮件
+        $this->Mail->SendMail('Personal/EditSvnUserPass', 'SVN用户修改密码通知', '账号：' . $this->userName . ' ' . '新密码：' . $this->payload['newPassword'] . ' ' . '时间：' . date('Y-m-d H:i:s'));
 
         return message(200, 1, '修改密码成功');
     }

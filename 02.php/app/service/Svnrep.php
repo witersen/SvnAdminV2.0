@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 18:57:10
+ * @LastEditTime: 2022-05-10 14:50:26
  * @Description: QQ:1801168257
  */
 
@@ -19,6 +19,7 @@ class Svnrep extends Base
      * @var object
      */
     private $Svngroup;
+    private $Logs;
 
     function __construct()
     {
@@ -26,6 +27,7 @@ class Svnrep extends Base
 
         $this->Svngroup = new Svngroup();
         $this->Svn = new Svn();
+        $this->Logs = new Logs();
     }
 
     /**
@@ -85,6 +87,13 @@ class Svnrep extends Base
             'rep_rev' => 0,
             'rep_uuid' => 0
         ]);
+
+        //日志
+        $this->Logs->InsertLog(
+            '创建仓库',
+            sprintf("仓库名 %s", $this->payload['rep_name']),
+            $this->userName
+        );
 
         return message();
     }
@@ -1111,6 +1120,13 @@ class Svnrep extends Base
         //从配置文件修改仓库名称
         $this->SVNAdminRep->UpdRepAuthz($this->authzContent, $this->payload['old_rep_name'], $this->payload['new_rep_name']);
 
+        //日志
+        $this->Logs->InsertLog(
+            '修改仓库名称',
+            sprintf("原仓库名 %s 新仓库名 %s", $this->payload['old_rep_name'], $this->payload['new_rep_name']),
+            $this->userName
+        );
+
         return message();
     }
 
@@ -1136,6 +1152,13 @@ class Svnrep extends Base
         if ($checkResult['status'] != 1) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
         }
+
+        //日志
+        $this->Logs->InsertLog(
+            '删除仓库',
+            sprintf("仓库名 %s", $this->payload['rep_name']),
+            $this->userName
+        );
 
         //返回
         return message();

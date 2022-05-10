@@ -266,18 +266,50 @@
                 <Row>
                   <Col span="12">
                     <Input
-                      v-model="formMailSmtp.from"
+                      v-model="formMailSmtp.from.address"
                       placeholder="默认与用户名相同，需要为邮件格式"
                     ></Input>
                   </Col>
                   <Col span="1"> </Col>
                 </Row>
               </FormItem>
+              <FormItem label="收件人邮箱">
+                <Row>
+                  <Col span="12">
+                    <Tag
+                      closable
+                      v-for="item in formMailSmtp.to"
+                      :key="item.address"
+                      @on-close="CloseTagToEmail"
+                      :name="item.address"
+                      >{{ item.address }}</Tag
+                    >
+                    <Button
+                      icon="ios-add"
+                      type="dashed"
+                      size="small"
+                      @click="ModalAddToEmail"
+                      >添加</Button
+                    >
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="收件人邮箱只有在触发消息推送选项且邮件服务启用的条件下才会收到邮件"
+                    >
+                      <Button type="info">tips</Button>
+                    </Tooltip>
+                  </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
               <FormItem label="测试邮箱">
                 <Row>
                   <Col span="12">
                     <Input
-                      v-model="formMailSmtp.to"
+                      v-model="formMailSmtp.test"
                       placeholder="测试邮箱不会被保存"
                     ></Input>
                   </Col>
@@ -297,6 +329,12 @@
                     </Tooltip>
                   </Col>
                 </Row>
+              </FormItem>
+              <FormItem label="发邮超时时间">
+                <InputNumber
+                  :min="1"
+                  v-model="formMailSmtp.timeout"
+                ></InputNumber>
               </FormItem>
               <FormItem label="启用状态">
                 <Row>
@@ -428,13 +466,6 @@
               </li>
             </ul>
           </FormItem>
-          <FormItem label="移除内容">
-            <ul style="list-style: none">
-              <li v-for="(item, index) in formUpdate.remove.con" :key="index">
-                <span> [{{ item.title }}] {{ item.content }} </span>
-              </li>
-            </ul>
-          </FormItem>
           <FormItem label="完整程序包">
             <ul style="list-style: none">
               <li
@@ -477,6 +508,13 @@
         </Form>
       </Scroll>
     </Modal>
+    <Modal v-model="modalAddToEmail" title="添加收件人邮箱" @on-ok="AddToEmail">
+      <Form @submit.native.prevent>
+        <FormItem>
+          <Input type="text" v-model="tempToEmail"> </Input>
+        </FormItem>
+      </Form>
+    </Modal>
   </div>
 </template>
 
@@ -495,6 +533,8 @@ export default {
       tempManageHost: "",
       //测试邮箱
       tempTestEmail: "",
+      //添加收件人邮箱
+      tempToEmail: "",
 
       /**
        * 控制修改状态
@@ -566,6 +606,7 @@ export default {
        * 对话框
        */
       modalSofawareUpdateGet: false,
+      modalAddToEmail: false,
 
       /**
        * 表单
@@ -579,143 +620,33 @@ export default {
         encryption: "",
         autotls: true,
         port: 0,
-        to: "",
-        from: "",
+        test: "",
+        from: {
+          address: "",
+          name: "",
+        },
         status: false,
+        to: [],
+        timeout: 0,
       },
       //新版本信息
       formUpdate: {
-        version: "2.4",
+        version: "",
         fixd: {
-          con: [
-            {
-              title: "1",
-              content: "修复SVN仓库权限配置的bug",
-            },
-            {
-              title: "2",
-              content: "完善用户权限控制逻辑",
-            },
-          ],
+          con: [],
         },
         add: {
-          con: [
-            {
-              title: "1",
-              content: "支持文件级授权",
-            },
-            {
-              title: "2",
-              content: "支持目录浏览",
-            },
-            {
-              title: "3",
-              content: "支持仓库备份与恢复",
-            },
-            {
-              title: "4",
-              content: "支持SVN用户禁用与启动",
-            },
-            {
-              title: "5",
-              content: "支持用户级日志记录",
-            },
-            {
-              title: "6",
-              content: "兼容PHP5.5+",
-            },
-          ],
+          con: [],
         },
         remove: {
-          con: [
-            {
-              title: "1",
-              content: "暂时移除仓库钩子的配置功能",
-            },
-          ],
+          con: [],
         },
         release: {
-          download: [
-            {
-              nodeName: "gitee.com",
-              url: "",
-            },
-            {
-              nodeName: "github.com",
-              url: "",
-            },
-            {
-              nodeName: "witersen.com",
-              url: "https://download.witersen.com/SVNAdmin/SVNAdmin-2.3.zip",
-            },
-          ],
+          download: [],
         },
         update: {
-          step: [
-            {
-              title: "1",
-              content: "php ${your_path}/server/install.php",
-            },
-          ],
-          download: [
-            {
-              nodeName: "gitee.com",
-              packages: [
-                {
-                  for: {
-                    source: "2.3",
-                    dest: "2.4",
-                  },
-                  url: "xxx",
-                },
-                {
-                  for: {
-                    source: "2.3",
-                    dest: "2.5",
-                  },
-                  url: "xxx",
-                },
-              ],
-            },
-            {
-              nodeName: "github.com",
-              packages: [
-                {
-                  for: {
-                    source: "2.3",
-                    dest: "2.4",
-                  },
-                  url: "xxx",
-                },
-                {
-                  for: {
-                    source: "2.3",
-                    dest: "2.5",
-                  },
-                  url: "xxx",
-                },
-              ],
-            },
-            {
-              nodeName: "witersen.com",
-              packages: [
-                {
-                  for: {
-                    source: "2.3",
-                    dest: "2.4",
-                  },
-                  url: "xxx",
-                },
-                {
-                  for: {
-                    source: "2.3",
-                    dest: "2.5",
-                  },
-                  url: "xxx",
-                },
-              ],
-            },
-          ],
+          step: [],
+          download: [],
         },
       },
     };
@@ -850,6 +781,8 @@ export default {
         port: that.formMailSmtp.port,
         from: that.formMailSmtp.from,
         status: that.formMailSmtp.status,
+        to: that.formMailSmtp.to,
+        timeout: that.formMailSmtp.timeout,
       };
       that.$axios
         .post("/api.php?c=Mail&a=EditEmail&t=web", data)
@@ -883,8 +816,9 @@ export default {
         encryption: that.formMailSmtp.encryption,
         autotls: that.formMailSmtp.autotls,
         port: that.formMailSmtp.port,
-        to: that.formMailSmtp.to,
+        test: that.formMailSmtp.test,
         from: that.formMailSmtp.from,
+        timeout: that.formMailSmtp.timeout,
       };
       that.$axios
         .post("/api.php?c=Mail&a=SendTest&t=web", data)
@@ -944,6 +878,41 @@ export default {
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
+    },
+    /**
+     * 删除收件人邮箱
+     */
+    CloseTagToEmail(event, name) {
+      this.formMailSmtp.to = this.formMailSmtp.to.filter(
+        (item) => item.address != name
+      );
+    },
+    /**
+     * 添加收件人邮箱
+     */
+    ModalAddToEmail() {
+      this.modalAddToEmail = true;
+      this.tempToEmail = "";
+    },
+    AddToEmail() {
+      //检查为空输入
+      if (this.tempToEmail == "") {
+        this.$Message.error("输入不能为空");
+        return;
+      }
+      //检查重复输入
+      var temp = this.formMailSmtp.to.filter(
+        (item) => item.address != this.tempToEmail
+      );
+      if (temp.length != this.formMailSmtp.to.length) {
+        this.$Message.error("邮件已存在");
+        return;
+      }
+      //插入
+      this.formMailSmtp.to.push({
+        address: this.tempToEmail,
+        name: "",
+      });
     },
     /**
      * 修改信息

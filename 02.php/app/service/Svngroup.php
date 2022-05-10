@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:19:26
+ * @LastEditTime: 2022-05-10 14:49:53
  * @Description: QQ:1801168257
  */
 
@@ -11,9 +11,18 @@ namespace app\service;
 
 class Svngroup extends Base
 {
+    /**
+     * 其它服务层对象
+     *
+     * @var object
+     */
+    private $Logs;
+
     function __construct()
     {
         parent::__construct();
+
+        $this->Logs = new Logs();
     }
 
     /**
@@ -154,7 +163,7 @@ class Svngroup extends Base
     }
 
     /**
-     * 新建SVN分组
+     * 创建SVN分组
      */
     public function CreateGroup()
     {
@@ -184,6 +193,13 @@ class Svngroup extends Base
             'svn_group_note' => ''
         ]);
 
+        //日志
+        $this->Logs->InsertLog(
+            '创建分组',
+            sprintf("分组名 %s", $this->payload['svn_group_name']),
+            $this->userName
+        );
+
         return message();
     }
 
@@ -208,6 +224,13 @@ class Svngroup extends Base
         $this->database->delete('svn_groups', [
             'svn_group_name' => $this->payload['svn_group_name']
         ]);
+
+        //日志
+        $this->Logs->InsertLog(
+            '删除分组',
+            sprintf("分组名 %s", $this->payload['svn_group_name']),
+            $this->userName
+        );
 
         return message();
     }

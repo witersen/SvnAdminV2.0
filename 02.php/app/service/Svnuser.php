@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:23:38
+ * @LastEditTime: 2022-05-10 14:50:05
  * @Description: QQ:1801168257
  */
 
@@ -11,9 +11,18 @@ namespace app\service;
 
 class Svnuser extends Base
 {
+    /**
+     * 其它服务层对象
+     *
+     * @var object
+     */
+    private $Logs;
+
     function __construct()
     {
         parent::__construct();
+
+        $this->Logs = new Logs();
     }
 
     /**
@@ -230,6 +239,13 @@ class Svnuser extends Base
             'svn_user_note' => ''
         ]);
 
+        //日志
+        $this->Logs->InsertLog(
+            '创建用户',
+            sprintf("用户名 %s", $this->payload['svn_user_name']),
+            $this->userName
+        );
+
         return message();
     }
 
@@ -295,6 +311,13 @@ class Svnuser extends Base
         FunShellExec('echo \'' . $resultAuthz . '\' > ' . $this->config_svn['svn_authz_file']);
 
         FunShellExec('echo \'' . $resultPasswd . '\' > ' . $this->config_svn['svn_passwd_file']);
+
+        //日志
+        $this->Logs->InsertLog(
+            '删除用户',
+            sprintf("用户名 %s", $this->payload['svn_user_name']),
+            $this->userName
+        );
 
         return message();
     }
