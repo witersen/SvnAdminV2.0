@@ -619,6 +619,13 @@
           <Spin size="large" fix v-if="loadingGetRepHooks"></Spin>
         </TabPane>
         <TabPane label="常用钩子">
+          <Alert>如需将自己常用的钩子显示在此处<br/><br/>
+          以新增 pre-commit 功能为例，操作步骤如下：<br><br/>
+          1、在 /home/svnadmin/hooks/ 目录下创建任意名称的文件夹<br/>
+          2、创建文件 hookDescription 并写入此钩子的主要功能描述<br/>
+          3、创建文件 hookName 并写入钩子的类型 pre-commit<br/>
+          4、创建文件 pre-commit 并写入钩子内容<br/>
+          </Alert>
           <Scroll>
             <List :border="true">
               <ListItem v-for="(item, index) in recommendHooks" :key="index">
