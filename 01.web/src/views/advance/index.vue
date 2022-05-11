@@ -359,6 +359,9 @@
         </TabPane>
         <TabPane label="消息推送" name="4">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
+            <Alert>由于邮件发送没有使用异步任务<br/><br/>
+            因此开启了邮件推送模块的响应时间会有相应延迟<br/><br/>
+            如，用户点击登录 ~ 登录成功跳转的响应时间 = 正常处理时间 + 邮件发送时间</Alert>
             <Form :label-width="140">
               <FormItem
                 :label="item.note"
