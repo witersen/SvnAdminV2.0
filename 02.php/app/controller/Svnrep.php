@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 18:54:31
+ * @LastEditTime: 2022-05-10 21:53:20
  * @Description: QQ:1801168257
  */
 
@@ -259,6 +259,15 @@ class Svnrep extends Base
     public function GetRepHooks()
     {
         $result = $this->ServiceSvnrep->GetRepHooks();
+        json2($result);
+    }
+
+    /**
+     * 移除仓库钩子
+     */
+    public function DelRepHook()
+    {
+        $result = $this->ServiceSvnrep->DelRepHook();
         json2($result);
     }
 

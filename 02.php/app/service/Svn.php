@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 20:52:21
+ * @LastEditTime: 2022-05-11 02:15:44
  * @Description: QQ:1801168257
  */
 
@@ -248,7 +248,9 @@ class Svn extends Base
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $this->payload['bindPort'], $result['bindHost']);
 
         //写入配置文件
-        FunShellExec('echo \'' . $config . '\' > ' . $this->config_svn['svnserve_env_file']);
+        // FunShellExec('echo \'' . $config . '\' > ' . $this->config_svn['svnserve_env_file']);
+
+        FunFilePutContents($this->config_svn['svnserve_env_file'], $config);
 
         //启动svnserve
         $result = FunShellExec('systemctl start svnserve');
@@ -282,7 +284,9 @@ class Svn extends Base
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $result['bindPort'], $this->payload['bindHost']);
 
         //写入配置文件
-        FunShellExec('echo \'' . $config . '\' > ' . $this->config_svn['svnserve_env_file']);
+        // FunShellExec('echo \'' . $config . '\' > ' . $this->config_svn['svnserve_env_file']);
+
+        FunFilePutContents($this->config_svn['svnserve_env_file'], $config);
 
         //启动svnserve
         $result = FunShellExec('systemctl start svnserve');

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 22:30:20
+ * @LastEditTime: 2022-05-11 01:54:56
  * @Description: QQ:1801168257
  */
 
@@ -129,36 +129,59 @@ class Daemon
     private function HandleRequest($client)
     {
         //接收客户端发送的数据
-        $cmmand = socket_read($client, $this->config_daemon['SOCKET_READ_LENGTH']);
+        $receive = socket_read($client, $this->config_daemon['SOCKET_READ_LENGTH']);
+        $receive = unserialize($receive);
+
+        $type = $receive['type'];
+        $content = $receive['content'];
 
         //console模式
         if ($this->workMode == 'console') {
             echo PHP_EOL . '---------receive---------' . PHP_EOL;
-            echo $cmmand . PHP_EOL;
+            print_r($receive);
         }
 
-        if (trim($cmmand) != '') {
-            //定义错误输出文件路径
-            $stderrFile = $this->config_svn['temp_base_path'] . uniqid();
+        if ($type == 'passthru') {
+            if (trim($content) != '') {
+                //定义错误输出文件路径
+                $stderrFile = $this->config_svn['temp_base_path'] . uniqid();
 
-            //将标准错误重定向到文件
-            //使用状态码来标识错误信息
-            ob_start();
-            passthru($cmmand . " 2>$stderrFile", $resultCode);
-            $buffer = ob_get_contents();
-            ob_end_clean();
+                //将标准错误重定向到文件
+                //使用状态码来标识错误信息
+                ob_start();
+                passthru($content . " 2>$stderrFile", $resultCode);
+                $buffer = ob_get_contents();
+                ob_end_clean();
 
-            //将错误信息和正确信息分类收集
+                //将错误信息和正确信息分类收集
+                $result = [
+                    'resultCode' => $resultCode,
+                    'result' => trim($buffer),
+                    'error' => file_get_contents($stderrFile)
+                ];
+
+                //销毁文件
+                unlink($stderrFile);
+            } else {
+                //探测程序会发送空信息
+                $result = [
+                    'resultCode' => 0,
+                    'result' => '',
+                    'error' => ''
+                ];
+            }
+        } else if ($type == 'file_put_contents') {
+            if ($content['flags'] == 0) {
+                file_put_contents($content['filename'], $content['data']);
+            } else {
+                file_put_contents($content['filename'], $content['data'], $content['flags'], $content['context']);
+            }
             $result = [
-                'resultCode' => $resultCode,
-                'result' => trim($buffer),
-                'error' => file_get_contents($stderrFile)
+                'resultCode' => 0,
+                'result' => '',
+                'error' => ''
             ];
-
-            //销毁文件
-            unlink($stderrFile);
         } else {
-            //探测程序会发送空信息
             $result = [
                 'resultCode' => 0,
                 'result' => '',

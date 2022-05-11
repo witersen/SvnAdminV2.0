@@ -463,7 +463,7 @@ export default {
       //自动显示输入信息
       this.formEditGroupName.groupNameNew = svn_group_name;
       //标题
-      this.titleEditGroupName = "编辑SVN分组名-" + svn_group_name;
+      this.titleEditGroupName = "编辑SVN分组名 - " + svn_group_name;
       //对话框
       this.modalEditGroupName = true;
     },
@@ -499,7 +499,7 @@ export default {
     DelGroup(svn_group_name) {
       var that = this;
       that.$Modal.confirm({
-        title: "删除SVN分组-" + svn_group_name,
+        title: "删除SVN分组 - " + svn_group_name,
         content: "确定要删除该用户吗？<br/>该操作不可逆！",
         onOk: () => {
           var data = {
@@ -532,7 +532,7 @@ export default {
       //显示对话框
       this.modalGetGroupMember = true;
       //标题
-      this.titleGetGroupMember = "编辑分组成员信息-" + grouName;
+      this.titleGetGroupMember = "编辑分组成员信息 - " + grouName;
       //请求数据
       this.GetGroupMember();
     },

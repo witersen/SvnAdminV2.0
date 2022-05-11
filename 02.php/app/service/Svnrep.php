@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-10 14:50:26
+ * @LastEditTime: 2022-05-11 02:19:00
  * @Description: QQ:1801168257
  */
 
@@ -76,7 +76,9 @@ class Svnrep extends Base
         //向authz写入仓库信息
         $status = $this->SVNAdminRep->SetRepAuthz($this->authzContent, $this->payload['rep_name'], '/');
         if ($status != '1') {
-            FunShellExec('echo \'' . $status . '\' > ' . $this->config_svn['svn_authz_file']);
+            // FunShellExec('echo \'' . $status . '\' > ' . $this->config_svn['svn_authz_file']);
+            
+            FunFilePutContents($this->config_svn['svn_authz_file'], $status);
         }
 
         //写入数据库
@@ -174,7 +176,9 @@ class Svnrep extends Base
         }
 
         if ($authzContet != $this->authzContent) {
-            FunShellExec('echo \'' . $authzContet . '\' > ' . $this->config_svn['svn_authz_file']);
+            // FunShellExec('echo \'' . $authzContet . '\' > ' . $this->config_svn['svn_authz_file']);
+
+            FunFilePutContents($this->config_svn['svn_authz_file'], $authzContet);
         }
     }
 
@@ -234,7 +238,9 @@ class Svnrep extends Base
 
         //写入配置文件
         if ($authzContent != $this->authzContent) {
-            FunShellExec('echo \'' . $authzContent . '\' > ' . $this->config_svn['svn_authz_file']);
+            // FunShellExec('echo \'' . $authzContent . '\' > ' . $this->config_svn['svn_authz_file']);
+
+            FunFilePutContents($this->config_svn['svn_authz_file'], $authzContent);
         }
     }
 
@@ -913,7 +919,9 @@ class Svnrep extends Base
         }
 
         //写入
-        FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
+        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -936,7 +944,9 @@ class Svnrep extends Base
             return message(200, 0, '已被删除');
         } else {
             //写入
-            FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+            // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
+            FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
             //返回
             return message();
@@ -965,7 +975,9 @@ class Svnrep extends Base
         }
 
         //写入
-        FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
+        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -1018,7 +1030,9 @@ class Svnrep extends Base
         }
 
         //写入
-        FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
+        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -1041,7 +1055,9 @@ class Svnrep extends Base
             return message(200, 0, '已被删除');
         } else {
             //写入
-            FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+            // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
+            FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
             //返回
             return message();
@@ -1072,7 +1088,9 @@ class Svnrep extends Base
         }
 
         //写入
-        FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
+        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -1138,7 +1156,9 @@ class Svnrep extends Base
         //从配置文件删除指定仓库的所有路径
         $result = $this->SVNAdminRep->DelRepAuthz($this->authzContent, $this->payload['rep_name']);
         if ($result != '1') {
-            FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+            // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
+            FunFilePutContents($this->config_svn['svn_authz_file'], $result);
         }
 
         //从数据库中删除
@@ -1393,94 +1413,119 @@ class Svnrep extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
         }
 
-        clearstatcache();
-        if (!is_dir($this->config_svn['rep_base_path'] .  $this->payload['rep_name'] . '/' . 'hooks')) {
-            return message(200, 0, '仓库不存在或文件损坏');
+        $repHooks =  [
+            'start_commit' =>  [
+                'fileName' => 'start-commit',
+                'hasFile' => false,
+                'con' => '',
+                'tmpl' => ''
+            ],
+            'pre_commit' =>  [
+                'fileName' => 'pre-commit',
+                'hasFile' => false,
+                'con' => '',
+                'tmpl' => ''
+            ],
+            'post_commit' =>  [
+                'fileName' => 'post-commit',
+                'hasFile' => false,
+                'con' => '',
+                'tmpl' => ''
+            ],
+            'pre_lock' =>  [
+                'fileName' => 'pre-lock',
+                'hasFile' => false,
+                'con' => '',
+                'tmpl' => ''
+            ],
+            'post_lock' =>  [
+                'fileName' => 'post-lock',
+                'hasFile' => false,
+                'con' => '',
+                'tmpl' => ''
+            ],
+            'pre_unlock' =>  [
+                'fileName' => 'pre-unlock',
+                'hasFile' => false,
+                'con' => '',
+                'tmpl' => ''
+            ],
+            'post_unlock' =>  [
+                'fileName' => 'post-unlock',
+                'hasFile' => false,
+                'con' => '',
+                'tmpl' => ''
+            ],
+            'pre_revprop_change' =>  [
+                'fileName' => 'pre-revprop-change',
+                'hasFile' => false,
+                'con' => '',
+                'tmpl' => ''
+            ],
+            'post_revprop_change' =>  [
+                'fileName' => 'post-revprop-change',
+                'hasFile' => false,
+                'con' => '',
+                'tmpl' => ''
+            ],
+        ];
+
+        $hooksPath = $this->config_svn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
+
+        if (!is_dir($hooksPath)) {
+            return message(200, 0, '该仓库不存在hooks文件夹');
         }
 
-        $hooks_type_list =  [
-            "start-commit" =>  [
-                "value" => "start-commit",
-                "label" => "start-commit---事务创建前",
-                "shell" => ""
-            ],
-            "pre-commit" =>  [
-                "value" => "pre-commit",
-                "label" => "pre-commit---事务提交前",
-                "shell" => ""
-            ],
-            "post-commit" =>  [
-                "value" => "post-commit",
-                "label" => "post-commit---事务提交后",
-                "shell" => ""
-            ],
-            "pre-lock" =>  [
-                "value" => "pre-lock",
-                "label" => "pre-lock---锁定文件前",
-                "shell" => ""
-            ],
-            "post-lock" =>  [
-                "value" => "post-lock",
-                "label" => "post-lock---锁定文件后",
-                "shell" => ""
-            ],
-            "pre-unlock" =>  [
-                "value" => "pre-unlock",
-                "label" => "pre-unlock---解锁文件前",
-                "shell" => ""
-            ],
-            "post-unlock" =>  [
-                "value" => "post-unlock",
-                "label" => "post-unlock---解锁文件后",
-                "shell" => ""
-            ],
-            "pre-revprop-change" =>  [
-                "value" => "pre-revprop-change",
-                "label" => "pre-revprop-change---修改修订版属性前",
-                "shell" => ""
-            ],
-            "post-revprop-change" =>  [
-                "value" => "post-revprop-change",
-                "label" => "post-revprop-change---修改修订版属性后",
-                "shell" => ""
-            ],
-        ];
-
-        $hooks_file_list = [
-            'start-commit',
-            'pre-commit',
-            'post-commit',
-            'pre-lock',
-            'post-lock',
-            'pre-unlock',
-            'post-unlock',
-            'pre-revprop-change',
-            'post-revprop-change'
-        ];
-
-        $file_arr = scandir($this->config_svn['rep_base_path'] .  $this->payload['rep_name'] . '/' . 'hooks');
-
-        foreach ($file_arr as $file_item) {
-            if ($file_item != '.' && $file_item != '..') {
-                if (in_array($file_item, $hooks_file_list)) {
-                    $temp = FunShellExec(sprintf("cat '%s'", $this->config_svn['rep_base_path'] .  $this->payload['rep_name'] . '/' . 'hooks' . '/' . $file_item));
-                    $hooks_type_list[$file_item]['shell'] = $temp['result'];
-                    $hooks_type_list[$file_item]['shell'] = trim($hooks_type_list[$file_item]['shell']);
-                }
+        foreach ($repHooks as $key => $value) {
+            if (file_exists($hooksPath . $value['fileName'])) {
+                $repHooks[$key]['hasFile'] = true;
+                $temp = FunShellExec(sprintf("cat '%s'", $hooksPath . $value['fileName']));
+                $repHooks[$key]['con'] = $temp['result'];
+            }
+            if (file_exists($hooksPath . $value['fileName'] . '.tmpl')) {
+                $temp = FunShellExec(sprintf("cat '%s'", $hooksPath . $value['fileName'] . '.tmpl'));
+                $repHooks[$key]['tmpl'] = $temp['result'];
             }
         }
 
-        return message(200, 1, '成功', $hooks_type_list);
+        return message(200, 1, '成功', $repHooks);
     }
 
     /**
-     * 修改仓库的钩子内容（针对单个钩子）
+     * 移除仓库钩子
+     */
+    public function DelRepHook()
+    {
+        //检查仓库是否存在
+        $checkResult = $this->SVNAdminRep->CheckRepCreate($this->payload['rep_name'], '仓库不存在');
+        if ($checkResult['status'] != 1) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        }
+
+        $hooksPath = $this->config_svn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
+
+        if (!is_dir($hooksPath)) {
+            return message(200, 0, '该仓库不存在hooks文件夹');
+        }
+
+        if (!file_exists($hooksPath . $this->payload['fileName'])) {
+            return message(200, 0, '已经移除该仓库钩子');
+        }
+
+        FunShellExec(sprintf("cd '%s' && rm -f ./'%s'", $hooksPath, $this->payload['fileName']));
+
+        return message(200, 1, '移除成功');
+    }
+
+    /**
+     * 修改仓库的某个钩子内容
      */
     public function EditRepHook()
     {
-        $cmd = sprintf("echo '%s' > '%s'", trim($this->payload['content']), $this->config_svn['rep_base_path'] .  $this->payload['rep_name'] . '/hooks/' . $this->payload['type']);
+        $hooksPath = $this->config_svn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
 
-        FunShellExec($cmd);
+        //使用echo写入文件 当出现不规则的不成对的 ' " 等会出问题 当然也会包括其他问题
+        FunFilePutContents($hooksPath . $this->payload['fileName'],$this->payload['content']);
 
         return message();
     }

@@ -438,7 +438,7 @@ export default {
      */
     ModalEditUserPass(index, svn_user_name) {
       //设置标题
-      this.titleEditUser = "修改密码-" + svn_user_name;
+      this.titleEditUser = "修改密码 - " + svn_user_name;
       //设置选中用户
       this.formEditUser.svn_user_name = svn_user_name;
       //设置密码同步到输入框
@@ -482,7 +482,7 @@ export default {
     DelUser(index, svn_user_name) {
       var that = this;
       that.$Modal.confirm({
-        title: "删除SVN用户-" + svn_user_name,
+        title: "删除SVN用户 - " + svn_user_name,
         content:
           "确定要删除该用户吗？<br/>将会从所有仓库和分组下将该用户移除<br/>该操作不可逆！",
         onOk: () => {

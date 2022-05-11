@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-10 14:22:43
+ * @LastEditTime: 2022-05-11 02:15:09
  * @Description: QQ:1801168257
  */
 
@@ -119,7 +119,9 @@ class Personal extends Base
             return message(200, 0, '用户不存在');
         }
 
-        FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_passwd_file']);
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_passwd_file']);
+
+        FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
         $this->database->update('svn_users', [
             'svn_user_pass' => $this->payload['newPassword']

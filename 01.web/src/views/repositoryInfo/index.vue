@@ -390,32 +390,6 @@
       :title="titleModalRepHooks"
       class-name="hooks"
     >
-      <!-- <Form ref="formRepHooks" :model="formRepHooks" :label-width="60">
-        <FormItem label="类型">
-          <Select v-model="formRepHooks.select" :transfer="true">
-            <Option
-              v-for="item in formRepHooks.type"
-              :value="item.value"
-              :key="item.value"
-              >{{ item.label }}</Option
-            >
-          </Select>
-        </FormItem>
-        <FormItem label="脚本">
-          <Input
-            v-model="formRepHooks.type[formRepHooks.select].shell"
-            :rows="10"
-            show-word-limit
-            type="textarea"
-            placeholder="请输入hooks shell脚本 首行需为：#!/bin/bash 或 #!/bin/sh"
-          />
-        </FormItem>
-        <FormItem>
-          <Button ghost type="primary" @click="EditRepHook"
-            >应用（针对当前）</Button
-          >
-        </FormItem>
-      </Form> -->
       <Tabs type="card">
         <TabPane label="仓库钩子">
           <Card :bordered="false" :dis-hover="true" class="my-modal">
@@ -423,80 +397,156 @@
               <List>
                 <Divider orientation="left" size="small">Commit</Divider>
                 <ListItem>
-                  <ListItemMeta description="Start-commit hook" />
+                  <ListItemMeta
+                    description="Start-commit hook"
+                    v-if="formRepHooks.start_commit.hasFile"
+                  />
+                  <ListItemMeta title="Start-commit hook" v-else />
                   <template slot="action">
                     <li>
-                      <span>编辑</span>
+                      <span @click="ModalStudyRepHook('start_commit')"
+                        >介绍</span
+                      >
                     </li>
                     <li>
-                      <span>移除</span>
+                      <span @click="ModalEditRepHook('start_commit')"
+                        >编辑</span
+                      >
+                    </li>
+                    <li>
+                      <span
+                        @click="DelRepHook(formRepHooks.start_commit.fileName)"
+                        >移除</span
+                      >
                     </li>
                   </template>
                 </ListItem>
                 <ListItem>
-                  <ListItemMeta title="Pre-commit hook" />
+                  <ListItemMeta
+                    description="Pre-commit hook"
+                    v-if="formRepHooks.pre_commit.hasFile"
+                  />
+                  <ListItemMeta title="Pre-commit hook" v-else />
                   <template slot="action">
                     <li>
-                      <span>编辑</span>
+                      <span @click="ModalStudyRepHook('pre_commit')">介绍</span>
                     </li>
                     <li>
-                      <span>移除</span>
+                      <span @click="ModalEditRepHook('pre_commit')">编辑</span>
+                    </li>
+                    <li>
+                      <span
+                        @click="DelRepHook(formRepHooks.pre_commit.fileName)"
+                        >移除</span
+                      >
                     </li>
                   </template>
                 </ListItem>
                 <ListItem>
-                  <ListItemMeta title="Post-commit hook" />
+                  <ListItemMeta
+                    description="Post-commit hook"
+                    v-if="formRepHooks.post_commit.hasFile"
+                  />
+                  <ListItemMeta title="Post-commit hook" v-else />
                   <template slot="action">
                     <li>
-                      <span>编辑</span>
+                      <span @click="ModalStudyRepHook('post_commit')"
+                        >介绍</span
+                      >
                     </li>
                     <li>
-                      <span>移除</span>
+                      <span @click="ModalEditRepHook('post_commit')">编辑</span>
+                    </li>
+                    <li>
+                      <span
+                        @click="DelRepHook(formRepHooks.post_commit.fileName)"
+                        >移除</span
+                      >
                     </li>
                   </template>
                 </ListItem>
                 <Divider orientation="left" size="small">Locks</Divider>
                 <ListItem>
-                  <ListItemMeta title="Pre-lock hook" />
+                  <ListItemMeta
+                    description="Pre-lock hook"
+                    v-if="formRepHooks.pre_lock.hasFile"
+                  />
+                  <ListItemMeta title="Pre-lock hook" v-else />
                   <template slot="action">
                     <li>
-                      <span>编辑</span>
+                      <span @click="ModalStudyRepHook('pre_lock')">介绍</span>
                     </li>
                     <li>
-                      <span>移除</span>
+                      <span @click="ModalEditRepHook('pre_lock')">编辑</span>
+                    </li>
+                    <li>
+                      <span @click="DelRepHook(formRepHooks.pre_lock.fileName)"
+                        >移除</span
+                      >
                     </li>
                   </template>
                 </ListItem>
                 <ListItem>
-                  <ListItemMeta title="Post-lock hook" />
+                  <ListItemMeta
+                    description="Post-lock hook"
+                    v-if="formRepHooks.post_lock.hasFile"
+                  />
+                  <ListItemMeta title="Post-lock hook" v-else />
                   <template slot="action">
                     <li>
-                      <span>编辑</span>
+                      <span @click="ModalStudyRepHook('post_lock')">介绍</span>
                     </li>
                     <li>
-                      <span>移除</span>
+                      <span @click="ModalEditRepHook('post_lock')">编辑</span>
+                    </li>
+                    <li>
+                      <span @click="DelRepHook(formRepHooks.post_lock.fileName)"
+                        >移除</span
+                      >
                     </li>
                   </template>
                 </ListItem>
                 <ListItem>
-                  <ListItemMeta title="Pre-unlock hook" />
+                  <ListItemMeta
+                    description="Pre-unlock hook"
+                    v-if="formRepHooks.pre_unlock.hasFile"
+                  />
+                  <ListItemMeta title="Pre-unlock hook" v-else />
                   <template slot="action">
                     <li>
-                      <span>编辑</span>
+                      <span @click="ModalStudyRepHook('pre_unlock')">介绍</span>
                     </li>
                     <li>
-                      <span>移除</span>
+                      <span @click="ModalEditRepHook('pre_unlock')">编辑</span>
+                    </li>
+                    <li>
+                      <span
+                        @click="DelRepHook(formRepHooks.pre_unlock.fileName)"
+                        >移除</span
+                      >
                     </li>
                   </template>
                 </ListItem>
                 <ListItem>
-                  <ListItemMeta title="Post-unlock hook" />
+                  <ListItemMeta
+                    description="Post-unlock hook"
+                    v-if="formRepHooks.post_unlock.hasFile"
+                  />
+                  <ListItemMeta title="Post-unlock hook" v-else />
                   <template slot="action">
                     <li>
-                      <span>编辑</span>
+                      <span @click="ModalStudyRepHook('post_unlock')"
+                        >介绍</span
+                      >
                     </li>
                     <li>
-                      <span>移除</span>
+                      <span @click="ModalEditRepHook('post_unlock')">编辑</span>
+                    </li>
+                    <li>
+                      <span
+                        @click="DelRepHook(formRepHooks.post_unlock.fileName)"
+                        >移除</span
+                      >
                     </li>
                   </template>
                 </ListItem>
@@ -504,30 +554,69 @@
                   >Revision property change</Divider
                 >
                 <ListItem>
-                  <ListItemMeta title="Pre-reversion property change hook" />
+                  <ListItemMeta
+                    description="Pre-reversion property change hook"
+                    v-if="formRepHooks.pre_revprop_change.hasFile"
+                  />
+                  <ListItemMeta
+                    title="Pre-reversion property change hook"
+                    v-else
+                  />
                   <template slot="action">
                     <li>
-                      <span>编辑</span>
+                      <span @click="ModalStudyRepHook('pre_revprop_change')"
+                        >介绍</span
+                      >
                     </li>
                     <li>
-                      <span>移除</span>
+                      <span @click="ModalEditRepHook('pre_revprop_change')"
+                        >编辑</span
+                      >
+                    </li>
+                    <li>
+                      <span
+                        @click="
+                          DelRepHook(formRepHooks.pre_revprop_change.fileName)
+                        "
+                        >移除</span
+                      >
                     </li>
                   </template>
                 </ListItem>
                 <ListItem>
-                  <ListItemMeta title="Post-reversion property change hook" />
+                  <ListItemMeta
+                    description="Post-reversion property change hook"
+                    v-if="formRepHooks.post_revprop_change.hasFile"
+                  />
+                  <ListItemMeta
+                    title="Post-reversion property change hook"
+                    v-else
+                  />
                   <template slot="action">
                     <li>
-                      <span>编辑</span>
+                      <span @click="ModalStudyRepHook('post_revprop_change')"
+                        >介绍</span
+                      >
                     </li>
                     <li>
-                      <span>移除</span>
+                      <span @click="ModalEditRepHook('post_revprop_change')"
+                        >编辑</span
+                      >
+                    </li>
+                    <li>
+                      <span
+                        @click="
+                          DelRepHook(formRepHooks.post_revprop_change.fileName)
+                        "
+                        >移除</span
+                      >
                     </li>
                   </template>
                 </ListItem>
               </List>
             </Scroll>
           </Card>
+          <Spin size="large" fix v-if="loadingGetRepHooks"></Spin>
         </TabPane>
         <TabPane label="常用钩子">
           <Scroll>
@@ -561,6 +650,38 @@
       <div slot="footer">
         <Button type="primary" ghost @click="modalRepHooks = false"
           >取消</Button
+        >
+      </div>
+    </Modal>
+    <!-- 对话框-钩子模板内容查看 -->
+    <Modal v-model="modalStudyRepHook" :title="titleModalStudyRepHook">
+      <Input
+        v-model="tempSelectRepHookTmpl"
+        :rows="15"
+        show-word-limit
+        type="textarea"
+      />
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalStudyRepHook = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
+    <!-- 对话框-钩子内容编辑 -->
+    <Modal v-model="modalEditRepHook" :title="titleModalEditRepHook">
+      <Input
+        v-model="tempSelectRepHookCon"
+        :rows="15"
+        show-word-limit
+        type="textarea"
+        placeholder="具体介绍和语法可看钩子介绍"
+      />
+      <div slot="footer">
+        <Button
+          type="primary"
+          @click="EditRepHook"
+          :loading="loadingEditRepHook"
+          >应用</Button
         >
       </div>
     </Modal>
@@ -781,6 +902,10 @@ export default {
       modalRepAllUser: false,
       //SVN仓库所有分组
       modalRepAllGroup: false,
+      //编辑仓库钩子内容
+      modalEditRepHook: false,
+      //查看钩子模板内容
+      modalStudyRepHook: false,
 
       /**
        * 排序数据
@@ -851,6 +976,10 @@ export default {
       loadingImportBackup: false,
       //修改仓库名称
       loadingEditRepName: false,
+      //获取仓库钩子信息
+      loadingGetRepHooks: true,
+      //编辑仓库内容
+      loadingEditRepHook: false,
 
       /**
        * 临时变量
@@ -877,6 +1006,12 @@ export default {
       currentRepPriAddUser: "",
       //仓库路径的权限新增分组列表 当前选中的分组
       currentRepPriAddGroup: "",
+      //仓库钩子名称
+      tempSelectRepHook: "",
+      //仓库钩子内容
+      tempSelectRepHookCon: "",
+      //钩子模板内容
+      tempSelectRepHookTmpl: "",
 
       /**
        * 对话框标题
@@ -893,6 +1028,10 @@ export default {
       titleModalEditRepName: "",
       //高级
       titleModalRepAdvance: "",
+      //钩子文件编辑
+      titleModalEditRepHook: "",
+      //钩子文件模板
+      titleModalStudyRepHook: "",
 
       /**
        * 表单
@@ -918,53 +1057,19 @@ export default {
       formRepImport: {},
       //钩子结构
       formRepHooks: {
-        select: "start-commit",
-        type: {
-          "start-commit": {
-            value: "start-commit",
-            label: "start-commit---事务创建前",
-            shell: "",
-          },
-          "pre-commit": {
-            value: "pre-commit",
-            label: "pre-commit---事务提交前",
-            shell: "",
-          },
-          "post-commit": {
-            value: "post-commit",
-            label: "post-commit---事务提交后",
-            shell: "",
-          },
-          "pre-lock": {
-            value: "pre-lock",
-            label: "pre-lock---锁定文件前",
-            shell: "",
-          },
-          "post-lock": {
-            value: "post-lock",
-            label: "post-lock---锁定文件后",
-            shell: "",
-          },
-          "pre-unlock": {
-            value: "pre-unlock",
-            label: "pre-unlock---解锁文件前",
-            shell: "",
-          },
-          "post-unlock": {
-            value: "post-unlock",
-            label: "post-unlock---解锁文件后",
-            shell: "",
-          },
-          "pre-revprop-change": {
-            value: "pre-revprop-change",
-            label: "pre-revprop-change---修改修订版属性前",
-            shell: "",
-          },
-          "post-revprop-change": {
-            value: "post-revprop-change",
-            label: "post-revprop-change---修改修订版属性后",
-            shell: "",
-          },
+        start_commit: { fileName: "", hasFile: false, con: "", tmpl: "" },
+        pre_commit: { fileName: "", hasFile: false, con: "", tmpl: "" },
+        post_commit: { fileName: "", hasFile: false, con: "", tmpl: "" },
+        pre_lock: { fileName: "", hasFile: false, con: "", tmpl: "" },
+        post_lock: { fileName: "", hasFile: false, con: "", tmpl: "" },
+        pre_unlock: { fileName: "", hasFile: false, con: "", tmpl: "" },
+        post_unlock: { fileName: "", hasFile: false, con: "", tmpl: "" },
+        pre_revprop_change: { fileName: "", hasFile: false, con: "", tmpl: "" },
+        post_revprop_change: {
+          fileName: "",
+          hasFile: false,
+          con: "",
+          tmpl: "",
         },
       },
       //页头提示信息
@@ -1476,7 +1581,7 @@ export default {
       that.currentRepTreePath = "/";
       that.currentRepName = rep_name;
       //设置标题
-      that.titleModalViewRep = "仓库内容-" + rep_name;
+      that.titleModalViewRep = "仓库内容 - " + rep_name;
       //显示对话框
       that.modalViewRep = true;
       //请求检出地址信息
@@ -1496,7 +1601,7 @@ export default {
       that.currentRepTreePath = pri_path;
       that.currentRepName = rep_name;
       //设置标题
-      that.titleModalViewRep = "仓库内容-" + rep_name;
+      that.titleModalViewRep = "仓库内容 - " + rep_name;
       //显示对话框
       that.modalViewRep = true;
       //请求检出地址信息
@@ -1667,7 +1772,7 @@ export default {
      */
     ModalRepDump(rep_name) {
       //设置标题
-      this.titleModalRepBackup = "仓库备份-" + rep_name;
+      this.titleModalRepBackup = "仓库备份 - " + rep_name;
       //显示对话框
       this.modalRepDump = true;
       //设置当前选中的仓库名
@@ -1813,7 +1918,7 @@ export default {
       that.currentRepTreePriPath = "/";
       that.currentRepName = rep_name;
       //设置标题
-      that.titleModalRepPri = "仓库权限-" + rep_name;
+      that.titleModalRepPri = "仓库权限 - " + rep_name;
       //显示对话框
       that.modalRepPri = true;
       //显示加载动画
@@ -2321,7 +2426,7 @@ export default {
      */
     ModalRepHooks(rep_name) {
       //设置标题
-      this.titleModalRepHooks = "仓库钩子-" + rep_name;
+      this.titleModalRepHooks = "仓库钩子 - " + rep_name;
       //显示对话框
       this.modalRepHooks = true;
       //设置当前选中仓库
@@ -2334,39 +2439,98 @@ export default {
      */
     GetRepHooks() {
       var that = this;
+      that.loadingGetRepHooks = true;
       var data = {
         rep_name: that.currentRepName,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=GetRepHooks&t=web", data)
         .then(function (response) {
+          that.loadingGetRepHooks = false;
           var result = response.data;
           if (result.status == 1) {
-            that.formRepHooks.type = result.data;
+            that.formRepHooks = result.data;
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
+          that.loadingGetRepHooks = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
-     * 修改仓库的钩子内容（针对单个钩子）
+     * 移除仓库钩子
      */
-    EditRepHook() {
+    DelRepHook(fileName) {
       var that = this;
+      that.loadingGetRepHooks = true;
       var data = {
         rep_name: that.currentRepName,
-        type: that.formRepHooks.select,
-        content: that.formRepHooks.type[that.formRepHooks.select].shell,
+        fileName: fileName,
+      };
+      that.$axios
+        .post("/api.php?c=Svnrep&a=DelRepHook&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetRepHooks();
+          } else {
+            that.loadingGetRepHooks = false;
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingGetRepHooks = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 查看钩子模板内容
+     */
+    ModalStudyRepHook(key) {
+      //设置当前选中的钩子文件名称
+      this.tempSelectRepHook = this.formRepHooks[key].fileName;
+      //设置当前选中的钩子文件模板内容到输入框
+      this.tempSelectRepHookTmpl = this.formRepHooks[key].tmpl;
+      //设置标题
+      this.titleModalStudyRepHook =
+        "钩子信息介绍 - " + this.formRepHooks[key].fileName;
+      // 展示输入框
+      this.modalStudyRepHook = true;
+    },
+    /**
+     * 修改仓库的钩子内容
+     */
+    ModalEditRepHook(key) {
+      //设置当前选中的钩子文件名称
+      this.tempSelectRepHook = this.formRepHooks[key].fileName;
+      //设置当前选中的钩子文件内容到输入框
+      this.tempSelectRepHookCon = this.formRepHooks[key].con;
+      //设置标题
+      this.titleModalEditRepHook =
+        "钩子文件编辑 - " + this.formRepHooks[key].fileName;
+      // 展示输入框
+      this.modalEditRepHook = true;
+    },
+    EditRepHook() {
+      var that = this;
+      that.loadingEditRepHook = true;
+      var data = {
+        rep_name: that.currentRepName,
+        fileName: that.tempSelectRepHook,
+        content: that.tempSelectRepHookCon,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=EditRepHook&t=web", data)
         .then(function (response) {
+          that.loadingEditRepHook = false;
           var result = response.data;
           if (result.status == 1) {
+            that.modalEditRepHook = false;
             that.$Message.success(result.message);
             that.GetRepHooks();
           } else {
@@ -2374,11 +2538,11 @@ export default {
           }
         })
         .catch(function (error) {
+          that.loadingEditRepHook = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
     },
-
     /**
      * 高级
      */
@@ -2386,7 +2550,7 @@ export default {
       //设置当前仓库名称
       this.currentRepName = rep_name;
       //设置标题
-      this.titleModalRepAdvance = "高级-" + rep_name;
+      this.titleModalRepAdvance = "高级 - " + rep_name;
       //重置
       this.formUploadBackup.selectType = "1";
       this.formUploadBackup.fileName = "";
@@ -2535,7 +2699,7 @@ export default {
       //设置新名称
       this.formRepEdit.new_rep_name = JSON.parse(JSON.stringify(rep_name));
       //配置标题
-      this.titleModalEditRepName = "修改仓库名称-" + rep_name;
+      this.titleModalEditRepName = "修改仓库名称 - " + rep_name;
       //显示对话框
       this.modalEditRepName = true;
     },
@@ -2572,7 +2736,7 @@ export default {
     DelRep(rep_name) {
       var that = this;
       that.$Modal.confirm({
-        title: "删除仓库-" + rep_name,
+        title: "删除仓库 - " + rep_name,
         content:
           "确定要删除该仓库吗？<br/>该操作不可逆！<br/>如果该仓库有正在进行的网络传输，可能会删除失败，请注意提示信息！",
         onOk: () => {
