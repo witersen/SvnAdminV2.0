@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 13:39:47
+ * @LastEditTime: 2022-05-11 15:24:12
  * @Description: QQ:1801168257
  */
 
@@ -1136,7 +1136,12 @@ class Svnrep extends Base
         ]);
 
         //从配置文件修改仓库名称
-        $this->SVNAdminRep->UpdRepAuthz($this->authzContent, $this->payload['old_rep_name'], $this->payload['new_rep_name']);
+        $result = $this->SVNAdminRep->UpdRepAuthz($this->authzContent, $this->payload['old_rep_name'], $this->payload['new_rep_name']);
+        if ($result == '1') {
+            return message(200, 0, '仓库不存在');
+        }
+
+        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //日志
         $this->Logs->InsertLog(
