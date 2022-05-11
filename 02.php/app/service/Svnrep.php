@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 02:19:00
+ * @LastEditTime: 2022-05-11 13:39:47
  * @Description: QQ:1801168257
  */
 
@@ -77,7 +77,7 @@ class Svnrep extends Base
         $status = $this->SVNAdminRep->SetRepAuthz($this->authzContent, $this->payload['rep_name'], '/');
         if ($status != '1') {
             // FunShellExec('echo \'' . $status . '\' > ' . $this->config_svn['svn_authz_file']);
-            
+
             FunFilePutContents($this->config_svn['svn_authz_file'], $status);
         }
 
@@ -1525,8 +1525,60 @@ class Svnrep extends Base
         $hooksPath = $this->config_svn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
 
         //使用echo写入文件 当出现不规则的不成对的 ' " 等会出问题 当然也会包括其他问题
-        FunFilePutContents($hooksPath . $this->payload['fileName'],$this->payload['content']);
+        FunFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
 
         return message();
+    }
+
+    /**
+     * 获取常用钩子列表
+     */
+    public function GetRecommendHooks()
+    {
+        $list = [];
+
+        $recommend_hook_path = $this->config_svn['recommend_hook_path'];
+        if (!is_dir($recommend_hook_path)) {
+            return message(200, 0, '未创建自定义钩子目录');
+        }
+
+        $dirs = scandir($recommend_hook_path);
+
+        foreach ($dirs as $dir) {
+            if ($dir == '.' || $dir == '..') {
+                continue;
+            }
+
+            if (!is_dir($recommend_hook_path . $dir)) {
+                continue;
+            }
+
+            $dirFiles = scandir($recommend_hook_path . $dir);
+
+            if (!in_array('hookDescription', $dirFiles) || !in_array('hookName', $dirFiles)) {
+                continue;
+            }
+
+            $hookName = FunShellExec(sprintf("cat '%s'", $recommend_hook_path . $dir . '/hookName'));
+            $hookName = $hookName['result'];
+
+            if (!file_exists($recommend_hook_path . $dir . '/' . trim($hookName))) {
+                continue;
+            }
+
+            $hookContent = FunShellExec(sprintf("cat '%s'", $recommend_hook_path . $dir . '/' . $hookName));
+            $hookContent = $hookContent['result'];
+
+            $hookDescription = FunShellExec(sprintf("cat '%s'", $recommend_hook_path . $dir . '/hookDescription'));
+            $hookDescription = $hookDescription['result'];
+
+            array_push($list, [
+                'hookName' => $hookName,
+                'hookContent' => $hookContent,
+                'hookDescription' => $hookDescription
+            ]);
+        }
+
+        return message(200, 1, '成功', $list);
     }
 }

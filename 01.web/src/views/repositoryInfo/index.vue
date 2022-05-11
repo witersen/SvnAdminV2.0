@@ -621,25 +621,14 @@
         <TabPane label="常用钩子">
           <Scroll>
             <List :border="true">
-              <ListItem>
+              <ListItem v-for="(item, index) in recommendHooks" :key="index">
                 <ListItemMeta
-                  title="Precommit hook"
-                  description="This is description, this is description."
+                  :title="item.hookName"
+                  :description="item.hookDescription"
                 />
                 <template slot="action">
                   <li>
-                    <span>查看</span>
-                  </li>
-                </template>
-              </ListItem>
-              <ListItem>
-                <ListItemMeta
-                  title="Precommit hook"
-                  description="This is description, this is description."
-                />
-                <template slot="action">
-                  <li>
-                    <span>查看</span>
+                    <span @click="ViewRecommendHook(item.hookName)">查看</span>
                   </li>
                 </template>
               </ListItem>
@@ -657,12 +646,28 @@
     <Modal v-model="modalStudyRepHook" :title="titleModalStudyRepHook">
       <Input
         v-model="tempSelectRepHookTmpl"
+        readonly
         :rows="15"
         show-word-limit
         type="textarea"
       />
       <div slot="footer">
         <Button type="primary" ghost @click="modalStudyRepHook = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
+    <!-- 对话框-推荐钩子内容查看 -->
+    <Modal v-model="modalRecommendHook" title="常用钩子">
+      <Input
+        v-model="tempSelectRepHookRecommend"
+        readonly
+        :rows="15"
+        show-word-limit
+        type="textarea"
+      />
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalRecommendHook = false"
           >取消</Button
         >
       </div>
@@ -906,6 +911,8 @@ export default {
       modalEditRepHook: false,
       //查看钩子模板内容
       modalStudyRepHook: false,
+      //常看常用钩子内容
+      modalRecommendHook: false,
 
       /**
        * 排序数据
@@ -1012,6 +1019,8 @@ export default {
       tempSelectRepHookCon: "",
       //钩子模板内容
       tempSelectRepHookTmpl: "",
+      //常用钩子内容查看
+      tempSelectRepHookRecommend: "",
 
       /**
        * 对话框标题
@@ -1093,6 +1102,9 @@ export default {
        * 浏览仓库面包屑
        */
       breadRepPath: [],
+
+      //常用钩子列表
+      recommendHooks: [],
 
       /**
        * 表格
@@ -2431,8 +2443,10 @@ export default {
       this.modalRepHooks = true;
       //设置当前选中仓库
       this.currentRepName = rep_name;
-      //请求数据
+      //请求仓库钩子数据
       this.GetRepHooks();
+      //请求常用钩子列表
+      this.GetRecommendHooks();
     },
     /**
      * 获取仓库的钩子和对应的内容列表
@@ -2456,6 +2470,27 @@ export default {
         })
         .catch(function (error) {
           that.loadingGetRepHooks = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 获取推荐钩子
+     */
+    GetRecommendHooks() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Svnrep&a=GetRecommendHooks&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.recommendHooks = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -2515,6 +2550,18 @@ export default {
         "钩子文件编辑 - " + this.formRepHooks[key].fileName;
       // 展示输入框
       this.modalEditRepHook = true;
+    },
+    /**
+     * 查看推荐仓库钩子内容
+     */
+    ViewRecommendHook(hookName) {
+      var temp = this.recommendHooks.filter(
+        (item) => item.hookName = hookName
+      );
+      //设置当前选中的内容到输入框
+      this.tempSelectRepHookRecommend = temp[0].hookContent;
+      // 展示输入框
+      this.modalRecommendHook = true;
     },
     EditRepHook() {
       var that = this;

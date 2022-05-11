@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-08 23:33:10
+ * @LastEditTime: 2022-05-11 11:32:27
  * @Description: QQ:1801168257
  */
 
@@ -65,6 +65,11 @@ return [
     'svnserve_service_file' => '/usr/lib/systemd/system/svnserve.service',
 
     /**
+     * 推荐钩子目录
+     */
+    'recommend_hook_path' => $home_path . 'hooks/',
+
+    /**
      * 备份目录
      */
     'backup_base_path' => $backup_base_path,
@@ -90,7 +95,7 @@ return [
     'templete_base_path' => $templete_base_path,
 
     /**
-     * 初始化仓库结构模板
+     * 初始化仓库结构模板目录
      */
     'templete_init_struct' => $templete_base_path . '01/',
 ];

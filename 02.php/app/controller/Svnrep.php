@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-10 21:53:20
+ * @LastEditTime: 2022-05-11 11:45:59
  * @Description: QQ:1801168257
  */
 
@@ -277,6 +277,15 @@ class Svnrep extends Base
     public function EditRepHook()
     {
         $result = $this->ServiceSvnrep->EditRepHook();
+        json2($result);
+    }
+
+    /**
+     * 获取常用钩子列表
+     */
+    public function GetRecommendHooks()
+    {
+        $result = $this->ServiceSvnrep->GetRecommendHooks();
         json2($result);
     }
 }

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-08 13:31:07
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 17:39:28
+ * @LastEditTime: 2022-05-11 13:46:48
  * @Description: QQ:1801168257
  */
 
@@ -277,6 +277,10 @@ CON;
 
         //创建SVN仓库父目录
         is_dir($this->config_svn['rep_base_path']) ? '' : mkdir($this->config_svn['rep_base_path'], 0700, true);
+
+        //创建推荐钩子目录
+        is_dir($this->config_svn['recommend_hook_path']) ? '' : mkdir($this->config_svn['recommend_hook_path'], 0700, true);
+        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/hooks', $this->config_svn['recommend_hook_path']));
 
         //创建备份目录
         is_dir($this->config_svn['backup_base_path']) ? '' : mkdir($this->config_svn['backup_base_path'], 0700, true);
