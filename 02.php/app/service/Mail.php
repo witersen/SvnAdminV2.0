@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 15:48:55
+ * @LastEditTime: 2022-05-12 13:46:22
  * @Description: QQ:1801168257
  */
 
@@ -46,11 +46,12 @@ class Mail extends Base
      * @param integer $timeout
      * @return void
      */
-    private function Send($host, $auth, $user, $pass, $encryption, $autotls, $port, $subject, $body, $to = [], $cc = [], $bcc = [], $reply = ['address' => '', 'name' => ''], $from = ['address' => '', 'name' => ''], $timeout = 10)
+    private function Send($host, $auth, $user, $pass, $encryption, $autotls, $port, $subject, $body, $to = [], $cc = [], $bcc = [], $reply = ['address' => '', 'name' => ''], $from = ['address' => '', 'name' => ''], $timeout = 5)
     {
         try {
             //不允许输出 debug 信息
             $this->mail->SMTPDebug = SMTP::DEBUG_OFF;
+            // $this->mail->SMTPDebug = SMTP::DEBUG_SERVER;
 
             //使用 SMTP
             $this->mail->isSMTP();

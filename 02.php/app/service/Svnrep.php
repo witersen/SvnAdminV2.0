@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 00:51:04
+ * @LastEditTime: 2022-05-12 13:30:42
  * @Description: QQ:1801168257
  */
 
@@ -1197,21 +1197,36 @@ class Svnrep extends Base
      */
     public function GetRepDetail()
     {
-        $result = $this->SVNAdminRep->GetRepDetail($this->payload['rep_name']);
-        $resultArray = explode("\n", $result);
-
-        $newArray = [];
-        foreach ($resultArray as $key => $value) {
-            if (trim($value) != '') {
-                $tempArray = explode(':', $value);
-                if (count($tempArray) == 2) {
-                    array_push($newArray, [
-                        'repKey' => $tempArray[0],
-                        'repValue' => $tempArray[1],
-                    ]);
+        $result = $this->SVNAdminRep->GetRepDetail110($this->payload['rep_name']);
+        if ($result['resultCode'] == 0) {
+            //Subversion 1.10 及以上版本
+            $resultArray = explode("\n", $result);
+            $newArray = [];
+            foreach ($resultArray as $key => $value) {
+                if (trim($value) != '') {
+                    $tempArray = explode(':', $value);
+                    if (count($tempArray) == 2) {
+                        array_push($newArray, [
+                            'repKey' => $tempArray[0],
+                            'repValue' => $tempArray[1],
+                        ]);
+                    }
                 }
             }
+        } else {
+            //Subversion 1.8 -1.9
+            $newArray = [
+                [
+                    'repKey' => 'Path',
+                    'repValue' => $this->config_svn['rep_base_path'] .  $this->payload['rep_name'],
+                ],
+                [
+                    'repKey' => 'UUID',
+                    'repValue' => $this->SVNAdminRep->GetRepUUID($this->payload['rep_name'])
+                ],
+            ];
         }
+
         return message(200, 1, '成功', $newArray);
     }
 

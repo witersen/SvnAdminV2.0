@@ -248,6 +248,15 @@
                     <Input v-model="formMailSmtp.user"></Input>
                   </Col>
                   <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="如果使用QQ邮件服务，请注意对于@qq.com的邮件地址，仅输入@前面的部分，对于@vip.qq.com的邮件地址，可能需填入完整的地址"
+                    >
+                      <Button type="info">tips</Button>
+                    </Tooltip>
+                  </Col>
                 </Row>
               </FormItem>
               <FormItem label="SMTP密码" v-if="formMailSmtp.auth">
@@ -302,7 +311,6 @@
                       <Button type="info">tips</Button>
                     </Tooltip>
                   </Col>
-                  <Col span="6"> </Col>
                 </Row>
               </FormItem>
               <FormItem label="测试邮箱">
@@ -359,9 +367,12 @@
         </TabPane>
         <TabPane label="消息推送" name="4">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
-            <Alert>由于邮件发送没有使用异步任务<br/><br/>
-            因此开启了邮件推送模块的响应时间会有相应延迟<br/><br/>
-            如，用户点击登录 ~ 登录成功跳转的响应时间 = 正常处理时间 + 邮件发送时间</Alert>
+            <Alert
+              >由于邮件发送没有使用异步任务<br /><br />
+              因此开启了邮件推送模块的响应时间会有相应延迟<br /><br />
+              如，用户点击登录 ~ 登录成功跳转的响应时间 = 正常处理时间 +
+              邮件发送时间</Alert
+            >
             <Form :label-width="140">
               <FormItem
                 :label="item.note"

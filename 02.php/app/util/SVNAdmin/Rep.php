@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:45:45
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 11:09:39
+ * @LastEditTime: 2022-05-12 13:30:14
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -1208,23 +1208,37 @@ class Rep extends Core
     function GetRepRev($repName)
     {
         // $cmd = sprintf("'%s' info '%s' | grep 'Revisions' | awk '{print $2}'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName);
-        
+
         $cmd = sprintf("'%s' youngest '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $repName);
-        
+
         $result = FunShellExec($cmd);
-        
+
         return (int)trim($result['result']);
+    }
+
+    /**
+     * 获取仓库的UUID
+     */
+    function GetRepUUID($repName)
+    {
+        $cmd = sprintf("'%s' uuid '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $repName);
+
+        $result = FunShellExec($cmd);
+
+        return trim($result['result']);
     }
 
     /**
      * 获取仓库的属性内容（key-value的形式）
      * svnadmin info
+     * 
+     * Subversion 1.9 及以前没有 svnadmin info 子指令 
      */
-    function GetRepDetail($repName)
+    function GetRepDetail110($repName)
     {
         $cmd = sprintf("'%s' info '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName);
         $result = FunShellExec($cmd);
-        return $result['result'];
+        return $result;
     }
 
     /**
