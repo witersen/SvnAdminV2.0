@@ -288,8 +288,12 @@ todo ..........
 
 ### 6、常用钩子推荐 ？
 
-- 可以。。。。
-- 感谢。。。。提供的钩子脚本
+- 我们可以在目录 /home/svnadmin/hooks/ 下增加自己常用的钩子 
+  - /home/svnadmin/hooks/ 下建立文件夹 xx，名称任意
+  - 在 xx 下新建文件 hookDescription 写入对此钩子的描述文本内容
+  - 在 xx 下新建文件 hookName 写入钩子类型，如post-commit等
+  - 在 xx 下新建文件 ，以钩子类型命名，如 post-commit ，然后写入具体钩子内容
+- 感谢 【北方糙汉子-】提供的钩子脚本
 
 ### 7、关于Subversion 权限配置中的魔力符号
 
