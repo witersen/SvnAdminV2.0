@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-08 13:31:07
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 00:11:29
+ * @LastEditTime: 2022-05-12 17:01:52
  * @Description: QQ:1801168257
  */
 
@@ -204,6 +204,40 @@ class Install
      */
     function Monitor()
     {
+    }
+
+    /**
+     * 获取Linux操作系统类型
+     * 
+     * /etc/redhat-release      redhat 或 centos
+     * /etc/debian_version      debian 或 ubuntu
+     * /etc/slackware_version   Slackware
+     * /etc/lsb-release         ubuntu
+     */
+    private function GetOS()
+    {
+        if (PHP_OS != 'Linux') {
+            return false;
+        }
+        if (file_exists('/etc/redhat-release')) {
+            $readhat_release = file_get_contents('/etc/redhat-release');
+            $readhat_release = strtolower($readhat_release);
+            if (strstr($readhat_release, 'centos')) {
+                if (strstr($readhat_release, '8.')) {
+                    return 'centos 8';
+                } else if (strstr($readhat_release, '7.')) {
+                    return 'centos 7';
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else if (file_exists('/etc/lsb-release')) {
+            return 'ubuntu';
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -411,9 +445,17 @@ CON;
 
         echo '注册新的svnserve服务' . PHP_EOL;
 
+        $os = $this->GetOS();
         $con_svnserve_service_file = file_get_contents($templete_path . 'svnserve/svnserve.service');
         $con_svnserve_service_file = sprintf($con_svnserve_service_file, $this->config_svn['svnserve_env_file'], $needBin['svnserve'], $this->config_svn['svnserve_pid_file']);
-        file_put_contents($this->config_svn['svnserve_service_file'], $con_svnserve_service_file);
+        if ($os == 'centos 7' || $os == 'centos 8') {
+            file_put_contents($this->config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+        } else if ($os == 'ubuntu') {
+            file_put_contents($this->config_svn['svnserve_service_file']['ubuntu'], $con_svnserve_service_file);
+        } else {
+            echo '暂时不支持该系统' . PHP_EOL;
+            exit();
+        }
 
         echo '===============================================' . PHP_EOL;
 
@@ -526,6 +568,16 @@ CON;
             //检测SVNAdmin的新版本
             $this->DetectUpdate();
         }
+    }
+}
+
+//检测禁用函数
+$require_functions = ['shell_exec', 'passthru'];
+$disable_functions = explode(',', ini_get('disable_functions'));
+foreach ($disable_functions as $disable) {
+    if (in_array(trim($disable), $require_functions)) {
+        echo "需要的 $disable 函数被禁用" . PHP_EOL;
+        exit();
     }
 }
 

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 00:17:45
+ * @LastEditTime: 2022-05-12 17:07:33
  * @Description: QQ:1801168257
  */
 
@@ -11,7 +11,7 @@
  * 将工作模式限制在cli模式
  */
 if (!preg_match('/cli/i', php_sapi_name())) {
-    exit('require php-cli mode');
+    exit('require php-cli mode' . PHP_EOL);
 }
 
 ini_set('display_errors', '1');
@@ -50,17 +50,17 @@ class Daemon
     {
         $pid = pcntl_fork();
         if ($pid < 0) {
-            exit('pcntl_fork 错误');
+            exit('pcntl_fork 错误' . PHP_EOL);
         } elseif ($pid > 0) {
             exit();
         }
         $sid = posix_setsid();
         if (!$sid) {
-            exit('posix_setsid 错误');
+            exit('posix_setsid 错误' . PHP_EOL);
         }
         $pid = pcntl_fork();
         if ($pid < 0) {
-            exit('pcntl_fork 错误');
+            exit('pcntl_fork 错误' . PHP_EOL);
         } elseif ($pid > 0) {
             exit();
         }
@@ -217,13 +217,24 @@ class Daemon
             exit('启动失败：当前操作系统不为Linux' . PHP_EOL);
         }
         if (file_exists('/etc/redhat-release')) {
-            $info = file_get_contents('/etc/redhat-release');
-            if (!strstr($info, 'CentOS') && (strstr($info, '8.') || strstr($info, '7.'))) {
-                exit('启动失败：当前仅支持 CentOS 7和 CentOS8 操作系统' . PHP_EOL);
+            $readhat_release = file_get_contents('/etc/redhat-release');
+            $readhat_release = strtolower($readhat_release);
+            if (strstr($readhat_release, 'centos')) {
+                if (strstr($readhat_release, '8.')) {
+                    return 'centos 8';
+                } else if (strstr($readhat_release, '7.')) {
+                    return 'centos 7';
+                } else {
+                    exit('启动失败：不支持当前操作系统类型或版本' . PHP_EOL);
+                }
+            } else {
+                exit('启动失败：不支持当前操作系统类型或版本' . PHP_EOL);
             }
-            return;
+        } else if (file_exists('/etc/lsb-release')) {
+            return 'ubuntu';
+        } else {
+            exit('启动失败：不支持当前操作系统类型或版本' . PHP_EOL);
         }
-        exit('启动失败：当前仅支持 CentOS 7和 CentOS8 操作系统' . PHP_EOL);
     }
 
     /**
@@ -247,7 +258,7 @@ class Daemon
         $disable_functions = explode(',', ini_get('disable_functions'));
         foreach ($disable_functions as $disable) {
             if (in_array(trim($disable), $require_functions)) {
-                exit("启动失败：需要的 $disable 函数被禁用");
+                exit("启动失败：需要的 $disable 函数被禁用" . PHP_EOL);
             }
         }
     }

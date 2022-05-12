@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 00:52:40
+ * @LastEditTime: 2022-05-12 16:59:04
  * @Description: QQ:1801168257
  */
 
@@ -64,7 +64,10 @@ return [
     /**
      * svnserve 自启动文件
      */
-    'svnserve_service_file' => '/usr/lib/systemd/system/svnserve.service',
+    'svnserve_service_file' => [
+        'centos' => '/usr/lib/systemd/system/svnserve.service',
+        'ubuntu' => '/lib/systemd/system/svnserve.service'
+    ],
 
     /**
      * 推荐钩子目录

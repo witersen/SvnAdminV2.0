@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 23:48:29
+ * @LastEditTime: 2022-05-12 17:19:13
  * @Description: QQ:1801168257
  */
 
@@ -84,7 +84,7 @@ if (PHP_VERSION < '5.5') {
 
 //检测open_basedir
 if (ini_get('open_basedir') != '') {
-    json1(200, 0, '需要关闭open_basedir');
+    json1(200, 0, '需要关闭open_basedir！如果已经关闭未生效，请重启php！');
 }
 
 //检测禁用函数

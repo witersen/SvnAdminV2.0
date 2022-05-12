@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 13:30:42
+ * @LastEditTime: 2022-05-12 17:27:57
  * @Description: QQ:1801168257
  */
 
@@ -1199,6 +1199,7 @@ class Svnrep extends Base
     {
         $result = $this->SVNAdminRep->GetRepDetail110($this->payload['rep_name']);
         if ($result['resultCode'] == 0) {
+            $result = $result['result'];
             //Subversion 1.10 及以上版本
             $resultArray = explode("\n", $result);
             $newArray = [];
