@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 17:07:33
+ * @LastEditTime: 2022-05-12 18:20:41
  * @Description: QQ:1801168257
  */
 
@@ -221,19 +221,27 @@ class Daemon
             $readhat_release = strtolower($readhat_release);
             if (strstr($readhat_release, 'centos')) {
                 if (strstr($readhat_release, '8.')) {
-                    return 'centos 8';
+                    // return 'centos 8';
                 } else if (strstr($readhat_release, '7.')) {
-                    return 'centos 7';
+                    // return 'centos 7';
                 } else {
-                    exit('启动失败：不支持当前操作系统类型或版本' . PHP_EOL);
+                    echo '===============================================' . PHP_EOL;
+                    echo '警告！当前操作系统版本未测试，使用过程中可能会遇到问题！' . PHP_EOL;
+                    echo '===============================================' . PHP_EOL;
                 }
+            } else if (strstr($readhat_release, 'rocky')) {
+                // return 'rocky';
             } else {
-                exit('启动失败：不支持当前操作系统类型或版本' . PHP_EOL);
+                echo '===============================================' . PHP_EOL;
+                echo '警告！当前操作系统版本未测试，使用过程中可能会遇到问题！' . PHP_EOL;
+                echo '===============================================' . PHP_EOL;
             }
         } else if (file_exists('/etc/lsb-release')) {
-            return 'ubuntu';
+            // return 'ubuntu';
         } else {
-            exit('启动失败：不支持当前操作系统类型或版本' . PHP_EOL);
+            echo '===============================================' . PHP_EOL;
+            echo '警告！当前操作系统版本未测试，使用过程中可能会遇到问题！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
         }
     }
 

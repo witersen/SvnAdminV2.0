@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-08 13:31:07
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 17:01:52
+ * @LastEditTime: 2022-05-12 18:38:26
  * @Description: QQ:1801168257
  */
 
@@ -165,7 +165,7 @@ class Install
                     continue;
                 }
                 file_put_contents(BASE_PATH . '/update.zip', $update_zip);
-                shell_exec('unzip ' . BASE_PATH . '/update.zip');
+                passthru('unzip ' . BASE_PATH . '/update.zip');
                 if (!is_dir(BASE_PATH . '/update')) {
                     echo '解压升级包出错，请尝试手动解压并执行升级程序！' . PHP_EOL;
                     echo '===============================================' . PHP_EOL;
@@ -176,7 +176,7 @@ class Install
 
                 passthru('php ' . BASE_PATH . '/update/index.php');
 
-                shell_exec(sprintf("cd '%s' && rm -rf ./update && rm -f update.zip", BASE_PATH));
+                passthru(sprintf("cd '%s' && rm -rf ./update && rm -f update.zip", BASE_PATH));
 
                 echo '升级成功！请重启守护进程文件使部分配置文件生效' . PHP_EOL;
                 echo '===============================================' . PHP_EOL;
@@ -209,7 +209,7 @@ class Install
     /**
      * 获取Linux操作系统类型
      * 
-     * /etc/redhat-release      redhat 或 centos
+     * /etc/redhat-release      redhat 或 centos 或 rocky
      * /etc/debian_version      debian 或 ubuntu
      * /etc/slackware_version   Slackware
      * /etc/lsb-release         ubuntu
@@ -230,6 +230,8 @@ class Install
                 } else {
                     return false;
                 }
+            } else if (strstr($readhat_release, 'rocky')) {
+                return 'rocky';
             } else {
                 return false;
             }
@@ -304,9 +306,15 @@ class Install
             if ($binPath == "\n") {
                 $binPath = trim(shell_exec("which $key 2>/dev/null"));
                 if ($binPath == '') {
-                    echo "未检测到 $key ，请手动输入程序路径！" . PHP_EOL;
-                    echo '===============================================' . PHP_EOL;
-                    exit();
+                    if ($key == 'svnmucc') {
+                        echo "未检测到 $key ，请手动输入程序路径！" . PHP_EOL;
+                        echo "由于 $key 在当前版本非必要，因此无安装可忽略" . PHP_EOL;
+                        echo '===============================================' . PHP_EOL;
+                    } else {
+                        echo "未检测到 $key ，请手动输入程序路径！" . PHP_EOL;
+                        echo '===============================================' . PHP_EOL;
+                        exit();
+                    }
                 }
             } else {
                 $binPath = trim($binPath);
@@ -438,8 +446,9 @@ CON;
          */
         echo '清理之前注册的svnserve服务' . PHP_EOL;
 
-        shell_exec('systemctl stop svnserve.service');
-        shell_exec('systemctl disable svnserve.service');
+        passthru('systemctl stop svnserve.service');
+        passthru('systemctl disable svnserve.service');
+        passthru('systemctl daemon-reload');
 
         echo '===============================================' . PHP_EOL;
 
@@ -452,9 +461,13 @@ CON;
             file_put_contents($this->config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
         } else if ($os == 'ubuntu') {
             file_put_contents($this->config_svn['svnserve_service_file']['ubuntu'], $con_svnserve_service_file);
+        } else if ($os == 'rocky') {
+            file_put_contents($this->config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
         } else {
-            echo '暂时不支持该系统' . PHP_EOL;
-            exit();
+            file_put_contents($this->config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+            echo '===============================================' . PHP_EOL;
+            echo '警告！当前操作系统版本未测试，使用过程中可能会遇到问题！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
         }
 
         echo '===============================================' . PHP_EOL;
@@ -462,6 +475,7 @@ CON;
         //启动
         echo '开始启动svnserve服务' . PHP_EOL;
 
+        passthru('systemctl daemon-reload');
         passthru('systemctl start svnserve');
 
         echo '===============================================' . PHP_EOL;
@@ -515,15 +529,21 @@ CON;
 
             $shell = scandir($shellPath);
 
-            echo '安装脚本来自 WANdiso' . PHP_EOL;
+            echo '| Subversion安装脚本来自 WANdiso' . PHP_EOL;
 
-            echo '如果由于网络延迟原因安装失败，可手动停止后多尝试几次' . PHP_EOL;
+            echo '| 当前提供的安装脚本不一定适配所有操作系统！如部分的ubuntu和rokcy等' . PHP_EOL;
 
-            echo '在通过脚本安装Subversion的过程中，请注意信息交互！' . PHP_EOL;
+            echo '| 如果当前操作系统平台提供的Subversion版本较低（<1.8）才推荐使用此方法安装Subversion！' . PHP_EOL;
+
+            echo '| 如果由于网络延迟原因安装失败，可手动停止后多尝试几次' . PHP_EOL;
+
+            echo '| 在通过脚本安装Subversion的过程中，请注意信息交互！' . PHP_EOL;
 
             echo '===============================================' . PHP_EOL;
 
             echo '可选择的Subversion版本如下：' . PHP_EOL;
+
+            echo '===============================================' . PHP_EOL;
 
             $noShell = true;
             foreach ($shell as $value) {
