@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 18:20:41
+ * @LastEditTime: 2022-05-12 22:30:24
  * @Description: QQ:1801168257
  */
 
@@ -29,6 +29,7 @@ class Daemon
     private $scripts = [
         'start',
         'stop',
+        'restart',
         'console'
     ];
     private $config_daemon;
@@ -313,6 +314,15 @@ class Daemon
     }
 
     /**
+     * 重启守护进程
+     */
+    private function RestartDeamon()
+    {
+        $this->StopDaemon();
+        $this->StartDaemon();
+    }
+
+    /**
      * 以控制台模式工作 用于调试
      */
     private function StartConsole()
@@ -333,7 +343,7 @@ class Daemon
         if (isset($argv[1])) {
             $this->workMode = $argv[1];
             if (!in_array($this->workMode, $this->scripts)) {
-                exit('用法：php svnadmin.php [start | stop | console]' . PHP_EOL);
+                exit('用法：php svnadmin.php [start | stop | restart | console]' . PHP_EOL);
             }
             if ($this->workMode == 'stop') {
                 $this->StopDaemon();
@@ -343,6 +353,8 @@ class Daemon
                 $this->CheckDisabledFun();
                 if ($this->workMode == 'start') {
                     $this->StartDaemon();
+                } else if ($this->workMode == 'restart') {
+                    $this->RestartDeamon();
                 } else if ($this->workMode == 'console') {
                     $this->StartConsole();
                 }
