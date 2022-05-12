@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 15:24:12
+ * @LastEditTime: 2022-05-12 00:51:04
  * @Description: QQ:1801168257
  */
 
@@ -62,9 +62,12 @@ class Svnrep extends Base
         $cmd = sprintf("export LC_CTYPE=en_US.UTF-8 &&  '%s' create " . $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $this->config_bin['svnadmin']);
         FunShellExec($cmd);
 
+        //关闭selinux
+        FunShellExec('setenforce 0');
+
         if ($this->payload['rep_type'] == '2') {
             //以指定的目录结构初始化仓库
-            $this->SVNAdminRep->InitRepStruct($this->config_svn['templete_init_struct'], $this->config_svn['rep_base_path'] . $this->payload['rep_name']);
+            $this->SVNAdminRep->InitRepStruct($this->config_svn['templete_init_struct_01'], $this->config_svn['rep_base_path'] . $this->payload['rep_name']);
         }
 
         //检查是否创建成功

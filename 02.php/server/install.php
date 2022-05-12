@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-08 13:31:07
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 13:46:48
+ * @LastEditTime: 2022-05-12 00:11:29
  * @Description: QQ:1801168257
  */
 
@@ -62,6 +62,23 @@ class Install
         $this->config_svn = Config::get('svn');
         $this->config_update = Config::get('update');
         $this->config_version = Config::get('version');
+    }
+
+    /**
+     * 由于array_column到php5.5+才支持
+     * 为了兼容php5.4
+     * 这里选择手动实现 可能性能不高
+     */
+    function FunArrayColumn($array, $columnKey)
+    {
+        $resultArray = [];
+        foreach ($array as $key => $value) {
+            if (!array_key_exists($columnKey, $value)) {
+                return false;
+            }
+            array_push($resultArray, $value[$columnKey]);
+        }
+        return $resultArray;
     }
 
     /**
@@ -129,7 +146,7 @@ class Install
 
                 //下载并执行升级脚本
                 $packages = $array['update']['download'][$key1]['packages'];
-                $forList = array_column($packages, 'for');
+                $forList = $this->FunArrayColumn($packages, 'for');
                 $current = [
                     'source' => $this->config_version['version'],
                     'dest' => $last
@@ -194,6 +211,22 @@ class Install
      */
     function ConfigSubversion()
     {
+        echo PHP_EOL . '===============================================' . PHP_EOL;
+        echo '确定要开始配置Subversion程序吗[y/n]：';
+        $continue = strtolower(trim(fgets(STDIN)));
+
+        if (!in_array($continue, ['y', 'n'])) {
+            echo '不正确的选项！'  . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
+        }
+
+        if ($continue == 'n') {
+            echo '已取消！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
+        }
+
         /**
          * 1、检测Subversion的安装情况
          */
@@ -218,6 +251,10 @@ class Install
             'svndumpfilter' => '',
             'svnmucc' => ''
         ];
+
+        echo '===============================================' . PHP_EOL;
+        echo '开始配置Subversion程序！' . PHP_EOL;
+        echo '===============================================' . PHP_EOL;
 
         foreach ($needBin as $key => $value) {
             echo "请输入 $key 程序位置：" . PHP_EOL;
@@ -280,7 +317,7 @@ CON;
 
         //创建推荐钩子目录
         is_dir($this->config_svn['recommend_hook_path']) ? '' : mkdir($this->config_svn['recommend_hook_path'], 0700, true);
-        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/hooks', $this->config_svn['recommend_hook_path']));
+        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/hooks', $this->config_svn['home_path']));
 
         //创建备份目录
         is_dir($this->config_svn['backup_base_path']) ? '' : mkdir($this->config_svn['backup_base_path'], 0700, true);
@@ -290,6 +327,13 @@ CON;
 
         //创建临时数据目录
         is_dir($this->config_svn['temp_base_path']) ? '' : mkdir($this->config_svn['temp_base_path'], 0700, true);
+
+        //创建模板文件目录
+        is_dir($this->config_svn['templete_base_path']) ? '' : mkdir($this->config_svn['templete_base_path'], 0700, true);
+
+        //创建仓库结构模板目录
+        // is_dir($this->config_svn['templete_init_struct']) ? '' : mkdir($this->config_svn['templete_init_struct'], 0700, true);
+        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/initStruct', $this->config_svn['templete_base_path']));
 
         echo '===============================================' . PHP_EOL;
 
@@ -321,17 +365,42 @@ CON;
         echo '===============================================' . PHP_EOL;
 
         /**
-         * 4、配置SQLite数据库文件
+         * 4、关闭selinux 
+         * 包括临时关闭和永久关闭
+         */
+        echo '临时关闭并永久关闭seliux' . PHP_EOL;
+
+        //临时关闭selinux
+        shell_exec('setenforce 0');
+
+        //永久关闭selinux
+        shell_exec("sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config");
+
+        echo '===============================================' . PHP_EOL;
+
+        /**
+         * 5、配置SQLite数据库文件
          */
         echo '配置并启用SQLite数据库' . PHP_EOL;
+
         copy($templete_path . '/database/sqlite/svnadmin.db', $this->config_svn['home_path'] . 'svnadmin.db');
-        echo '===============================================' . PHP_EOL;
 
         //配置SQLite数据库文件的父目录权限配置为777 解决无法写入且不报错的问题
         shell_exec('chmod 777 ' . $this->config_svn['home_path']);
 
+        echo '===============================================' . PHP_EOL;
+
         /**
-         * 5、将svnserve注册为系统服务
+         * 6、主目录授权
+         */
+        echo '配置主目录权限' . PHP_EOL;
+
+        shell_exec(sprintf("chmod 777 -R '%s'", $this->config_svn['home_path']));
+
+        echo '===============================================' . PHP_EOL;
+
+        /**
+         * 7、将svnserve注册为系统服务
          */
         echo '清理之前注册的svnserve服务' . PHP_EOL;
 
@@ -389,7 +458,7 @@ CON;
 
         echo '===============================================' . PHP_EOL;
 
-        if (!in_array($answer, array_column($this->scripts, 'index'))) {
+        if (!in_array($answer, $this->FunArrayColumn($this->scripts, 'index'))) {
             exit('错误的命令编号：' . PHP_EOL);
         }
 
@@ -403,6 +472,14 @@ CON;
             }
 
             $shell = scandir($shellPath);
+
+            echo '安装脚本来自 WANdiso' . PHP_EOL;
+
+            echo '如果由于网络延迟原因安装失败，可手动停止后多尝试几次' . PHP_EOL;
+
+            echo '在通过脚本安装Subversion的过程中，请注意信息交互！' . PHP_EOL;
+
+            echo '===============================================' . PHP_EOL;
 
             echo '可选择的Subversion版本如下：' . PHP_EOL;
 

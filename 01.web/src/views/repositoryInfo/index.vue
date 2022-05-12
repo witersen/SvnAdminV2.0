@@ -249,6 +249,14 @@
           >
         </Col>
       </Row>
+      <Alert type="warning"
+        >请注意当前的文件下载方案采用
+        <a href="https://github.com/jimmywarting/StreamSaver.js" target="_blank"
+          >StreamSaver</a
+        >
+        <br />
+        如要获取良好的下载体验，请为站点配置HTTPS</Alert
+      >
       <Table
         height="200"
         border
@@ -619,12 +627,13 @@
           <Spin size="large" fix v-if="loadingGetRepHooks"></Spin>
         </TabPane>
         <TabPane label="常用钩子">
-          <Alert>如需将自己常用的钩子显示在此处<br/><br/>
-          以新增 pre-commit 功能为例，操作步骤如下：<br><br/>
-          1、在 /home/svnadmin/hooks/ 目录下创建任意名称的文件夹<br/>
-          2、创建文件 hookDescription 并写入此钩子的主要功能描述<br/>
-          3、创建文件 hookName 并写入钩子的类型 pre-commit<br/>
-          4、创建文件 pre-commit 并写入钩子内容<br/>
+          <Alert
+            >如需将自己常用的钩子显示在此处<br /><br />
+            以新增 pre-commit 功能为例，操作步骤如下：<br /><br />
+            1、在 /home/svnadmin/hooks/ 目录下创建任意名称的文件夹<br />
+            2、创建文件 hookDescription 并写入此钩子的主要功能描述<br />
+            3、创建文件 hookName 并写入钩子的类型 pre-commit<br />
+            4、创建文件 pre-commit 并写入钩子内容<br />
           </Alert>
           <Scroll>
             <List :border="true">
@@ -2563,7 +2572,7 @@ export default {
      */
     ViewRecommendHook(hookName) {
       var temp = this.recommendHooks.filter(
-        (item) => item.hookName = hookName
+        (item) => (item.hookName = hookName)
       );
       //设置当前选中的内容到输入框
       this.tempSelectRepHookRecommend = temp[0].hookContent;

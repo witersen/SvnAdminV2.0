@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 11:32:27
+ * @LastEditTime: 2022-05-12 00:52:40
  * @Description: QQ:1801168257
  */
 
@@ -22,6 +22,8 @@ $log_base_path = $home_path . 'logs/';
 $temp_base_path = $home_path . 'temp/';
 
 $templete_base_path = $home_path . 'templete/';
+
+$templete_init_struct = $templete_base_path . 'initStruct/';
 
 return [
     /**
@@ -97,5 +99,10 @@ return [
     /**
      * 初始化仓库结构模板目录
      */
-    'templete_init_struct' => $templete_base_path . '01/',
+    'templete_init_struct' => $templete_init_struct,
+
+    /**
+     * 默认使用的仓库模板
+     */
+    'templete_init_struct_01' => $templete_init_struct . '01/',
 ];

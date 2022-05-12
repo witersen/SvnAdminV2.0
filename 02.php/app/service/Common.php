@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-10 14:43:54
+ * @LastEditTime: 2022-05-12 00:01:12
  * @Description: QQ:1801168257
  */
 
@@ -101,8 +101,8 @@ class Common extends Base
         //日志
         $this->Logs->InsertLog(
             '用户登录',
-            sprintf("账号 %s IP地址", $this->payload['user_name'], $_SERVER["REMOTE_ADDR"]),
-            $this->userName
+            sprintf("账号 %s IP地址 %s", $this->payload['user_name'], $_SERVER["REMOTE_ADDR"]),
+            $this->payload['user_name']
         );
 
         //邮件
@@ -131,7 +131,7 @@ class Common extends Base
         //日志
         $this->Logs->InsertLog(
             '用户注销',
-            sprintf("账号 %s IP地址", $this->userName, $_SERVER["REMOTE_ADDR"]),
+            sprintf("账号 %s IP地址 %s", $this->userName, $_SERVER["REMOTE_ADDR"]),
             $this->userName
         );
 

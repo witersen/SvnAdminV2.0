@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 02:15:44
+ * @LastEditTime: 2022-05-12 00:20:14
  * @Description: QQ:1801168257
  */
 
@@ -25,7 +25,7 @@ class Svn extends Base
         $result = $result['result'];
 
         if ($result == '') {
-            return message(200, 0, 'svnserve服务未在运行，SVN用户将无法使用系统的仓库在线内容浏览功能');
+            return message(200, 0, 'svnserve服务未在运行，出于安全原因，SVN用户将无法使用系统的仓库在线内容浏览功能，其它功能不受影响');
         } else {
             return message();
         }

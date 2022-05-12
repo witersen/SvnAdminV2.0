@@ -3,12 +3,14 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 21:11:05
+ * @LastEditTime: 2022-05-11 23:48:29
  * @Description: QQ:1801168257
  */
 
 /**
  * 需要PHP版本大于等于5.5同时小于8.0
+ * 
+ * 不考虑扩展的情况下，本系统兼容php 5.4 ，但是由于 phpmailer 插件的引入需要兼容 php 5.4
  */
 
 /**
@@ -96,6 +98,8 @@ foreach ($disable_functions as $disable) {
 
 //检测守护进程状态
 $state = FunDetectState();
+// echo $state;
+// return;
 if ($state == 0) {
     json1(401, 0, '守护进程响应超时');
 } else if ($state == 2) {

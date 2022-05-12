@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-10 14:31:29
+ * @LastEditTime: 2022-05-11 15:48:55
  * @Description: QQ:1801168257
  */
 
@@ -284,11 +284,11 @@ class Mail extends Base
         $message_push = $this->GetPush();
         $message_push = $message_push['data'];
 
-        $triggers = array_column($message_push, 'trigger');
+        $triggers = FunArrayColumn($message_push, 'trigger');
         if (!in_array($trigger, $triggers)) {
             return message(200, 0, '触发条件不存在');
         }
-        $options = array_combine($triggers, array_column($message_push, 'enable'));
+        $options = array_combine($triggers, FunArrayColumn($message_push, 'enable'));
         if (!$options[$trigger]) {
             return message(200, 0, '触发条件未开启');
         }

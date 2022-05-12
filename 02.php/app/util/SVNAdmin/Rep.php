@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 15:45:45
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 16:58:20
+ * @LastEditTime: 2022-05-12 11:09:39
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -869,6 +869,8 @@ class Rep extends Core
      * FSFS Shard Size
      * FSFS Shards Packed
      * FSFS Logical Addressing
+     * 
+     * 此函数暂未使用因为包含兼容性问题 需要 Subversion > 1.9
      */
     function GetRepInfo($repName)
     {
@@ -1199,12 +1201,19 @@ class Rep extends Core
     /**
      * 获取仓库的修订版本数量
      * svnadmin info
+     * 
+     * Subversion 1.9 及以前没有 svnadmin info 子指令 
+     * 因此使用 svnlook youngest 来代替
      */
     function GetRepRev($repName)
     {
-        $cmd = sprintf("'%s' info '%s' | grep 'Revisions' | awk '{print $2}'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName);
+        // $cmd = sprintf("'%s' info '%s' | grep 'Revisions' | awk '{print $2}'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName);
+        
+        $cmd = sprintf("'%s' youngest '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $repName);
+        
         $result = FunShellExec($cmd);
-        return (int)$result['result'];
+        
+        return (int)trim($result['result']);
     }
 
     /**

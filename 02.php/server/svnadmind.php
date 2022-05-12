@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 01:54:56
+ * @LastEditTime: 2022-05-12 00:17:45
  * @Description: QQ:1801168257
  */
 
@@ -130,6 +130,7 @@ class Daemon
     {
         //接收客户端发送的数据
         $receive = socket_read($client, $this->config_daemon['SOCKET_READ_LENGTH']);
+
         $receive = unserialize($receive);
 
         $type = $receive['type'];
@@ -273,7 +274,10 @@ class Daemon
             }
         }
         $this->UpdateSign();
-        echo '已在启动时自动更改系统的加密密钥，正在登录的用户会退出登录' . PHP_EOL;
+        echo '启动成功' . PHP_EOL;
+        echo '可进行网站访问' . PHP_EOL;
+        echo '检出SVN仓库前请注意放行协议端口（默认3690）' . PHP_EOL;
+        echo '已自动更改系统加密密钥，在线用户会退出登录' . PHP_EOL;
         $this->InitDeamon();
     }
 
