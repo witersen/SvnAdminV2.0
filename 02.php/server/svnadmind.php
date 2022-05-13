@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 22:30:24
+ * @LastEditTime: 2022-05-13 01:24:54
  * @Description: QQ:1801168257
  */
 
@@ -360,7 +360,7 @@ class Daemon
                 }
             }
         } else {
-            exit('用法：php svnadmin.php [start | stop | console]' . PHP_EOL);
+            exit('用法：php svnadmin.php [start | stop restart | console]' . PHP_EOL);
         }
     }
 }

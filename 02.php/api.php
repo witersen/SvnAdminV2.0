@@ -3,21 +3,21 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 17:19:13
+ * @LastEditTime: 2022-05-13 01:25:06
  * @Description: QQ:1801168257
  */
 
 /**
  * 需要PHP版本大于等于5.5同时小于8.0
  * 
- * 不考虑扩展的情况下，本系统兼容php 5.4 ，但是由于 phpmailer 插件的引入需要兼容 php 5.4
+ * 不考虑扩展的情况下，本系统兼容php 5.4 ，但是由于 phpmailer 插件的引入需要兼容 php 5.5
  */
 
 /**
  * 开启错误信息 如需要调试 可取消注释
  */
-ini_set('display_errors', '1');
-error_reporting(E_ALL);
+// ini_set('display_errors', '1');
+// error_reporting(E_ALL);
 
 define('BASE_PATH', __DIR__);
 
