@@ -1,21 +1,25 @@
 # SVNAdmin 系统部署与使用手册
-1、该系统为使用PHP开发的基于web的Subversion（SVN）服务器端管理工具
+- 该系统为使用PHP开发的基于web的Subversion（SVN）服务器端管理工具
 
-2、支持操作系统：CentOS7（推荐）、CentOS8、Rocky、Ubuntu（其它Linux发行版正在测试兼容中）
+- 支持功能：SVN仓库管理、SVN用户管理、SVN分组管理、目录授权、目录浏览、Hooks管理、在线dump备份、在线备份恢复、SVN用户禁用、服务器状态管理、日志管理、消息通知、更新检测...
 
-3、支持PHP版本：5.5 <= PHP < 8.0
+- 演示地址：http://svnadmin.witersen.com (默认的用户名与密码都为 admin)
 
-4、支持数据库：SQLite、MySQL
+- 项目地址：
+  - GitHub地址：https://github.com/witersen/SvnAdminV2.0 
+  - Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
 
-5、支持Subversion：1.8+
+- 发行包：
+  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.3/v2.3.zip
+  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/attach_files/1059115/download/v2.3.zip
 
-6、支持功能：SVN仓库管理、SVN用户管理、SVN分组管理、目录授权、目录浏览、Hooks管理、在线dump备份、在线备份恢复、SVN用户禁用、服务器状态管理、日志管理、消息通知、更新检测...
+- 兼容性
+  - 操作系统：CentOS7（推荐）、CentOS8、Rocky、Ubuntu（Windows及其它Linux发行版正在测试兼容中）
+  - PHP版本：5.5 <= PHP < 8.0
+  - 数据库：SQLite、MySQL
+  - Subversion：1.8+
 
-7、演示地址：http://svnadmin.witersen.com (默认的用户名与密码都为 admin)
-
-8、GitHub地址：https://github.com/witersen/SvnAdminV2.0 Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
-
-9、可以加入群聊讨论遇到的问题  QQ群 633108141
+- 可以加群提建议或分享问题：  QQ群 633108141
 
 ## 一、安装示例
 
@@ -45,7 +49,7 @@ yum install -y php-mysqlnd
 yum install -y php-process
 yum install -y php-json
 yum install -y php-gd
-yum install -y php-bcmatch
+yum install -y php-bcmath
 ```
 
 - 安装web服务器
@@ -258,7 +262,39 @@ todo ..........
 
   ![](./00.static/01.demo/29.jpg)
 
-## 四、常见问题解答
+## 四、待办事项
+
+### 1、计划增加功能
+
+- [ ] 支持常见文件在线浏览
+- [ ] 支持文件和文件夹在线下载
+- [ ] 支持重设仓库UUID
+- [ ] 删除仓库需要输入管理人员密码
+- [ ] 支持修改应用根目录
+- [ ] 支持authz、passwd文件的在线识别导入和导出
+- [ ] docker部署
+- [ ] 邮件发送和仓库备份等使用异步任务
+- [ ] 支持在线仓库版本过滤、仓库版本互传
+- [ ] 在仓库列表以突出颜色标记不被支持管理的仓库，如低版本的仓库
+- [ ] 支持webhook
+- [ ] 支持配置OSS进行备份
+- [ ] 支持修改封面背景图片
+- [ ] 仓库目录树视图中，文件或目录被授权过会有红点提示
+- [ ] 增加多种备份方式的支持：如 svnadmin hotcopy
+- [ ] 安装svnadmin的机器之间可进行远程同步
+- [ ] 支持使用svnauthz-validate检查authz配置信息的正确性作为高级功能
+- [ ] 支持使用三种认证选项（Apache+mod_dav_svn、svnserve(用户文件和SASL)、svnserve+SSH）
+- [ ] 开发微信小程序端开发（针对提交提醒）
+
+### 2、计划改进部分
+
+## 五、旧版本如何升级
+
+由于v2.3版本改动较大，因此需要使用之前版本的用户进行手动配置升级，具体操作步骤如下：
+
+todo..
+
+## 六、常见问题解答
 
 ### 1、如何将已有的SVN仓库使用此系统管理 ？
 
@@ -277,11 +313,10 @@ todo ..........
 - 由于Subversion1.8 之前不支持将多个仓库配置为使用相同的权限配置文件
 - 而我们一开始基于Subversion1.10进行开发，因此没有及时的对Subversion1.7等版本进行适配
 
-### 4、为什么只支持Linux操作系统中的部分操作系统 ？
+### 4、为什么目前只支持Linux操作系统 ？
 
-- 本系统的本质为Subversion的旁路性质的辅助管理软件，通过执行一系列的subversion命令行程序来代替手动配置，理论上本系统支持可以安装Subversion和PHP的任何操作系统。
-- 但是由于PHP需要高级权限如以root等身份执行一些指令，如svnadmin create ，所以我们在后台运行了一个php守护进程来等待接收和处理执行并返回结果，这个过程使用了pcntl扩展，而这在Windows是不支持的。
-- 等我们找到了更好的程序架构方案，可能会解决在Windows的适配问题，但是这个并不影响对众多Linux发行的支持，对Linux发行版的支持需要更多的时间进行适配和改进！
+- 正在使用新方案对Windows操作系统进行支持测试
+- 预期目标为可安装Subversion和PHP的机器都可使用本软件
 
 ### 5、仓库初始化结构模板 ？
 
