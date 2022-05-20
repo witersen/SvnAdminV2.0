@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-06 18:41:32
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 12:11:40
+ * @LastEditTime: 2022-05-20 15:04:52
  * @Description: QQ:1801168257
  */
 
@@ -47,7 +47,6 @@ require_once BASE_PATH . '/app/controller/Logs.php';
 require_once BASE_PATH . '/app/controller/Mail.php';
 require_once BASE_PATH . '/app/controller/Personal.php';
 require_once BASE_PATH . '/app/controller/Safe.php';
-require_once BASE_PATH . '/app/controller/Statistics.php';
 require_once BASE_PATH . '/app/controller/Svn.php';
 require_once BASE_PATH . '/app/controller/Svngroup.php';
 require_once BASE_PATH . '/app/controller/Svnrep.php';
@@ -61,7 +60,6 @@ require_once BASE_PATH . '/app/service/Logs.php';
 require_once BASE_PATH . '/app/service/Mail.php';
 require_once BASE_PATH . '/app/service/Personal.php';
 require_once BASE_PATH . '/app/service/Safe.php';
-require_once BASE_PATH . '/app/service/Statistics.php';
 require_once BASE_PATH . '/app/service/Svn.php';
 require_once BASE_PATH . '/app/service/Svngroup.php';
 require_once BASE_PATH . '/app/service/Svnrep.php';

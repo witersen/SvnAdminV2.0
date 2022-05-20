@@ -19,21 +19,6 @@ const routers = [
         component: (resolve) => require(['./views/layout/basicLayout/index.vue'], resolve),
         children: [
             {
-                name: 'index',
-                path: '/index',
-                meta: {
-                    title: '信息统计',
-                    icon: "ios-stats",
-                    requireAuth: true,
-                    user_role_id: ['1'],
-                    group: {
-                        name: "仓库",
-                        num: 1
-                    }
-                },
-                component: (resolve) => require(['./views/index/index.vue'], resolve)
-            },
-            {
                 name: 'repositoryInfo',
                 path: '/repositoryInfo',
                 meta: {
@@ -42,7 +27,7 @@ const routers = [
                     requireAuth: true,
                     user_role_id: ['1', '2'],
                     group: {
-                        name: "",
+                        name: "仓库",
                         num: 1
                     }
                 },

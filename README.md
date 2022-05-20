@@ -45,6 +45,7 @@ yum install -y php-mysqlnd
 yum install -y php-process
 yum install -y php-json
 yum install -y php-gd
+yum install -y php-bcmatch
 ```
 
 - 安装web服务器
@@ -63,10 +64,10 @@ systemctl enable httpd
 cd /var/www/html/
 
 #代码包从发行版获取
-wget xxx.zip
+wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1059115/download/v2.3.zip
 
 #解压
-unzip xxx.zip
+unzip v2.3
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）
