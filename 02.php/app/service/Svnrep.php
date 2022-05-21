@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:31:32
+ * @LastEditTime: 2022-05-21 14:14:40
  * @Description: QQ:1801168257
  */
 
@@ -1209,6 +1209,26 @@ class Svnrep extends Base
         }
 
         return message(200, 1, '成功', $newArray);
+    }
+
+    /**
+     * 重设仓库的UUID
+     */
+    public function SetUUID()
+    {
+        if ($this->payload['uuid'] == '') {
+            $cmd = sprintf("'%s' setuuid '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name']);
+        } else {
+            $cmd = sprintf("'%s' setuuid '%s' '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $this->payload['uuid']);
+        }
+
+        $result = FunShellExec($cmd);
+
+        if ($result['resultCode'] == 0) {
+            return message();
+        } else {
+            return message(200, 0, $result['error']);
+        }
     }
 
     /**

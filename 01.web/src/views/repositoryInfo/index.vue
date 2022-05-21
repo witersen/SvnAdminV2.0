@@ -725,6 +725,15 @@
                 @click="CopyRepDetail(index)"
               ></Button>
             </template>
+            <template
+              slot-scope="{ row }"
+              slot="uuid"
+              v-if="row.repKey == 'UUID' || row.repKey == 'uuid'"
+            >
+              <Button type="primary" size="small" @click="ModalSetUUID()"
+                >重设</Button
+              >
+            </template>
           </Table>
         </TabPane>
         <TabPane label="恢复">
@@ -885,6 +894,25 @@
         @on-row-click="ClickRowAddRepPathGroup"
       ></Table>
     </Modal>
+    <!-- 对话框-重设仓库UUID -->
+    <Modal v-model="modalSetUUID" title="重设仓库UUID">
+      <Form :label-width="80">
+        <FormItem label="UUID">
+          <Input
+            v-model="tempRepUUID"
+            placeholder="不填写则自动生成全新UUID"
+          ></Input>
+        </FormItem>
+        <FormItem>
+          <Button type="primary" :loading="loadingSetUUID" @click="SetUUID"
+            >确定</Button
+          >
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalSetUUID = false">取消</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -930,6 +958,8 @@ export default {
       modalStudyRepHook: false,
       //常看常用钩子内容
       modalRecommendHook: false,
+      //重设仓库UUID
+      modalSetUUID: false,
 
       /**
        * 排序数据
@@ -1004,6 +1034,8 @@ export default {
       loadingGetRepHooks: true,
       //编辑仓库内容
       loadingEditRepHook: false,
+      //重设仓库UUID
+      loadingSetUUID: false,
 
       /**
        * 临时变量
@@ -1038,6 +1070,8 @@ export default {
       tempSelectRepHookTmpl: "",
       //常用钩子内容查看
       tempSelectRepHookRecommend: "",
+      //仓库重设UUID
+      tempRepUUID: "",
 
       /**
        * 对话框标题
@@ -1145,7 +1179,7 @@ export default {
           title: "版本数",
           key: "rep_rev",
           sortable: "custom",
-          minWidth: 120,
+          minWidth: 90,
         },
         {
           title: "体积",
@@ -1333,16 +1367,23 @@ export default {
           title: "属性",
           key: "repKey",
           tooltip: true,
+          fixed: "left",
+          width: 170,
         },
         {
           title: "信息",
           key: "repValue",
           tooltip: true,
+          width: 170,
         },
         {
           title: "复制",
           slot: "copy",
           width: 60,
+        },
+        {
+          title: "重设",
+          slot: "uuid",
         },
       ],
       tableDataRepDetail: [],
@@ -2669,6 +2710,41 @@ export default {
           that.$Message.error("复制失败，请手动复制");
         }
       );
+    },
+    /**
+     * 重设仓库UUID
+     */
+    ModalSetUUID() {
+      //清空
+      this.tempRepUUID = "";
+      //对话框
+      this.modalSetUUID = true;
+    },
+    SetUUID() {
+      var that = this;
+      that.loadingSetUUID = true;
+      var data = {
+        rep_name: that.currentRepName,
+        uuid: that.tempRepUUID,
+      };
+      that.$axios
+        .post("/api.php?c=Svnrep&a=SetUUID&t=web", data)
+        .then(function (response) {
+          that.loadingSetUUID = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetRepDetail();
+            that.modalSetUUID = false;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingSetUUID = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
     },
     /**
      * 单选按钮 选择导入

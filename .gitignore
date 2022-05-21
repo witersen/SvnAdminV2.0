@@ -1,9 +1,6 @@
 01.web/node_modules
 01.web/node_modules/*
-01.web/dist
-01.web/dist/*
 01.web/index.html
-01.web/index_prod.html
 01.web/.vscode
 01.web/.vscode/*
 02.php/.vscode

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:31:42
+ * @LastEditTime: 2022-05-21 12:51:28
  * @Description: QQ:1801168257
  */
 
@@ -16,8 +16,8 @@
 /**
  * 开启错误信息 如需要调试 可取消注释
  */
-// ini_set('display_errors', '1');
-// error_reporting(E_ALL);
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
 
 define('BASE_PATH', __DIR__);
 
