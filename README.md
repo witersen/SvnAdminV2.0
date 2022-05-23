@@ -292,7 +292,29 @@ todo ..........
 
 由于v2.3版本改动较大，因此需要使用之前版本的用户进行手动配置升级，具体操作步骤如下：
 
-todo..
+```
+#假设你的代码部署在 /var/www/html/ 目录下
+cd /var/www/html/
+```
+- 停止守护进程
+```
+#停止旧版本的守护进程
+php server/svnadmind.php stop
+```
+- 升级Subversion版本（1.8+）
+```
+#执行脚本并选择使用第1个选项
+php server/install.php
+```
+- 执行适配程序
+```
+#执行脚本并选择使用第2个选项
+php server/install.php
+```
+- 启动守护进程
+```
+php server/svnadmind.php start
+```
 
 ## 六、常见问题解答
 
