@@ -399,7 +399,31 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="系统更新" name="5">
+        <TabPane label="安全配置" name="5">
+          <Card :bordered="false" :dis-hover="true" style="width: 600px">
+            <Form :label-width="140">
+              <FormItem label="登录验证码">
+                <Row>
+                  <Col span="12">
+                    <Switch>
+                      <Icon type="md-checkmark" slot="open"></Icon>
+                      <Icon type="md-close" slot="close"></Icon>
+                    </Switch>
+                  </Col>
+                </Row>
+              </FormItem>
+              <FormItem>
+                <Button
+                  type="primary"
+                  :loading="loadingEditPush"
+                  @click="EditPush"
+                  >保存</Button
+                >
+              </FormItem>
+            </Form>
+          </Card>
+        </TabPane>
+        <TabPane label="系统更新" name="6">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">
