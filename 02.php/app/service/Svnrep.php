@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-21 14:14:40
+ * @LastEditTime: 2022-05-12 17:27:57
  * @Description: QQ:1801168257
  */
 
@@ -79,6 +79,8 @@ class Svnrep extends Base
         //向authz写入仓库信息
         $status = $this->SVNAdminRep->SetRepAuthz($this->authzContent, $this->payload['rep_name'], '/');
         if ($status != '1') {
+            // FunShellExec('echo \'' . $status . '\' > ' . $this->config_svn['svn_authz_file']);
+
             FunFilePutContents($this->config_svn['svn_authz_file'], $status);
         }
 
@@ -177,6 +179,8 @@ class Svnrep extends Base
         }
 
         if ($authzContet != $this->authzContent) {
+            // FunShellExec('echo \'' . $authzContet . '\' > ' . $this->config_svn['svn_authz_file']);
+
             FunFilePutContents($this->config_svn['svn_authz_file'], $authzContet);
         }
     }
@@ -237,6 +241,8 @@ class Svnrep extends Base
 
         //写入配置文件
         if ($authzContent != $this->authzContent) {
+            // FunShellExec('echo \'' . $authzContent . '\' > ' . $this->config_svn['svn_authz_file']);
+
             FunFilePutContents($this->config_svn['svn_authz_file'], $authzContent);
         }
     }
@@ -916,6 +922,8 @@ class Svnrep extends Base
         }
 
         //写入
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
@@ -939,6 +947,8 @@ class Svnrep extends Base
             return message(200, 0, '已被删除');
         } else {
             //写入
+            // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
             FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
             //返回
@@ -968,6 +978,8 @@ class Svnrep extends Base
         }
 
         //写入
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
@@ -1021,6 +1033,8 @@ class Svnrep extends Base
         }
 
         //写入
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
@@ -1044,6 +1058,8 @@ class Svnrep extends Base
             return message(200, 0, '已被删除');
         } else {
             //写入
+            // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
             FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
             //返回
@@ -1075,6 +1091,8 @@ class Svnrep extends Base
         }
 
         //写入
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
@@ -1146,6 +1164,8 @@ class Svnrep extends Base
         //从配置文件删除指定仓库的所有路径
         $result = $this->SVNAdminRep->DelRepAuthz($this->authzContent, $this->payload['rep_name']);
         if ($result != '1') {
+            // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
             FunFilePutContents($this->config_svn['svn_authz_file'], $result);
         }
 
@@ -1209,26 +1229,6 @@ class Svnrep extends Base
         }
 
         return message(200, 1, '成功', $newArray);
-    }
-
-    /**
-     * 重设仓库的UUID
-     */
-    public function SetUUID()
-    {
-        if ($this->payload['uuid'] == '') {
-            $cmd = sprintf("'%s' setuuid '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name']);
-        } else {
-            $cmd = sprintf("'%s' setuuid '%s' '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $this->payload['uuid']);
-        }
-
-        $result = FunShellExec($cmd);
-
-        if ($result['resultCode'] == 0) {
-            return message();
-        } else {
-            return message(200, 0, $result['error']);
-        }
     }
 
     /**
@@ -1501,23 +1501,14 @@ class Svnrep extends Base
         }
 
         foreach ($repHooks as $key => $value) {
-            $hookFile = $hooksPath . $value['fileName'];
-            $hookTmpleFile = $hookFile . '.tmpl';
-
-            if (file_exists($hookFile)) {
+            if (file_exists($hooksPath . $value['fileName'])) {
                 $repHooks[$key]['hasFile'] = true;
-
-                if (!is_readable($hookFile)) {
-                    return message(200, 0, '文件' . $hookFile . '不可读');
-                }
-                $repHooks[$key]['con'] = file_get_contents($hookFile);
+                $temp = FunShellExec(sprintf("cat '%s'", $hooksPath . $value['fileName']));
+                $repHooks[$key]['con'] = $temp['result'];
             }
-            if (file_exists($hookTmpleFile)) {
-
-                if (!is_readable($hookTmpleFile)) {
-                    return message(200, 0, '文件' . $hookTmpleFile . '不可读');
-                }
-                $repHooks[$key]['tmpl'] = file_get_contents($hookTmpleFile);
+            if (file_exists($hooksPath . $value['fileName'] . '.tmpl')) {
+                $temp = FunShellExec(sprintf("cat '%s'", $hooksPath . $value['fileName'] . '.tmpl'));
+                $repHooks[$key]['tmpl'] = $temp['result'];
             }
         }
 
@@ -1575,9 +1566,6 @@ class Svnrep extends Base
             return message(200, 0, '未创建自定义钩子目录');
         }
 
-        if (!is_readable($recommend_hook_path)) {
-            return message(200, 0, '目录' . $recommend_hook_path . '不可读');
-        }
         $dirs = scandir($recommend_hook_path);
 
         foreach ($dirs as $dir) {
@@ -1589,34 +1577,24 @@ class Svnrep extends Base
                 continue;
             }
 
-            if (!is_readable($recommend_hook_path . $dir)) {
-                return message(200, 0, '目录' . $recommend_hook_path . $dir . '不可读');
-            }
-
             $dirFiles = scandir($recommend_hook_path . $dir);
 
             if (!in_array('hookDescription', $dirFiles) || !in_array('hookName', $dirFiles)) {
                 continue;
             }
 
-            if (!is_readable($recommend_hook_path . $dir . '/hookName')) {
-                return message(200, 0, '文件' . $recommend_hook_path . $dir . '/hookName' . '不可读');
-            }
-            $hookName = file_get_contents($recommend_hook_path . $dir . '/hookName');
+            $hookName = FunShellExec(sprintf("cat '%s'", $recommend_hook_path . $dir . '/hookName'));
+            $hookName = $hookName['result'];
 
             if (!file_exists($recommend_hook_path . $dir . '/' . trim($hookName))) {
                 continue;
             }
 
-            if (!is_readable($recommend_hook_path . $dir . '/' . $hookName)) {
-                return message(200, 0, '文件' . $recommend_hook_path . $dir . '/' . $hookName . '不可读');
-            }
-            $hookContent = file_get_contents($recommend_hook_path . $dir . '/' . $hookName);
+            $hookContent = FunShellExec(sprintf("cat '%s'", $recommend_hook_path . $dir . '/' . $hookName));
+            $hookContent = $hookContent['result'];
 
-            if (!is_readable($recommend_hook_path . $dir . '/hookDescription')) {
-                return message(200, 0, '文件' . $recommend_hook_path . $dir . '/hookDescription' . '不可读');
-            }
-            $hookDescription = file_get_contents($recommend_hook_path . $dir . '/hookDescription');
+            $hookDescription = FunShellExec(sprintf("cat '%s'", $recommend_hook_path . $dir . '/hookDescription'));
+            $hookDescription = $hookDescription['result'];
 
             array_push($list, [
                 'hookName' => $hookName,

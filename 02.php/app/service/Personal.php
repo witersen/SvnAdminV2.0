@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:29:41
+ * @LastEditTime: 2022-05-11 02:15:09
  * @Description: QQ:1801168257
  */
 
@@ -118,6 +118,8 @@ class Personal extends Base
         if ($result == '1') {
             return message(200, 0, '用户不存在');
         }
+
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_passwd_file']);
 
         FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
 

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:06:09
+ * @LastEditTime: 2022-05-13 01:24:54
  * @Description: QQ:1801168257
  */
 
@@ -29,7 +29,8 @@ class Daemon
     private $scripts = [
         'start',
         'stop',
-        'debug'
+        'restart',
+        'console'
     ];
     private $config_daemon;
     private $config_svn;
@@ -41,6 +42,42 @@ class Daemon
         Config::load(BASE_PATH . '/../config/');
         $this->config_daemon = Config::get('daemon');
         $this->config_svn = Config::get('svn');
+    }
+
+    /**
+     * 将程序变为守护进程
+     */
+    private function InitDeamon()
+    {
+        $pid = pcntl_fork();
+        if ($pid < 0) {
+            exit('pcntl_fork 错误' . PHP_EOL);
+        } elseif ($pid > 0) {
+            exit();
+        }
+        $sid = posix_setsid();
+        if (!$sid) {
+            exit('posix_setsid 错误' . PHP_EOL);
+        }
+        $pid = pcntl_fork();
+        if ($pid < 0) {
+            exit('pcntl_fork 错误' . PHP_EOL);
+        } elseif ($pid > 0) {
+            exit();
+        }
+        chdir('/');
+        umask(0);
+        if (defined('STDIN')) {
+            fclose(STDIN);
+        }
+        if (defined('STDOUT')) {
+            fclose(STDOUT);
+        }
+        if (defined('STDERR')) {
+            fclose(STDERR);
+        }
+        file_put_contents($this->pidFile, getmypid());
+        $this->InitSocket();
     }
 
     /**
@@ -100,8 +137,8 @@ class Daemon
         $type = $receive['type'];
         $content = $receive['content'];
 
-        //debug模式
-        if ($this->workMode == 'debug') {
+        //console模式
+        if ($this->workMode == 'console') {
             echo PHP_EOL . '---------receive---------' . PHP_EOL;
             print_r($receive);
         }
@@ -154,8 +191,8 @@ class Daemon
             ];
         }
 
-        //debug模式
-        if ($this->workMode == 'debug') {
+        //console模式
+        if ($this->workMode == 'console') {
             echo PHP_EOL . '---------result---------' . PHP_EOL;
             echo 'resultCode: ' . $result['resultCode'] . PHP_EOL;
             echo 'result: ' . $result['result'] . PHP_EOL;
@@ -245,9 +282,29 @@ class Daemon
     }
 
     /**
-     * 停止
+     * 以守护进程模式工作
      */
-    private function Stop()
+    private function StartDaemon()
+    {
+        if (file_exists($this->pidFile)) {
+            $pid = file_get_contents($this->pidFile);
+            $result = trim(shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
+            if (strstr($result, $pid)) {
+                exit('程序正在运行中' . PHP_EOL);
+            }
+        }
+        $this->UpdateSign();
+        echo '启动成功' . PHP_EOL;
+        echo '可进行网站访问' . PHP_EOL;
+        echo '检出SVN仓库前请注意放行协议端口（默认3690）' . PHP_EOL;
+        echo '已自动更改系统加密密钥，在线用户会退出登录' . PHP_EOL;
+        $this->InitDeamon();
+    }
+
+    /**
+     * 关闭守护进程
+     */
+    private function StopDaemon()
     {
         if (file_exists($this->pidFile)) {
             $pid = file_get_contents($this->pidFile);
@@ -257,35 +314,18 @@ class Daemon
     }
 
     /**
-     * 启动
+     * 重启守护进程
      */
-    private function Start()
+    private function RestartDeamon()
     {
-        file_put_contents($this->pidFile, getmypid());
-        $this->UpdateSign();
-        echo '启动成功' . PHP_EOL;
-        echo '可进行网站访问' . PHP_EOL;
-        echo '检出SVN仓库前请注意放行协议端口（默认3690）' . PHP_EOL;
-        echo '已自动更改系统加密密钥，在线用户会退出登录' . PHP_EOL;
-        
-        chdir('/');
-        umask(0);
-        if (defined('STDIN')) {
-            fclose(STDIN);
-        }
-        if (defined('STDOUT')) {
-            fclose(STDOUT);
-        }
-        if (defined('STDERR')) {
-            fclose(STDERR);
-        }
-        $this->InitSocket();
+        $this->StopDaemon();
+        $this->StartDaemon();
     }
 
     /**
-     * 调试
+     * 以控制台模式工作 用于调试
      */
-    private function Debug()
+    private function StartConsole()
     {
         if (file_exists($this->pidFile)) {
             $pid = file_get_contents($this->pidFile);
@@ -299,25 +339,28 @@ class Daemon
 
     public function Run($argv)
     {
+
         if (isset($argv[1])) {
             $this->workMode = $argv[1];
             if (!in_array($this->workMode, $this->scripts)) {
-                exit('用法：php svnadmin.php [' . implode(' | ', $this->scripts) . ']' . PHP_EOL);
+                exit('用法：php svnadmin.php [start | stop | restart | console]' . PHP_EOL);
             }
             if ($this->workMode == 'stop') {
-                $this->Stop();
+                $this->StopDaemon();
             } else {
                 $this->CheckSysType();
                 $this->CheckPhpVersion();
                 $this->CheckDisabledFun();
-                if ($this->workMode == 'debug') {
-                    $this->Debug();
-                } else if ($this->workMode == 'start') {
-                    $this->Start();
+                if ($this->workMode == 'start') {
+                    $this->StartDaemon();
+                } else if ($this->workMode == 'restart') {
+                    $this->RestartDeamon();
+                } else if ($this->workMode == 'console') {
+                    $this->StartConsole();
                 }
             }
         } else {
-            exit('用法：php svnadmin.php [' . implode(' | ', $this->scripts) . ']' . PHP_EOL);
+            exit('用法：php svnadmin.php [start | stop restart | console]' . PHP_EOL);
         }
     }
 }

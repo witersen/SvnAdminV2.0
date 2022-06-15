@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:29:58
+ * @LastEditTime: 2022-05-11 02:16:31
  * @Description: QQ:1801168257
  */
 
@@ -183,6 +183,8 @@ class Svngroup extends Base
         }
 
         //写入配置文件
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //写入数据库
@@ -217,6 +219,8 @@ class Svngroup extends Base
         if ($result == '1') {
             return message(200, 0, '分组不存在');
         }
+
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
 
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
@@ -262,6 +266,8 @@ class Svngroup extends Base
         if ($result == '0') {
             return message(200, 0, '文件格式错误(不存在[groups]标识)');
         }
+
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
 
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
@@ -348,6 +354,8 @@ class Svngroup extends Base
             return message(200, 0, '要添加的用户已存在该分组');
         }
 
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         return message();
@@ -368,6 +376,8 @@ class Svngroup extends Base
         if ($result == '2') {
             return message(200, 0, '要删除的用户不在该分组');
         }
+
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
 
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
@@ -401,6 +411,8 @@ class Svngroup extends Base
             return message(200, 0, '存在分组循环嵌套的情况');
         }
 
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
+
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         return message();
@@ -421,6 +433,8 @@ class Svngroup extends Base
         if ($result == '2') {
             return message(200, 0, '要删除的分组不在该分组');
         }
+
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_authz_file']);
 
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 

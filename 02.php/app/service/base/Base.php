@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-06 18:42:00
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:39:27
+ * @LastEditTime: 2022-05-09 21:10:15
  * @Description: QQ:1801168257
  */
 
@@ -269,15 +269,7 @@ class Base
      */
     public function GetAuthz()
     {
-        if (!file_exists($this->config_svn['svn_authz_file'])) {
-            json1(200, 0, '文件' . $this->config_svn['svn_authz_file'] . '不存在');
-        }
-
-        if (!is_readable($this->config_svn['svn_authz_file'])) {
-            json1(200, 0, '文件' . $this->config_svn['svn_authz_file'] . '不可读');
-        }
-
-        $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
+        $this->authzContent = file_exists($this->config_svn['svn_authz_file']) ? file_get_contents($this->config_svn['svn_authz_file']) : '';
     }
 
     /**
@@ -285,14 +277,6 @@ class Base
      */
     public function GetPasswd()
     {
-        if (!file_exists($this->config_svn['svn_passwd_file'])) {
-            json1(200, 0, '文件' . $this->config_svn['svn_passwd_file'] . '不存在');
-        }
-
-        if (!is_readable($this->config_svn['svn_passwd_file'])) {
-            json1(200, 0, '文件' . $this->config_svn['svn_passwd_file'] . '不可读');
-        }
-
-        $this->passwdContent = file_get_contents($this->config_svn['svn_passwd_file']);
+        $this->passwdContent = file_exists($this->config_svn['svn_passwd_file']) ? file_get_contents($this->config_svn['svn_passwd_file']) : '';
     }
 }

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:06
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-21 12:51:28
+ * @LastEditTime: 2022-05-13 01:25:06
  * @Description: QQ:1801168257
  */
 
@@ -16,8 +16,8 @@
 /**
  * 开启错误信息 如需要调试 可取消注释
  */
-ini_set('display_errors', '1');
-error_reporting(E_ALL);
+// ini_set('display_errors', '1');
+// error_reporting(E_ALL);
 
 define('BASE_PATH', __DIR__);
 
@@ -98,7 +98,6 @@ foreach ($disable_functions as $disable) {
 
 //检测守护进程状态
 $state = FunDetectState();
-// return;
 if ($state == 0) {
     json1(401, 0, '守护进程响应超时');
 } else if ($state == 2) {

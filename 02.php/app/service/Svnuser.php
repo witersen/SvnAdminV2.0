@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:31:46
+ * @LastEditTime: 2022-05-11 02:21:30
  * @Description: QQ:1801168257
  */
 
@@ -166,6 +166,8 @@ class Svnuser extends Base
             return message(200, 0, '要启用的用户不存在');
         }
 
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_passwd_file']);
+
         FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
         return message();
@@ -183,6 +185,8 @@ class Svnuser extends Base
         if ($result == '1') {
             return message(200, 0, '要禁用的用户不存在');
         }
+
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_passwd_file']);
 
         FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
@@ -229,6 +233,8 @@ class Svnuser extends Base
         }
 
         //写入配置文件
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_passwd_file']);
+
         FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
         //写入数据库
@@ -269,6 +275,8 @@ class Svnuser extends Base
         }
 
         //写入配置文件
+        // FunShellExec('echo \'' . $result . '\' > ' . $this->config_svn['svn_passwd_file']);
+
         FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
         //写入数据库
@@ -308,7 +316,11 @@ class Svnuser extends Base
             'svn_user_name' => $this->payload['svn_user_name']
         ]);
 
+        // FunShellExec('echo \'' . $resultAuthz . '\' > ' . $this->config_svn['svn_authz_file']);
+
         FunFilePutContents($this->config_svn['svn_authz_file'], $resultAuthz);
+
+        // FunShellExec('echo \'' . $resultPasswd . '\' > ' . $this->config_svn['svn_passwd_file']);
 
         FunFilePutContents($this->config_svn['svn_passwd_file'], $resultPasswd);
 
