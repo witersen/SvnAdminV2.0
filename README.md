@@ -106,7 +106,7 @@ php svnadmind.php start
 php svnadmin.php console
 
 #停止（有问题或想停止服务，可自行停止）
-php svandmin.php stop
+php svnandmin.php stop
 ```
 
 - 将本程序加入开机自启（可选）
