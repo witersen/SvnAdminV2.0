@@ -11,7 +11,7 @@
 
 - 发行包：
   - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.3.1/v2.3.1.zip
-  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099674/download/v2.3.1.zip
+  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099697/download/v2.3.1.zip
 
 - 兼容性
   - 操作系统：CentOS7（推荐）、CentOS8、Rocky、Ubuntu（Windows及其它Linux发行版正在测试兼容中）
@@ -337,12 +337,12 @@ php server/install.php
 ```
 - 执行适配程序
 ```
-#执行脚本并选择使用第2个选项
+#执行脚本并选择使用第2个选项，选择不覆盖原来的 autzh 、passwd、svnadmin.db 等文件
 php server/install.php
 ```
 - 启动后台程序
 ```
-php server/svnadmind.php start
+启动方式见步骤一
 ```
 
 ## 六、常见问题解答
@@ -357,7 +357,12 @@ php server/svnadmind.php start
 
 ### 2、如何将数据库切换为MySQL ？
 
-- 你只需要修改 config/database.php 将sqlite部分注释并配置你的MySQL即可
+- 创建数据库
+
+- 将系统提供的 mysql 数据库文件导入到你的MySQL数据库
+
+- 修改 config/database.php 将sqlite部分注释并配置你的MySQL即可
+- 注意：若php版本过低而MySQL版本>=8.0，则会提示：The server requested authentication method unknown to the client，只需要升级php版本或者修改MySQL数据库的配置信息即可
 
 ### 3、为什么只支持管理Subversion1.8+ ？
 
