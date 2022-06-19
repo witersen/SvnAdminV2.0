@@ -410,7 +410,29 @@ php server/install.php
 
 - 与LDAP的对接将会等待一段时间，因为还需要时间使当前版本更稳定
 
-### 9、本软件的工作模式
+### 9、如何找回密码
+
+- 使用默认的SQLite数据库
+```
+#使用sqlite数据库
+
+yum install -y sqlite-devel
+
+cd /home/svnadmin
+
+sqlite3 svnadmin.db
+
+.header on
+
+.mode column
+
+select * from admin_users;
+```
+
+- 使用MySQL数据库
+  - 使用可视化工具登录到数据库查看 admin_users 数据表信息即可
+
+### 10、本软件的工作模式
 
 - 通过使 svnadmind.php 成为守护进程并监听指定端口来工作
 - php-fpm与php-cli程序的使用TCP套接字通信
