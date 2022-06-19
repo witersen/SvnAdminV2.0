@@ -10,8 +10,8 @@
   - Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
 
 - 发行包：
-  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.3/v2.3.zip
-  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/attach_files/1059115/download/v2.3.zip
+  - GitHub：-
+  - Gitee：-
 
 - 兼容性
   - 操作系统：CentOS7（推荐）、CentOS8、Rocky、Ubuntu（Windows及其它Linux发行版正在测试兼容中）
@@ -29,7 +29,7 @@
 
 ```
 #解压缩和网络获取工具
-yum install -y zip unzip wget
+yum install -y zip unzip wget vim
 
 #由于CentOS7默认源中提供的PHP版本为5.4，因此我们使用remi源安装不同php版本
 yum install -y epel-release
@@ -68,10 +68,10 @@ systemctl enable httpd
 cd /var/www/html/
 
 #代码包从发行版获取
-wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1059115/download/v2.3.zip
+wget -
 
 #解压
-unzip v2.3
+unzip v2.3.1
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）
@@ -96,23 +96,52 @@ cd /var/www/html/server
 php install.php
 ```
 
-- 启动本程序的后台进程
+- 启动本程序的后台进程（手动管理）（与下方系统管理方式二选一即可）
 
 ```
-#以守护进程模式启动（通常情况下是这样）
-php svnadmind.php start
+#正式启动（后台模式）
+nohup php svnadmind.php start >/dev/null 2>&1 &
 
-#以调试模式启动（出问题可自行调试）
+#停止
+php svnandmin.php stop
+
+#调试模式
 php svnadmin.php console
 
-#停止（有问题或想停止服务，可自行停止）
-php svnandmin.php stop
 ```
 
-- 将本程序加入开机自启（可选）
+- 或者将本程序加入系统管理和开机自启（系统管理）（可选）
 
 ```
-todo ..........
+#新建文件 svnserve.service
+vim /usr/lib/systemd/system/svnadmind.service
+
+#写入以下内容
+#注意 /var/www/html/server/svnadmind.php 要改为自己实际的文件路径
+#文件名称为 svnadmind 则表示我们新建的服务名称为 svnadmind
+[Unit]
+Description=SVNAdmin
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/php /var/www/html/server/svnadmind.php start
+
+[Install]
+WantedBy=multi-user.target
+
+#启动
+systemctl daemon-reload
+systemctl start svnadmind
+
+#查看状态
+systemctl status svnadmind
+
+#加入开机自启动
+systemctl enable svnadmind
+
+#取消开机自启动
+systemctl diable svnadmind
 ```
 
 ### 2、在安装宝塔面板的操作系统安装示例
@@ -142,11 +171,11 @@ todo ..........
 
 ## 二、docker安装
 
-- 暂无时间制作docker包，等待大家贡献或者自己有时间去做
+- docker在下个版本v2.3.2支持
 
 ## 三 、功能介绍
 
-- 登录界面可分角色登录，配合后端实现的登录验证码更安全
+- 登录界面可分角色登录，配合后端实现的登录验证码更安全（验证码可后台手动关闭开启）
 
   ![](./00.static/01.demo/01.jpg)
   
