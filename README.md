@@ -330,6 +330,19 @@ cd /var/www/html/
 #停止旧版本的守护进程
 php server/svnadmind.php stop
 ```
+- 备份
+
+```
+mkdir -p /var/www/html2
+cp -r /var/www/html /var/www/html2
+rm -rf /var/www/html/*
+```
+- 部署新版本代码
+```
+cd /var/www/html/
+wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099697/download/v2.3.1.zip
+unzip v2.3.1.zip
+```
 - 升级Subversion版本（1.8+）（>=1.8则无需升级）
 ```
 #执行脚本并选择使用第1个选项
