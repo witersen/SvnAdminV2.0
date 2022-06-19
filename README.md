@@ -10,8 +10,8 @@
   - Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
 
 - 发行包：
-  - GitHub：-
-  - Gitee：-
+  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.3.1/v2.3.1.zip
+  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099674/download/v2.3.1.zip
 
 - 兼容性
   - 操作系统：CentOS7（推荐）、CentOS8、Rocky、Ubuntu（Windows及其它Linux发行版正在测试兼容中）
@@ -31,7 +31,7 @@
 #解压缩和网络获取工具
 yum install -y zip unzip wget vim
 
-#由于CentOS7默认源中提供的PHP版本为5.4，因此我们使用remi源安装不同php版本
+#由于CentOS7默认源中提供的PHP版本为5.4，因此我们使用remi源安装更高的php版本
 yum install -y epel-release
 wget http://rpms.remirepo.net/enterprise/remi-release-7.rpm
 rpm -Uvh remi-release-7.rpm
@@ -68,7 +68,7 @@ systemctl enable httpd
 cd /var/www/html/
 
 #代码包从发行版获取
-wget -
+wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099674/download/v2.3.1.zip
 
 #解压
 unzip v2.3.1
@@ -96,21 +96,7 @@ cd /var/www/html/server
 php install.php
 ```
 
-- 启动本程序的后台进程（手动管理）（与下方系统管理方式二选一即可）
-
-```
-#正式启动（后台模式）
-nohup php svnadmind.php start >/dev/null 2>&1 &
-
-#停止
-php svnandmin.php stop
-
-#调试模式
-php svnadmin.php console
-
-```
-
-- 或者将本程序加入系统管理和开机自启（系统管理）（可选）
+- 或者将本程序加入系统管理和开机自启（系统管理）（推荐）（与下方启动方式二选一即可）
 
 ```
 #新建文件 svnserve.service
@@ -144,6 +130,20 @@ systemctl enable svnadmind
 systemctl diable svnadmind
 ```
 
+- 启动本程序的后台进程（手动管理）（与上方启动方式二选一即可）
+
+```
+#正式启动（后台模式）
+nohup php svnadmind.php start >/dev/null 2>&1 &
+
+#停止
+php svnandmin.php stop
+
+#调试模式
+php svnadmin.php console
+
+```
+
 ### 2、在安装宝塔面板的操作系统安装示例
 
 - 创建站点
@@ -163,7 +163,7 @@ systemctl diable svnadmind
 
 ### 3、在ubutntu18安装示例
 
-- 注意以root用户执行 server/install.php 和 server/install.php 即可
+- 注意以root用户执行 server/install.php 和 server/svnadmind.php 即可
 
 ### 4、在Rocky安装示例
 
@@ -299,7 +299,7 @@ systemctl diable svnadmind
 - [ ] 支持文件和文件夹在线下载
 - [x] 支持重设仓库UUID
 - [ ] 删除仓库需要输入管理人员密码
-- [ ] 支持修改应用根目录
+- [x] 支持修改应用根目录
 - [ ] 支持authz、passwd文件的在线识别导入和导出
 - [ ] docker部署
 - [ ] 邮件发送和仓库备份等使用异步任务
@@ -317,9 +317,9 @@ systemctl diable svnadmind
 
 ### 2、计划改进部分
 
-## 五、旧版本如何升级
+## 五、手动升级
 
-由于v2.3版本改动较大，因此需要使用之前版本的用户进行手动配置升级，具体操作步骤如下：
+手动配置升级，具体操作步骤如下：
 
 ```
 #假设你的代码部署在 /var/www/html/ 目录下
@@ -330,7 +330,7 @@ cd /var/www/html/
 #停止旧版本的守护进程
 php server/svnadmind.php stop
 ```
-- 升级Subversion版本（1.8+）
+- 升级Subversion版本（1.8+）（>=1.8则无需升级）
 ```
 #执行脚本并选择使用第1个选项
 php server/install.php
@@ -340,7 +340,7 @@ php server/install.php
 #执行脚本并选择使用第2个选项
 php server/install.php
 ```
-- 启动守护进程
+- 启动后台程序
 ```
 php server/svnadmind.php start
 ```
