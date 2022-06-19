@@ -218,8 +218,15 @@ class Statistics extends Base
     public function GetSystemAnalysis()
     {
         //操作系统类型和版本
-        $os = FunShellExec("cat /etc/redhat-release");
-        $os = $os['result'];
+        if (file_exists('/etc/redhat-release')) {
+            $os = FunShellExec("cat /etc/redhat-release");
+            $os = $os['result'];
+        } else if (file_exists('/etc/lsb-release')) {
+            $os = FunShellExec("cat /etc/lsb-release");
+            $os = $os['result'];
+        } else {
+            $os = 'Linux';
+        }
 
         //仓库占用体积
         $repSize = FunFormatSize(FunGetDirSizeDu($this->config_svn['rep_base_path']));

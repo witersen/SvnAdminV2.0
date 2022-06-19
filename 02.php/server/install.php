@@ -37,6 +37,7 @@ class Install
     private $config_svn;
     private $config_update;
     private $config_version;
+    private $config_bin;
 
     private $scripts = [
         [
@@ -51,6 +52,10 @@ class Install
             'index' => 3,
             'note' => '检测SVNAdmin的新版本'
         ],
+        [
+            'index' => 4,
+            'note' => '修改当前的数据存储主目录'
+        ]
     ];
 
     function __construct()
@@ -62,6 +67,7 @@ class Install
         $this->config_svn = Config::get('svn');
         $this->config_update = Config::get('update');
         $this->config_version = Config::get('version');
+        $this->config_bin = Config::get('bin');
     }
 
     /**
@@ -182,6 +188,11 @@ class Install
                 echo '===============================================' . PHP_EOL;
                 exit();
             }
+            if ($this->config_version['version'] > $last) {
+                echo '当前版本高于已发布版本' . PHP_EOL;
+                echo '===============================================' . PHP_EOL;
+                exit();
+            }
         }
     }
 
@@ -240,6 +251,26 @@ class Install
         } else {
             return false;
         }
+    }
+
+    /**
+     * 检测目标路径是否为空
+     *
+     * @return bool
+     */
+    private function IsDirEmpty($path)
+    {
+        clearstatcache();
+
+        $filename = scandir($path);
+
+        foreach ($filename as $key => $value) {
+            if ($value != '.' && $value != '..') {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -392,11 +423,49 @@ CON;
 
         //写入authz文件
         $con_svn_authz_file = file_get_contents($templete_path . 'svnserve/authz');
-        file_put_contents($this->config_svn['svn_authz_file'], $con_svn_authz_file);
+        if (file_exists($this->config_svn['svn_authz_file'])) {
+            echo PHP_EOL . '===============================================' . PHP_EOL;
+            echo '要覆盖原有的权限配置文件 authz 吗？[y/n]：';
+            $continue = strtolower(trim(fgets(STDIN)));
+
+            if (!in_array($continue, ['y', 'n'])) {
+                echo '不正确的选项！'  . PHP_EOL;
+                echo '===============================================' . PHP_EOL;
+                exit();
+            }
+
+            if ($continue == 'y') {
+                //备份
+                copy($this->config_svn['svn_authz_file'], $this->config_svn['home_path'] . time() . 'authz');
+                //操作
+                file_put_contents($this->config_svn['svn_authz_file'], $con_svn_authz_file);
+            }
+        } else {
+            file_put_contents($this->config_svn['svn_authz_file'], $con_svn_authz_file);
+        }
 
         //写入passwd文件
         $con_svn_passwd_file = file_get_contents($templete_path . 'svnserve/passwd');
-        file_put_contents($this->config_svn['svn_passwd_file'], $con_svn_passwd_file);
+        if (file_exists($this->config_svn['svn_passwd_file'])) {
+            echo PHP_EOL . '===============================================' . PHP_EOL;
+            echo '要覆盖原有的权限配置文件 passwd 吗？[y/n]：';
+            $continue = strtolower(trim(fgets(STDIN)));
+
+            if (!in_array($continue, ['y', 'n'])) {
+                echo '不正确的选项！'  . PHP_EOL;
+                echo '===============================================' . PHP_EOL;
+                exit();
+            }
+
+            if ($continue == 'y') {
+                //备份
+                copy($this->config_svn['svn_passwd_file'], $this->config_svn['home_path'] . time() . 'passwd');
+                //操作
+                file_put_contents($this->config_svn['svn_passwd_file'], $con_svn_passwd_file);
+            }
+        } else {
+            file_put_contents($this->config_svn['svn_passwd_file'], $con_svn_passwd_file);
+        }
 
         //创建svnserve运行日志文件
         file_put_contents($this->config_svn['svnserve_log_file'], '');
@@ -425,7 +494,26 @@ CON;
          */
         echo '配置并启用SQLite数据库' . PHP_EOL;
 
-        copy($templete_path . '/database/sqlite/svnadmin.db', $this->config_svn['home_path'] . 'svnadmin.db');
+        if (file_exists($this->config_svn['home_path'] . 'svnadmin.db')) {
+            echo PHP_EOL . '===============================================' . PHP_EOL;
+            echo '要覆盖原有的SQLite数据库文件 svnadmin.db 吗？[y/n]：';
+            $continue = strtolower(trim(fgets(STDIN)));
+
+            if (!in_array($continue, ['y', 'n'])) {
+                echo '不正确的选项！'  . PHP_EOL;
+                echo '===============================================' . PHP_EOL;
+                exit();
+            }
+
+            if ($continue == 'y') {
+                //备份
+                copy($this->config_svn['home_path'] . 'svnadmin.db', $this->config_svn['home_path'] . time() . 'svnadmin.db');
+                //操作
+                copy($templete_path . '/database/sqlite/svnadmin.db', $this->config_svn['home_path'] . 'svnadmin.db');
+            }
+        } else {
+            copy($templete_path . '/database/sqlite/svnadmin.db', $this->config_svn['home_path'] . 'svnadmin.db');
+        }
 
         //配置SQLite数据库文件的父目录权限配置为777 解决无法写入且不报错的问题
         shell_exec('chmod 777 ' . $this->config_svn['home_path']);
@@ -493,6 +581,180 @@ CON;
         passthru('systemctl status svnserve');
 
         echo '===============================================' . PHP_EOL;
+    }
+
+    /**
+     * 修改当前的数据存储主目录
+     */
+    function MoveHome()
+    {
+        //检查是否停止了svnserve
+        if (shell_exec('ps auxf|grep -v "grep"|grep svnserve') != '') {
+            echo '请先手动停止正在运行的 svnserve 程序后重试！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
+        }
+
+        //输入路径
+        echo '请输入目标目录的绝对路径：';
+        $newHomePath = trim(fgets(STDIN));
+        if ($newHomePath == '') {
+            echo '===============================================' . PHP_EOL;
+            echo '输入不能为空！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
+        }
+
+        //检查要修改的目标路径是否存在
+        clearstatcache();
+        if (!is_dir($newHomePath)) {
+            echo '===============================================' . PHP_EOL;
+            echo '目标目录不存在！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
+        }
+
+        //路径是否相同
+        if ($newHomePath == $this->config_svn['home_path']) {
+            echo '===============================================' . PHP_EOL;
+            echo '路径无变化！'  . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
+        }
+
+        //检查目标路径是否为空
+        if (!$this->IsDirEmpty($newHomePath)) {
+            echo '===============================================' . PHP_EOL;
+            echo '目标目录需要为空！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
+        }
+
+        echo '===============================================' . PHP_EOL;
+        echo '提醒！该步骤适用于您之前执行过 [1] 或 [2] 步骤进行过初始化配置的情况' . PHP_EOL;
+
+        echo '===============================================' . PHP_EOL;
+        echo '提醒！不建议将数据存储主目录移动到 root 目录下，因为这会导致读取权限出现问题（除非将 root 目录设置 777 ，但是也不是好主意）' . PHP_EOL;
+
+        //对输入的路径规范化，如果末尾没有带有 / 则自动补全
+        if (substr($newHomePath, strlen($newHomePath) - 1) != '/') {
+            $newHomePath .= '/';
+        }
+
+        //再次确认
+        echo '===============================================' . PHP_EOL;
+        echo sprintf('将数据存储主目录从 %s 修改为 %s', $this->config_svn['home_path'], $newHomePath) . PHP_EOL;
+        echo '===============================================' . PHP_EOL;
+        echo '确定要继续操作吗[y/n]：';
+        $continue = strtolower(trim(fgets(STDIN)));
+        echo '===============================================' . PHP_EOL;
+
+        if (!in_array($continue, ['y', 'n'])) {
+            echo '不正确的选项！'  . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
+        }
+
+        if ($continue == 'n') {
+            echo '已取消！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+            exit();
+        }
+
+        //旧内容
+        $old_config_svn = $this->config_svn;
+
+        //修改配置文件 svn.php
+        $con = file_get_contents(BASE_PATH . '/../config/svn.php');
+        $con  = preg_replace("/\\\$home_path[\s]*=[\s]*(['\"])(.*)\\1[;]/", sprintf("\$home_path = '%s';", $newHomePath), $con);
+        //判断是否匹配成功
+        file_put_contents(BASE_PATH . '/../config/svn.php', $con);
+
+        //新内容
+        $new_config_svn = Config::get('svn');
+
+        //修改svnserve文件中的仓库路径、配置文件路径、日志文件路径
+        echo '修改svnserve环境变量文件' . PHP_EOL;
+
+        $templete_path = BASE_PATH . '/../templete/';
+        $con_svnserve_env_file = file_get_contents($templete_path . 'svnserve/svnserve');
+        $con_svnserve_env_file = sprintf($con_svnserve_env_file, $new_config_svn['rep_base_path'], $new_config_svn['svn_conf_file'], $new_config_svn['svnserve_log_file']);
+        file_put_contents($old_config_svn['svnserve_env_file'], $con_svnserve_env_file);
+
+        echo '===============================================' . PHP_EOL;
+
+        //开始移动主目录
+        echo '开始移动主目录' . PHP_EOL;
+
+        passthru(sprintf("mv %s* %s", $old_config_svn['home_path'], $new_config_svn['home_path']));
+
+        echo '===============================================' . PHP_EOL;
+
+        //为新目录授权
+        echo '为新目录授权' . PHP_EOL;
+
+        shell_exec('chmod 777 -R ' . $new_config_svn['home_path']);
+
+        echo '===============================================' . PHP_EOL;
+
+        echo '清理之前注册的svnserve服务' . PHP_EOL;
+
+        passthru('systemctl stop svnserve.service');
+        passthru('systemctl disable svnserve.service');
+        passthru('systemctl daemon-reload');
+
+        echo '===============================================' . PHP_EOL;
+
+        echo '注册新的svnserve服务' . PHP_EOL;
+
+        $os = $this->GetOS();
+        $con_svnserve_service_file = file_get_contents($templete_path . 'svnserve/svnserve.service');
+        $con_svnserve_service_file = sprintf($con_svnserve_service_file, $new_config_svn['svnserve_env_file'], $this->config_bin['svnserve'], $new_config_svn['svnserve_pid_file']);
+        if ($os == 'centos 7' || $os == 'centos 8') {
+            file_put_contents($new_config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+        } else if ($os == 'ubuntu') {
+            file_put_contents($new_config_svn['svnserve_service_file']['ubuntu'], $con_svnserve_service_file);
+        } else if ($os == 'rocky') {
+            file_put_contents($new_config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+        } else {
+            file_put_contents($new_config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+            echo '===============================================' . PHP_EOL;
+            echo '警告！当前操作系统版本未测试，使用过程中可能会遇到问题！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+        }
+
+        echo '===============================================' . PHP_EOL;
+
+        //启动
+        echo '开始启动svnserve服务' . PHP_EOL;
+
+        passthru('systemctl daemon-reload');
+        passthru('systemctl start svnserve');
+
+        echo '===============================================' . PHP_EOL;
+
+        //开机自启动
+        echo '将svnserve服务加入到开机自启动' . PHP_EOL;
+
+        passthru('systemctl enable svnserve');
+
+        echo '===============================================' . PHP_EOL;
+
+        //查看状态
+        echo 'svnserve重新配置成功，打印运行状态：' . PHP_EOL;
+
+        passthru('systemctl status svnserve');
+
+        echo '===============================================' . PHP_EOL;
+
+        //重启守护进程
+        echo '请运行 svnadmind.php 程序手动重启后台程序！' . PHP_EOL;
+
+        passthru('php svnadmind.php stop');
+
+        echo '===============================================' . PHP_EOL;
+
+        //sqlite数据库
     }
 
     /**
@@ -587,6 +849,9 @@ CON;
         } else if ($answer == 3) {
             //检测SVNAdmin的新版本
             $this->DetectUpdate();
+        } else if ($answer == 4) {
+            //修改当前的数据存储主目录
+            $this->MoveHome();
         }
     }
 }

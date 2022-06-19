@@ -41,6 +41,10 @@ class Update extends Base
             if ($this->config_version['version'] < $last) {
                 return message(200, 1, '有新版本', $array);
             }
+
+            if ($this->config_version['version'] > $last) {
+                return message(200, 1, '当前版本高于已发布版本');
+            }
         }
 
         return message(200, 0, '检测超时');

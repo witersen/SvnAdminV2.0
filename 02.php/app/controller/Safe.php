@@ -23,7 +23,40 @@ class Safe extends Base
     function __construct()
     {
         parent::__construct();
-        
+
         $this->ServiceSafe = new ServiceSafe();
+    }
+
+    /**
+     * 获取安全配置选项
+     *
+     * @return array
+     */
+    public function GetSafeConfig()
+    {
+        $result = $this->ServiceSafe->GetSafeConfig();
+        json2($result);
+    }
+
+    /**
+     * 设置安全配置选项
+     *
+     * @return array
+     */
+    public function SetSafeConfig()
+    {
+        $result = $this->ServiceSafe->SetSafeConfig();
+        json2($result);
+    }
+
+    /**
+     * 获取登录验证码选项
+     *
+     * @return array
+     */
+    public function GetVerifyOption()
+    {
+        $result = $this->ServiceSafe->GetVerifyOption();
+        json2($result);
     }
 }

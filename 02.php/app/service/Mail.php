@@ -372,6 +372,7 @@ class Mail extends Base
                 'option_value' => serialize($message_push_null),
                 'option_description' => ''
             ]);
+            
             return message(200, 1, '成功', $message_push_null);
         }
         if ($message_push['option_value'] == '') {
@@ -380,6 +381,7 @@ class Mail extends Base
             ], [
                 'option_name' => 'message_push',
             ]);
+
             return message(200, 1, '成功', $message_push_null);
         }
 
@@ -396,6 +398,7 @@ class Mail extends Base
         ], [
             'option_name' => 'message_push'
         ]);
+
         return message();
     }
 }

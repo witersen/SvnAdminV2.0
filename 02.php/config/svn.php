@@ -8,7 +8,7 @@
  */
 
 /**
- * 如果要修改安装路径 ，请在安装本程序前修改$home_path的值，安装程序后不支持修改
+ * 如果要修改安装路径 ，可通过执行 server/install.php 来实现
  */
 
 $home_path = '/home/svnadmin/';

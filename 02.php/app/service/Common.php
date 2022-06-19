@@ -21,6 +21,7 @@ class Common extends Base
     private $Svnuser;
     private $Logs;
     private $Mail;
+    private $Safe;
 
     function __construct()
     {
@@ -29,6 +30,7 @@ class Common extends Base
         $this->Svnuser = new Svnuser();
         $this->Logs = new Logs();
         $this->Mail = new Mail();
+        $this->Safe = new Safe();
     }
 
     /**
@@ -39,17 +41,27 @@ class Common extends Base
         //清理过期token
         $this->CleanBlack();
 
-        $codeResult = $this->database->get('verification_code', [
-            'end_time'
-        ], [
-            'uuid' => $this->payload['uuid'],
-            'code' => $this->payload['code'],
-        ]);
-        if ($codeResult == null) {
-            return message(200, 0, '验证码错误', $codeResult);
+        $verifyOptionResult = $this->Safe->GetVerifyOption();
+
+        if ($verifyOptionResult['status'] != 1) {
+            return message(200, 0, $verifyOptionResult['message']);
         }
-        if ($codeResult['end_time'] < time()) {
-            return message(200, 0, '验证码过期');
+
+        $verifyOption = $verifyOptionResult['data'];
+
+        if ($verifyOption['enable'] == true) {
+            $codeResult = $this->database->get('verification_code', [
+                'end_time'
+            ], [
+                'uuid' => $this->payload['uuid'],
+                'code' => $this->payload['code'],
+            ]);
+            if ($codeResult == null) {
+                return message(200, 0, '验证码错误', $codeResult);
+            }
+            if ($codeResult['end_time'] < time()) {
+                return message(200, 0, '验证码过期');
+            }
         }
 
         $checkResult = FunCheckForm($this->payload, [
@@ -152,7 +164,7 @@ class Common extends Base
     /**
      * 获取验证码
      */
-    public function GetVeryfyCode()
+    public function GetVerifyCode()
     {
         //清除过期验证码
         $this->Clean();

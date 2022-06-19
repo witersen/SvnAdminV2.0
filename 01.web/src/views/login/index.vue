@@ -5,7 +5,7 @@
 <template>
   <div class="login">
     <div class="login-con">
-      <Card icon="log-in" title="SVNAdmin V2.3" :bordered="false">
+      <Card icon="log-in" title="SVNAdmin V2.3.1" :bordered="false">
         <div class="form-con">
           <Form
             ref="formUserLogin"
@@ -41,7 +41,7 @@
                 <Option value="2">SVN用户</Option>
               </Select>
             </FormItem>
-            <FormItem prop="code">
+            <FormItem prop="code" v-if="verifyOption">
               <Row>
                 <Col span="11"
                   ><Input
@@ -52,9 +52,9 @@
                 <Col span="1"></Col>
                 <Col span="12">
                   <img
-                    @click="GetVeryfyCode"
+                    @click="GetVerifyCode"
                     :src="formUserLogin.base64"
-                    :alt="loadingGetVeryfyCode"
+                    :alt="loadingGetVerifyCode"
                     style="width: 100%; cursor: pointer"
                   />
                 </Col>
@@ -83,8 +83,13 @@ export default {
       /**
        * 加载
        */
-      loadingGetVeryfyCode: "loading......",
+      loadingGetVerifyCode: "loading......",
       loadingLogin: false,
+
+      /**
+       * 组件状态
+       */
+      verifyOption: false,
 
       /**
        * 表单
@@ -130,7 +135,7 @@ export default {
         }
       }, 2000);
     } else {
-      that.GetVeryfyCode();
+      that.GetVerifyOption();
     }
   },
   methods: {
@@ -145,15 +150,41 @@ export default {
       });
     },
     /**
-     * 请求验证码
+     * 获取验证码选项
      */
-    GetVeryfyCode() {
+    GetVerifyOption() {
       var that = this;
-      that.formUserLogin.base64 = "";
-      that.loadingGetVeryfyCode = "loading......";
       var data = {};
       that.$axios
-        .post("/api.php?c=Common&a=GetVeryfyCode&t=web", data)
+        .post("/api.php?c=Safe&a=GetVerifyOption&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            if (result.data.enable == true) {
+              that.verifyOption = true;
+              that.GetVerifyCode();
+            } else {
+              that.verifyOption = false;
+            }
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 请求验证码
+     */
+    GetVerifyCode() {
+      var that = this;
+      that.formUserLogin.base64 = "";
+      that.loadingGetVerifyCode = "loading......";
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Common&a=GetVerifyCode&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -204,7 +235,7 @@ export default {
               that.$router.push({ name: "repositoryInfo" });
             }
           } else {
-            that.GetVeryfyCode();
+            that.GetVerifyCode();
             that.$Message.error(result.message);
           }
         })

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-06 18:41:32
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 12:11:40
+ * @LastEditTime: 2022-05-20 15:04:52
  * @Description: QQ:1801168257
  */
 
@@ -69,8 +69,6 @@ require_once BASE_PATH . '/app/service/Svnuser.php';
 require_once BASE_PATH . '/app/service/Update.php';
 
 //require extension
-require_once BASE_PATH . '/extension/Transfer/Transfer.php';
-
 require_once BASE_PATH . '/extension/Medoo-1.7.10/src/Medoo.php';
 
 require_once BASE_PATH . '/extension/PHPMailer-6.6.0/src/Exception.php';

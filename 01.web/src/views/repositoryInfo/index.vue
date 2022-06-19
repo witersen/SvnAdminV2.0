@@ -249,14 +249,6 @@
           >
         </Col>
       </Row>
-      <Alert type="warning"
-        >请注意当前的文件下载方案采用
-        <a href="https://github.com/jimmywarting/StreamSaver.js" target="_blank"
-          >StreamSaver</a
-        >
-        <br />
-        如要获取良好的下载体验，请为站点配置HTTPS</Alert
-      >
       <Table
         height="200"
         border
@@ -269,7 +261,7 @@
           <Button
             type="success"
             size="small"
-            @click="DownloadRepBackup(row.fileName)"
+            @click="DownloadRepBackup(row.fileUrl)"
             >下载</Button
           >
           <Button type="error" size="small" @click="DelRepBackup(row.fileName)"
@@ -826,6 +818,23 @@
             </FormItem>
           </Form>
         </TabPane>
+        <!-- <TabPane label="从仓库导出权限">
+          <Alert
+            >即：将本仓库原有配置的权限导入到本系统<br /><br />
+            由于本系统采用多仓库对应一个配置文件的形式，而不是传统的一个仓库对应一个配置文件的形式<br /><br />
+            因此您将之前的仓库通过本系统管理后，原有仓库的人员和分组权限信息不再生效，但是他们依然存在于配置文件中<br /><br />
+            因此您可通过识别功能将原来的人员和分组信息识别并导入到本系统以使原仓库的角色配置信息依然生效<br /><br />
+            此处只支持识别 authz 和 未加密的 passwd 文件
+          </Alert>
+        </TabPane> -->
+        <!-- <TabPane label="向仓库导入权限">
+          <Alert>
+            即：将本系统配置的角色和分组信息单独写入到本仓库中<br /><br />
+            由于本系统采用多仓库对应一个配置文件的形式，而不是传统的一个仓库对应一个配置文件的形式<br /><br />
+            因此本操作适合于您不再使用本系统管理仓库并想回归一个仓库对应一个配置文件的形式
+            此处支持将内容写入到 authz 和 passwd 文件
+          </Alert>
+        </TabPane> -->
       </Tabs>
       <div slot="footer">
         <Button type="primary" ghost @click="modalRepAdvance = false"
@@ -917,8 +926,6 @@
 </template>
 
 <script>
-import { WritableStream } from "web-streams-polyfill/ponyfill";
-
 export default {
   data() {
     return {
@@ -1412,17 +1419,6 @@ export default {
   computed: {},
   created() {},
   mounted() {
-    // abort so it dose not look stuck
-    // window.onunload = () => {
-    //   console.log('test-start');
-    //   console.log(window.WritableStream);
-    //   console.log(writer);
-    //   console.log('test-end');
-
-    //   writableStream.abort();
-    //   // also possible to call abosrt on the writer you got from `getWriter()`
-    //   writer.abort();
-    // };
     this.GetStatus();
     if (this.user_role_id == 1) {
       this.GetRepList();
@@ -1902,50 +1898,8 @@ export default {
     /**
      * 下载备份文件
      */
-    DownloadRepBackup(fileName) {
-      var that = this;
-      const streamSaver = require("../../libs/streamsaver/StreamSaver");
-      fetch("/api.php?c=Svnrep&a=DownloadRepBackup&t=web", {
-        headers: {
-          "Content-Type": "application/json",
-          token: that.token,
-        },
-        method: "POST",
-        body: JSON.stringify({
-          fileName: fileName,
-        }),
-      }).then((response) => {
-        // These code section is adapted from an example of the StreamSaver.js
-        // https://jimmywarting.github.io/StreamSaver.js/examples/fetch.html
-
-        // If the WritableStream is not available (Firefox, Safari), take it from the ponyfill
-        if (!window.WritableStream) {
-          streamSaver.WritableStream = WritableStream;
-          window.WritableStream = WritableStream;
-        }
-
-        const fileStream = streamSaver.createWriteStream(fileName, {
-          size: response.headers.get("content-length"),
-        });
-        const readableStream = response.body;
-
-        // More optimized
-        if (readableStream.pipeTo) {
-          return readableStream.pipeTo(fileStream);
-        }
-
-        window.writer = fileStream.getWriter();
-
-        const reader = response.body.getReader();
-        const pump = () =>
-          reader
-            .read()
-            .then((res) =>
-              res.done ? writer.close() : writer.write(res.value).then(pump)
-            );
-
-        pump();
-      });
+    DownloadRepBackup(fileUrl) {
+      window.open(fileUrl, "_blank");
     },
     /**
      * 删除备份文件

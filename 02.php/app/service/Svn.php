@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 00:20:14
+ * @LastEditTime: 2022-05-20 16:29:48
  * @Description: QQ:1801168257
  */
 
@@ -140,8 +140,10 @@ class Svn extends Base
         $bindPort = '';
         $bindHost = '';
 
-        $svnserveContent = FunShellExec(sprintf("cat '%s'",  $this->config_svn['svnserve_env_file']));
-        $svnserveContent = $svnserveContent['result'];
+        if (!is_readable($this->config_svn['svnserve_env_file'])) {
+            json1(200, 0, '文件' . $this->config_svn['svnserve_env_file'] . '不可读');
+        }
+        $svnserveContent = file_get_contents($this->config_svn['svnserve_env_file']);
 
         //匹配端口
         if (preg_match('/--listen-port[\s]+([0-9]+)/', $svnserveContent, $portMatchs) != 0) {
@@ -248,8 +250,6 @@ class Svn extends Base
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $this->payload['bindPort'], $result['bindHost']);
 
         //写入配置文件
-        // FunShellExec('echo \'' . $config . '\' > ' . $this->config_svn['svnserve_env_file']);
-
         FunFilePutContents($this->config_svn['svnserve_env_file'], $config);
 
         //启动svnserve
@@ -284,8 +284,6 @@ class Svn extends Base
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $result['bindPort'], $this->payload['bindHost']);
 
         //写入配置文件
-        // FunShellExec('echo \'' . $config . '\' > ' . $this->config_svn['svnserve_env_file']);
-
         FunFilePutContents($this->config_svn['svnserve_env_file'], $config);
 
         //启动svnserve
@@ -349,6 +347,10 @@ class Svn extends Base
     public function GetConfig()
     {
         return message(200, 1, '成功', [
+            [
+                'key' => '主目录',
+                'value' => $this->config_svn['home_path']
+            ],
             [
                 'key' => '仓库父目录',
                 'value' => $this->config_svn['rep_base_path']

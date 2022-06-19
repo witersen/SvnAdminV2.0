@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-11 11:45:59
+ * @LastEditTime: 2022-05-21 13:55:49
  * @Description: QQ:1801168257
  */
 
@@ -188,6 +188,15 @@ class Svnrep extends Base
     public function GetRepDetail()
     {
         $result = $this->ServiceSvnrep->GetRepDetail();
+        json2($result);
+    }
+
+    /**
+     * 重设仓库的UUID
+     */
+    public function SetUUID()
+    {
+        $result = $this->ServiceSvnrep->SetUUID();
         json2($result);
     }
 

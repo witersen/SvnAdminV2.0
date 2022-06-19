@@ -21,7 +21,9 @@ return [
     "public" => [
         'web' => [
             'Common/Login',
-            'Common/GetVeryfyCode'
+            'Common/GetVerifyCode',
+            'Safe/GetVerifyOption',
+            'Svnrep/DownloadRepBackup'
         ],
         'mini' => []
     ],

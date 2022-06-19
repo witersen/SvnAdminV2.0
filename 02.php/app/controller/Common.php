@@ -52,9 +52,9 @@ class Common extends Base
     /**
      * 获取验证码
      */
-    public function GetVeryfyCode()
+    public function GetVerifyCode()
     {
-        $result = $this->ServiceCommon->GetVeryfyCode();
+        $result = $this->ServiceCommon->GetVerifyCode();
         json2($result);
     }
 }

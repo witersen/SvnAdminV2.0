@@ -15,7 +15,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="可以使用系统提供的 install.php 文件在命令行模式下进行Subversion安装和初始化等操作"
+                      content="可以使用系统提供的 server/install.php 文件在命令行模式下进行Subversion安装和初始化等操作"
                     >
                       <Button type="info">tips</Button>
                     </Tooltip>
@@ -93,7 +93,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="请注意，如果您的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。如果绑定失败，建议配置使用管理系统主机名代替检出地址。"
+                      content="请注意，如果您的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。如果绑定失败，建议配置使用自定义主机名代替检出地址。"
                     >
                       <Button
                         type="warning"
@@ -146,7 +146,11 @@
         </TabPane>
         <TabPane label="配置文件" name="2">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Form :label-width="120" label-position="left">
+            <Alert
+              >可以使用系统提供的 server/install.php<br /><br />
+              文件在命令行模式下进行目录更换操作
+            </Alert>
+            <Form :label-width="160" label-position="left">
               <FormItem
                 :label="item.key"
                 v-for="(item, index) in configList"
@@ -402,10 +406,14 @@
         <TabPane label="安全配置" name="5">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
-              <FormItem label="登录验证码">
+              <FormItem
+                :label="item.note"
+                v-for="(item, index) in listSafe"
+                :key="index"
+              >
                 <Row>
                   <Col span="12">
-                    <Switch>
+                    <Switch v-model="listSafe[index].enable">
                       <Icon type="md-checkmark" slot="open"></Icon>
                       <Icon type="md-close" slot="close"></Icon>
                     </Switch>
@@ -415,8 +423,8 @@
               <FormItem>
                 <Button
                   type="primary"
-                  :loading="loadingEditPush"
-                  @click="EditPush"
+                  :loading="loadingEditSafe"
+                  @click="SetSafeConfig"
                   >保存</Button
                 >
               </FormItem>
@@ -590,7 +598,7 @@ export default {
        * 版本信息
        */
       version: {
-        current_verson: "2.3",
+        current_verson: "2.3.1",
         php_version: "5.5 <= PHP < 8.0",
         database: "MYSQL、SQLite",
         github: "https://github.com/witersen/SvnAdminV2.0",
@@ -616,6 +624,8 @@ export default {
       loadingEditEmail: false,
       //保存推送配置信息
       loadingEditPush: false,
+      //保存安全配置选项
+      loadingEditSafe: false,
       //检测更新
       loadingCheckUpdate: false,
 
@@ -639,6 +649,8 @@ export default {
       configList: [],
       //消息推送配置
       listPush: [],
+      //安全配置选项
+      listSafe: [],
 
       /**
        * 对话框
@@ -701,6 +713,7 @@ export default {
     this.GetConfig();
     this.GetEmail();
     this.GetPush();
+    this.GetSafeConfig();
   },
   methods: {
     /**
@@ -918,6 +931,27 @@ export default {
         });
     },
     /**
+     * 获取安全配置选项
+     */
+    GetSafeConfig() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Safe&a=GetSafeConfig&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.listSafe = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
      * 删除收件人邮箱
      */
     CloseTagToEmail(event, name) {
@@ -975,6 +1009,33 @@ export default {
         })
         .catch(function (error) {
           that.loadingEditPush = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 保存安全配置选项
+     */
+    SetSafeConfig() {
+      var that = this;
+      that.loadingEditSafe = true;
+      var data = {
+        listSafe: that.listSafe,
+      };
+      that.$axios
+        .post("/api.php?c=Safe&a=SetSafeConfig&t=web", data)
+        .then(function (response) {
+          that.loadingEditSafe = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetSafeConfig();
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingEditSafe = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
