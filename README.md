@@ -173,7 +173,50 @@ php svnadmin.php console
 
 - docker在下个版本v2.3.2支持
 
-## 三 、功能介绍
+## 三、手动升级
+
+手动配置升级，具体操作步骤如下：
+
+```
+#假设你的代码部署在 /var/www/html/ 目录下
+cd /var/www/html/
+```
+- 停止守护进程
+```
+#停止旧版本的守护进程
+php server/svnadmind.php stop
+```
+- 备份
+
+```
+mkdir -p /var/www/html2
+cp -r /var/www/html /var/www/html2
+rm -rf /var/www/html/*
+```
+- 部署新版本代码
+```
+cd /var/www/html/
+wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099697/download/v2.3.1.zip
+unzip v2.3.1.zip
+```
+- 升级Subversion版本（1.8+）（>=1.8则无需升级）
+```
+#执行脚本并选择使用第1个选项
+php server/install.php
+```
+- 执行适配程序
+```
+#执行脚本并选择使用第2个选项，选择不覆盖原来的 autzh 、passwd、svnadmin.db 等文件
+php server/install.php
+
+#如果之前在配置文件 config/database.php 切换了MySQL数据库，升级后需要重新配置下，这个问题会在下个版本修复
+```
+- 启动后台程序
+```
+启动方式见步骤一
+```
+
+## 四、功能介绍
 
 - 登录界面可分角色登录，配合后端实现的登录验证码更安全（验证码可后台手动关闭开启）
 
@@ -291,7 +334,7 @@ php svnadmin.php console
 
   ![](./00.static/01.demo/29.jpg)
 
-## 四、待办事项
+## 五、待办事项
 
 ### 1、计划增加功能
 
@@ -316,47 +359,6 @@ php svnadmin.php console
 - [ ] 开发微信小程序端开发（针对提交提醒）
 
 ### 2、计划改进部分
-
-## 五、手动升级
-
-手动配置升级，具体操作步骤如下：
-
-```
-#假设你的代码部署在 /var/www/html/ 目录下
-cd /var/www/html/
-```
-- 停止守护进程
-```
-#停止旧版本的守护进程
-php server/svnadmind.php stop
-```
-- 备份
-
-```
-mkdir -p /var/www/html2
-cp -r /var/www/html /var/www/html2
-rm -rf /var/www/html/*
-```
-- 部署新版本代码
-```
-cd /var/www/html/
-wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099697/download/v2.3.1.zip
-unzip v2.3.1.zip
-```
-- 升级Subversion版本（1.8+）（>=1.8则无需升级）
-```
-#执行脚本并选择使用第1个选项
-php server/install.php
-```
-- 执行适配程序
-```
-#执行脚本并选择使用第2个选项，选择不覆盖原来的 autzh 、passwd、svnadmin.db 等文件
-php server/install.php
-```
-- 启动后台程序
-```
-启动方式见步骤一
-```
 
 ## 六、常见问题解答
 
