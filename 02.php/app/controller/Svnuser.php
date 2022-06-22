@@ -50,6 +50,15 @@ class Svnuser extends Base
     }
 
     /**
+     * 自动识别 passwd 文件中的用户列表并返回
+     */
+    public function ScanPasswd()
+    {
+        $result = $this->ServiceSvnuser->ScanPasswd();
+        json2($result);
+    }
+
+    /**
      * 启用SVN用户
      */
     public function EnableUser()

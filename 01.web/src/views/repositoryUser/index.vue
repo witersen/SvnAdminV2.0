@@ -13,6 +13,9 @@
           <Button icon="md-add" type="primary" ghost @click="ModalCreateUser"
             >新建SVN用户</Button
           >
+          <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
+            >自动识别</Button
+          >
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
           <Input
@@ -118,6 +121,31 @@
         >
       </div>
     </Modal>
+    <Modal v-model="modalScanPasswd" title="自动识别">
+      <Input
+        v-model="tempPasswdContent"
+        placeholder="请粘贴 passwd 文件内容
+
+示例：  
+
+[users]
+user1=passwd1
+user2=passwd2
+user3=passwd3"
+        :rows="15"
+        show-word-limit
+        type="textarea"
+      />
+      <div slot="footer">
+        <Button
+          type="primary"
+          ghost
+          @click="ScanPasswd"
+          :loading="loadingScanPasswd"
+          >识别</Button
+        >
+      </div>
+    </Modal>
     <Modal
       v-model="modalEditUserPass"
       :title="titleEditUser"
@@ -176,7 +204,15 @@ export default {
       //创建用户
       loadingCreateUser: false,
       //修改用户密码
-      loadingEditUserPass:false,
+      loadingEditUserPass: false,
+      //识别 passwd 文件
+      loadingScanPasswd: false,
+
+      /**
+       * 临时变量
+       */
+      //输入的 passwd 文件内容
+      tempPasswdContent: "",
 
       /**
        * 对话框
@@ -185,6 +221,8 @@ export default {
       modalCreateUser: false,
       //编辑仓库信息
       modalEditUserPass: false,
+      //识别 passwd 文件
+      modalScanPasswd: false,
       /**
        * 表单
        */
@@ -429,6 +467,35 @@ export default {
         })
         .catch(function (error) {
           that.loadingCreateUser = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 识别 passwd 文件
+     */
+    ModalScanPasswd() {
+      this.modalScanPasswd = true;
+    },
+    ScanPasswd() {
+      var that = this;
+      that.loadingScanPasswd = true;
+      var data = {
+        passwdContent: that.tempPasswdContent,
+      };
+      that.$axios
+        .post("/api.php?c=Svnuser&a=ScanPasswd&t=web", data)
+        .then(function (response) {
+          that.loadingScanPasswd = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingScanPasswd = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });

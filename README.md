@@ -1,4 +1,4 @@
-# SVNAdmin 系统部署与使用手册
+# SVNAdmin - 开源SVN管理系统
 - 该系统为使用PHP开发的基于web的Subversion（SVN）服务器端管理工具
 
 - 支持功能：SVN仓库管理、SVN用户管理、SVN分组管理、目录授权、目录浏览、Hooks管理、在线dump备份、在线备份恢复、SVN用户禁用、服务器状态管理、日志管理、消息通知、更新检测...

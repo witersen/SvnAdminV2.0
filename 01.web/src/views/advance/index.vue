@@ -15,7 +15,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="可以使用系统提供的 server/install.php 文件在命令行模式下进行Subversion安装和初始化等操作"
+                      content="可在命令行模式下执行 server/insta.php 进行Subversion安装和初始化等操作"
                     >
                       <Button type="info">tips</Button>
                     </Tooltip>
@@ -147,8 +147,7 @@
         <TabPane label="配置文件" name="2">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert
-              >可以使用系统提供的 server/install.php<br /><br />
-              文件在命令行模式下进行目录更换操作
+              >可在命令行模式下执行 server/insta.php 进行目录更换操作
             </Alert>
             <Form :label-width="160" label-position="left">
               <FormItem

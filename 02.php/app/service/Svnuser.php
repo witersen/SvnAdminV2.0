@@ -154,6 +154,23 @@ class Svnuser extends Base
     }
 
     /**
+     * 自动识别 passwd 文件中的用户列表并返回
+     */
+    public function ScanPasswd()
+    {
+        if ($this->payload['passwdContent'] == '') {
+            return message(200, 0, '内容不能为空');
+        }
+
+        $svnUserPassList =  $this->SVNAdminUser->GetSvnUserPassList($this->payload['passwdContent']);
+        if ($svnUserPassList == 0) {
+            return message(200, 0, '文件格式错误(不存在[users]标识)');
+        }
+        
+        return message(200, 1, '成功', $svnUserPassList);
+    }
+
+    /**
      * 启用SVN用户
      */
     public function EnableUser()

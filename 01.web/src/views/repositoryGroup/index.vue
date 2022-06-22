@@ -130,6 +130,17 @@
     <Modal v-model="modalGetGroupMember" :title="titleGetGroupMember">
       <Tabs type="card">
         <TabPane label="用户成员">
+          <!-- <Row style="margin-bottom: 15px">
+            <Col span="14"> </Col>
+            <Col span="10">
+              <Input
+                v-model="xxx"
+                search
+                placeholder="搜索..."
+                style="width: 100%"
+                @on-search="xxx"
+            /></Col>
+          </Row> -->
           <Table
             height="350"
             :show-header="true"
