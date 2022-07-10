@@ -1280,6 +1280,7 @@ class Svnrep extends Base
             json1(200, 0, '缺少文件名');
         }
         $fileName = $_GET['fileName'];
+        $filePath = $this->config_svn['backup_base_path'] .  $fileName;
 
         if (empty($_GET['token'])) {
             json1(200, 0, '缺少文件token');
@@ -1294,56 +1295,28 @@ class Svnrep extends Base
             json1(200, 0, '文件不存在');
         }
 
-        $filePath = $this->config_svn['backup_base_path'] .  $fileName;
-
-        //以只读和二进制模式打开文件
         $fp = @fopen($filePath, 'rb');
         if ($fp) {
-            // 获取文件大小
             $file_size = filesize($filePath);
 
-            //告诉浏览器这是一个文件流格式的文件
             header('content-type:application/octet-stream');
             header('Content-Disposition: attachment; filename=' . $fileName);
 
-            // 断点续传
-            $range = null;
-            if (!empty($_SERVER['HTTP_RANGE'])) {
-                $range = $_SERVER['HTTP_RANGE'];
-                $range = preg_replace('/[\s|,].*/', '', $range);
-                $range = explode('-', substr($range, 6));
-                if (count($range) < 2) {
-                    $range[1] = $file_size;
-                }
-                $range = array_combine(array('start', 'end'), $range);
-                if (empty($range['start'])) {
-                    $range['start'] = 0;
-                }
-                if (empty($range['end'])) {
-                    $range['end'] = $file_size;
-                }
-            }
+            header('HTTP/1.1 200 OK');
+            header('Accept-Ranges:bytes');
+            header('content-length:' . $file_size);
 
-            // 使用续传
-            if ($range != null) {
-                header('HTTP/1.1 206 Partial Content');
-                header('Accept-Ranges:bytes');
+            ob_end_clean();
+            ob_start();
 
-                // 计算剩余长度
-                header(sprintf('content-length:%u', $range['end'] - $range['start']));
-                header(sprintf('content-range:bytes %s-%s/%s', $range['start'], $range['end'], $file_size));
-
-                // fp指针跳到断点位置
-                fseek($fp, sprintf('%u', $range['start']));
-            } else {
-                header('HTTP/1.1 200 OK');
-                header('Accept-Ranges:bytes');
-                header('content-length:' . $file_size);
-            }
             while (!feof($fp)) {
                 echo fread($fp, 4096);
                 ob_flush();
+                flush();
             }
+
+            ob_end_flush();
+
             fclose($fp);
         }
     }
