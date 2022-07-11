@@ -13,9 +13,9 @@
           <Button icon="md-add" type="primary" ghost @click="ModalCreateUser"
             >新建SVN用户</Button
           >
-          <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
+          <!-- <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
             >自动识别</Button
-          >
+          > -->
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
           <Input

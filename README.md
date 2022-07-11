@@ -68,7 +68,7 @@ systemctl enable httpd
 cd /var/www/html/
 
 #代码包从发行版获取
-wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099674/download/v2.3.1.zip
+wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099697/download/v2.3.1.zip
 
 #解压
 unzip v2.3.1
