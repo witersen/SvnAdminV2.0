@@ -14,7 +14,10 @@
   - Gitee：https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099697/download/v2.3.1.zip
 
 - 兼容性
-  - 操作系统：CentOS7（推荐）、CentOS8、Rocky、Ubuntu（Windows及其它Linux发行版正在测试兼容中）
+
+  - 本程序提供 docker 镜像，基于 centos7.9.2009 构建
+
+  - 操作系统（手动安装）：CentOS7（推荐）、CentOS8、Rocky、Ubuntu（Windows及其它Linux发行版正在测试兼容中）
   - PHP版本：5.5 <= PHP < 8.0
   - 数据库：SQLite、MySQL
   - Subversion：1.8+
@@ -171,11 +174,63 @@ php svnadmin.php console
 
 ## 二、docker安装
 
-- docker在下个版本v2.3.2支持
+- 拉取镜像
+
+  - ```
+    #拉取镜像
+    docker pull witersencom/svnadmin:2.3.2
+    ```
+
+- 仅查看软件效果（不挂载数据）
+
+  - ```
+    docker run --name svnadmintemp -d -p 80:80 -p 3690:3690 --privileged svnadmin:2.3.2
+    ```
+
+- 用于生产环境（挂载数据到容器中，容器销毁数据不会丢失）
+
+  - 新用户
+
+    - ```
+      #启动一个临时容器，并将配置文件复制出来
+      docker run --name svnadmintemp -d --privileged=true svnadmin:2.3.2 /usr/sbin/init
+      
+      #复制的数据目录为 /home/svnadmin/
+      cd /home/
+      docker cp svnadmintemp:/home/svnadmin ./
+      
+      #停止并删除临时容器
+      dockeer stop svnadmintemp && docker rm svnadmintemp
+      
+      #启动正式容器
+      docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged svnadmin:2.3.2
+      ```
+
+  - 老用户
+
+    - ```
+      #假设数据存储主目录在宿主机的位置为 /home/svnadmin/ 则直接按照下面方式启动即可 会自动将宿主机数据挂载到容器中
+      docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged svnadmin:2.3.2
+      ```
 
 ## 三、手动升级
 
-手动配置升级，具体操作步骤如下：
+PS: 如果之前在配置文件 $path/config/database.php 中手动切换了MySQL数据库，升级后还需要重配置
+
+###  3.1、docker用户
+
+```
+#数据保留在宿主机，停止并删除原来的容器，直接拉取新镜像启动即可
+#假设旧版本为 old 新版本为 new
+
+docker stop old && docker rm old
+
+docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged new
+```
+
+### 3.2、非docker用户
+
+具体操作步骤如下：
 
 ```
 #假设你的代码部署在 /var/www/html/ 目录下
@@ -208,8 +263,6 @@ php server/install.php
 ```
 #执行脚本并选择使用第2个选项，选择不覆盖原来的 autzh 、passwd、svnadmin.db 等文件
 php server/install.php
-
-#如果之前在配置文件 config/database.php 切换了MySQL数据库，升级后需要重新配置下，这个问题会在下个版本修复
 ```
 - 启动后台程序
 ```
