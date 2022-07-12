@@ -184,7 +184,7 @@ php svnadmin.php console
 - 仅查看软件效果（不挂载数据）
 
   - ```
-    docker run --name svnadmintemp -d -p 80:80 -p 3690:3690 --privileged svnadmin:2.3.2
+    docker run --name svnadmintemp -d -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.3.2
     ```
 
 - 用于生产环境（挂载数据到容器中，容器销毁数据不会丢失）
@@ -193,7 +193,7 @@ php svnadmin.php console
 
     - ```
       #启动一个临时容器，并将配置文件复制出来
-      docker run --name svnadmintemp -d --privileged=true svnadmin:2.3.2 /usr/sbin/init
+      docker run --name svnadmintemp -d --privileged=true witersencom/svnadmin:2.3.2 /usr/sbin/init
       
       #复制的数据目录为 /home/svnadmin/
       cd /home/
@@ -203,7 +203,7 @@ php svnadmin.php console
       dockeer stop svnadmintemp && docker rm svnadmintemp
       
       #启动正式容器
-      docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged svnadmin:2.3.2
+      docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged witersencom/svnadmin:2.3.2
       ```
 
   - 老用户
