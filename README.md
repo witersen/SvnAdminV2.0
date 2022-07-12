@@ -206,7 +206,7 @@ php svnadmin.php console
       docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged witersencom/svnadmin:2.3.2
       ```
 
-  - 老用户
+  - 老用户（2.3.1+）
 
     - ```
       #假设数据存储主目录在宿主机的位置为 /home/svnadmin/ 则直接按照下面方式启动即可 会自动将宿主机数据挂载到容器中
