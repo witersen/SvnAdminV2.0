@@ -1,18 +1,13 @@
 # SVNAdmin - 开源SVN管理系统
-- 该系统为使用PHP开发的基于web的Subversion（SVN）服务器端管理工具
-
+- 该系统为使用PHP开发的基于web的Subversion（SVN）服务器端管理工具，支持docker部署
 - 支持功能：SVN仓库管理、SVN用户管理、SVN分组管理、目录授权、目录浏览、Hooks管理、在线dump备份、在线备份恢复、SVN用户禁用、服务器状态管理、日志管理、消息通知、更新检测...
-
 - 演示地址：http://svnadmin.witersen.com (默认的用户名与密码都为 admin)
-
 - 项目地址：
   - GitHub地址：https://github.com/witersen/SvnAdminV2.0 
   - Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
-
 - 发行包：
-  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.3.1/v2.3.1.zip
-  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099697/download/v2.3.1.zip
-
+  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.3.2/v2.3.2.zip
+  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/attach_files/1126164/download/v2.3.2.zip
 - 兼容性
 
   - 本程序提供 docker 镜像，基于 centos7.9.2009 构建
@@ -21,44 +16,35 @@
   - PHP版本：5.5 <= PHP < 8.0
   - 数据库：SQLite、MySQL
   - Subversion：1.8+
+- 有问题或建议可留言或加群：  QQ群 633108141
+- 感觉有用请留下个 ⭐ 吧
 
-- 有问题可先看本文档底部的常见问题解答，可以加群提建议或分享问题：  QQ群 633108141
-
-## 一、安装示例
+## 一、手动安装
 
 ### 1、在CentOS7.6操作系统裸机安装示例
 
 - 安装PHP和相关扩展
 
 ```
-#解压缩和网络获取工具
+# 解压缩和网络获取工具
 yum install -y zip unzip wget vim
 
-#由于CentOS7默认源中提供的PHP版本为5.4，因此我们使用remi源安装更高的php版本
+# 由于CentOS7默认源中提供的PHP版本为5.4，因此我们使用remi源安装更高的php版本
 yum install -y epel-release
 wget http://rpms.remirepo.net/enterprise/remi-release-7.rpm
 rpm -Uvh remi-release-7.rpm
 
-#编辑 /etc/yum.repos.d/remi.repo 文件，将想安装的PHP版本下方的enable由0改为1
+# 编辑 /etc/yum.repos.d/remi.repo 文件，将想安装的PHP版本下方的enable由0改为1
 vim /etc/yum.repos.d/remi.repo
 
-#开始安装php及相关扩展
-yum install -y php
-yum install -y php-common
-yum install -y php-cli
-yum install -y php-fpm
-yum install -y php-json
-yum install -y php-mysqlnd
-yum install -y php-process
-yum install -y php-json
-yum install -y php-gd
-yum install -y php-bcmath
+# 安装php及相关扩展
+yum install -y php php-common php-cli php-fpm php-json php-mysqlnd php-process php-json php-gd php-bcmath
 ```
 
 - 安装web服务器
 
 ```
-#以apache为例
+# 以apache为例
 yum install -y httpd
 systemctl start httpd
 systemctl enable httpd
@@ -67,25 +53,25 @@ systemctl enable httpd
 - 安装本程序
 
 ```
-#将代码包下载到 /var/www/html/ 目录并解压
+# 将代码包下载到 /var/www/html/ 目录并解压
 cd /var/www/html/
 
-#代码包从发行版获取
-wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099697/download/v2.3.1.zip
+# 代码包从发行版获取
+wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1126164/download/v2.3.2.zip
 
-#解压
-unzip v2.3.1
+# 解压
+unzip v2.3.2.zip
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）
 
 ```
-#由于CentOS7.6默认源中的Subversion版本为1.7 因此我们需要通过安装脚本安装高版本（>=1.8）
+# 由于CentOS7.6默认源中的Subversion版本为1.7 因此我们需要通过安装脚本安装高版本（>=1.8）
 
-#切换目录
+# 切换目录
 cd /var/www/html/server/
 
-#install.php文件可以帮助我们安装Subversion
+# install.php文件可以帮助我们安装Subversion
 php install.php
 ```
 
@@ -99,7 +85,7 @@ cd /var/www/html/server
 php install.php
 ```
 
-- 或者将本程序加入系统管理和开机自启（系统管理）（推荐）（与下方启动方式二选一即可）
+- 将本程序加入系统管理和开机自启（系统管理）（推荐）（与下方启动方式二选一即可）
 
 ```
 #新建文件 svnserve.service
@@ -160,9 +146,8 @@ php svnadmin.php console
   - shell_exec
   - passthru
 - 安装和启动
-  - 进入server目录
-  - php install.php 进行安装和配置Subversion
-  - php svnadmind.php start 启动后台程序
+  - 同上
+
 
 ### 3、在ubutntu18安装示例
 
@@ -170,7 +155,7 @@ php svnadmin.php console
 
 ### 4、在Rocky安装示例
 
-- 无注意事项 同1
+- 无注意事项 同 1.1
 
 ## 二、docker安装
 
@@ -181,10 +166,15 @@ php svnadmin.php console
     docker pull witersencom/svnadmin:2.3.2
     ```
 
-- 仅查看软件效果（不挂载数据）
+- 仅运行查看效果（不挂载数据）
 
   - ```
-    docker run --name svnadmintemp -d -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.3.2
+    docker run -d \
+    --name svnadmintemp \
+    -p 80:80 \
+    -p 3690:3690 \
+    --privileged \
+    witersencom/svnadmin:2.3.2
     ```
 
 - 用于生产环境（挂载数据到容器中，容器销毁数据不会丢失）
@@ -193,7 +183,11 @@ php svnadmin.php console
 
     - ```
       #启动一个临时容器，并将配置文件复制出来
-      docker run --name svnadmintemp -d --privileged=true witersencom/svnadmin:2.3.2 /usr/sbin/init
+      docker run -d \
+      --name svnadmintemp \
+      --privileged=true \
+      witersencom/svnadmin:2.3.2 \
+      /usr/sbin/init
       
       #复制的数据目录为 /home/svnadmin/
       cd /home/
@@ -205,17 +199,22 @@ php svnadmin.php console
       #启动正式容器
       docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged witersencom/svnadmin:2.3.2
       ```
-
+  
   - 老用户（2.3.1+）
-
+  
     - ```
       #假设数据存储主目录在宿主机的位置为 /home/svnadmin/ 则直接按照下面方式启动即可 会自动将宿主机数据挂载到容器中
-      docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged svnadmin:2.3.2
+      docker run -d \
+      -p 80:80 \
+      -p 3690:3690 \
+      -v /home/svnadmin/:/home/svnadmin/ \
+      --privileged \
+      svnadmin:2.3.2
       ```
 
 ## 三、手动升级
 
-PS: 如果之前在配置文件 $path/config/database.php 中手动切换了MySQL数据库，升级后还需要重配置
+PS: 如果之前在配置文件 $path/config/database.php 中手动切换了MySQL数据库，升级后还需要重配置数据库信息
 
 ###  3.1、docker用户
 
@@ -238,21 +237,23 @@ cd /var/www/html/
 ```
 - 停止守护进程
 ```
-#停止旧版本的守护进程
+#如果已经加入系统管理 通过 systemctl 关闭
+systemctl stop svnadmind
+
+#如果手动安装 通过手动关闭
 php server/svnadmind.php stop
 ```
 - 备份
 
 ```
-mkdir -p /var/www/html2
-cp -r /var/www/html /var/www/html2
-rm -rf /var/www/html/*
+cd /var/www/html/
+tar -czvf backup.tar.gz .* --remove-files
 ```
 - 部署新版本代码
 ```
 cd /var/www/html/
-wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1099697/download/v2.3.1.zip
-unzip v2.3.1.zip
+wget https://gitee.com/witersen/SvnAdminV2.0/attach_files/1126164/download/v2.3.2.zip
+unzip v2.3.2.zip
 ```
 - 升级Subversion版本（1.8+）（>=1.8则无需升级）
 ```
@@ -389,15 +390,13 @@ php server/install.php
 
 ## 五、待办事项
 
-### 1、计划增加功能
-
 - [ ] 支持常见文件在线浏览
 - [ ] 支持文件和文件夹在线下载
 - [x] 支持重设仓库UUID
 - [ ] 删除仓库需要输入管理人员密码
 - [x] 支持修改应用根目录
 - [ ] 支持authz、passwd文件的在线识别导入和导出
-- [ ] docker部署
+- [x] docker部署
 - [ ] 邮件发送和仓库备份等使用异步任务
 - [ ] 支持在线仓库版本过滤、仓库版本互传
 - [ ] 在仓库列表以突出颜色标记不被支持管理的仓库，如低版本的仓库
@@ -410,8 +409,6 @@ php server/install.php
 - [ ] 支持使用svnauthz-validate检查authz配置信息的正确性作为高级功能
 - [ ] 支持使用三种认证选项（Apache+mod_dav_svn、svnserve(用户文件和SASL)、svnserve+SSH）
 - [ ] 开发微信小程序端开发（针对提交提醒）
-
-### 2、计划改进部分
 
 ## 六、FAQ
 
@@ -434,13 +431,12 @@ php server/install.php
 
 ### 3、为什么只支持管理Subversion1.8+ ？
 
-- 由于Subversion1.8 之前不支持将多个仓库配置为使用相同的权限配置文件
-- 而我们一开始基于Subversion1.10进行开发，因此没有及时的对Subversion1.7等版本进行适配
+- 预计在 2.5.x 版本向下适配，支持管理 Subversion 1.5+
 
 ### 4、为什么目前只支持Linux操作系统 ？
 
 - 正在使用新方案对Windows操作系统进行支持测试
-- 预期目标为可安装Subversion和PHP的机器都可使用本软件
+- 预计在 2.4.x 版本支持 Windows 部署
 
 ### 5、仓库初始化结构模板 ？
 
@@ -458,12 +454,11 @@ php server/install.php
 ### 7、关于Subversion 权限配置中的魔力符号
 
 - Subversion从1.5开始支持用户使用一些魔力符号如 $authenticated 、$anonymous
-- 我们使用正则表达式对authz和passwd文件进行匹配和修改
-- 由于时间原因，暂时不支持用户的authz文件中使用 Subversion 支持的魔力符号
+- 预计在 2.3.3 版本支持 Subversion 的全部权限配置特性
 
 ### 8、关于与LDAP对接
 
-- 与LDAP的对接将会等待一段时间，因为还需要时间使当前版本更稳定
+- 预计在 2.4 版本重新规划系统权限分配，并支持 LDAP 等认证方式
 
 ### 9、如何找回密码
 
