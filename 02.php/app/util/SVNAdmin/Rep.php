@@ -41,7 +41,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -89,7 +89,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -138,7 +138,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -186,7 +186,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -227,7 +227,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -302,7 +302,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -360,7 +360,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -417,7 +417,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -491,7 +491,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -551,7 +551,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -610,7 +610,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITHOUT_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITHOUT_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             return '1';
         } else {
@@ -633,7 +633,7 @@ class Rep extends Core
             }
         }
 
-        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace('/', '\/', $repPath)), $authzContent, $authzContentPreg);
+        preg_match_all(sprintf($this->REG_AUTHZ_REP_SPECIAL_PATH_WITH_CON, $repName, str_replace(['^', '$', '+', '*', '{', '}', '.', '(', ')', '[', ']', '%', '/'], ['\^', '\$', '\+', '\*', '\{', '\}', '\.', '\(', '\)', '\[', '\]', '\%', '\/'], $repPath)), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[0])) {
             return str_replace($authzContentPreg[0][0], "", $authzContent);
         } else {

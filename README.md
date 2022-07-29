@@ -194,7 +194,7 @@ php svnadmin.php console
       docker cp svnadmintemp:/home/svnadmin ./
       
       #停止并删除临时容器
-      dockeer stop svnadmintemp && docker rm svnadmintemp
+      docker stop svnadmintemp && docker rm svnadmintemp
       
       #启动正式容器
       docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged witersencom/svnadmin:2.3.2
