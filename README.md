@@ -87,51 +87,55 @@ php install.php
 
 - 将本程序加入系统管理和开机自启（系统管理）（推荐）（与下方启动方式二选一即可）
 
-```
-#新建文件 svnserve.service
-vim /usr/lib/systemd/system/svnadmind.service
+  - ```
+    #新建文件 svnserve.service
+    vim /usr/lib/systemd/system/svnadmind.service
+    ```
 
-#写入以下内容
-#注意 /var/www/html/server/svnadmind.php 要改为自己实际的文件路径
-#文件名称为 svnadmind 则表示我们新建的服务名称为 svnadmind
-[Unit]
-Description=SVNAdmin
-After=syslog.target network.target
+  - ```
+    #写入以下内容
+    #注意 /var/www/html/server/svnadmind.php 要改为自己实际的文件路径
+    #文件名称为 svnadmind 则表示我们新建的服务名称为 svnadmind
+    [Unit]
+    Description=SVNAdmin
+    After=syslog.target network.target
+    
+    [Service]
+    Type=simple
+    ExecStart=/usr/bin/php /var/www/html/server/svnadmind.php start
+    
+    [Install]
+    WantedBy=multi-user.target
+    ```
 
-[Service]
-Type=simple
-ExecStart=/usr/bin/php /var/www/html/server/svnadmind.php start
-
-[Install]
-WantedBy=multi-user.target
-
-#启动
-systemctl daemon-reload
-systemctl start svnadmind
-
-#查看状态
-systemctl status svnadmind
-
-#加入开机自启动
-systemctl enable svnadmind
-
-#取消开机自启动
-systemctl diable svnadmind
-```
+  - ```
+    #启动
+    systemctl daemon-reload
+    systemctl start svnadmind
+    
+    #查看状态
+    systemctl status svnadmind
+    
+    #加入开机自启动
+    systemctl enable svnadmind
+    
+    #取消开机自启动
+    systemctl diable svnadmind
+    ```
 
 - 启动本程序的后台进程（手动管理）（与上方启动方式二选一即可）
 
-```
-#正式启动（后台模式）
-nohup php svnadmind.php start >/dev/null 2>&1 &
+  - ```
+    #正式启动（后台模式）
+    nohup php svnadmind.php start >/dev/null 2>&1 &
+    
+    #停止
+    php svnandmin.php stop
+    
+    #调试模式
+    php svnadmin.php console
+    ```
 
-#停止
-php svnandmin.php stop
-
-#调试模式
-php svnadmin.php console
-
-```
 
 ### 2、在安装宝塔面板的操作系统安装示例
 
@@ -194,7 +198,7 @@ php svnadmin.php console
       docker cp svnadmintemp:/home/svnadmin ./
       
       #停止并删除临时容器
-      docker stop svnadmintemp && docker rm svnadmintemp
+      dockeer stop svnadmintemp && docker rm svnadmintemp
       
       #启动正式容器
       docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged witersencom/svnadmin:2.3.2
@@ -214,7 +218,9 @@ php svnadmin.php console
 
 ## 三、手动升级
 
-PS: 如果之前在配置文件 $path/config/database.php 中手动切换了MySQL数据库，升级后还需要重配置数据库信息
+（程序升级的过程就是替换代码而已，只不过代码包的配置文件中可能包含了用户关于数据库连接等的配置参数，不影响仓库数据，因为所处目录不同）
+
+所以如果之前在配置文件 $path/config/database.php 中手动切换了MySQL数据库，升级后还需要重配置数据库信息
 
 ###  3.1、docker用户
 
@@ -247,7 +253,7 @@ php server/svnadmind.php stop
 
 ```
 cd /var/www/html/
-tar -czvf backup.tar.gz .* --remove-files
+#请自行打包备份当前代码（代码包意义不大，包含一些程序运行配置参数，与svn仓库影响不大，还是建议备份）
 ```
 - 部署新版本代码
 ```
