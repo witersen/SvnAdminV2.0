@@ -187,7 +187,7 @@
     <!-- 对话框-仓库浏览 -->
     <Modal v-model="modalViewRep" fullscreen :title="titleModalViewRep">
       <Row style="margin-bottom: 15px">
-        <Col span="16">
+        <Col span="15">
           <Breadcrumb>
             <BreadcrumbItem
               v-for="(item, index) in breadRepPath.name"
@@ -197,12 +197,16 @@
             >
           </Breadcrumb>
         </Col>
+        <Col span="1">
+        </Col>
         <Col span="8">
+        <Tooltip style="width:100%" max-width="450" :content="tempCheckout" placement="bottom">
           <Input readonly v-model="tempCheckout">
             <Button slot="append" icon="md-copy" @click="CopyCheckout"
               >复制</Button
             >
           </Input>
+          </Tooltip>
         </Col>
       </Row>
       <Card :bordered="true" :dis-hover="true">
@@ -288,7 +292,12 @@
           </Scroll>
         </Col>
         <Col span="11">
-          <Card :bordered="true" :dis-hover="true" style="height: 550px">
+          <Card
+            :bordered="true"
+            v-if="false"
+            :dis-hover="true"
+            style="height: 550px"
+          >
             <Tabs type="card">
               <TabPane label="用户">
                 <Form :label-width="60">
@@ -377,6 +386,83 @@
                 </Form>
               </TabPane>
             </Tabs>
+          </Card>
+          <Tooltip style="width:100%" max-width="450" :content="currentRepTreePriPath" placement="bottom">
+            <Input v-model="currentRepTreePriPath">
+              <span slot="prepend">当前路径:</span>
+            </Input>
+          </Tooltip>
+          <Card
+            :bordered="true"
+            :dis-hover="true"
+            style="height: 500px; margin-top: 18px"
+          >
+            <Button icon="md-add" type="primary" ghost @click="ModalRepPathPri"
+              >路径授权</Button
+            >
+            <Table
+              border
+              :height="410"
+              size="small"
+              :columns="tableColumnRepPathPriInfo"
+              :data="tableDataRepPathPriInfo"
+              style="margin-top: 20px"
+            >
+              <template slot-scope="{ row }" slot="type">
+                <Tag
+                  color="blue"
+                  v-if="row.type == 1"
+                  style="width: 65px; text-align: center"
+                  >SVN用户</Tag
+                >
+                <Tag
+                  color="geekblue"
+                  v-if="row.type == 2"
+                  style="width: 65px; text-align: center"
+                  >SVN分组</Tag
+                >
+                <Tag
+                  color="purple"
+                  v-if="row.type == 3"
+                  style="width: 65px; text-align: center"
+                  >SVN别名</Tag
+                >
+                <Tag
+                  color="red"
+                  v-if="row.type == 4"
+                  style="width: 65px; text-align: center"
+                  >所有人</Tag
+                >
+                <Tag
+                  color="magenta"
+                  v-if="row.type == 5"
+                  style="width: 65px; text-align: center"
+                  >已授权</Tag
+                >
+                <Tag
+                  color="volcano"
+                  v-if="row.type == 6"
+                  style="width: 65px; text-align: center"
+                  >未授权</Tag
+                >
+              </template>
+              <template slot-scope="{ row }" slot="pri">
+                <RadioGroup type="button" size="small" button-style="solid">
+                  <Radio label="rw">读写</Radio>
+                  <Radio label="r">只读</Radio>
+                  <Radio label="none">禁止</Radio>
+                </RadioGroup>
+              </template>
+              <template slot-scope="{ row }" slot="invert">
+                <Switch v-if="row.type == 1 || row.type == 2 || row.type == 3">
+                  <Icon type="md-checkmark" slot="open"></Icon>
+                  <Icon type="md-close" slot="close"></Icon>
+                </Switch>
+              </template>
+              <template slot-scope="{ row }" slot="action">
+                <Button type="error" size="small">删除</Button>
+              </template>
+            </Table>
           </Card>
         </Col>
       </Row>
@@ -922,6 +1008,148 @@
         <Button type="primary" ghost @click="modalSetUUID = false">取消</Button>
       </div>
     </Modal>
+    <!-- 路径授权弹出框 -->
+    <Modal v-model="modalRepPathPri" :draggable="true" title="路径授权对象">
+      <Tabs size="small" class="custom-tabs-svn">
+        <TabPane :label="custom_tab_svn_user">
+          <Row style="margin-bottom: 15px">
+            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col span="12">
+              <Input search placeholder="通过用户名搜索..." />
+            </Col>
+          </Row>
+          <Table
+            highlight-row
+            border
+            :height="250"
+            size="small"
+            :columns="tableColumnAllUsers"
+            :data="tableDataAllUsers"
+            style="margin-bottom: 10px"
+          >
+            <template slot-scope="{ row }" slot="disabled">
+              <Tag color="blue" v-if="row.disabled == 0">正常</Tag>
+              <Tag color="red" v-else>禁用</Tag>
+            </template>
+            <template slot-scope="{ row, index }" slot="action">
+              <Tag color="primary">选择</Tag>
+            </template>
+          </Table>
+        </TabPane>
+        <TabPane :label="custom_tab_svn_group">
+          <Row style="margin-bottom: 15px">
+            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col span="12">
+              <Input search placeholder="通过分组名搜索..." />
+            </Col>
+          </Row>
+          <Table
+            highlight-row
+            border
+            :height="250"
+            size="small"
+            :columns="tableColumnAllGroups"
+            :data="tableDataAllGroups"
+            style="margin-bottom: 10px"
+          >
+            <template slot-scope="{ row, index }" slot="action">
+              <Tag color="primary">选择</Tag>
+            </template>
+          </Table>
+        </TabPane>
+        <TabPane :label="custom_tab_svn_aliase">
+          <Row style="margin-bottom: 15px">
+            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col span="12">
+              <Input search placeholder="通过别名搜索..." />
+            </Col>
+          </Row>
+          <Table
+            highlight-row
+            border
+            :height="250"
+            size="small"
+            :columns="tableColumnAllAliases"
+            :data="tableDataAllAliases"
+            style="margin-bottom: 10px"
+          >
+            <template slot-scope="{ row, index }" slot="action">
+              <Tag color="primary">选择</Tag>
+            </template>
+          </Table>
+        </TabPane>
+        <TabPane :label="custom_tab_svn_all">
+          <Row style="margin-bottom: 15px">
+            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col span="12">
+              <Input search disabled placeholder="通过符号搜索..." />
+            </Col>
+          </Row>
+          <Table
+            highlight-row
+            border
+            :height="250"
+            size="small"
+            :columns="tableColumnAll"
+            :data="tableDataAll"
+            style="margin-bottom: 10px"
+          >
+            <template slot-scope="{ row, index }" slot="action">
+              <Tag color="primary">选择</Tag>
+            </template>
+          </Table>
+        </TabPane>
+        <TabPane :label="custom_tab_svn_authenticated">
+          <Row style="margin-bottom: 15px">
+            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col span="12">
+              <Input search disabled placeholder="通过符号搜索..." />
+            </Col>
+          </Row>
+          <Table
+            highlight-row
+            border
+            :height="250"
+            size="small"
+            :columns="tableColumnAuthenticated"
+            :data="tableDataAuthenticated"
+            style="margin-bottom: 10px"
+          >
+            <template slot-scope="{ row, index }" slot="action">
+              <Tag color="primary">选择</Tag>
+            </template>
+          </Table>
+        </TabPane>
+        <TabPane :label="custom_tab_svn_anonymous">
+          <Row style="margin-bottom: 15px">
+            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col span="12">
+              <Input search disabled placeholder="通过符号搜索..." />
+            </Col>
+          </Row>
+          <Table
+            highlight-row
+            border
+            :height="250"
+            size="small"
+            :columns="tableColumnAnonymous"
+            :data="tableDataAnonymous"
+            style="margin-bottom: 10px"
+          >
+            <template slot-scope="{ row, index }" slot="action">
+              <Tag color="primary">选择</Tag>
+            </template>
+          </Table>
+        </TabPane>
+      </Tabs>
+      <Alert show-icon>授权的对象权限默认为读写</Alert>
+      <Alert show-icon>为已授权的对象重复授权，权限将会被覆盖为读写</Alert>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalRepPathPri = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -929,6 +1157,84 @@
 export default {
   data() {
     return {
+      custom_tab_svn_user: (h) => {
+        return h("div", [
+          h(
+            "span",
+            {
+              style: {
+                color: "#1890ff",
+              },
+            },
+            "SVN用户"
+          ),
+        ]);
+      },
+      custom_tab_svn_group: (h) => {
+        return h("div", [
+          h(
+            "span",
+            {
+              style: {
+                color: "#2f54eb",
+              },
+            },
+            "SVN分组"
+          ),
+        ]);
+      },
+      custom_tab_svn_aliase: (h) => {
+        return h("div", [
+          h(
+            "span",
+            {
+              style: {
+                color: "#722ed1",
+              },
+            },
+            "SVN别名"
+          ),
+        ]);
+      },
+      custom_tab_svn_all: (h) => {
+        return h("div", [
+          h(
+            "span",
+            {
+              style: {
+                color: "#f5222d",
+              },
+            },
+            "所有人"
+          ),
+        ]);
+      },
+      custom_tab_svn_authenticated: (h) => {
+        return h("div", [
+          h(
+            "span",
+            {
+              style: {
+                color: "#eb2f96",
+              },
+            },
+            "已授权"
+          ),
+        ]);
+      },
+      custom_tab_svn_anonymous: (h) => {
+        return h("div", [
+          h(
+            "span",
+            {
+              style: {
+                color: "#fa541c",
+              },
+            },
+            "未授权"
+          ),
+        ]);
+      },
       /**
        * 权限相关
        */
@@ -967,6 +1273,8 @@ export default {
       modalRecommendHook: false,
       //重设仓库UUID
       modalSetUUID: false,
+      //显示路径授权对话框
+      modalRepPathPri: false,
 
       /**
        * 排序数据
@@ -1368,6 +1676,298 @@ export default {
         },
       ],
       tableDataRepPathGroupPri: [],
+      //某节点的权限信息
+      tableDataRepPathPriInfo: [
+        {
+          type: 1,
+          name: "user1",
+          pri: "rw",
+        },
+        {
+          type: 2,
+          name: "group1",
+          pri: "rw",
+          action: "-",
+        },
+        {
+          type: 3,
+          name: "aliase1",
+          pri: "rw",
+        },
+        {
+          type: 4,
+          name: "*",
+          pri: "rw",
+        },
+        {
+          type: 5,
+          name: "$authenticated",
+          pri: "rw",
+        },
+        {
+          type: 6,
+          name: "$anonymous",
+          pri: "rw",
+        },
+        {
+          type: 1,
+          name: "user1",
+          pri: "rw",
+        },
+        {
+          type: 2,
+          name: "group1",
+          pri: "rw",
+          action: "-",
+        },
+        {
+          type: 3,
+          name: "aliase1",
+          pri: "rw",
+        },
+        {
+          type: 4,
+          name: "*",
+          pri: "rw",
+        },
+        {
+          type: 5,
+          name: "$authenticated",
+          pri: "rw",
+        },
+        {
+          type: 6,
+          name: "$anonymous",
+          pri: "rw",
+        },
+      ],
+      tableColumnRepPathPriInfo: [
+        {
+          title: "授权类型",
+          slot: "type",
+        },
+        {
+          title: "对象名称",
+          key: "name",
+          tooltip: true,
+          width: 115,
+        },
+        {
+          title: "读写权限",
+          slot: "pri",
+          width: 200,
+        },
+        {
+          slot: "invert",
+          width: 100,
+          renderHeader(h, params) {
+            return h(
+              "tooltip",
+              {
+                props: {
+                  transfer: true,
+                  placement: "left",
+                  "max-width": "400",
+                },
+              },
+              [
+                h("span", [
+                  h("span", "权限反转"),
+                  h("Icon", {
+                    props: {
+                      type: "ios-help-circle-outline",
+                      size: "15",
+                    },
+                    class: { iconClass: true },
+                  }),
+                ]),
+                h(
+                  "div",
+                  {
+                    slot: "content",
+                    style: {
+                      fontSize: "10px",
+                    },
+                  },
+                  [
+                    h(
+                      "p",
+                      {
+                        style: {
+                          color: "#479af1",
+                          fontSize: "15px",
+                        },
+                      },
+                      "不熟练的用户请慎用此功能！"
+                    ),
+                    h("p", " "),
+                    h("p", "从 Subversion 1.5 开始"),
+                    h("p", "$authenticated 表示所有已认证的用户"),
+                    h("p", "$anonymous 表示所有未认证的用户"),
+                    h(
+                      "p",
+                      "~ 即权限反转表示排除某些用户 如在用户名、别名、用户组、认证类别前加上 ~ 表示将访问权限授予给与规则不匹配的用户"
+                    ),
+                    h("p", " "),
+                    h("p", "如："),
+                    h("p", "[calendar:/projects/calendar]"),
+                    h("p", "$anonymous = r"),
+                    h("p", "$authenticated = rw"),
+                    h("p", " "),
+                    h(
+                      "p",
+                      "虽然下面的配置容易让人产生困惑,，但它和上面的例子是等效的："
+                    ),
+                    h("p", " "),
+                    h("p", "[calendar:/projects/calendar]"),
+                    h("p", "~$authenticated = r"),
+                    h("p", "~$anonymous = rw"),
+                    h("p", " "),
+                    h("p", "下面是一个更恰当的使用 ~ 的例子："),
+                    h("p", " "),
+                    h("p", "[groups]"),
+                    h("p", "# calc 项目的开发人员信息"),
+                    h("p", "calc-developers = &harry, &sally, &joe"),
+                    h("p", " "),
+                    h("p", "# calc 项目的管理人员信息"),
+                    h("p", "calc-owners = &hewlett, &packard"),
+                    h("p", " "),
+                    h("p", "# calc 项目的所有参与人信息"),
+                    h("p", "calc = @calc-developers, @calc-owners"),
+                    h("p", " "),
+                    h("p", "# 所有的 calc 项目参与成员有该项目的读权限"),
+                    h("p", "[calc:/projects/calc]"),
+                    h("p", "@calc = rw"),
+                    h("p", " "),
+                    h("p", "# 只有项目管理员有 calc 项目的发行版标签操作权限"),
+                    h("p", "[calc:/projects/calc/tags]"),
+                    h("p", "~@calc-owners = r"),
+                  ]
+                ),
+              ]
+            );
+          },
+        },
+        {
+          title: "操作",
+          slot: "action",
+        },
+      ],
+      //路径授权对象-SVN用户列表
+      tableColumnAllUsers: [
+        {
+          title: "用户名",
+          key: "userName",
+          tooltip: true,
+        },
+        {
+          title: "用户状态",
+          slot: "disabled",
+        },
+        {
+          title: "操作",
+          slot: "action",
+          width: 90,
+        },
+      ],
+      tableDataAllUsers: [
+        {
+          userName: "xxxxxxx",
+          disabled: 1,
+        },
+        {
+          userName: "xx",
+          disabled: 0,
+        },
+      ],
+      //路径授权对象-SVN分组列表
+      tableColumnAllGroups: [
+        {
+          title: "分组名",
+          key: "groupName",
+          tooltip: true,
+        },
+        {
+          title: "操作",
+          slot: "action",
+        },
+      ],
+      tableDataAllGroups: [
+        {
+          groupName: "xxx",
+        },
+        {
+          groupName: "xxx",
+        },
+      ],
+      //路径授权对象-SVN别名列表
+      tableColumnAllAliases: [
+        {
+          title: "别名",
+          key: "aliaseName",
+          tooltip: true,
+        },
+        {
+          title: "操作",
+          slot: "action",
+        },
+      ],
+      tableDataAllAliases: [
+        {
+          aliaseName: "xxx",
+        },
+        {
+          aliaseName: "xxxx",
+        },
+      ],
+      //路径授权对象-所有人
+      tableColumnAll: [
+        {
+          title: "所有人",
+          key: "all",
+        },
+        {
+          title: "操作",
+          slot: "action",
+        },
+      ],
+      tableDataAll: [
+        {
+          all: "*",
+        },
+      ],
+      //路径授权对象-已授权
+      tableColumnAuthenticated: [
+        {
+          title: "已授权",
+          key: "authenticated",
+        },
+        {
+          title: "操作",
+          slot: "action",
+        },
+      ],
+      tableDataAuthenticated: [
+        {
+          authenticated: "$authenticated",
+        },
+      ],
+      //路径授权对象-未授权
+      tableColumnAnonymous: [
+        {
+          title: "未授权",
+          key: "anonymous",
+        },
+        {
+          title: "操作",
+          slot: "action",
+        },
+      ],
+      tableDataAnonymous: [
+        {
+          anonymous: "$anonymous",
+        },
+      ],
       //仓库的详细信息 uuid等
       tableColumnRepDetail: [
         {
@@ -2855,6 +3455,13 @@ export default {
         },
       });
     },
+
+    /**
+     * 显示路径授权对话框
+     */
+    ModalRepPathPri() {
+      this.modalRepPathPri = true;
+    },
   },
 };
 </script>
@@ -2864,6 +3471,9 @@ export default {
 //   .ivu-modal-body {
 //     padding: 0px 16px 0px 16px;
 //   }
+// }
+// .custom-tabs-svn > .ivu-tabs-bar > .ivu-tabs-nav-container > .ivu-tabs-nav-wrap > .ivu-tabs-nav-scroll > .ivu-tabs-nav > .ivu-tabs-tab-active{
+//   background-color: red;
 // }
 .my-modal {
   // 卡片

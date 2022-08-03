@@ -190,7 +190,7 @@ class Svngroup extends Base
             'svn_group_name' => $this->payload['svn_group_name'],
             'include_user_count' => 0,
             'include_group_count' => 0,
-            'svn_group_note' => ''
+            'svn_group_note' => $this->payload['svn_group_note'],
         ]);
 
         //日志

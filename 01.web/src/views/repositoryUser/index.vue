@@ -106,6 +106,11 @@
             v-model="formCreateUser.svn_user_pass"
           ></Input>
         </FormItem>
+        <FormItem label="备注">
+          <Input
+            v-model="formCreateUser.svn_user_note"
+          ></Input>
+        </FormItem>
         <FormItem>
           <Button
             type="primary"
@@ -230,6 +235,7 @@ export default {
       formCreateUser: {
         svn_user_name: "",
         svn_user_pass: "",
+        svn_user_note:""
       },
       //编辑用户
       formEditUser: {
@@ -451,6 +457,7 @@ export default {
       var data = {
         svn_user_name: that.formCreateUser.svn_user_name,
         svn_user_pass: that.formCreateUser.svn_user_pass,
+        svn_user_note: that.formCreateUser.svn_user_note,
       };
       that.$axios
         .post("/api.php?c=Svnuser&a=CreateUser&t=web", data)

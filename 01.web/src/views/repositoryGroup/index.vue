@@ -83,6 +83,9 @@
             >分组名只能包含字母、数字、破折号、下划线、点。</Alert
           >
         </FormItem>
+        <FormItem label="备注">
+          <Input v-model="formCreateGroup.svn_group_note"></Input>
+        </FormItem>
         <FormItem>
           <Button
             type="primary"
@@ -257,6 +260,7 @@ export default {
       //新建分组
       formCreateGroup: {
         svn_group_name: "",
+        svn_group_note: "",
       },
       //编辑仓库
       formEditGroupName: {
@@ -445,6 +449,7 @@ export default {
       that.loadingCreateGroup = true;
       var data = {
         svn_group_name: that.formCreateGroup.svn_group_name,
+        svn_group_note: that.formCreateGroup.svn_group_note,
       };
       that.$axios
         .post("/api.php?c=Svngroup&a=CreateGroup&t=web", data)

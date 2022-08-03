@@ -597,7 +597,7 @@ export default {
        * 版本信息
        */
       version: {
-        current_verson: "2.3.3",
+        current_verson: "2.3.4",
         php_version: "5.5 <= PHP < 8.0",
         database: "MYSQL、SQLite",
         github: "https://github.com/witersen/SvnAdminV2.0",

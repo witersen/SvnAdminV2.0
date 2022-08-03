@@ -253,7 +253,7 @@ class Svnuser extends Base
             'svn_user_name' => $this->payload['svn_user_name'],
             'svn_user_pass' => $this->payload['svn_user_pass'],
             'svn_user_status' => 1,
-            'svn_user_note' => ''
+            'svn_user_note' => $this->payload['svn_user_note']
         ]);
 
         //日志
