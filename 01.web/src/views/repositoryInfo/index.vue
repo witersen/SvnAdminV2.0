@@ -197,15 +197,19 @@
             >
           </Breadcrumb>
         </Col>
-        <Col span="1">
-        </Col>
+        <Col span="1"> </Col>
         <Col span="8">
-        <Tooltip style="width:100%" max-width="450" :content="tempCheckout" placement="bottom">
-          <Input readonly v-model="tempCheckout">
-            <Button slot="append" icon="md-copy" @click="CopyCheckout"
-              >复制</Button
-            >
-          </Input>
+          <Tooltip
+            style="width: 100%"
+            max-width="450"
+            :content="tempCheckout"
+            placement="bottom"
+          >
+            <Input readonly v-model="tempCheckout">
+              <Button slot="append" icon="md-copy" @click="CopyCheckout"
+                >复制</Button
+              >
+            </Input>
           </Tooltip>
         </Col>
       </Row>
@@ -387,7 +391,12 @@
               </TabPane>
             </Tabs>
           </Card>
-          <Tooltip style="width:100%" max-width="450" :content="currentRepTreePriPath" placement="bottom">
+          <Tooltip
+            style="width: 100%"
+            max-width="450"
+            :content="currentRepTreePriPath"
+            placement="bottom"
+          >
             <Input v-model="currentRepTreePriPath">
               <span slot="prepend">当前路径:</span>
             </Input>
@@ -1976,6 +1985,7 @@ export default {
           tooltip: true,
           fixed: "left",
           width: 170,
+          // width:80
         },
         {
           title: "信息",
@@ -3430,9 +3440,101 @@ export default {
     DelRep(rep_name) {
       var that = this;
       that.$Modal.confirm({
-        title: "删除仓库 - " + rep_name,
-        content:
-          "确定要删除该仓库吗？<br/>该操作不可逆！<br/>如果该仓库有正在进行的网络传输，可能会删除失败，请注意提示信息！",
+        // title: "删除仓库 - " + rep_name,
+        // content:
+        //   "确定要删除该仓库吗？<br/>该操作不可逆！<br/>如果该仓库有正在进行的网络传输，可能会删除失败，请注意提示信息！",
+        render: (h) => {
+          return h("div", [
+            h(
+              "div",
+              {
+                class: { "modal-title": true },
+                style: {
+                  display: "flex",
+                  height: "42px",
+                  alignItems: "center",
+                },
+              },
+              [
+                h("Icon", {
+                  props: {
+                    type: "ios-help-circle",
+                  },
+                  style: {
+                    width: "28px",
+                    height: "28px",
+                    fontSize: "28px",
+                    color: "#f90",
+                  },
+                }),
+                h(
+                  "tooltip",
+                  {
+                    props: {
+                      transfer: true,
+                      placement: "bottom",
+                      "max-width": "400",
+                    },
+                  },
+                  [
+                    h("span", {
+                      style: {
+                        marginLeft: "12px",
+                        fontSize: "16px",
+                        color: "#17233d",
+                        fontWeight: 500,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        width: "285px",
+                        display: "inline-block",
+                      },
+                      domProps: {
+                        innerHTML: "删除仓库 - " + rep_name,
+                      },
+                    }),
+                    h(
+                      "div",
+                      {
+                        slot: "content",
+                        style: {
+                          fontSize: "10px",
+                        },
+                      },
+                      [
+                        h(
+                          "p",
+                          {
+                            style: {
+                              fontSize: "15px",
+                            },
+                          },
+                          "删除仓库 - " + rep_name
+                        ),
+                      ]
+                    ),
+                  ]
+                ),
+              ]
+            ),
+            h(
+              "div",
+              {
+                class: { "modal-content": true },
+                style: { paddingLeft: "40px" },
+              },
+              [
+                h("p", {
+                  style: { marginBottom: "15px" },
+                  domProps: {
+                    innerHTML:
+                      "确定要删除该仓库吗？<br/>该操作不可逆！<br/>如果该仓库有正在进行的网络传输，可能会删除失败，请注意提示信息！",
+                  },
+                }),
+              ]
+            ),
+          ]);
+        },
         onOk: () => {
           var data = {
             rep_name: rep_name,

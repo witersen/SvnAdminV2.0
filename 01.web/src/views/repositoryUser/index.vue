@@ -107,9 +107,7 @@
           ></Input>
         </FormItem>
         <FormItem label="备注">
-          <Input
-            v-model="formCreateUser.svn_user_note"
-          ></Input>
+          <Input v-model="formCreateUser.svn_user_note"></Input>
         </FormItem>
         <FormItem>
           <Button
@@ -235,7 +233,7 @@ export default {
       formCreateUser: {
         svn_user_name: "",
         svn_user_pass: "",
-        svn_user_note:""
+        svn_user_note: "",
       },
       //编辑用户
       formEditUser: {
@@ -556,9 +554,98 @@ export default {
     DelUser(index, svn_user_name) {
       var that = this;
       that.$Modal.confirm({
-        title: "删除SVN用户 - " + svn_user_name,
-        content:
-          "确定要删除该用户吗？<br/>将会从所有仓库和分组下将该用户移除<br/>该操作不可逆！",
+        render: (h) => {
+          return h("div", [
+            h(
+              "div",
+              {
+                class: { "modal-title": true },
+                style: {
+                  display: "flex",
+                  height: "42px",
+                  alignItems: "center",
+                },
+              },
+              [
+                h("Icon", {
+                  props: {
+                    type: "ios-help-circle",
+                  },
+                  style: {
+                    width: "28px",
+                    height: "28px",
+                    fontSize: "28px",
+                    color: "#f90",
+                  },
+                }),
+                h(
+                  "tooltip",
+                  {
+                    props: {
+                      transfer: true,
+                      placement: "bottom",
+                      "max-width": "400",
+                    },
+                  },
+                  [
+                    h("span", {
+                      style: {
+                        marginLeft: "12px",
+                        fontSize: "16px",
+                        color: "#17233d",
+                        fontWeight: 500,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        width: "285px",
+                        display: "inline-block",
+                      },
+                      domProps: {
+                        innerHTML: "删除SVN用户 - " + svn_user_name,
+                      },
+                    }),
+                    h(
+                      "div",
+                      {
+                        slot: "content",
+                        style: {
+                          fontSize: "10px",
+                        },
+                      },
+                      [
+                        h(
+                          "p",
+                          {
+                            style: {
+                              fontSize: "15px",
+                            },
+                          },
+                          "删除SVN用户 - " + svn_user_name
+                        ),
+                      ]
+                    ),
+                  ]
+                ),
+              ]
+            ),
+            h(
+              "div",
+              {
+                class: { "modal-content": true },
+                style: { paddingLeft: "40px" },
+              },
+              [
+                h("p", {
+                  style: { marginBottom: "15px" },
+                  domProps: {
+                    innerHTML:
+                      "确定要删除该用户吗？<br/>将会从所有仓库和分组下将该用户移除！<br/>该操作不可逆！",
+                  },
+                }),
+              ]
+            ),
+          ]);
+        },
         onOk: () => {
           var data = {
             svn_user_name: svn_user_name,

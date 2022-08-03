@@ -218,9 +218,7 @@ php install.php
 
 ## 三、手动升级
 
-（程序升级的过程就是替换代码而已，只不过代码包的配置文件中可能包含了用户关于数据库连接等的配置参数，不影响仓库数据，因为所处目录不同）
-
-所以如果之前在配置文件 $path/config/database.php 中手动切换了MySQL数据库，升级后还需要重配置数据库信息
+PS: 如果之前在配置文件 $path/config/database.php 中手动切换了MySQL数据库，升级后还需要重配置数据库信息
 
 ###  3.1、docker用户
 
@@ -253,7 +251,7 @@ php server/svnadmind.php stop
 
 ```
 cd /var/www/html/
-#请自行打包备份当前代码（代码包意义不大，包含一些程序运行配置参数，与svn仓库影响不大，还是建议备份）
+tar -czvf backup.tar.gz .* --remove-files
 ```
 - 部署新版本代码
 ```

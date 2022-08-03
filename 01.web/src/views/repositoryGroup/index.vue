@@ -515,8 +515,98 @@ export default {
     DelGroup(svn_group_name) {
       var that = this;
       that.$Modal.confirm({
-        title: "删除SVN分组 - " + svn_group_name,
-        content: "确定要删除该用户吗？<br/>该操作不可逆！",
+        render: (h) => {
+          return h("div", [
+            h(
+              "div",
+              {
+                class: { "modal-title": true },
+                style: {
+                  display: "flex",
+                  height: "42px",
+                  alignItems: "center",
+                },
+              },
+              [
+                h("Icon", {
+                  props: {
+                    type: "ios-help-circle",
+                  },
+                  style: {
+                    width: "28px",
+                    height: "28px",
+                    fontSize: "28px",
+                    color: "#f90",
+                  },
+                }),
+                h(
+                  "tooltip",
+                  {
+                    props: {
+                      transfer: true,
+                      placement: "bottom",
+                      "max-width": "400",
+                    },
+                  },
+                  [
+                    h("span", {
+                      style: {
+                        marginLeft: "12px",
+                        fontSize: "16px",
+                        color: "#17233d",
+                        fontWeight: 500,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        width: "285px",
+                        display: "inline-block",
+                      },
+                      domProps: {
+                        innerHTML: "删除SVN分组 - " + svn_group_name,
+                      },
+                    }),
+                    h(
+                      "div",
+                      {
+                        slot: "content",
+                        style: {
+                          fontSize: "10px",
+                        },
+                      },
+                      [
+                        h(
+                          "p",
+                          {
+                            style: {
+                              fontSize: "15px",
+                            },
+                          },
+                          "删除SVN分组 - " + svn_group_name
+                        ),
+                      ]
+                    ),
+                  ]
+                ),
+              ]
+            ),
+            h(
+              "div",
+              {
+                class: { "modal-content": true },
+                style: { paddingLeft: "40px" },
+              },
+              [
+                h("p", {
+                  style: { marginBottom: "15px" },
+                  domProps: {
+                    innerHTML:
+                      "确定要删除该分组吗？<br/>将会从所有仓库和分组下将该分组移除！<br/>该操作不可逆！",
+                  },
+                }),
+              ]
+            ),
+          ]);
+        },
         onOk: () => {
           var data = {
             svn_group_name: svn_group_name,
