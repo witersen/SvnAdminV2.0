@@ -95,10 +95,15 @@ class Daemon
         //接收客户端发送的数据
         $receive = socket_read($client, $this->config_daemon['SOCKET_READ_LENGTH']);
 
-        $receive = unserialize($receive);
+        $type = 'detect';
+        $content = '';
 
-        $type = $receive['type'];
-        $content = $receive['content'];
+        if (!empty($receive)) {
+            $receive = unserialize($receive);
+
+            $type = $receive['type'];
+            $content = $receive['content'];
+        }
 
         //console模式
         if ($this->workMode == 'console') {
@@ -268,7 +273,7 @@ class Daemon
         echo '检出SVN仓库前请注意放行协议端口（默认3690）' . PHP_EOL;
         echo '已自动更改系统加密密钥，在线用户会退出登录' . PHP_EOL;
         echo '建议将本程序通过nohup启动或加入系统管理' . PHP_EOL;
-        
+
         chdir('/');
         umask(0);
         if (defined('STDIN')) {
