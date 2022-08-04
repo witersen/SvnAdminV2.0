@@ -1,9 +1,31 @@
 <template>
   <div>
-    <Card :bordered="false" :dis-hover="true" style="margin-bottom: 10px" v-if="display.part1">
+    <Card
+      :bordered="false"
+      :dis-hover="true"
+      style="margin-bottom: 10px"
+      v-if="display.part1"
+    >
       <p slot="title">
         <Icon type="md-bulb" />
-        {{ systemBrif.os }}
+        <Tooltip
+          max-width="500"
+          placement="bottom"
+          :transfer="true"
+          :content="systemBrif.os"
+        >
+          <span
+            style="
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              width: 450px;
+              display: inline-block;
+            "
+          >
+            {{ systemBrif.os }}
+          </span>
+        </Tooltip>
       </p>
       <div>
         <Row>
