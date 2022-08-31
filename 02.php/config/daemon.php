@@ -29,8 +29,8 @@ return [
      * socket_read 和 socket_write 的最大传输字节
      * 如果没有需要 8192 字节已经极大的满足需求
      */
-    'SOCKET_READ_LENGTH' => 8192,
-    'SOCKET_WRITE_LENGTH' => 8192,
+    'SOCKET_READ_LENGTH' => 81920,
+    'SOCKET_WRITE_LENGTH' => 81920,
 
     /**
      * socket 处理并发的最大队列长度
