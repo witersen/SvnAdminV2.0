@@ -1010,10 +1010,10 @@ class SVNAdmin
                             $item['include']['groups']['count'] = $item['include']['groups']['count'] + 1;
                         } else if ($prefix == '&') {
                             $item['include']['aliases']['list'][] = substr($value, 1);
-                            $item['include']['aliases']['count'] = $item['include']['groups']['count'] + 1;
+                            $item['include']['aliases']['count'] = $item['include']['aliases']['count'] + 1;
                         } else {
                             $item['include']['users']['list'][] = $value;
-                            $item['include']['users']['count'] = $item['include']['groups']['count'] + 1;
+                            $item['include']['users']['count'] = $item['include']['users']['count'] + 1;
                         }
                     }
                     $list[] = $item;
@@ -1046,7 +1046,7 @@ class SVNAdmin
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
-                return 700;
+                return [];
             } else {
                 preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.]+'), $authzContentPreg[1][0], $resultPreg);
 

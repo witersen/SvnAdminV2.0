@@ -167,7 +167,7 @@ class Svnrep extends Base
                 if (is_numeric($result)) {
                     if ($result == 851) {
                     } else {
-                        return message(200, 0, "同步到配置文件错误$authzContet");
+                        json1(200, 0, "同步到配置文件错误$authzContet");
                     }
                 } else {
                     $authzContet = $result;
@@ -181,7 +181,7 @@ class Svnrep extends Base
                 if (is_numeric($result)) {
                     if ($result == 751) {
                     } else {
-                        return message(200, 0, "同步到配置文件错误$authzContet");
+                        json1(200, 0, "同步到配置文件错误$authzContet");
                     }
                 } else {
                     $authzContet = $result;
@@ -211,13 +211,13 @@ class Svnrep extends Base
         $userRepList = $this->SVNAdmin->GetUserAllPri($this->authzContent, $this->userName);
         if (is_numeric($userRepList)) {
             if ($userRepList == 612) {
-                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+                json1(200, 0, '文件格式错误(不存在[groups]标识)');
             } else if ($userRepList == 700) {
-                return message(200, 0, '对象不存在');
+                json1(200, 0, '对象不存在');
             } else if ($userRepList == 901) {
-                return message(200, 0, '不支持的授权对象类型');
+                json1(200, 0, '不支持的授权对象类型');
             } else {
-                return message(200, 0, "错误码$userRepList");
+                json1(200, 0, "错误码$userRepList");
             }
         }
 
@@ -253,13 +253,13 @@ class Svnrep extends Base
         $userRepList = $this->SVNAdmin->GetUserAllPri($this->authzContent, $this->userName);
         if (is_numeric($userRepList)) {
             if ($userRepList == 612) {
-                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+                json1(200, 0, '文件格式错误(不存在[groups]标识)');
             } else if ($userRepList == 700) {
-                return message(200, 0, '对象不存在');
+                json1(200, 0, '对象不存在');
             } else if ($userRepList == 901) {
-                return message(200, 0, '不支持的授权对象类型');
+                json1(200, 0, '不支持的授权对象类型');
             } else {
-                return message(200, 0, "错误码$userRepList");
+                json1(200, 0, "错误码$userRepList");
             }
         }
 
