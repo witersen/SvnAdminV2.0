@@ -18,7 +18,7 @@ return [
      * 1、可以包含中文、字母、数字、下划线、破折号、点
      * 2、不能以点开头或结尾
      */
-    'REG_SVN_REP_NAME' => "/^[^.][\x{4e00}-\x{9fa5}A-Za-z0-9-_.]*[^.]$/u",
+    'REG_SVN_REP_NAME' => "/^[\x{4e00}-\x{9fa5}A-Za-z0-9-_]+(\.+[\x{4e00}-\x{9fa5}A-Za-z0-9-_]+)*$/u",
 
     /**
      * 校验SVN用户名称
@@ -51,5 +51,5 @@ return [
     /**
      * 匹配subversion版本号
      */
-    'REG_SUBVERSION_VERSION' => "/\bversion[\s]+(.*?)[\s]+/m",
+    'REG_SUBVERSION_VERSION' => "/svnserve.*?\b([0-9.]+)\b/m",
 ];

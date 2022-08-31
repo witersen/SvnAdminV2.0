@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:29:58
+ * @LastEditTime: 2022-08-29 00:42:13
  * @Description: QQ:1801168257
  */
 
@@ -32,13 +32,17 @@ class Svngroup extends Base
      */
     private function SyncGroupToDb()
     {
-        $svnAndGroupList =  $this->SVNAdminGroup->GetSvnGroupUserAndGroupList($this->authzContent);
+        $svnAndGroupList = $this->SVNAdmin->GetGroupInfo($this->authzContent);
 
-        if ($svnAndGroupList == 0) {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
+        if (is_numeric($svnAndGroupList)) {
+            if ($svnAndGroupList == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else {
+                return message(200, 0, "错误码$svnAndGroupList");
+            }
         }
 
-        $svnGroupList = FunArrayColumn($svnAndGroupList, 'groupName');
+        $svnGroupList = array_column($svnAndGroupList, 'groupName');
 
         $dbGroupPassList = $this->database->select('svn_groups', [
             'svn_group_id',
@@ -48,7 +52,7 @@ class Svngroup extends Base
             'include_group_count'
         ]);
 
-        $combinArray = array_combine(FunArrayColumn($svnAndGroupList, 'groupName'), FunArrayColumn($svnAndGroupList, 'include'));
+        $combinArray = array_combine($svnGroupList, array_column($svnAndGroupList, 'include'));
 
         foreach ($dbGroupPassList as $key => $value) {
             if (!in_array($value['svn_group_name'], $svnGroupList)) {
@@ -58,8 +62,9 @@ class Svngroup extends Base
             } else {
                 //更新数量
                 $this->database->update('svn_groups', [
-                    'include_user_count' => count($combinArray[$value['svn_group_name']]['users']),
-                    'include_group_count' => count($combinArray[$value['svn_group_name']]['groups']),
+                    'include_user_count' => $combinArray[$value['svn_group_name']]['users']['count'],
+                    'include_group_count' => $combinArray[$value['svn_group_name']]['groups']['count'],
+                    // 'include_aliase_count' => $combinArray[$value['svn_group_name']]['aliases']['count'], //todo 增加字段
                 ], [
                     'svn_group_name' => $value['svn_group_name']
                 ]);
@@ -67,11 +72,12 @@ class Svngroup extends Base
         }
 
         foreach ($svnGroupList as $key => $value) {
-            if (!in_array($value, FunArrayColumn($dbGroupPassList, 'svn_group_name'))) {
+            if (!in_array($value, array_column($dbGroupPassList, 'svn_group_name'))) {
                 $this->database->insert('svn_groups', [
                     'svn_group_name' => $value,
-                    'include_user_count' => count($svnAndGroupList[$key]['include']['users']),
-                    'include_group_count' => count($svnAndGroupList[$key]['include']['groups']),
+                    'include_user_count' => $svnAndGroupList[$key]['include']['users']['count'],
+                    'include_group_count' => $svnAndGroupList[$key]['include']['groups']['count'],
+                    // 'include_aliase_count' => $svnAndGroupList[$key]['include']['aliases']['count'], //todo 增加字段
                     'svn_group_note' => '',
                 ]);
             }
@@ -83,18 +89,22 @@ class Svngroup extends Base
      */
     public function GetAllGroupList()
     {
-        $svnGroupList = $this->SVNAdminGroup->GetSvnGroupList($this->authzContent);
-        if ($svnGroupList == '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
-        } else {
-            $newArray = [];
-            foreach ($svnGroupList as $key => $value) {
-                array_push($newArray, [
-                    'groupName' => $value
-                ]);
-            }
-            return message(200, 1, '成功', $newArray);
-        }
+        $searchKeyword = trim($this->payload['searchKeywordGroup']);
+
+        $list = $this->database->select('svn_groups', [
+            'svn_group_id',
+            'svn_group_name',
+            'svn_group_note',
+        ], [
+            'AND' => [
+                'OR' => [
+                    'svn_group_name[~]' => $searchKeyword,
+                    'svn_group_note[~]' => $searchKeyword,
+                ],
+            ],
+        ]);
+
+        return message(200, 1, '成功', $list);
     }
 
     /**
@@ -174,12 +184,15 @@ class Svngroup extends Base
         }
 
         //检查用户是否已存在
-        $result = $this->SVNAdminGroup->AddSvnGroup($this->authzContent, $this->payload['svn_group_name']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '分组已存在');
+        $result = $this->SVNAdmin->AddGroup($this->authzContent, $this->payload['svn_group_name']);
+        if (is_numeric($result)) {
+            if ($result == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else if ($result == 820) {
+                return message(200, 0, '分组已存在');
+            } else {
+                return message(200, 0, "错误码$result");
+            }
         }
 
         //写入配置文件
@@ -209,13 +222,15 @@ class Svngroup extends Base
     public function DelGroup()
     {
         //从authz文件删除
-        $result = $this->SVNAdminGroup->DelSvnGroup($this->authzContent, $this->payload['svn_group_name']);
-
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '分组不存在');
+        $result = $this->SVNAdmin->DelObjectFromAuthz($this->authzContent, $this->payload['svn_group_name'], 'group');
+        if (is_numeric($result)) {
+            if ($result == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else if ($result == 901) {
+                return message(200, 0, '不支持的授权对象类型');
+            } else {
+                return message(200, 0, "错误码$result");
+            }
         }
 
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
@@ -246,21 +261,23 @@ class Svngroup extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
         }
 
-        $svnGroupList = $this->SVNAdminGroup->GetSvnGroupList($this->authzContent);
-
-        //旧分组是否存在
-        if (!in_array($this->payload['groupNameOld'], $svnGroupList)) {
-            return message(200, 0, '当前分组不存在');
-        }
-
-        //新分组名称是否冲突
-        if (in_array($this->payload['groupNameNew'], $svnGroupList)) {
-            return message(200, 0, '要修改的分组名称已经存在');
-        }
-
-        $result = $this->SVNAdminGroup->UpdSvnGroup($this->authzContent, $this->payload['groupNameOld'], $this->payload['groupNameNew']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
+        $result = $this->SVNAdmin->UpdObjectFromAuthz($this->authzContent, $this->payload['groupNameOld'], $this->payload['groupNameNew'], 'group');
+        if (is_numeric($result)) {
+            if ($result == 611) {
+                return message(200, 0, 'authz文件格式错误(不存在[aliases]标识)');
+            } else if ($result == 612) {
+                return message(200, 0, 'authz文件格式错误(不存在[groups]标识)');
+            } else if ($result == 901) {
+                return message(200, 0, '不支持的授权对象类型');
+            } else if ($result == 821) {
+                return message(200, 0, '要修改的新分组已经存在');
+            } else if ($result == 831) {
+                return message(200, 0, '要修改的新别名已经存在');
+            } else if ($result == 731) {
+                return message(200, 0, '要修改的别名不存在');
+            } else {
+                return message(200, 0, "错误码$result");
+            }
         }
 
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
@@ -273,41 +290,50 @@ class Svngroup extends Base
      */
     public function GetGroupMember()
     {
-        $memberUserList = $this->SVNAdminGroup->GetSvnUserListByGroup($this->authzContent, $this->payload['svn_group_name']);
-
-        $memberGroupList = $this->SVNAdminGroup->GetSvnGroupListByGroup($this->authzContent, $this->payload['svn_group_name']);
-
-        $allGroupList = $this->SVNAdminGroup->GetSvnGroupList($this->authzContent);
-
-        $allUserList = $this->SVNAdminUser->GetSvnUserList($this->passwdContent);
-
-        if ($memberUserList == '0' || $memberGroupList == '0' || $allGroupList == '0' || $allUserList == '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
+        $result = $this->SVNAdmin->GetGroupInfo($this->authzContent, $this->payload['svn_group_name']);
+        if (is_numeric($result)) {
+            if ($result == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else if ($result == 720) {
+                return message(200, 0, '指定的分组不存在');
+            } else {
+                return message(200, 0, "错误码$result");
+            }
         }
-        if ($memberUserList == '1' || $memberGroupList == '1' || $allUserList == '1') {
-            return message(200, 0, '分组不存在');
+
+        $allGroupList = $this->SVNAdmin->GetGroupInfo($this->authzContent);
+        $allUserList = $this->SVNAdmin->GetUserInfo($this->passwdContent);
+        if (is_numeric($allUserList)) {
+            if ($allUserList == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else {
+                return message(200, 0, "错误码$allUserList");
+            }
         }
+
+        $memberUserList = $result['include']['users']['list'];
+        $memberGroupList = $result['include']['groups']['list'];
 
         $group1 = [];
-        foreach ($allGroupList as $key => $value) {
-            if (in_array($value, $memberGroupList)) {
+        foreach ($allGroupList as $value) {
+            if (in_array($value['groupName'], $memberGroupList)) {
                 array_push($group1, [
-                    'groupName' => $value,
+                    'groupName' => $value['groupName'],
                     'isMember' => true
                 ]);
             } else {
                 array_push($group1, [
-                    'groupName' => $value,
+                    'groupName' => $value['groupName'],
                     'isMember' => false
                 ]);
             }
         }
 
         //排序
-        // array_multisort(FunArrayColumn($group1, 'isMember'), SORT_DESC, $group1);
+        // array_multisort(array_column($group1, 'isMember'), SORT_DESC, $group1);
 
         $group2 = [];
-        foreach ($allUserList as $key => $value) {
+        foreach ($allUserList as $value) {
             if (in_array($value['userName'], $memberUserList)) {
                 array_push($group2, [
                     'userName' => $value['userName'],
@@ -324,7 +350,7 @@ class Svngroup extends Base
         }
 
         //排序
-        // array_multisort(FunArrayColumn($group2, 'isMember'), SORT_DESC, $group2);
+        // array_multisort(array_column($group2, 'isMember'), SORT_DESC, $group2);
 
         return message(200, 1, '成功', [
             'userList' => $group2,
@@ -333,186 +359,43 @@ class Svngroup extends Base
     }
 
     /**
-     * 将用户添加为SVN分组的成员
+     * 为分组添加或者删除所包含的对象
+     * 对象包括：用户、分组、用户别名
      */
-    public function GroupAddUser()
+    public function UpdGroupMember()
     {
-        $result = $this->SVNAdminGroup->AddSvnGroupUser($this->authzContent, $this->payload['svn_group_name'], $this->payload['svn_user_name']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '分组不存在');
-        }
-        if ($result == '2') {
-            return message(200, 0, '要添加的用户已存在该分组');
-        }
-
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
-
-        return message();
-    }
-
-    /**
-     * 将用户从SVN分组的成员移除
-     */
-    public function GroupRemoveUser()
-    {
-        $result = $this->SVNAdminGroup->DelSvnGroupUser($this->authzContent, $this->payload['svn_group_name'], $this->payload['svn_user_name']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '分组不存在');
-        }
-        if ($result == '2') {
-            return message(200, 0, '要删除的用户不在该分组');
-        }
-
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
-
-        return message();
-    }
-
-    /**
-     * 将分组添加为SVN分组的成员
-     */
-    public function GroupAddGroup()
-    {
-        $result = $this->SVNAdminGroup->AddSvnGroupGroup($this->authzContent, $this->payload['svn_group_name'], $this->payload['svn_group_name_add']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '分组不存在');
-        }
-        if ($result == '2') {
-            return message(200, 0, '要添加的分组已存在该分组');
-        }
-        if ($result == '3') {
-            return message(200, 0, '不能添加本身');
-        }
-
-        //检查是否存在分组循环嵌套问题
-        //获取分组所在的所有分组
-        $groupGroupList = $this->GetSvnGroupAllGroupList($this->payload['svn_group_name']);
-
-        if (in_array($this->payload['svn_group_name_add'], $groupGroupList)) {
-            return message(200, 0, '存在分组循环嵌套的情况');
-        }
-
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
-
-        return message();
-    }
-
-    /**
-     * 将分组从SVN分组的成员移除
-     */
-    public function GroupRemoveGroup()
-    {
-        $result = $this->SVNAdminGroup->DelSvnGroupGroup($this->authzContent, $this->payload['svn_group_name'], $this->payload['svn_group_name_del']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '分组不存在');
-        }
-        if ($result == '2') {
-            return message(200, 0, '要删除的分组不在该分组');
-        }
-
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
-
-        return message();
-    }
-
-    /**
-     * 获取用户所在的所有分组
-     * 
-     * 包括直接包含关系 如
-     * group1=user1
-     * 
-     * 和间接包含关系 如
-     * group1=user1
-     * group2=@group1
-     * group3=@group2
-     * group4=@group3
-     */
-    public function GetSvnUserAllGroupList($userName)
-    {
-        $authzContent = $this->authzContent;
-
-        //所有的分组列表
-        $allGroupList = $this->SVNAdminGroup->GetSvnGroupList($authzContent);
-
-        //用户所在的分组列表
-        $userGroupList = $this->SVNAdminUser->GetSvnUserGroupList($authzContent, $userName);
-
-        //剩余的分组列表
-        $leftGroupList = array_diff($allGroupList, $userGroupList);
-
-        //循环匹配 直到匹配到与该用户相关的有权限的用户组为止
-        loop:
-        $userGroupListBack = $userGroupList;
-        foreach ($userGroupList as $group1) {
-            $newList = $this->SVNAdminGroup->GetSvnGroupGroupList($authzContent, $group1);
-            foreach ($leftGroupList as $key2 => $group2) {
-                if (in_array($group2, $newList)) {
-                    array_push($userGroupList, $group2);
-                    unset($leftGroupList[$key2]);
-                }
+        $result = $this->SVNAdmin->UpdGroupMember($this->authzContent, $this->payload['svn_group_name'], $this->payload['objectName'], $this->payload['objectType'], $this->payload['actionType']);
+        if (is_numeric($result)) {
+            if ($result == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else if ($result == 720) {
+                return message(200, 0, '分组不存在');
+            } else if ($result == 803) {
+                return message(200, 0, '要添加的对象已存在该分组');
+            } else if ($result == 703) {
+                return message(200, 0, '要删除的对象不存在该分组');
+            } else if ($result == 901) {
+                return message(200, 0, '无效的对象类型 user|group|aliase');
+            } else if ($result == 902) {
+                return message(200, 0, '无效的操作类型 add|delete');
+            } else if ($result == 802) {
+                return message(200, 0, '不能操作相同名称的分组');
+            } else {
+                return message(200, 0, "错误码$result");
             }
         }
-        if ($userGroupList != $userGroupListBack) {
-            goto loop;
-        }
+        if ($this->payload['objectType'] == 'group' && $this->payload['actionType'] == 'add') {
+            //检查是否存在分组循环嵌套问题
+            //获取分组所在的所有分组
+            $groupGroupList = $this->SVNAdmin->GetSvnGroupAllGroupList($this->authzContent, $this->payload['svn_group_name']);
 
-        return $userGroupList;
-    }
-
-    /**
-     * 获取分组所在的所有分组
-     * 
-     * 包括直接包含关系 如
-     * group2=@group1
-     * 
-     * 和间接包含关系 如
-     * group2=@group1
-     * group3=@group2
-     * group4=@group3
-     */
-    private function GetSvnGroupAllGroupList($groupName)
-    {
-        $parentGroupName = $groupName;
-
-        $authzContent = $this->authzContent;
-
-        //所有的分组列表
-        $allGroupList = $this->SVNAdminGroup->GetSvnGroupList($authzContent);
-
-        //分组所在的分组列表 
-        $groupGroupList = $this->SVNAdminGroup->GetSvnGroupGroupList($authzContent, $parentGroupName);
-
-        //剩余的分组列表
-        $leftGroupList = array_diff($allGroupList, $groupGroupList);
-
-        //循环匹配
-        loop:
-        $userGroupListBack = $groupGroupList;
-        foreach ($groupGroupList as $group1) {
-            $newList = $this->SVNAdminGroup->GetSvnGroupGroupList($authzContent, $group1);
-            foreach ($leftGroupList as $key2 => $group2) {
-                if (in_array($group2, $newList)) {
-                    array_push($groupGroupList, $group2);
-                    unset($leftGroupList[$key2]);
-                }
+            if (in_array($this->payload['objectName'], $groupGroupList)) {
+                return message(200, 0, '存在分组循环嵌套的情况');
             }
         }
-        if ($groupGroupList != $userGroupListBack) {
-            goto loop;
-        }
 
-        return $groupGroupList;
+        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+
+        return message();
     }
 }

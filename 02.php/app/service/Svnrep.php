@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-21 14:14:40
+ * @LastEditTime: 2022-08-28 18:12:08
  * @Description: QQ:1801168257
  */
 
@@ -75,10 +75,15 @@ class Svnrep extends Base
         }
 
         //向authz写入仓库信息
-        $status = $this->SVNAdminRep->SetRepAuthz($this->authzContent, $this->payload['rep_name'], '/');
-        if ($status != '1') {
-            FunFilePutContents($this->config_svn['svn_authz_file'], $status);
+        $result = $this->SVNAdmin->WriteRepPathToAuthz($this->authzContent, $this->payload['rep_name'], '/');
+        if (is_numeric($result)) {
+            if ($result == 851) {
+                $result = $this->authzContent;
+            } else {
+                return message(200, 0, "同步到配置文件错误$result");
+            }
         }
+        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //写入数据库
         $this->database->insert('svn_reps', [
@@ -130,7 +135,7 @@ class Svnrep extends Base
         }
 
         foreach ($svnRepList as $value) {
-            if (!in_array($value, FunArrayColumn($dbRepList, 'rep_name'))) {
+            if (!in_array($value, array_column($dbRepList, 'rep_name'))) {
                 $this->database->insert('svn_reps', [
                     'rep_name' => $value,
                     'rep_size' => FunGetDirSizeDu($this->config_svn['rep_base_path'] .  $value),
@@ -152,24 +157,34 @@ class Svnrep extends Base
     {
         $svnRepList = $this->SVNAdminRep->GetSimpleRepList();
 
-        $svnRepAuthzList = $this->SVNAdminRep->GetNoPathAndConRepAuthz($this->authzContent);
+        $svnRepAuthzList = $this->SVNAdmin->GetRepListFromAuthz($this->authzContent);
 
         $authzContet = $this->authzContent;
 
         foreach ($svnRepList as $key => $value) {
             if (!in_array($value, $svnRepAuthzList)) {
-                $authzContet = $this->SVNAdminRep->SetRepAuthz($authzContet, $value, '/');
-                if ($authzContet == '1') {
-                    return message(200, 0, '同步到配置文件错误');
+                $result = $this->SVNAdmin->WriteRepPathToAuthz($authzContet, $value, '/');
+                if (is_numeric($result)) {
+                    if ($result == 851) {
+                    } else {
+                        return message(200, 0, "同步到配置文件错误$authzContet");
+                    }
+                } else {
+                    $authzContet = $result;
                 }
             }
         }
 
         foreach ($svnRepAuthzList as $key => $value) {
             if (!in_array($value, $svnRepList)) {
-                $authzContet = $this->SVNAdminRep->DelRepAuthz($authzContet, $value);
-                if ($authzContet == '1') {
-                    return message(200, 0, '同步到配置文件错误');
+                $result = $this->SVNAdmin->DelRepFromAuthz($authzContet, $value);
+                if (is_numeric($result)) {
+                    if ($result == 751) {
+                    } else {
+                        return message(200, 0, "同步到配置文件错误$authzContet");
+                    }
+                } else {
+                    $authzContet = $result;
                 }
             }
         }
@@ -190,34 +205,21 @@ class Svnrep extends Base
      */
     private function SyncRepPathCheck()
     {
-        //获取在authz文件配置的用户有权限的仓库路径列表
-        $userRepList = [];
+        $authzContent = $this->authzContent;
 
-        //获取用户有权限的仓库列表
-        $userRepList = array_merge($userRepList, $this->SVNAdminUser->GetUserPriRepListWithPriAndPath($this->authzContent, $this->userName));
-
-        //获取用户所在的所有分组
-        $userGroupList = $this->Svngroup->GetSvnUserAllGroupList($this->userName);
-
-        //获取分组有权限的仓库路径列表
-        foreach ($userGroupList as $value) {
-            $userRepList = array_merge($userRepList, $this->SVNAdminGroup->GetGroupPriRepListWithPriAndPath($this->authzContent, $value));
-        }
-
-        //按照全路径去重
-        $tempArray = [];
-        foreach ($userRepList as $key => $value) {
-            if (in_array($value['unique'], $tempArray)) {
-                unset($userRepList[$key]);
+        //获取用户有权限的仓库路径列表
+        $userRepList = $this->SVNAdmin->GetUserAllPri($this->authzContent, $this->userName);
+        if (is_numeric($userRepList)) {
+            if ($userRepList == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else if ($userRepList == 700) {
+                return message(200, 0, '对象不存在');
+            } else if ($userRepList == 901) {
+                return message(200, 0, '不支持的授权对象类型');
             } else {
-                array_push($tempArray, $value['unique']);
+                return message(200, 0, "错误码$userRepList");
             }
         }
-
-        //处理不连续的下标
-        $userRepList = array_values($userRepList);
-
-        $authzContent = $this->authzContent;
 
         foreach ($userRepList as $key => $value) {
             $cmd = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $value['repName'], $value['priPath']);
@@ -226,8 +228,8 @@ class Svnrep extends Base
             if (strstr($result['error'], 'svnlook: E160013:')) {
                 //路径在仓库不存在
                 //从配置文件删除指定仓库的指定路径
-                $tempResult = $this->SVNAdminRep->DelRepPath($authzContent, $value['repName'], $value['priPath']);
-                if ($tempResult != '1') {
+                $tempResult = $this->SVNAdmin->DelRepPathFromAuthz($authzContent, $value['repName'], $value['priPath']);
+                if (!is_numeric($tempResult)) {
                     $authzContent = $tempResult;
                 }
             }
@@ -247,32 +249,19 @@ class Svnrep extends Base
      */
     private function SyncUserRepAndDb()
     {
-        //获取在authz文件配置的用户有权限的仓库路径列表
-        $userRepList = [];
-
-        //获取用户有权限的仓库列表
-        $userRepList = array_merge($userRepList, $this->SVNAdminUser->GetUserPriRepListWithPriAndPath($this->authzContent, $this->userName));
-
-        //获取用户所在的所有分组
-        $userGroupList = $this->Svngroup->GetSvnUserAllGroupList($this->userName);
-
-        //获取分组有权限的仓库路径列表
-        foreach ($userGroupList as $value) {
-            $userRepList = array_merge($userRepList, $this->SVNAdminGroup->GetGroupPriRepListWithPriAndPath($this->authzContent, $value));
-        }
-
-        //按照全路径去重
-        $tempArray = [];
-        foreach ($userRepList as $key => $value) {
-            if (in_array($value['unique'], $tempArray)) {
-                unset($userRepList[$key]);
+        //获取用户有权限的仓库路径列表
+        $userRepList = $this->SVNAdmin->GetUserAllPri($this->authzContent, $this->userName);
+        if (is_numeric($userRepList)) {
+            if ($userRepList == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else if ($userRepList == 700) {
+                return message(200, 0, '对象不存在');
+            } else if ($userRepList == 901) {
+                return message(200, 0, '不支持的授权对象类型');
             } else {
-                array_push($tempArray, $value['unique']);
+                return message(200, 0, "错误码$userRepList");
             }
         }
-
-        //处理不连续的下标
-        $userRepList = array_values($userRepList);
 
         //从数据库中删除该用户的所有权限
         $this->database->delete('svn_user_pri_paths', [
@@ -485,17 +474,21 @@ class Svnrep extends Base
          * 
          * 目的为使用该用户的权限进行操作 确保用户看到的就是所授权的
          */
-        $svnUserPass = $this->SVNAdminUser->GetPassByUser($this->passwdContent, $this->userName);
-        if ($svnUserPass == '0') {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
-        } else if ($svnUserPass == '1') {
-            return message(200, 0, '用户不存在' . $this->userName);
+        $svnUserPass = $this->SVNAdmin->GetUserInfo($this->passwdContent, $this->userName);
+        if (is_numeric($svnUserPass)) {
+            if ($svnUserPass == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($svnUserPass == 710) {
+                return message(200, 0, '用户不存在');
+            } else {
+                return message(200, 0, "错误码$svnUserPass");
+            }
         }
 
         /**
          * 使用svn list进行内容获取
          */
-        $checkResult = $this->SVNAdminRep->CheckSvnUserPathAutzh($checkoutHost, $repName, $path, $this->userName, $svnUserPass);
+        $checkResult = $this->SVNAdminRep->CheckSvnUserPathAutzh($checkoutHost, $repName, $path, $this->userName, $svnUserPass['userPass']);
         if ($checkResult['status'] != 1) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
         }
@@ -610,7 +603,7 @@ class Svnrep extends Base
         }
 
         //按照文件夹在前、文件在后的顺序进行字典排序
-        array_multisort(FunArrayColumn($data, 'resourceType'), SORT_DESC, $data);
+        array_multisort(array_column($data, 'resourceType'), SORT_DESC, $data);
 
         /**
          * 处理面包屑
@@ -719,7 +712,7 @@ class Svnrep extends Base
         }
 
         //按照文件夹在前、文件在后的顺序进行字典排序
-        array_multisort(FunArrayColumn($data, 'resourceType'), SORT_DESC, $data);
+        array_multisort(array_column($data, 'resourceType'), SORT_DESC, $data);
 
         //处理面包屑
         if ($path == '/') {
@@ -797,7 +790,7 @@ class Svnrep extends Base
         }
 
         //按照文件夹在前、文件在后的顺序进行字典排序
-        array_multisort(FunArrayColumn($data, 'resourceType'), SORT_DESC, $data);
+        array_multisort(array_column($data, 'resourceType'), SORT_DESC, $data);
 
         if ($path == '/') {
             return message(200, 1, '', [
@@ -816,100 +809,72 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取某个仓库路径的用户权限列表
+     * 获取某个仓库路径的所有权限列表
      */
-    public function GetRepPathUserPri()
+    public function GetRepPathAllPri()
     {
-        $result = $this->SVNAdminRep->GetRepUserListWithPri($this->authzContent, $this->payload['rep_name'], $this->payload['path']);
-        if ($result == '0') {
-            //没有该路径的记录
-            if ($this->payload['path'] == '/') {
-                //不正常 没有写入仓库记录
-                return message(200, 0, '该仓库没有被写入配置文件！请刷新仓库列表以同步');
+        $result = $this->SVNAdmin->GetRepPathPri($this->authzContent, $this->payload['rep_name'], $this->payload['path']);
+        if (is_numeric($result)) {
+            if ($result == 751) {
+                //没有该路径的记录
+                if ($this->payload['path'] == '/') {
+                    //不正常 没有写入仓库记录
+                    return message(200, 0, '该仓库没有被写入配置文件！请刷新仓库列表以同步');
+                } else {
+                    //正常 无记录
+                    return message(200, 1, '成功', []);
+                }
             } else {
-                //正常 无记录
-                return message(200, 1, '成功', []);
+                return message(200, 0, "错误码$result");
             }
         } else {
-            foreach ($result as $key => $value) {
-                $result[$key]['index'] = $key;
-                if ($value['userPri'] == '') {
-                    $result[$key]['userPri'] = 'no';
-                }
-            }
             return message(200, 1, '成功', $result);
         }
     }
 
     /**
-     * 获取某个仓库路径的分组权限列表
+     * 为某仓库路径下增加权限
+     *
+     * @return array
      */
-    public function GetRepPathGroupPri()
+    public function AddRepPathPri()
     {
-        $result = $this->SVNAdminRep->GetRepGroupListWithPri($this->authzContent, $this->payload['rep_name'], $this->payload['path']);
-        if ($result == '0') {
-            //没有该路径的记录
-            if ($this->payload['path'] == '/') {
-                //不正常 没有写入仓库记录
-                return message(200, 0, '该仓库没有被写入配置文件！请刷新仓库列表以同步');
-            } else {
-                //正常 无记录
-                return message(200, 1, '成功', []);
-            }
-        } else {
-            foreach ($result as $key => $value) {
-                $result[$key]['index'] = $key;
-                if ($value['groupPri'] == '') {
-                    $result[$key]['groupPri'] = 'no';
+        $repName = $this->payload['rep_name'];
+        $path = $this->payload['path'];
+        $objectType = $this->payload['objectType'];
+        $objectPri = $this->payload['objectPri'];
+        $objectName = $this->payload['objectName'];
+
+        /**
+         * 处理权限
+         */
+        $objectPri = $objectPri == 'no' ? '' : $objectPri;
+
+        $result = $this->SVNAdmin->AddRepPathPri($this->authzContent, $repName, $path, $objectType, false, $objectName, $objectPri);
+
+        if (is_numeric($result)) {
+            if ($result == 751) {
+                //没有该仓库路径记录 则进行插入
+                $result = $this->SVNAdmin->WriteRepPathToAuthz($this->authzContent, $repName, $path);
+                if (is_numeric($result)) {
+                    if ($result == 851) {
+                        $result = $this->authzContent;
+                    } else {
+                        return message(200, 0, "错误码$result");
+                    }
+                } else {
+                    //重新写入权限
+                    $result = $this->SVNAdmin->AddRepPathPri($result, $repName, $path, $objectType, false, $objectName, $objectPri);
+                    if (is_numeric($result)) {
+                        return message(200, 0, "错误码$result");
+                    }
                 }
-            }
-            return message(200, 1, '成功', $result);
-        }
-    }
-
-    /**
-     * 增加某个仓库路径的用户权限
-     */
-    public function AddRepPathUserPri()
-    {
-        $repName = $this->payload['rep_name'];
-        $path = $this->payload['path'];
-        $pri = $this->payload['pri'];
-        $user = $this->payload['user'];
-
-        /**
-         * 这里要进行重复添加用户的判断操作
-         * 
-         * 如果不对用户重复添加进行限制 则会导致用户的权限被重设为rw
-         */
-        //todo or no todo
-
-        /**
-         * 处理权限
-         */
-        $pri = $pri == 'no' ? '' : $pri;
-
-        /**
-         * 包括为已有权限的用户修改权限
-         * 包括为没有权限的用户增加权限
-         */
-        $result = $this->SVNAdminRep->SetRepUserPri($this->authzContent, $user, $pri, $repName, $path);
-
-        //没有该仓库路径记录
-        if ($result == '0') {
-
-            //没有该仓库路径记录 则进行插入
-            $result = $this->SVNAdminRep->SetRepAuthz($this->authzContent, $repName, $path);
-
-            if ($result == '1') {
-                return message(200, 1, '未知错误');
-            }
-
-            //重新添加权限
-            $result = $this->SVNAdminRep->SetRepUserPri($result, $user, $pri, $repName, $path);
-
-            if ($result == '0') {
-                return message(200, 1, '未知错误');
+            } else if ($result == 801) {
+                return message(200, 0, "对象已有授权记录");
+            } else if ($result == 901) {
+                return message(200, 0, "不支持的授权对象类型");
+            } else {
+                return message(200, 0, "错误码$result");
             }
         }
 
@@ -921,100 +886,33 @@ class Svnrep extends Base
     }
 
     /**
-     * 删除某个仓库路径的用户权限
+     * 修改某个仓库路径下的权限
      */
-    public function DelRepPathUserPri()
+    public function EditRepPathPri()
     {
         $repName = $this->payload['rep_name'];
         $path = $this->payload['path'];
-        $user = $this->payload['user'];
-
-        $result = $this->SVNAdminRep->DelRepUserPri($this->authzContent, $user, $repName, $path);
-
-        if ($result == '0') {
-            return message(200, 0, '不存在该仓库路径的记录');
-        } else if ($result == '1') {
-            return message(200, 0, '已被删除');
-        } else {
-            //写入
-            FunFilePutContents($this->config_svn['svn_authz_file'], $result);
-
-            //返回
-            return message();
-        }
-    }
-
-    /**
-     * 修改某个仓库路径的用户权限
-     */
-    public function EditRepPathUserPri()
-    {
-        $repName = $this->payload['rep_name'];
-        $path = $this->payload['path'];
-        $pri = $this->payload['pri'];
-        $user = $this->payload['user'];
+        $objectType = $this->payload['objectType'];
+        $invert = $this->payload['invert'];
+        $objectName = $this->payload['objectName'];
+        $objectPri = $this->payload['objectPri'];
 
         /**
          * 处理权限
          */
-        $pri = $pri == 'no' ? '' : $pri;
+        $objectPri = $objectPri == 'no' ? '' : $objectPri;
 
-        $result = $this->SVNAdminRep->UpdRepUserPri($this->authzContent, $user, $pri, $repName, $path);
+        $result = $this->SVNAdmin->EditRepPathPri($this->authzContent, $repName, $path, $objectType, $invert == 1 ? true : false, $objectName, $objectPri);
 
-        if ($result == '0') {
-            return message(200, 0, '不存在该仓库路径的记录');
-        }
-
-        //写入
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
-
-        //返回
-        return message();
-    }
-
-    /**
-     * 增加某个仓库路径的分组权限
-     */
-    public function AddRepPathGroupPri()
-    {
-        $repName = $this->payload['rep_name'];
-        $path = $this->payload['path'];
-        $pri = $this->payload['pri'];
-        $group = $this->payload['group'];
-
-        /**
-         * 这里要进行重复添加分组的判断操作
-         * 
-         * 如果不对分组重复添加进行限制 则会导致分组的权限被重设为rw
-         */
-        //todo or no todo
-
-        /**
-         * 处理权限
-         */
-        $pri = $pri == 'no' ? '' : $pri;
-
-        /**
-         * 包括为已有权限的分组修改权限
-         * 包括为没有权限的分组增加权限
-         */
-        $result = $this->SVNAdminRep->SetRepGroupPri($this->authzContent, $group, $pri, $repName, $path);
-
-        //没有该仓库路径记录
-        if ($result == '0') {
-
-            //没有该仓库路径记录 则进行插入
-            $result = $this->SVNAdminRep->SetRepAuthz($this->authzContent, $repName, $path);
-
-            if ($result == '1') {
-                return message(200, 1, '未知错误');
-            }
-
-            //重新添加权限
-            $result = $this->SVNAdminRep->SetRepGroupPri($result, $group, $pri, $repName, $path);
-
-            if ($result == '0') {
-                return message(200, 1, '未知错误');
+        if (is_numeric($result)) {
+            if ($result == 751) {
+                return message(200, 0, '不存在该仓库路径');
+            } else if ($result == 901) {
+                return message(200, 0, '不支持的授权对象类型');
+            } else if ($result == 701) {
+                return message(200, 0, '仓库路径下不存在该对象的权限记录');
+            } else {
+                return message(200, 0, "错误码$result");
             }
         }
 
@@ -1026,50 +924,27 @@ class Svnrep extends Base
     }
 
     /**
-     * 删除某个仓库路径的分组权限
+     * 删除某个仓库下的权限
      */
-    public function DelRepPathGroupPri()
+    public function DelRepPathPri()
     {
         $repName = $this->payload['rep_name'];
         $path = $this->payload['path'];
-        $group = $this->payload['group'];
+        $objectType = $this->payload['objectType'];
+        $objectName = $this->payload['objectName'];
 
-        $result = $this->SVNAdminRep->DelRepGroupPri($this->authzContent, $group, $repName, $path);
+        $result = $this->SVNAdmin->DelRepPathPri($this->authzContent, $repName, $path, $objectType, $objectName);
 
-        if ($result == '0') {
-            return message(200, 0, '不存在该仓库路径的记录');
-        } else if ($result == '1') {
-            return message(200, 0, '已被删除');
-        } else {
-            //写入
-            FunFilePutContents($this->config_svn['svn_authz_file'], $result);
-
-            //返回
-            return message();
-        }
-    }
-
-    /**
-     * 修改某个仓库路径的分组权限
-     */
-    public function EditRepPathGroupPri()
-    {
-        $repName = $this->payload['rep_name'];
-        $path = $this->payload['path'];
-        $pri = $this->payload['pri'];
-        $group = $this->payload['group'];
-
-        /**
-         * 处理权限
-         */
-        $pri = $pri == 'no' ? '' : $pri;
-
-        $result = $this->SVNAdminRep->UpdRepGroupPri($this->authzContent, $group, $pri, $repName, $path);
-
-        if ($result == '0') {
-            return message(200, 0, '不存在该仓库路径的记录');
-        } else if ($result == '1') {
-            return message(200, 0, '该仓库下不存在该分组');
+        if (is_numeric($result)) {
+            if ($result == 751) {
+                return message(200, 0, '不存在该仓库路径的记录');
+            } else if ($result == 901) {
+                return message(200, 0, '不支持的授权对象类型');
+            } else if ($result == 701) {
+                return message(200, 0, '已删除');
+            } else {
+                return message(200, 0, "错误码$result");
+            }
         }
 
         //写入
@@ -1119,9 +994,13 @@ class Svnrep extends Base
         ]);
 
         //从配置文件修改仓库名称
-        $result = $this->SVNAdminRep->UpdRepAuthz($this->authzContent, $this->payload['old_rep_name'], $this->payload['new_rep_name']);
-        if ($result == '1') {
-            return message(200, 0, '仓库不存在');
+        $result = $this->SVNAdmin->UpdRepFromAuthz($this->authzContent, $this->payload['old_rep_name'], $this->payload['new_rep_name']);
+        if (is_numeric($result)) {
+            if ($result == 751) {
+                return message(200, 0, '仓库不存在');
+            } else {
+                return message(200, 0, "错误码$result");
+            }
         }
 
         FunFilePutContents($this->config_svn['svn_authz_file'], $result);
@@ -1142,9 +1021,14 @@ class Svnrep extends Base
     public function DelRep()
     {
         //从配置文件删除指定仓库的所有路径
-        $result = $this->SVNAdminRep->DelRepAuthz($this->authzContent, $this->payload['rep_name']);
-        if ($result != '1') {
-            FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        $authzContet = $this->SVNAdmin->DelRepFromAuthz($this->authzContent, $this->payload['rep_name']);
+        if (is_numeric($authzContet)) {
+            if ($authzContet == 751) {
+            } else {
+                return message(200, 0, "错误码$authzContet");
+            }
+        } else {
+            FunFilePutContents($this->config_svn['svn_authz_file'], $authzContet);
         }
 
         //从数据库中删除
@@ -1535,6 +1419,8 @@ class Svnrep extends Base
 
         //使用echo写入文件 当出现不规则的不成对的 ' " 等会出问题 当然也会包括其他问题
         FunFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
+
+        FunShellExec('chmod 777 -R ' . $this->config_svn['home_path']);
 
         return message();
     }

@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:31:46
+ * @LastEditTime: 2022-08-28 11:39:36
  * @Description: QQ:1801168257
  */
 
@@ -32,10 +32,17 @@ class Svnuser extends Base
      */
     public function SyncUserToDb()
     {
-        $svnUserPassList =  $this->SVNAdminUser->GetSvnUserPassList($this->passwdContent);
-        if ($svnUserPassList == 0) {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
+        $svnUserPassList =  $this->SVNAdmin->GetUserInfo($this->passwdContent);
+        if (is_numeric($svnUserPassList)) {
+            if ($svnUserPassList == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($svnUserPassList == 710) {
+                return message(200, 0, '用户不存在');
+            } else {
+                return message(200, 0, "错误码$svnUserPassList");
+            }
         }
+
         $dbUserPassList = $this->database->select('svn_users', [
             'svn_user_id',
             'svn_user_name',
@@ -44,10 +51,10 @@ class Svnuser extends Base
             'svn_user_note'
         ]);
 
-        $combinArray1 = array_combine(FunArrayColumn($svnUserPassList, 'userName'), FunArrayColumn($svnUserPassList, 'disabled'));
-        $combinArray2 = array_combine(FunArrayColumn($svnUserPassList, 'userName'), FunArrayColumn($svnUserPassList, 'userPass'));
+        $combinArray1 = array_combine(array_column($svnUserPassList, 'userName'), array_column($svnUserPassList, 'disabled'));
+        $combinArray2 = array_combine(array_column($svnUserPassList, 'userName'), array_column($svnUserPassList, 'userPass'));
         foreach ($dbUserPassList as $value) {
-            if (!in_array($value['svn_user_name'], FunArrayColumn($svnUserPassList, 'userName'))) {
+            if (!in_array($value['svn_user_name'], array_column($svnUserPassList, 'userName'))) {
                 $this->database->delete('svn_users', [
                     'svn_user_name' => $value['svn_user_name']
                 ]);
@@ -63,7 +70,7 @@ class Svnuser extends Base
         }
 
         foreach ($svnUserPassList as $value) {
-            if (!in_array($value['userName'], FunArrayColumn($dbUserPassList, 'svn_user_name'))) {
+            if (!in_array($value['userName'], array_column($dbUserPassList, 'svn_user_name'))) {
                 $this->database->insert('svn_users', [
                     'svn_user_name' => $value['userName'],
                     'svn_user_pass' => $value['userPass'],
@@ -78,17 +85,26 @@ class Svnuser extends Base
 
     /**
      * 获取全部的SVN用户
-     * 
-     * 只包含用户名和启用状态
      */
     public function GetAllUserList()
     {
-        $svnUserList = $this->SVNAdminUser->GetSvnUserList($this->passwdContent);
-        if ($svnUserList == '0') {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
-        } else {
-            return message(200, 1, '成功', $svnUserList);
-        }
+        $searchKeyword = trim($this->payload['searchKeywordUser']);
+
+        $list = $this->database->select('svn_users', [
+            'svn_user_id',
+            'svn_user_name',
+            'svn_user_status',
+            'svn_user_note'
+        ], [
+            'AND' => [
+                'OR' => [
+                    'svn_user_name[~]' => $searchKeyword,
+                    'svn_user_note[~]' => $searchKeyword,
+                ],
+            ],
+        ]);
+
+        return message(200, 1, '成功', $list);
     }
 
     /**
@@ -162,43 +178,35 @@ class Svnuser extends Base
             return message(200, 0, '内容不能为空');
         }
 
-        $svnUserPassList =  $this->SVNAdminUser->GetSvnUserPassList($this->payload['passwdContent']);
-        if ($svnUserPassList == 0) {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
+        $svnUserPassList = $this->SVNAdmin->GetUserInfo($this->payload['passwdContent']);
+        if (is_numeric($svnUserPassList)) {
+            if ($svnUserPassList == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($svnUserPassList == 710) {
+                return message(200, 0, '用户不存在');
+            } else {
+                return message(200, 0, "错误码$svnUserPassList");
+            }
         }
-        
+
         return message(200, 1, '成功', $svnUserPassList);
     }
 
     /**
-     * 启用SVN用户
+     * 启用或禁用用户
      */
-    public function EnableUser()
+    public function UpdUserStatus()
     {
-        $result = $this->SVNAdminUser->EnabledUser($this->passwdContent, $this->payload['svn_user_name']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '要启用的用户不存在');
-        }
-
-        FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
-
-        return message();
-    }
-
-    /**
-     * 禁用SVN用户
-     */
-    public function DisableUser()
-    {
-        $result = $this->SVNAdminUser->DisabledUser($this->passwdContent, $this->payload['svn_user_name']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '要禁用的用户不存在');
+        //disable true 禁用用户 false 启用用户
+        $result = $this->SVNAdmin->UpdUserStatus($this->passwdContent, $this->payload['svn_user_name'], $this->payload['disable']);
+        if (is_numeric($result)) {
+            if ($result == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($result == 710) {
+                return message(200, 0, '用户不存在');
+            } else {
+                return message(200, 0, "错误码$result");
+            }
         }
 
         FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
@@ -232,12 +240,15 @@ class Svnuser extends Base
         }
 
         //检查用户是否已存在
-        $result = $this->SVNAdminUser->AddSvnUser($this->passwdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '用户已存在');
+        $result = $this->SVNAdmin->AddUser($this->passwdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass']);
+        if (is_numeric($result)) {
+            if ($result == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($result == 810) {
+                return message(200, 0, '用户已存在');
+            } else {
+                return message(200, 0, "错误码$result");
+            }
         }
 
         //检查密码是否不为空
@@ -272,12 +283,15 @@ class Svnuser extends Base
     public function EditUserPass()
     {
         //检查用户是否已存在
-        $result = $this->SVNAdminUser->UpdSvnUserPass($this->passwdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass'], !$this->payload['svn_user_status']);
-        if ($result == '0') {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
-        }
-        if ($result == '1') {
-            return message(200, 0, '用户不存在 请刷新重试');
+        $result = $this->SVNAdmin->UpdUserPass($this->passwdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass'], !$this->payload['svn_user_status']);
+        if (is_numeric($result)) {
+            if ($result == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($result == 710) {
+                return message(200, 0, '用户不存在 请刷新重试');
+            } else {
+                return message(200, 0, "错误码$result");
+            }
         }
 
         //检查密码是否不为空
@@ -304,20 +318,27 @@ class Svnuser extends Base
     public function DelUser()
     {
         //从passwd文件中全局删除
-        $resultPasswd = $this->SVNAdminUser->DelSvnUserPasswd($this->passwdContent, $this->payload['svn_user_name'], !$this->payload['svn_user_status']);
-
-        if ($resultPasswd == '0') {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
-        }
-        if ($resultPasswd == '1') {
-            return message(200, 0, '用户不存在');
+        $resultPasswd = $this->SVNAdmin->DelUserFromPasswd($this->passwdContent, $this->payload['svn_user_name'], !$this->payload['svn_user_status']);
+        if (is_numeric($resultPasswd)) {
+            if ($resultPasswd == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($resultPasswd == 710) {
+                return message(200, 0, '用户不存在');
+            } else {
+                return message(200, 0, "错误码$resultPasswd");
+            }
         }
 
         //从authz文件中删除
-        $resultAuthz = $this->SVNAdminUser->DelUserAuthz($this->authzContent, $this->payload['svn_user_name']);
-
-        if ($resultAuthz == '0') {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
+        $resultAuthz = $this->SVNAdmin->DelObjectFromAuthz($this->authzContent, $this->payload['svn_user_name'], 'user');
+        if (is_numeric($resultAuthz)) {
+            if ($resultAuthz == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($resultAuthz == 901) {
+                return message(200, 0, '不支持的授权对象类型');
+            } else {
+                return message(200, 0, "错误码$resultAuthz");
+            }
         }
 
         //从数据删除

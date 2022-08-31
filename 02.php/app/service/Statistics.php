@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 01:45:39
+ * @LastEditTime: 2022-08-28 18:39:06
  * @Description: QQ:1801168257
  */
 
@@ -238,16 +238,28 @@ class Statistics extends Base
         $repCount = count($this->SVNAdminRep->GetSimpleRepList());
 
         //SVN用户数量
-        $userCount = $this->SVNAdminUser->GetSvnUserList($this->passwdContent);
-        if ($userCount === '0') {
-            return message(200, 0, '文件格式错误(不存在[users]标识)');
+        $userCount = $this->SVNAdmin->GetUserInfo($this->passwdContent);
+        if (is_numeric($userCount)) {
+            if ($userCount == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($userCount == 710) {
+                return message(200, 0, '用户不存在');
+            } else {
+                return message(200, 0, "错误码$userCount");
+            }
         }
         $userCount  = count($userCount);
 
         //SVN分组数量
-        $groupCount = $this->SVNAdminGroup->GetSvnGroupList($this->authzContent);
-        if ($userCount === '0') {
-            return message(200, 0, '文件格式错误(不存在[groups]标识)');
+        $groupCount = $this->SVNAdmin->GetGroupInfo($this->authzContent);
+        if (is_numeric($groupCount)) {
+            if ($groupCount == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else if ($groupCount == 720) {
+                return message(200, 0, '指定的分组不存在');
+            } else {
+                return message(200, 0, "错误码$groupCount");
+            }
         }
         $groupCount = count($groupCount);
 

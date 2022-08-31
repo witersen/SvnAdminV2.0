@@ -75,7 +75,7 @@ class Install
      * 为了兼容php5.4
      * 这里选择手动实现 可能性能不高
      */
-    function FunArrayColumn($array, $columnKey)
+    function array_column($array, $columnKey)
     {
         $resultArray = [];
         foreach ($array as $key => $value) {
@@ -152,7 +152,7 @@ class Install
 
                 //下载并执行升级脚本
                 $packages = $array['update']['download'][$key1]['packages'];
-                $forList = $this->FunArrayColumn($packages, 'for');
+                $forList = $this->array_column($packages, 'for');
                 $current = [
                     'source' => $this->config_version['version'],
                     'dest' => $last
@@ -776,7 +776,7 @@ CON;
 
         echo '===============================================' . PHP_EOL;
 
-        if (!in_array($answer, $this->FunArrayColumn($this->scripts, 'index'))) {
+        if (!in_array($answer, $this->array_column($this->scripts, 'index'))) {
             exit('错误的命令编号：' . PHP_EOL);
         }
 

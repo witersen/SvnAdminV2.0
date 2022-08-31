@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-27 23:19:24
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-09 16:36:56
+ * @LastEditTime: 2022-08-27 22:38:56
  * @Description: QQ:1801168257
  * @copyright: https://github.com/witersen/
  */
@@ -163,7 +163,7 @@ class Core
      * 等
      * 
      * %s => $repName
-     * %s => $repPaht str_replace('/', '\/', $repPath)
+     * %s => $repPath str_replace('/', '\/', $repPath)
      *
      * @var string
      */
@@ -197,7 +197,7 @@ class Core
     protected $REG_AUTHZ_ALL_REP_WITHOUT_PATH_AND_CON = "/^\[(.*?):.*?\]/m";
 
     /**
-     * 将 svnadmin info $repPaht 的结果匹配为 key => value 形式
+     * 将 svnadmin info $repPath 的结果匹配为 key => value 形式
      *
      * @var string
      */

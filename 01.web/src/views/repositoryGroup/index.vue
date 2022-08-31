@@ -32,6 +32,9 @@
         :loading="loadingGroup"
         size="small"
       >
+        <template slot-scope="{ index }" slot="index">
+          {{ pageSizeGroup * (pageCurrentGroup - 1) + index + 1 }}
+        </template>
         <template slot-scope="{ row, index }" slot="svn_group_note">
           <Input
             :border="false"
@@ -206,7 +209,7 @@ export default {
        */
       //分组
       pageCurrentGroup: 1,
-      pageSizeGroup: 10,
+      pageSizeGroup: 20,
       totalGroup: 0,
 
       /**
@@ -250,7 +253,7 @@ export default {
        */
       //新建分组
       modalAddGroup: false,
-      //编辑仓库信息
+      //编辑分组信息
       modalEditGroupName: false,
       //配置分组成员
       modalGetGroupMember: false,
@@ -262,7 +265,7 @@ export default {
         svn_group_name: "",
         svn_group_note: "",
       },
-      //编辑仓库
+      //编辑分组
       formEditGroupName: {
         groupNameOld: "",
         groupNameNew: "",
@@ -270,11 +273,11 @@ export default {
       /**
        * 表格
        */
-      //仓库信息
+      //分组信息
       tableGroupColumn: [
         {
           title: "序号",
-          type: "index",
+          slot: "index",
           fixed: "left",
           minWidth: 80,
         },
@@ -679,9 +682,9 @@ export default {
      */
     ChangeUserMember(value, userName) {
       if (value == true) {
-        this.GroupAddUser(userName);
+        this.UpdGroupMember(userName, "user", "add");
       } else {
-        this.GroupRemoveUser(userName);
+        this.UpdGroupMember(userName, "user", "delete");
       }
     },
     /**
@@ -689,100 +692,26 @@ export default {
      */
     ChangeGroupMember(value, groupName) {
       if (value == true) {
-        this.GroupAddGroup(groupName);
+        this.UpdGroupMember(groupName, "group", "add");
       } else {
-        this.GroupRemoveGroup(groupName);
+        this.UpdGroupMember(groupName, "group", "delete");
       }
     },
+
     /**
-     * 将用户添加为SVN分组的成员
+     * 为分组添加或者删除所包含的对象
+     * 对象包括：用户、分组、用户别名
      */
-    GroupAddUser(userName) {
+    UpdGroupMember(objectName, objectType, actionType) {
       var that = this;
       var data = {
         svn_group_name: that.currentSelectGroupName,
-        svn_user_name: userName,
+        objectName: objectName,
+        objectType: objectType,
+        actionType: actionType,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=GroupAddUser&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetGroupMember();
-          } else {
-            that.$Message.error(result.message);
-            that.GetGroupMember();
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
-     * 将用户从SVN分组的成员移除
-     */
-    GroupRemoveUser(userName) {
-      var that = this;
-      var data = {
-        svn_group_name: that.currentSelectGroupName,
-        svn_user_name: userName,
-      };
-      that.$axios
-        .post("/api.php?c=Svngroup&a=GroupRemoveUser&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetGroupMember();
-          } else {
-            that.$Message.error(result.message);
-            that.GetGroupMember();
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
-     * 将分组添加为SVN分组的成员
-     */
-    GroupAddGroup(groupName) {
-      var that = this;
-      var data = {
-        svn_group_name: that.currentSelectGroupName,
-        svn_group_name_add: groupName,
-      };
-      that.$axios
-        .post("/api.php?c=Svngroup&a=GroupAddGroup&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetGroupMember();
-          } else {
-            that.$Message.error(result.message);
-            that.GetGroupMember();
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
-     * 将分组从SVN分组的成员移除
-     */
-    GroupRemoveGroup(groupName) {
-      var that = this;
-      var data = {
-        svn_group_name: that.currentSelectGroupName,
-        svn_group_name_del: groupName,
-      };
-      that.$axios
-        .post("/api.php?c=Svngroup&a=GroupRemoveGroup&t=web", data)
+        .post("/api.php?c=Svngroup&a=UpdGroupMember&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

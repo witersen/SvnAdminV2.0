@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-06 18:41:32
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 15:04:52
+ * @LastEditTime: 2022-08-28 13:15:21
  * @Description: QQ:1801168257
  */
 
@@ -49,6 +49,7 @@ require_once BASE_PATH . '/app/controller/Personal.php';
 require_once BASE_PATH . '/app/controller/Safe.php';
 require_once BASE_PATH . '/app/controller/Statistics.php';
 require_once BASE_PATH . '/app/controller/Svn.php';
+require_once BASE_PATH . '/app/controller/Svnaliase.php';
 require_once BASE_PATH . '/app/controller/Svngroup.php';
 require_once BASE_PATH . '/app/controller/Svnrep.php';
 require_once BASE_PATH . '/app/controller/Svnuser.php';
@@ -63,6 +64,7 @@ require_once BASE_PATH . '/app/service/Personal.php';
 require_once BASE_PATH . '/app/service/Safe.php';
 require_once BASE_PATH . '/app/service/Statistics.php';
 require_once BASE_PATH . '/app/service/Svn.php';
+require_once BASE_PATH . '/app/service/Svnaliase.php';
 require_once BASE_PATH . '/app/service/Svngroup.php';
 require_once BASE_PATH . '/app/service/Svnrep.php';
 require_once BASE_PATH . '/app/service/Svnuser.php';
@@ -77,6 +79,8 @@ require_once BASE_PATH . '/extension/PHPMailer-6.6.0/src/SMTP.php';
 require_once BASE_PATH . '/extension/PHPMailer-6.6.0/language/phpmailer.lang-zh_cn.php';
 
 require_once BASE_PATH . '/extension/Verifycode/Verifycode.php';
+
+require_once BASE_PATH . '/extension/Witersen/SVNAdmin.php';
 
 class Base
 {

@@ -90,7 +90,7 @@ class Safe extends Base
         }
 
         $safeConfig = $result['data'];
-        $index = array_search('login_verify_code', FunArrayColumn($safeConfig, 'name'));
+        $index = array_search('login_verify_code', array_column($safeConfig, 'name'));
         if ($index === false) {
             return message(200, 0, '获取配置信息出错');
         }

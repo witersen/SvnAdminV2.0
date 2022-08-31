@@ -59,23 +59,14 @@ class Svnuser extends Base
     }
 
     /**
-     * 启用SVN用户
+     * 启用或禁用用户
      */
-    public function EnableUser()
+    public function UpdUserStatus()
     {
-        $result = $this->ServiceSvnuser->EnableUser();
+        $result = $this->ServiceSvnuser->UpdUserStatus();
         json2($result);
     }
-
-    /**
-     * 禁用SVN用户
-     */
-    public function DisableUser()
-    {
-        $result = $this->ServiceSvnuser->DisableUser();
-        json2($result);
-    }
-
+    
     /**
      * 修改SVN用户的备注信息
      */

@@ -259,6 +259,19 @@ class Daemon
             posix_kill((int)$pid, 9);
             unlink($this->pidFile);
         }
+
+        //如果为 Linux 平台，且安装了 ps 程序，检测是否正确关闭了相关程序
+        if (PHP_OS == 'Linux') {
+            $result = shell_exec('which ps 2>/dev/null');
+            if (!empty($result)) {
+                $result2 = shell_exec("ps auxf | grep -v 'grep' | grep -v " . getmypid() . " | grep svnadmind.php");
+                if (!empty($result2)) {
+                    echo '请确保您成功关闭了该守护进程程序！' . PHP_EOL;
+                    echo '因为检测到以下疑似进程正在运行:' . PHP_EOL;
+                    echo $result2;
+                }
+            }
+        }
     }
 
     /**

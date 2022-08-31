@@ -35,6 +35,9 @@
         :loading="loadingUser"
         size="small"
       >
+        <template slot-scope="{ index }" slot="index">
+          {{ pageSizeUser * (pageCurrentUser - 1) + index + 1 }}
+        </template>
         <template slot-scope="{ row }" slot="svn_user_pass">
           <Input
             :border="false"
@@ -185,7 +188,7 @@ export default {
        */
       //用户
       pageCurrentUser: 1,
-      pageSizeUser: 10,
+      pageSizeUser: 20,
       totalUser: 0,
 
       /**
@@ -252,7 +255,7 @@ export default {
       tableColumnUser: [
         {
           title: "序号",
-          type: "index",
+          slot: "index",
           fixed: "left",
           minWidth: 80,
         },
@@ -353,53 +356,31 @@ export default {
         });
     },
     /**
-     * 禁用用户
+     * 启用或禁用用户
      */
     ChangeUserStatus(value, svn_user_name) {
       if (value == true) {
-        this.EnableUser(svn_user_name);
+        this.UpdUserStatus(svn_user_name, false);
       } else {
-        this.DisableUser(svn_user_name);
+        this.UpdUserStatus(svn_user_name, true);
       }
     },
     /**
-     * 启用用户
+     * 启用或禁用用户
      */
-    EnableUser(svn_user_name) {
+    UpdUserStatus(svn_user_name, disable) {
       var that = this;
       var data = {
         svn_user_name: svn_user_name,
+        disable: disable,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=EnableUser&t=web", data)
+        .post("/api.php?c=Svnuser&a=UpdUserStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
-     * 禁用用户
-     */
-    DisableUser(svn_user_name) {
-      var that = this;
-      var data = {
-        svn_user_name: svn_user_name,
-      };
-      that.$axios
-        .post("/api.php?c=Svnuser&a=DisableUser&t=web", data)
-        .then(function (response) {
-          that.loadingUser = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
+            that.GetUserList();
           } else {
             that.$Message.error(result.message);
           }

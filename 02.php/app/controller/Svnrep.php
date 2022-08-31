@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-04-24 23:37:05
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-21 13:55:49
+ * @LastEditTime: 2022-08-28 18:07:43
  * @Description: QQ:1801168257
  */
 
@@ -93,74 +93,40 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取某个仓库路径的用户权限列表
+     * 获取某个仓库路径的所有权限列表
      */
-    public function GetRepPathUserPri()
+    public function GetRepPathAllPri()
     {
-        $result = $this->ServiceSvnrep->GetRepPathUserPri();
+        $result = $this->ServiceSvnrep->GetRepPathAllPri();
         json2($result);
     }
 
     /**
-     * 获取某个仓库路径的分组权限列表
+     * 为某仓库路径下增加权限
+     *
+     * @return array
      */
-    public function GetRepPathGroupPri()
+    public function AddRepPathPri()
     {
-        $result = $this->ServiceSvnrep->GetRepPathGroupPri();
+        $result = $this->ServiceSvnrep->AddRepPathPri();
         json2($result);
     }
 
     /**
-     * 增加某个仓库路径的用户权限
+     * 修改某个仓库路径下的权限
      */
-    public function AddRepPathUserPri()
+    public function EditRepPathPri()
     {
-        $result = $this->ServiceSvnrep->AddRepPathUserPri();
+        $result = $this->ServiceSvnrep->EditRepPathPri();
         json2($result);
     }
 
     /**
-     * 删除某个仓库路径的用户权限
+     * 删除某个仓库下的权限
      */
-    public function DelRepPathUserPri()
+    public function DelRepPathPri()
     {
-        $result = $this->ServiceSvnrep->DelRepPathUserPri();
-        json2($result);
-    }
-
-    /**
-     * 修改某个仓库路径的用户权限
-     */
-    public function EditRepPathUserPri()
-    {
-        $result = $this->ServiceSvnrep->EditRepPathUserPri();
-        json2($result);
-    }
-
-    /**
-     * 增加某个仓库路径的分组权限
-     */
-    public function AddRepPathGroupPri()
-    {
-        $result = $this->ServiceSvnrep->AddRepPathGroupPri();
-        json2($result);
-    }
-
-    /**
-     * 删除某个仓库路径的分组权限
-     */
-    public function DelRepPathGroupPri()
-    {
-        $result = $this->ServiceSvnrep->DelRepPathGroupPri();
-        json2($result);
-    }
-
-    /**
-     * 修改某个仓库路径的分组权限
-     */
-    public function EditRepPathGroupPri()
-    {
-        $result = $this->ServiceSvnrep->EditRepPathGroupPri();
+        $result = $this->ServiceSvnrep->DelRepPathPri();
         json2($result);
     }
 

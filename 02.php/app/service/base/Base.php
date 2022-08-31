@@ -3,7 +3,7 @@
  * @Author: witersen
  * @Date: 2022-05-06 18:42:00
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:39:27
+ * @LastEditTime: 2022-08-27 22:31:40
  * @Description: QQ:1801168257
  */
 
@@ -15,6 +15,7 @@ use Config;
 
 use Medoo\Medoo;
 
+use Witersen\SVNAdmin;
 use SVNAdmin\SVN\Group;
 use SVNAdmin\SVN\Rep;
 use SVNAdmin\SVN\User;
@@ -49,10 +50,14 @@ class Base
     public $payload;
 
     //SVNAdmin
+    public $SVNAdmin;
     public $SVNAdminGroup;
     public $SVNAdminInfo;
     public $SVNAdminRep;
     public $SVNAdminUser;
+
+    //token 分隔符
+    public $signSeparator = '|';
 
     //检查
     public $checkService;
@@ -141,9 +146,10 @@ class Base
         /**
          * 10、svnadmin对象
          */
-        $this->SVNAdminGroup = new Group($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
+        $this->SVNAdmin = new SVNAdmin();
+        // $this->SVNAdminGroup = new Group($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
         $this->SVNAdminRep = new Rep($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
-        $this->SVNAdminUser = new User($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
+        // $this->SVNAdminUser = new User($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
 
         /**
          * 11、检查对象
@@ -162,7 +168,7 @@ class Base
             return;
         }
 
-        $array = explode('.', $this->token);
+        $array = explode($this->signSeparator, $this->token);
 
         $this->userRoleId = $array[0];
         $this->userName = $array[1];
@@ -184,11 +190,11 @@ class Base
         //配置登录凭证过期时间为6个小时
         $endTime = $nowTime + 60 * 60 * 6;
 
-        $part1 = $userRoleId . '.' . $userName . '.' . $startTime . '.' . $endTime;
+        $part1 = $userRoleId . $this->signSeparator . $userName . $this->signSeparator . $startTime . $this->signSeparator . $endTime;
 
         $part2 = hash_hmac('md5', $part1, $this->config_sign['signature']);
 
-        return $part1 . '.' . $part2;
+        return $part1 . $this->signSeparator . $part2;
     }
 
     /**
@@ -209,7 +215,7 @@ class Base
         }
 
         //校验token格式
-        if (substr_count($this->token, '.') != 4) {
+        if (substr_count($this->token, $this->signSeparator) != 4) {
             return [
                 'code' => 401,
                 'status' => 0,
@@ -218,7 +224,7 @@ class Base
             ];
         }
 
-        $arr = explode('.', $this->token);
+        $arr = explode($this->signSeparator, $this->token);
 
         //校验token格式
         foreach ($arr as $value) {
@@ -233,7 +239,7 @@ class Base
         }
 
         //检验token内容
-        $part1 =  hash_hmac('md5', $arr[0] . '.' . $arr[1] . '.' . $arr[2] . '.' . $arr[3], $this->config_sign['signature']);
+        $part1 =  hash_hmac('md5', $arr[0] . $this->signSeparator . $arr[1] . $this->signSeparator . $arr[2] . $this->signSeparator . $arr[3], $this->config_sign['signature']);
         $part2 = $arr[4];
         if ($part1 != $part2) {
             return [

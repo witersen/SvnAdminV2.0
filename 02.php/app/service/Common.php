@@ -57,7 +57,16 @@ class Common extends Base
                 'code' => $this->payload['code'],
             ]);
             if ($codeResult == null) {
+                //每个 uuid 仅可使用一次 防止爆破
+                $this->database->update('verification_code', [
+                    'end_time' => 0
+                ], [
+                    'uuid' => $this->payload['uuid']
+                ]);
                 return message(200, 0, '验证码错误', $codeResult);
+            }
+            if ($codeResult['end_time'] == 0) {
+                return message(200, 0, '验证码仅可用一次');
             }
             if ($codeResult['end_time'] < time()) {
                 return message(200, 0, '验证码过期');
@@ -193,6 +202,17 @@ class Common extends Base
             'insert_time' => date('Y-m-d H:i:s')
         ]);
 
+        //从数据库查询验证数据被正常写入
+        $result = $this->database->get('verification_code', [
+            'code_id'
+        ], [
+            'uuid' => $uuid
+        ]);
+
+        if ($result == null) {
+            return message(200, 0, '无法写入数据库，如果为 SQLite，请为数据库文件及上级目录授权');
+        }
+
         $varification = new Verifycode(134, 32, $code);
 
         $imageString = $varification->CreateVerifacationImage();
@@ -200,7 +220,7 @@ class Common extends Base
         //返回图片的base64编码
         return message(200, 1, 'success', [
             'uuid' => $uuid,
-            'base64' => $imageString
+            'base64' => $imageString,
         ]);
     }
 
@@ -211,7 +231,7 @@ class Common extends Base
      */
     private function AddBlack()
     {
-        $arr = explode('.', $this->token);
+        $arr = explode($this->signSeparator, $this->token);
         $this->database->insert('black_token', [
             'token' => $this->token,
             'start_time' => $arr[2],

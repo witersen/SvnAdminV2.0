@@ -55,6 +55,9 @@
         :data="tableDataRep"
         size="small"
       >
+        <template slot-scope="{ index }" slot="index">
+          {{ pageSizeRep * (pageCurrentRep - 1) + index + 1 }}
+        </template>
         <template slot-scope="{ row, index }" slot="rep_note">
           <Input
             :border="false"
@@ -110,6 +113,9 @@
         :data="tableDataUserRep"
         size="small"
       >
+        <template slot-scope="{ index }" slot="index">
+          {{ pageSizeUserRep * (pageCurrentUserRep - 1) + index + 1 }}
+        </template>
         <template slot-scope="{ row }" slot="action">
           <Button
             type="info"
@@ -296,101 +302,6 @@
           </Scroll>
         </Col>
         <Col span="11">
-          <Card
-            :bordered="true"
-            v-if="false"
-            :dis-hover="true"
-            style="height: 550px"
-          >
-            <Tabs type="card">
-              <TabPane label="用户">
-                <Form :label-width="60">
-                  <FormItem label="信息">
-                    <Table
-                      highlight-row
-                      border
-                      :height="200"
-                      size="small"
-                      :columns="tableColumnRepPathUserPri"
-                      :data="tableDataRepPathUserPri"
-                      :loading="loadingRepPathUserPri"
-                      @on-current-change="ChangeSelectRepUserPri"
-                    ></Table>
-                  </FormItem>
-                  <FormItem label="操作">
-                    <ButtonGroup>
-                      <Button icon="ios-add" @click="ModalRepAllUser"></Button>
-                      <Button
-                        icon="ios-remove"
-                        :loading="loadingDelRepPathUserPri"
-                        @click="DelRepPathUserPri"
-                      ></Button>
-                    </ButtonGroup>
-                  </FormItem>
-                  <FormItem label="权限">
-                    <RadioGroup
-                      vertical
-                      v-model="radioRepUserPri"
-                      @on-change="ChangeRadioRepUserPri"
-                    >
-                      <Radio label="no">
-                        <span>无权限</span>
-                      </Radio>
-                      <Radio label="r">
-                        <span>只读</span>
-                      </Radio>
-                      <Radio label="rw">
-                        <span>读写</span>
-                      </Radio>
-                    </RadioGroup>
-                  </FormItem>
-                </Form>
-              </TabPane>
-              <TabPane label="分组">
-                <Form :label-width="60">
-                  <FormItem label="信息">
-                    <Table
-                      highlight-row
-                      border
-                      :height="200"
-                      size="small"
-                      :columns="tableColumnRepPathGroupPri"
-                      :data="tableDataRepPathGroupPri"
-                      :loading="loadingRepPathGroupPri"
-                      @on-current-change="ChangeSelectRepGroupPri"
-                    ></Table>
-                  </FormItem>
-                  <FormItem label="操作">
-                    <ButtonGroup>
-                      <Button icon="ios-add" @click="ModalRepAllGroup"></Button>
-                      <Button
-                        icon="ios-remove"
-                        @click="DelRepPathGroupPri"
-                        :loading="loadingDelRepPathGroupPri"
-                      ></Button>
-                    </ButtonGroup>
-                  </FormItem>
-                  <FormItem label="权限">
-                    <RadioGroup
-                      vertical
-                      v-model="radioRepGroupPri"
-                      @on-change="ChangeRadioRepGroupPri"
-                    >
-                      <Radio label="no">
-                        <span>无权限</span>
-                      </Radio>
-                      <Radio label="r">
-                        <span>只读</span>
-                      </Radio>
-                      <Radio label="rw">
-                        <span>读写</span>
-                      </Radio>
-                    </RadioGroup>
-                  </FormItem>
-                </Form>
-              </TabPane>
-            </Tabs>
-          </Card>
           <Tooltip
             style="width: 100%"
             max-width="450"
@@ -413,63 +324,95 @@
               border
               :height="410"
               size="small"
-              :columns="tableColumnRepPathPriInfo"
-              :data="tableDataRepPathPriInfo"
+              :loading="loadingRepPathAllPri"
+              :columns="tableColumnRepPathAllPri"
+              :data="tableDataRepPathAllPri"
               style="margin-top: 20px"
             >
-              <template slot-scope="{ row }" slot="type">
+              <template slot-scope="{ row }" slot="objectType">
                 <Tag
                   color="blue"
-                  v-if="row.type == 1"
-                  style="width: 65px; text-align: center"
+                  v-if="row.objectType == 'user'"
+                  style="width: 90px; text-align: center"
                   >SVN用户</Tag
                 >
                 <Tag
                   color="geekblue"
-                  v-if="row.type == 2"
-                  style="width: 65px; text-align: center"
+                  v-if="row.objectType == 'group'"
+                  style="width: 90px; text-align: center"
                   >SVN分组</Tag
                 >
                 <Tag
                   color="purple"
-                  v-if="row.type == 3"
-                  style="width: 65px; text-align: center"
+                  v-if="row.objectType == 'aliase'"
+                  style="width: 90px; text-align: center"
                   >SVN别名</Tag
                 >
                 <Tag
                   color="red"
-                  v-if="row.type == 4"
-                  style="width: 65px; text-align: center"
+                  v-if="row.objectType == '*'"
+                  style="width: 90px; text-align: center"
                   >所有人</Tag
                 >
                 <Tag
                   color="magenta"
-                  v-if="row.type == 5"
-                  style="width: 65px; text-align: center"
-                  >已授权</Tag
+                  v-if="row.objectType == '$authenticated'"
+                  style="width: 90px; text-align: center"
+                  >所有已认证者</Tag
                 >
                 <Tag
                   color="volcano"
-                  v-if="row.type == 6"
-                  style="width: 65px; text-align: center"
-                  >未授权</Tag
+                  v-if="row.objectType == '$anonymous'"
+                  style="width: 90px; text-align: center"
+                  >所有匿名者</Tag
                 >
               </template>
-              <template slot-scope="{ row }" slot="pri">
-                <RadioGroup type="button" size="small" button-style="solid">
+              <template slot-scope="{ row }" slot="objectPri">
+                <RadioGroup
+                  v-model="row.objectPri"
+                  type="button"
+                  size="small"
+                  button-style="solid"
+                  @on-change="
+                    (objectPri) =>
+                      ClickRepPathPri(
+                        row.objectType,
+                        row.invert,
+                        row.objectName,
+                        objectPri
+                      )
+                  "
+                >
                   <Radio label="rw">读写</Radio>
                   <Radio label="r">只读</Radio>
-                  <Radio label="none">禁止</Radio>
+                  <Radio label="no">禁止</Radio>
                 </RadioGroup>
               </template>
               <template slot-scope="{ row }" slot="invert">
-                <Switch v-if="row.type == 1 || row.type == 2 || row.type == 3">
+                <Switch
+                  v-if="row.type != '*'"
+                  v-model="row.invert"
+                  @on-change="
+                    (invert) =>
+                      ClickRepPathPri(
+                        row.objectType,
+                        invert,
+                        row.objectName,
+                        row.objectPri
+                      )
+                  "
+                >
                   <Icon type="md-checkmark" slot="open"></Icon>
                   <Icon type="md-close" slot="close"></Icon>
                 </Switch>
               </template>
               <template slot-scope="{ row }" slot="action">
-                <Button type="error" size="small">删除</Button>
+                <Button
+                  type="error"
+                  size="small"
+                  @click="DelRepPathPri(row.objectType, row.objectName)"
+                  >删除</Button
+                >
               </template>
             </Table>
           </Card>
@@ -958,49 +901,9 @@
         >
       </div>
     </Modal>
-    <!-- 对话框-选择SVN用户 -->
-    <Modal
-      v-model="modalRepAllUser"
-      title="选择SVN用户（添加的用户权限都会被重置为rw）"
-      @on-ok="AddRepPathUserPri"
-      :loading="loadingAddRepPathUserPri"
-    >
-      <Table
-        :height="350"
-        size="small"
-        highlight-row
-        :show-header="false"
-        :columns="tableColumnAllUser"
-        :data="tableDataAllUser"
-        :loading="loadingAllUserList"
-        @on-row-click="ClickRowAddRepPathUser"
-      >
-        <template slot-scope="{ row }" slot="disabled">
-          <Tag color="blue" v-if="row.disabled == 0">正常</Tag>
-          <Tag color="red" v-else>禁用</Tag>
-        </template>
-      </Table>
-    </Modal>
-    <!-- 对话框-选择SVN分组 -->
-    <Modal
-      v-model="modalRepAllGroup"
-      title="选择SVN分组（添加的用户权限都会被重置为rw）"
-      @on-ok="AddRepPathGroupPri"
-      :loading="loadingAddRepPathGroupPri"
-    >
-      <Table
-        height="350"
-        highlight-row
-        :show-header="false"
-        :columns="tableColumnAllGroup"
-        :data="tableDataAllGroup"
-        :loading="loadingAllGroupList"
-        @on-row-click="ClickRowAddRepPathGroup"
-      ></Table>
-    </Modal>
     <!-- 对话框-重设仓库UUID -->
     <Modal v-model="modalSetUUID" title="重设仓库UUID">
-      <Form :label-width="80">
+      <Form :label-width="80" @submit.native.prevent>
         <FormItem label="UUID">
           <Input
             v-model="tempRepUUID"
@@ -1019,12 +922,17 @@
     </Modal>
     <!-- 路径授权弹出框 -->
     <Modal v-model="modalRepPathPri" :draggable="true" title="路径授权对象">
-      <Tabs size="small" class="custom-tabs-svn">
-        <TabPane :label="custom_tab_svn_user">
+      <Tabs size="small" class="custom-tabs-svn" @on-click="ClickRepPathPriTab">
+        <TabPane :label="custom_tab_svn_user" name="user">
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
             <Col span="12">
-              <Input search placeholder="通过用户名搜索..." />
+              <Input
+                search
+                placeholder="通过用户名搜索..."
+                v-model="searchKeywordUser"
+                @on-change="GetAllUsers"
+              />
             </Col>
           </Row>
           <Table
@@ -1032,24 +940,38 @@
             border
             :height="250"
             size="small"
+            :loading="loadingAllUsers"
             :columns="tableColumnAllUsers"
             :data="tableDataAllUsers"
             style="margin-bottom: 10px"
           >
-            <template slot-scope="{ row }" slot="disabled">
-              <Tag color="blue" v-if="row.disabled == 0">正常</Tag>
+            <template slot-scope="{ row }" slot="svn_user_status">
+              <Tag
+                color="blue"
+                v-if="row.svn_user_status == '1' || row.svn_user_status == 1"
+                >正常</Tag
+              >
               <Tag color="red" v-else>禁用</Tag>
             </template>
-            <template slot-scope="{ row, index }" slot="action">
-              <Tag color="primary">选择</Tag>
+            <template slot-scope="{ row }" slot="action">
+              <Tag
+                color="primary"
+                @click.native="AddRepPathPri('user', row.svn_user_name, 'rw')"
+                >选择</Tag
+              >
             </template>
           </Table>
         </TabPane>
-        <TabPane :label="custom_tab_svn_group">
+        <TabPane :label="custom_tab_svn_group" name="group">
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
             <Col span="12">
-              <Input search placeholder="通过分组名搜索..." />
+              <Input
+                search
+                placeholder="通过分组名搜索..."
+                v-model="searchKeywordGroup"
+                @on-change="GetAllGroups"
+              />
             </Col>
           </Row>
           <Table
@@ -1057,20 +979,30 @@
             border
             :height="250"
             size="small"
+            :loading="loadingAllGroups"
             :columns="tableColumnAllGroups"
             :data="tableDataAllGroups"
             style="margin-bottom: 10px"
           >
-            <template slot-scope="{ row, index }" slot="action">
-              <Tag color="primary">选择</Tag>
+            <template slot-scope="{ row }" slot="action">
+              <Tag
+                color="primary"
+                @click.native="AddRepPathPri('group', row.svn_group_name, 'rw')"
+                >选择</Tag
+              >
             </template>
           </Table>
         </TabPane>
-        <TabPane :label="custom_tab_svn_aliase">
+        <TabPane :label="custom_tab_svn_aliase" name="aliase">
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
             <Col span="12">
-              <Input search placeholder="通过别名搜索..." />
+              <Input
+                search
+                placeholder="通过别名搜索..."
+                v-model="searchKeywordAliase"
+                @on-change="GetAllAliases"
+              />
             </Col>
           </Row>
           <Table
@@ -1082,12 +1014,22 @@
             :data="tableDataAllAliases"
             style="margin-bottom: 10px"
           >
-            <template slot-scope="{ row, index }" slot="action">
-              <Tag color="primary">选择</Tag>
+            <template slot-scope="{ row }" slot="disabled">
+              <Tag color="blue" v-if="row.disabled == '0' || row.disabled == 0"
+                >正常</Tag
+              >
+              <Tag color="red" v-else>禁用</Tag>
+            </template>
+            <template slot-scope="{ row }" slot="action">
+              <Tag
+                color="primary"
+                @click.native="AddRepPathPri('aliase', row.aliaseName, 'rw')"
+                >选择</Tag
+              >
             </template>
           </Table>
         </TabPane>
-        <TabPane :label="custom_tab_svn_all">
+        <TabPane :label="custom_tab_svn_all" name="*">
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
             <Col span="12">
@@ -1103,12 +1045,15 @@
             :data="tableDataAll"
             style="margin-bottom: 10px"
           >
-            <template slot-scope="{ row, index }" slot="action">
-              <Tag color="primary">选择</Tag>
+            <template slot="action" slot-scope="{ index }">
+              <template v-if="false">{{ index }}</template>
+              <Tag color="primary" @click.native="AddRepPathPri('*', '*', 'rw')"
+                >选择</Tag
+              >
             </template>
           </Table>
         </TabPane>
-        <TabPane :label="custom_tab_svn_authenticated">
+        <TabPane :label="custom_tab_svn_authenticated" name="$authenticated">
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
             <Col span="12">
@@ -1124,12 +1069,19 @@
             :data="tableDataAuthenticated"
             style="margin-bottom: 10px"
           >
-            <template slot-scope="{ row, index }" slot="action">
-              <Tag color="primary">选择</Tag>
+            <template slot="action" slot-scope="{ index }">
+              <template v-if="false">{{ index }}</template>
+              <Tag
+                color="primary"
+                @click.native="
+                  AddRepPathPri('$authenticated', '$authenticated', 'rw')
+                "
+                >选择</Tag
+              >
             </template>
           </Table>
         </TabPane>
-        <TabPane :label="custom_tab_svn_anonymous">
+        <TabPane :label="custom_tab_svn_anonymous" name="$anonymous">
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
             <Col span="12">
@@ -1145,14 +1097,21 @@
             :data="tableDataAnonymous"
             style="margin-bottom: 10px"
           >
-            <template slot-scope="{ row, index }" slot="action">
-              <Tag color="primary">选择</Tag>
+            <template slot="action" slot-scope="{ index }">
+              <template v-if="false">{{ index }}</template>
+              <Tag
+                color="primary"
+                @click.native="AddRepPathPri('$anonymous', '$anonymous', 'rw')"
+                >选择</Tag
+              >
             </template>
           </Table>
         </TabPane>
       </Tabs>
       <Alert show-icon>授权的对象权限默认为读写</Alert>
-      <Alert show-icon>为已授权的对象重复授权，权限将会被覆盖为读写</Alert>
+      <Alert show-icon
+        >如果对象信息用户等不是最新，需要回到对应的导航下刷新</Alert
+      >
       <div slot="footer">
         <Button type="primary" ghost @click="modalRepPathPri = false"
           >取消</Button
@@ -1166,6 +1125,9 @@
 export default {
   data() {
     return {
+      /**
+       * 特定风格的路径授权弹出框的 tab
+       */
       custom_tab_svn_user: (h) => {
         return h("div", [
           h(
@@ -1227,7 +1189,7 @@ export default {
                 color: "#eb2f96",
               },
             },
-            "已授权"
+            "所有已认证者"
           ),
         ]);
       },
@@ -1240,7 +1202,7 @@ export default {
                 color: "#fa541c",
               },
             },
-            "未授权"
+            "所有匿名者"
           ),
         ]);
       },
@@ -1270,10 +1232,6 @@ export default {
       modalRepAdvance: false,
       //编辑仓库信息
       modalEditRepName: false,
-      //SVN仓库所有用户
-      modalRepAllUser: false,
-      //SVN仓库所有分组
-      modalRepAllGroup: false,
       //编辑仓库钩子内容
       modalEditRepHook: false,
       //查看钩子模板内容
@@ -1307,6 +1265,9 @@ export default {
        * 搜索关键词
        */
       searchKeywordRep: "",
+      searchKeywordUser: "",
+      searchKeywordGroup: "",
+      searchKeywordAliase: "",
 
       /**
        * 表格无数据提示
@@ -1326,22 +1287,18 @@ export default {
       loadingRepCon: true,
       //仓库目录树
       loadingRepTree: true,
-      //某个仓库路径的用户权限
-      loadingRepPathUserPri: true,
-      //为路径添加用户授权
-      loadingAddRepPathUserPri: true,
+      //某个仓库路径的所有对象的权限列表
+      loadingRepPathAllPri: true,
       //去除路径的用户权限
       loadingDelRepPathUserPri: false,
-      //某个仓库路径的分组权限
-      loadingRepPathGroupPri: true,
-      //为仓库路径添加分组权限
-      loadingAddRepPathGroupPri: true,
       //删除仓库路径的分组权限
       loadingDelRepPathGroupPri: false,
       //全部的SVN用户列表
-      loadingAllUserList: true,
+      loadingAllUsers: true,
       //全部的SVN分组列表
-      loadingAllGroupList: true,
+      loadingAllGroups: true,
+      //全部的SVN别名列表
+      loadingAllAliases: true,
       //获取仓库的详细信息
       loadingRepDetail: true,
       //获取仓库的备份文件夹文件内容
@@ -1488,7 +1445,7 @@ export default {
       tableColumnRep: [
         {
           title: "序号",
-          type: "index",
+          slot: "index",
           fixed: "left",
           minWidth: 80,
         },
@@ -1548,7 +1505,7 @@ export default {
       tableColumnUserRep: [
         {
           title: "序号",
-          type: "index",
+          slot: "index",
           fixed: "left",
           minWidth: 80,
         },
@@ -1686,84 +1643,22 @@ export default {
       ],
       tableDataRepPathGroupPri: [],
       //某节点的权限信息
-      tableDataRepPathPriInfo: [
-        {
-          type: 1,
-          name: "user1",
-          pri: "rw",
-        },
-        {
-          type: 2,
-          name: "group1",
-          pri: "rw",
-          action: "-",
-        },
-        {
-          type: 3,
-          name: "aliase1",
-          pri: "rw",
-        },
-        {
-          type: 4,
-          name: "*",
-          pri: "rw",
-        },
-        {
-          type: 5,
-          name: "$authenticated",
-          pri: "rw",
-        },
-        {
-          type: 6,
-          name: "$anonymous",
-          pri: "rw",
-        },
-        {
-          type: 1,
-          name: "user1",
-          pri: "rw",
-        },
-        {
-          type: 2,
-          name: "group1",
-          pri: "rw",
-          action: "-",
-        },
-        {
-          type: 3,
-          name: "aliase1",
-          pri: "rw",
-        },
-        {
-          type: 4,
-          name: "*",
-          pri: "rw",
-        },
-        {
-          type: 5,
-          name: "$authenticated",
-          pri: "rw",
-        },
-        {
-          type: 6,
-          name: "$anonymous",
-          pri: "rw",
-        },
-      ],
-      tableColumnRepPathPriInfo: [
+      tableDataRepPathAllPri: [],
+      tableColumnRepPathAllPri: [
         {
           title: "授权类型",
-          slot: "type",
+          slot: "objectType",
+          width: 125,
         },
         {
           title: "对象名称",
-          key: "name",
+          key: "objectName",
           tooltip: true,
           width: 115,
         },
         {
           title: "读写权限",
-          slot: "pri",
+          slot: "objectPri",
           width: 200,
         },
         {
@@ -1866,12 +1761,17 @@ export default {
       tableColumnAllUsers: [
         {
           title: "用户名",
-          key: "userName",
+          key: "svn_user_name",
           tooltip: true,
         },
         {
           title: "用户状态",
-          slot: "disabled",
+          slot: "svn_user_status",
+        },
+        {
+          title: "备注信息",
+          key: "svn_user_note",
+          tooltip: true,
         },
         {
           title: "操作",
@@ -1879,21 +1779,17 @@ export default {
           width: 90,
         },
       ],
-      tableDataAllUsers: [
-        {
-          userName: "xxxxxxx",
-          disabled: 1,
-        },
-        {
-          userName: "xx",
-          disabled: 0,
-        },
-      ],
+      tableDataAllUsers: [],
       //路径授权对象-SVN分组列表
       tableColumnAllGroups: [
         {
           title: "分组名",
-          key: "groupName",
+          key: "svn_group_name",
+          tooltip: true,
+        },
+        {
+          title: "备注信息",
+          key: "svn_group_note",
           tooltip: true,
         },
         {
@@ -1901,14 +1797,7 @@ export default {
           slot: "action",
         },
       ],
-      tableDataAllGroups: [
-        {
-          groupName: "xxx",
-        },
-        {
-          groupName: "xxx",
-        },
-      ],
+      tableDataAllGroups: [],
       //路径授权对象-SVN别名列表
       tableColumnAllAliases: [
         {
@@ -1917,18 +1806,16 @@ export default {
           tooltip: true,
         },
         {
+          title: "别名内容",
+          key: "aliaseCon",
+          tooltip: true,
+        },
+        {
           title: "操作",
           slot: "action",
         },
       ],
-      tableDataAllAliases: [
-        {
-          aliaseName: "xxx",
-        },
-        {
-          aliaseName: "xxxx",
-        },
-      ],
+      tableDataAllAliases: [],
       //路径授权对象-所有人
       tableColumnAll: [
         {
@@ -1945,10 +1832,10 @@ export default {
           all: "*",
         },
       ],
-      //路径授权对象-已授权
+      //路径授权对象-所有已认证者
       tableColumnAuthenticated: [
         {
-          title: "已授权",
+          title: "所有已认证者",
           key: "authenticated",
         },
         {
@@ -1961,10 +1848,10 @@ export default {
           authenticated: "$authenticated",
         },
       ],
-      //路径授权对象-未授权
+      //路径授权对象-所有匿名者
       tableColumnAnonymous: [
         {
-          title: "未授权",
+          title: "所有匿名者",
           key: "anonymous",
         },
         {
@@ -2004,26 +1891,7 @@ export default {
         },
       ],
       tableDataRepDetail: [],
-      //仓库的所有用户
-      tableColumnAllUser: [
-        {
-          title: "用户名",
-          key: "userName",
-        },
-        {
-          title: "启用状态",
-          slot: "disabled",
-        },
-      ],
-      tableDataAllUser: [],
-      //仓库的所有分组
-      tableColumnAllGroup: [
-        {
-          title: "分组名",
-          key: "groupName",
-        },
-      ],
-      tableDataAllGroup: [],
+      tableDataAllGroups: [],
     };
   },
   computed: {},
@@ -2569,10 +2437,35 @@ export default {
           that.$Message.error(result.message);
         }
       });
-      //获取仓库根路径的用户权限列表
-      that.GetRepPathUserPri();
-      //获取仓库根路径的分组权限列表
-      that.GetRepPathGroupPri();
+      //获取仓库根路径的所有对象的权限列表
+      that.GetRepPathAllPri();
+    },
+    /**
+     * 点击路径授权对象弹出框下的 tab 触发
+     */
+    ClickRepPathPriTab(name) {
+      switch (name) {
+        case "user":
+          this.GetAllUsers();
+          break;
+        case "group":
+          this.GetAllGroups();
+          break;
+        case "aliase":
+          this.GetAllAliases();
+          break;
+        case "*":
+          //xxx
+          break;
+        case "$authenticated":
+          //xxx
+          break;
+        case "$anonymous":
+          //xxx
+          break;
+        default:
+          break;
+      }
     },
     /**
      * 获取目录树
@@ -2620,8 +2513,7 @@ export default {
      */
     ChangeSelectTreeNode(selectArray, currentItem) {
       this.currentRepTreePriPath = currentItem.fullPath;
-      this.GetRepPathUserPri();
-      this.GetRepPathGroupPri();
+      this.GetRepPathAllPri();
     },
     /**
      * 异步加载目录下的内容
@@ -2659,155 +2551,124 @@ export default {
     },
 
     /**
-     * 获取某个仓库路径的用户权限列表
+     * 获取某个仓库路径的所有对象的权限列表
      */
-    GetRepPathUserPri() {
+    GetRepPathAllPri() {
       var that = this;
       //清空上次表格数据
-      that.tableDataRepPathUserPri = [];
+      that.tableDataRepPathAllPri = [];
       //清空选中的用户数据
       that.currentRepPriUser = "";
       that.currentRepPriUserIndex = -1;
       //开始加载动画
-      that.loadingRepPathUserPri = true;
+      that.loadingRepPathAllPri = true;
       var data = {
         rep_name: that.currentRepName,
         path: that.currentRepTreePriPath,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=GetRepPathUserPri&t=web", data)
+        .post("/api.php?c=Svnrep&a=GetRepPathAllPri&t=web", data)
         .then(function (response) {
-          that.loadingRepPathUserPri = false;
+          that.loadingRepPathAllPri = false;
           var result = response.data;
           if (result.status == 1) {
-            that.tableDataRepPathUserPri = result.data;
+            that.tableDataRepPathAllPri = result.data;
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
-          that.loadingRepPathUserPri = false;
+          that.loadingRepPathAllPri = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
-     * 点击仓库路径的用户权限列表的某行
+     * 为某仓库路径下增加权限
      */
-    ChangeSelectRepUserPri(currentRow, oldCurrentRow) {
-      //将当前选中的用户和下标进行同步
-      this.currentRepPriUser = currentRow.userName;
-      this.currentRepPriUserIndex = currentRow.index;
-      //将当前选中行的权限同步到下方的单选
-      this.radioRepUserPri = currentRow.userPri;
-    },
-    /**
-     * 单选组合 为选中的用户更换权限
-     */
-    ChangeRadioRepUserPri(value) {
-      //如果没有选中用户则做出提示
-      if (this.currentRepPriUser == "") {
-        this.$Message.error("未选择用户");
-      } else {
-        this.tableDataRepPathUserPri[this.currentRepPriUserIndex].userPri =
-          value;
-
-        //发起请求
-        this.EditRepPathUserPri();
-      }
-    },
-    /**
-     * 单选按钮 删除某个仓库路径的用户权限
-     */
-    DelRepPathUserPri() {
+    AddRepPathPri(objectType, objectName, objectPri) {
       var that = this;
-      //如果没有选中用户则做出提示
-      if (that.currentRepPriUser == "") {
-        that.$Message.error("未选择用户");
-        return;
-      }
-      that.loadingDelRepPathUserPri = true;
       var data = {
         rep_name: that.currentRepName,
         path: that.currentRepTreePriPath,
-        user: that.currentRepPriUser,
+        objectType: objectType,
+        objectPri: objectPri,
+        objectName: objectName,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=DelRepPathUserPri&t=web", data)
+        .post("/api.php?c=Svnrep&a=AddRepPathPri&t=web", data)
         .then(function (response) {
-          that.loadingDelRepPathUserPri = false;
           var result = response.data;
           if (result.status == 1) {
+            that.modalRepPathPri = false;
             that.$Message.success(result.message);
-            that.GetRepPathUserPri();
+            that.GetRepPathAllPri();
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
-          that.loadingDelRepPathUserPri = false;
+          that.modalRepPathPri = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
-     * 单选按钮 修改某个仓库路径的用户权限
+     * 修改某个仓库下的权限
      */
-    EditRepPathUserPri() {
+    ClickRepPathPri(objectType, invert, objectName, objectPri) {
       var that = this;
-      //如果没有选中用户则做出提示
-      if (that.currentRepPriUser == "") {
-        that.$Message.error("未选择用户");
-        return;
-      }
       var data = {
         rep_name: that.currentRepName,
         path: that.currentRepTreePriPath,
-        pri: that.tableDataRepPathUserPri[that.currentRepPriUserIndex].userPri,
-        user: that.tableDataRepPathUserPri[that.currentRepPriUserIndex]
-          .userName,
+        objectType: objectType,
+        invert: invert,
+        objectName: objectName,
+        objectPri: objectPri,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=EditRepPathUserPri&t=web", data)
+        .post("/api.php?c=Svnrep&a=EditRepPathPri&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
+            that.modalRepPathPri = false;
             that.$Message.success(result.message);
-            that.GetRepPathUserPri();
+            that.GetRepPathAllPri();
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
+          that.modalRepPathPri = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
-     * 增加某个仓库路径的用户权限
+     * 删除某个仓库下的权限
      */
-    AddRepPathUserPri() {
+    DelRepPathPri(objectType, objectName) {
       var that = this;
       var data = {
         rep_name: that.currentRepName,
         path: that.currentRepTreePriPath,
-        pri: "rw",
-        user: that.currentRepPriAddUser,
+        objectType: objectType,
+        objectName: objectName,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=AddRepPathUserPri&t=web", data)
+        .post("/api.php?c=Svnrep&a=DelRepPathPri&t=web", data)
         .then(function (response) {
-          that.modalRepAllUser = false;
           var result = response.data;
           if (result.status == 1) {
+            that.modalRepPathPri = false;
             that.$Message.success(result.message);
-            that.GetRepPathUserPri();
+            that.GetRepPathAllPri();
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
-          that.modalRepAllUser = false;
+          that.modalRepPathPri = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -2815,244 +2676,91 @@ export default {
     /**
      * 获取所有的SVN用户列表
      */
-    ModalRepAllUser() {
-      this.modalRepAllUser = true;
-      //获取所有SVN用户列表
-      this.GetAllUserList();
-    },
-    /**
-     * 获取所有的SVN用户列表
-     */
-    GetAllUserList() {
+    GetAllUsers() {
       var that = this;
       //清空上次数据
-      that.tableDataAllUser = [];
+      that.tableDataAllUsers = [];
       //开始加载动画
-      that.loadingAllUserList = true;
-      var data = {};
+      that.loadingAllUsers = true;
+      var data = {
+        searchKeywordUser: that.searchKeywordUser,
+      };
       that.$axios
         .post("/api.php?c=Svnuser&a=GetAllUserList&t=web", data)
         .then(function (response) {
-          that.loadingAllUserList = false;
+          that.loadingAllUsers = false;
           var result = response.data;
           if (result.status == 1) {
-            that.tableDataAllUser = result.data;
+            that.tableDataAllUsers = result.data;
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
-          that.loadingAllUserList = false;
+          that.loadingAllUsers = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
-    },
-    /**
-     * 选中用户添加权限
-     */
-    ClickRowAddRepPathUser(currentRow, oldCurrentRow) {
-      this.currentRepPriAddUser = currentRow.userName;
     },
 
     /**
-     * 获取某个仓库路径的分组权限列表
-     */
-    GetRepPathGroupPri() {
-      var that = this;
-      //清空上次表格数据
-      that.tableDataRepPathGroupPri = [];
-      //清空选中的分组名称数据
-      that.currentRepPriGroup = "";
-      that.currentRepPriGroupIndex = -1;
-      //开始加载动画
-      that.loadingRepPathGroupPri = true;
-      var data = {
-        rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
-      };
-      that.$axios
-        .post("/api.php?c=Svnrep&a=GetRepPathGroupPri&t=web", data)
-        .then(function (response) {
-          that.loadingRepPathGroupPri = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.tableDataRepPathGroupPri = result.data;
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          that.loadingRepPathGroupPri = false;
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
-     * 点击仓库路径的分组权限列表的某行
-     */
-    ChangeSelectRepGroupPri(currentRow, oldCurrentRow) {
-      //将当前选中的分组和下标进行同步
-      this.currentRepPriGroup = currentRow.groupName;
-      this.currentRepPriGroupIndex = currentRow.index;
-      //将当前选中行的权限同步到下方的单选
-      if (currentRow.groupPri == "") {
-        this.radioRepGroupPri = "no";
-      } else {
-        this.radioRepGroupPri = currentRow.groupPri;
-      }
-    },
-    /**
-     * 单选组合 为选中的分组更换权限
-     */
-    ChangeRadioRepGroupPri(value) {
-      //如果没有选中分组则做出提示
-      if (this.currentRepPriGroup == "") {
-        this.$Message.error("未选择分组");
-      } else {
-        this.tableDataRepPathGroupPri[this.currentRepPriGroupIndex].groupPri =
-          value;
-
-        //发起请求
-        this.EditRepPathGroupPri();
-      }
-    },
-    /**
-     * 单选按钮 删除某个仓库路径的分组权限
-     */
-    DelRepPathGroupPri() {
-      var that = this;
-      //如果没有选中用户则做出提示
-      if (that.currentRepPriGroup == "") {
-        that.$Message.error("未选择分组");
-        return;
-      }
-      that.loadingDelRepPathGroupPri = true;
-      var data = {
-        rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
-        group: that.currentRepPriGroup,
-      };
-      that.$axios
-        .post("/api.php?c=Svnrep&a=DelRepPathGroupPri&t=web", data)
-        .then(function (response) {
-          that.loadingDelRepPathGroupPri = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetRepPathGroupPri();
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          that.loadingDelRepPathGroupPri = false;
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
-     * 单选按钮 修改某个仓库路径的分组权限
-     */
-    EditRepPathGroupPri() {
-      var that = this;
-      //如果没有选中分组则做出提示
-      if (that.currentRepPriGroup == "") {
-        that.$Message.error("未选择分组");
-        return;
-      }
-      var data = {
-        rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
-        pri: that.tableDataRepPathGroupPri[that.currentRepPriGroupIndex]
-          .groupPri,
-        group:
-          that.tableDataRepPathGroupPri[that.currentRepPriGroupIndex].groupName,
-      };
-      that.$axios
-        .post("/api.php?c=Svnrep&a=EditRepPathGroupPri&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetRepPathGroupPri();
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
-     * 增加某个仓库路径的分组权限
-     */
-    AddRepPathGroupPri() {
-      var that = this;
-      var data = {
-        rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
-        pri: "rw",
-        group: that.currentRepPriAddGroup,
-      };
-      that.$axios
-        .post("/api.php?c=Svnrep&a=AddRepPathGroupPri&t=web", data)
-        .then(function (response) {
-          that.modalRepAllGroup = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetRepPathGroupPri();
-          } else {
-            that.$Message.error(result.message);
-          }
-        })
-        .catch(function (error) {
-          that.modalRepAllGroup = false;
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
      * 获取所有的SVN分组列表
      */
-    ModalRepAllGroup() {
-      this.modalRepAllGroup = true;
-      //获取所有SVN分组列表
-      this.GetAllGroupList();
-    },
-    /**
-     * 获取所有的SVN分组列表
-     */
-    GetAllGroupList() {
+    GetAllGroups() {
       var that = this;
       //清空上次数据
-      that.tableDataAllGroup = [];
+      that.tableDataAllGroups = [];
       //开始加载动画
-      that.loadingAllGroupList = true;
-      var data = {};
+      that.loadingAllGroups = true;
+      var data = {
+        searchKeywordGroup: that.searchKeywordGroup,
+      };
       that.$axios
         .post("/api.php?c=Svngroup&a=GetAllGroupList&t=web", data)
         .then(function (response) {
-          that.loadingAllGroupList = false;
+          that.loadingAllGroups = false;
           var result = response.data;
           if (result.status == 1) {
-            that.tableDataAllGroup = result.data;
+            that.tableDataAllGroups = result.data;
           } else {
             that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
-          that.loadingAllGroupList = false;
+          that.loadingAllGroups = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
     },
+
     /**
-     * 选中分组添加权限
+     * 获取所有的别名列表
      */
-    ClickRowAddRepPathGroup(currentRow, oldCurrentRow) {
-      this.currentRepPriAddGroup = currentRow.groupName;
+    GetAllAliases() {
+      var that = this;
+      //清空上次数据
+      that.tableDataAllAliases = [];
+      //开始加载动画
+      that.loadingAllAliases = true;
+      var data = {
+        searchKeywordAliase: that.searchKeywordAliase,
+      };
+      that.$axios
+        .post("/api.php?c=Svnaliase&a=GetAllAliaseList&t=web", data)
+        .then(function (response) {
+          that.loadingAllAliases = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.tableDataAllAliases = result.data;
+          } else {
+            that.$Message.error(result.message);
+          }
+        })
+        .catch(function (error) {
+          that.loadingAllAliases = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
     },
 
     /**
@@ -3563,6 +3271,8 @@ export default {
      */
     ModalRepPathPri() {
       this.modalRepPathPri = true;
+      //默认加载第一个tab内的数据
+      this.GetAllUsers();
     },
   },
 };

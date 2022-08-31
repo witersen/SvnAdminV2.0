@@ -87,21 +87,3 @@ function FunCheckForm($checkedArray, $columns)
     }
     return true;
 }
-
-
-/**
- * 由于array_column到php5.5+才支持
- * 为了兼容php5.4
- * 这里选择手动实现 可能性能不高
- */
-function FunArrayColumn($array, $columnKey)
-{
-    $resultArray = [];
-    foreach ($array as $key => $value) {
-        if (!array_key_exists($columnKey, $value)) {
-            return false;
-        }
-        array_push($resultArray, $value[$columnKey]);
-    }
-    return $resultArray;
-}

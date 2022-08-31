@@ -91,38 +91,12 @@ class Svngroup extends Base
     }
 
     /**
-     * 将用户添加为SVN分组的成员
+     * 为分组添加或者删除所包含的对象
+     * 对象包括：用户、分组、用户别名
      */
-    public function GroupAddUser()
+    public function UpdGroupMember()
     {
-        $result = $this->ServiceSvngroup->GroupAddUser();
-        json2($result);
-    }
-
-    /**
-     * 将用户从SVN分组的成员移除
-     */
-    public function GroupRemoveUser()
-    {
-        $result = $this->ServiceSvngroup->GroupRemoveUser();
-        json2($result);
-    }
-
-    /**
-     * 将分组添加为SVN分组的成员
-     */
-    public function GroupAddGroup()
-    {
-        $result = $this->ServiceSvngroup->GroupAddGroup();
-        json2($result);
-    }
-
-    /**
-     * 将分组从SVN分组的成员移除
-     */
-    public function GroupRemoveGroup()
-    {
-        $result = $this->ServiceSvngroup->GroupRemoveGroup();
+        $result = $this->ServiceSvngroup->UpdGroupMember();
         json2($result);
     }
 }
