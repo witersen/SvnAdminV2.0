@@ -137,4 +137,15 @@ class Svn extends Base
         $result = $this->ServiceSvn->GetConfig();
         json2($result);
     }
+
+    /**
+     * 检测 authz 是否有效
+     *
+     * @return array
+     */
+    public function ValidateAuthz()
+    {
+        $result = $this->ServiceSvn->ValidateAuthz();
+        json2($result);
+    }
 }

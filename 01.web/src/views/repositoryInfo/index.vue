@@ -23,8 +23,42 @@
             ghost
             @click="ModalCreateRep"
             v-if="user_role_id == 1"
-            >新建SVN仓库</Button
+            >新建仓库</Button
           >
+          <Tooltip
+            max-width="200"
+            content="为了避免不必要的性能浪费 初次登陆或主动点击才可同步仓库信息到管理系统和配置文件"
+            placement="bottom"
+            :transfer="true"
+          >
+            <Button
+              icon="ios-sync"
+              type="warning"
+              ghost
+              @click="SyncRep"
+              v-if="user_role_id == 1"
+              >同步仓库</Button
+            >
+          </Tooltip>
+          <Tooltip
+            max-width="450"
+            content="不经意的配置可能会导致 authz 配置文件失效
+如 svnserve 1.10 版本中为空分组授权仓库可能会导致配置失效等
+配置文件失效会导致用户端无法检出、浏览等正常操作
+因此可通过此工具在线检测 authz 配置文件有无问题
+此功能依赖 svnauthz-validate"
+            placement="bottom"
+            :transfer="true"
+          >
+            <Button
+              icon="ios-hammer-outline"
+              type="error"
+              ghost
+              @click="ValidateAuthz"
+              v-if="user_role_id == 1"
+              >authz检测</Button
+            >
+          </Tooltip>
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
           <Input
@@ -1118,6 +1152,21 @@
         >
       </div>
     </Modal>
+    <!-- 对话框-authz检测结果 -->
+    <Modal v-model="modalValidateAuthz" title="authz检测结果">
+      <Input
+        v-model="tempmodalValidateAuthz"
+        readonly
+        :rows="15"
+        show-word-limit
+        type="textarea"
+      />
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalValidateAuthz = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -1242,6 +1291,8 @@ export default {
       modalSetUUID: false,
       //显示路径授权对话框
       modalRepPathPri: false,
+      //显示authz检测结果
+      modalValidateAuthz: false,
 
       /**
        * 排序数据
@@ -1353,6 +1404,8 @@ export default {
       tempSelectRepHookRecommend: "",
       //仓库重设UUID
       tempRepUUID: "",
+      //authz检测结果
+      tempmodalValidateAuthz: "",
 
       /**
        * 对话框标题
@@ -1899,6 +1952,9 @@ export default {
   mounted() {
     this.GetStatus();
     if (this.user_role_id == 1) {
+      if (!sessionStorage.sync) {
+        sessionStorage.setItem("sync", "yes");
+      }
       this.GetRepList();
     } else if (this.user_role_id == 2) {
       this.GetSvnUserRepList();
@@ -1919,6 +1975,32 @@ export default {
           } else {
             that.formStatusSubversion.status = false;
             that.formStatusSubversion.info = result.message;
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+
+    /**
+     * 检测 authz 文件状态
+     */
+    ValidateAuthz() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Svn&a=ValidateAuthz&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+          } else if (result.status == 2) {
+            that.$Message.error(result.message);
+            that.modalValidateAuthz = true;
+            that.tempmodalValidateAuthz = result.data;
+          } else {
+            that.$Message.error(result.message);
           }
         })
         .catch(function (error) {
@@ -1949,6 +2031,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
+            sessionStorage.setItem("sync", "yes");
             that.GetRepList();
           } else {
             that.$Message.error(result.message);
@@ -1959,6 +2042,14 @@ export default {
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
+    },
+
+    /**
+     * 同步仓库
+     */
+    SyncRep() {
+      sessionStorage.setItem("sync", "yes");
+      this.GetRepList();
     },
 
     /**
@@ -1977,6 +2068,8 @@ export default {
       that.tableDataRep = [];
       // that.totalRep = 0;
       var data = {
+        //是否主动刷新
+        sync: sessionStorage.sync,
         pageSize: that.pageSizeRep,
         currentPage: that.pageCurrentRep,
         searchKeyword: that.searchKeywordRep,
@@ -1992,6 +2085,7 @@ export default {
             // that.$Message.success(result.message);
             that.tableDataRep = result.data.data;
             that.totalRep = result.data.total;
+            sessionStorage.setItem("sync", "no");
           } else {
             that.$Message.error(result.message);
           }
@@ -3130,6 +3224,7 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
             that.modalEditRepName = false;
+            sessionStorage.setItem("sync", "yes");
             that.GetRepList();
           } else {
             that.$Message.error(result.message);
@@ -3253,6 +3348,7 @@ export default {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
+                sessionStorage.setItem("sync", "yes");
                 that.GetRepList();
               } else {
                 that.$Message.error(result.message);

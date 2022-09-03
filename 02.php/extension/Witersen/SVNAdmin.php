@@ -1394,6 +1394,7 @@ class SVNAdmin
                     'repName' => $authzContentPreg[2][$key],
                     'priPath' => $authzContentPreg[3][$key],
                     'repPri' => $authzContentPreg[6][$key],
+                    'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
                 ];
             }
         }

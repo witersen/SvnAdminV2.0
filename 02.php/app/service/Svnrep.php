@@ -291,21 +291,25 @@ class Svnrep extends Base
      */
     public function GetRepList()
     {
-        /**
-         * 物理仓库 => authz文件
-         * 
-         * 1、将物理仓库已经删除但是authz文件中依然存在的从authz文件删除
-         * 2、将在物理仓库存在但是authz文件中不存在的向authz文件写入
-         */
-        $this->SyncRepAndAuthz();
+        $sync = $this->payload['sync'];
 
-        /**
-         * 物理仓库 => svn_reps数据表
-         * 
-         * 1、将物理仓库存在而没有写入数据库的记录写入数据库
-         * 2、将物理仓库已经删除但是数据库依然存在的从数据库删除
-         */
-        $this->SyncRepAndDb();
+        if ($sync == 'yes') {
+            /**
+             * 物理仓库 => authz文件
+             * 
+             * 1、将物理仓库已经删除但是authz文件中依然存在的从authz文件删除
+             * 2、将在物理仓库存在但是authz文件中不存在的向authz文件写入
+             */
+            $this->SyncRepAndAuthz();
+
+            /**
+             * 物理仓库 => svn_reps数据表
+             * 
+             * 1、将物理仓库存在而没有写入数据库的记录写入数据库
+             * 2、将物理仓库已经删除但是数据库依然存在的从数据库删除
+             */
+            $this->SyncRepAndDb();
+        }
 
         $pageSize = $this->payload['pageSize'];
         $currentPage = $this->payload['currentPage'];
@@ -653,6 +657,12 @@ class Svnrep extends Base
      */
     public function GetRepCon()
     {
+        //检查仓库是否存在
+        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
+        if ($checkResult['status'] != 0) {
+            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        }
+
         /**
          * 有权限的开始路径
          * 
@@ -664,6 +674,9 @@ class Svnrep extends Base
         //获取全路径的一层目录树
         $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
+        if ($result['resultCode'] != 0) {
+            return ['code' => 200, 'status' => 0, 'message' => $result['error'], 'data' => []];
+        }
         $result = $result['result'];
         $resultArray = explode("\n", trim($result));
         unset($resultArray[0]);
@@ -756,11 +769,20 @@ class Svnrep extends Base
      */
     public function GetRepTree()
     {
+        //检查仓库是否存在
+        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
+        if ($checkResult['status'] != 0) {
+            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        }
+
         $path = $this->payload['path'];
 
         //获取全路径的一层目录树
         $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path']  . $this->payload['rep_name'], $path);
         $result = FunShellExec($cmdSvnlookTree);
+        if ($result['resultCode'] != 0) {
+            return message(200, 0, $result['error']);
+        }
         $result = $result['result'];
         $resultArray = explode("\n", trim($result));
         unset($resultArray[0]);
@@ -813,6 +835,12 @@ class Svnrep extends Base
      */
     public function GetRepPathAllPri()
     {
+        //检查仓库是否存在
+        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
+        if ($checkResult['status'] != 0) {
+            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        }
+
         $result = $this->SVNAdmin->GetRepPathPri($this->authzContent, $this->payload['rep_name'], $this->payload['path']);
         if (is_numeric($result)) {
             if ($result == 751) {
@@ -1059,6 +1087,12 @@ class Svnrep extends Base
      */
     public function GetRepDetail()
     {
+        //检查仓库是否存在
+        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
+        if ($checkResult['status'] != 0) {
+            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        }
+
         $result = $this->SVNAdminRep->GetRepDetail110($this->payload['rep_name']);
         if ($result['resultCode'] == 0) {
             $result = $result['result'];
@@ -1133,7 +1167,17 @@ class Svnrep extends Base
      */
     public function RepDump()
     {
-        $this->SVNAdminRep->RepDump($this->payload['rep_name'], $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . FunGetRandStr() . '.dump');
+        //检查仓库是否存在
+        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
+        if ($checkResult['status'] != 0) {
+            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        }
+
+        $result = $this->SVNAdminRep->RepDump($this->payload['rep_name'], $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . FunGetRandStr() . '.dump');
+
+        if ($result['resultCode'] != 0) {
+            return message(200, 0, $result['error'], []);
+        }
 
         return message();
     }

@@ -377,4 +377,27 @@ class Svn extends Base
             ],
         ]);
     }
+
+    /**
+     * 检测 authz 是否有效
+     *
+     * @return array
+     */
+    public function ValidateAuthz()
+    {
+        if (!array_key_exists('svnauthz-validate', $this->config_bin)) {
+            return message(200, 0, '需要在 config/bin.php 文件中配置 svnauthz-validate 的路径');
+        }
+
+        if ($this->config_bin['svnauthz-validate'] == '') {
+            return message(200, 0, '未在 config/bin.php 文件中配置 svnauthz-validate 路径');
+        }
+
+        $result = FunShellExec(sprintf("'%s' '%s'", '/usr/bin/svn-tools/svnauthz-validate', $this->config_svn['svn_authz_file'], $this->config_bin['svnauthz-validate']));
+        if ($result['resultCode'] != 0) {
+            return message(200, 2, '检测到异常', $result['error']);
+        } else {
+            return message(200, 1, 'authz文件配置无误');
+        }
+    }
 }

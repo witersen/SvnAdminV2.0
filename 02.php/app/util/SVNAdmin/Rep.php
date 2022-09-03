@@ -829,6 +829,8 @@ class Rep extends Core
      */
     function GetSimpleRepList()
     {
+        FunShellExec('chmod 777 -R ' . $this->config_svn['home_path']);
+
         $repArray = [];
         $file_arr = scandir($this->config_svn['rep_base_path']);
         foreach ($file_arr as $file_item) {
@@ -898,6 +900,9 @@ class Rep extends Core
         $repPath = $this->config_svn['rep_base_path'] .  $repName;
         $svnadminInfoCmd = sprintf("'%s' tree '%s'", $this->config_bin['svnlook'], $repPath);
         $cmdResult = FunShellExec($svnadminInfoCmd);
+        if ($cmdResult['resultCode'] != 0) {
+            return message(200, 0, $cmdResult['error']);
+        }
         $cmdResult = $cmdResult['result'];
         // $cmdResult = FunShellExec($svnadminInfoCmd);
         $treeArray = explode("\n", $cmdResult);
@@ -1318,7 +1323,8 @@ class Rep extends Core
     function RepDump($repName, $backupName)
     {
         $cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName, $this->config_svn['backup_base_path'] .  $backupName);
-        FunShellExec($cmd);
+        $result = FunShellExec($cmd);
+        return $result;
     }
 
     /**

@@ -129,6 +129,7 @@ export default {
         if (sessionStorage.user_role_id == 1) {
           //管理员跳转到首页
           that.$router.push({ name: "index" });
+          sessionStorage.setItem("sync", "yes");
         } else if (sessionStorage.user_role_id == 2) {
           //用户跳转到仓库页
           that.$router.push({ name: "repositoryInfo" });

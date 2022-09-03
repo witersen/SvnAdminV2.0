@@ -144,7 +144,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="配置文件" name="2">
+        <TabPane label="路径信息" name="2">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert
               >可在命令行模式下执行 server/insta.php 进行目录更换操作
@@ -430,7 +430,43 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="系统更新" name="6">
+        <TabPane label="自助检测" name="6" v-if="false">
+          <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Alert
+              >不经意的配置可能会导致 authz 配置文件失效<br /><br />
+              如 svnserve 1.10 版本中为空分组授权会导致配置失效等<br /><br />
+              因此可通过此工具在线检测 authz 配置文件<br /><br />
+              此功能依赖 svnauthz-validate</Alert
+            >
+            <Form :label-width="100" label-position="left">
+              <FormItem label="authz文件">
+                <Row>
+                  <Col span="12">
+                    <span>/home/svnadmin/authz</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Button type="info">查看</Button>
+                  </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="passwd文件">
+                <Row>
+                  <Col span="12">
+                    <span>/home/svnadmin/authz</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Button type="info">查看</Button>
+                  </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+            </Form>
+          </Card>
+        </TabPane>
+        <TabPane label="系统更新" name="7">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">

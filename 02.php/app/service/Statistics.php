@@ -221,9 +221,11 @@ class Statistics extends Base
         if (file_exists('/etc/redhat-release')) {
             $os = FunShellExec("cat /etc/redhat-release");
             $os = $os['result'];
+            // $os = file_get_contents('/etc/redhat-release');
         } else if (file_exists('/etc/lsb-release')) {
             $os = FunShellExec("cat /etc/lsb-release");
             $os = $os['result'];
+            // $os = file_get_contents('/etc/lsb-release');
         } else {
             $os = 'Linux';
         }

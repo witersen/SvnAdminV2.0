@@ -278,6 +278,14 @@ class Install
      */
     function ConfigSubversion()
     {
+        /**
+         * 1、检测 which 工具是否安装
+         */
+        if (trim(shell_exec('which which 2>/dev/null')) == '') {
+            echo '当前环境没有安装 which 工具 不会自动检测软件安装位置！' . PHP_EOL;
+            echo '===============================================' . PHP_EOL;
+        }
+
         echo PHP_EOL . '===============================================' . PHP_EOL;
         echo '确定要开始配置Subversion程序吗[y/n]：';
         $continue = strtolower(trim(fgets(STDIN)));
@@ -295,7 +303,7 @@ class Install
         }
 
         /**
-         * 1、检测Subversion的安装情况
+         * 2、检测Subversion的安装情况
          */
         //检测是否有正在运行的进程
         if (shell_exec('ps auxf|grep -v "grep"|grep svnserve') != '') {
@@ -305,7 +313,7 @@ class Install
         }
 
         /**
-         * 2、令用户手动选择配置程序的路径
+         * 3、令用户手动选择配置程序的路径
          */
         $needBin = [
             'svn' => '',
@@ -316,7 +324,8 @@ class Install
             'svnsync' => '',
             'svnrdump' => '',
             'svndumpfilter' => '',
-            'svnmucc' => ''
+            'svnmucc' => '',
+            'svnauthz-validate' => ''
         ];
 
         echo '===============================================' . PHP_EOL;
@@ -325,6 +334,9 @@ class Install
 
         foreach ($needBin as $key => $value) {
             echo "请输入 $key 程序位置：" . PHP_EOL;
+            if ($key == 'svnauthz-validate') {
+                echo 'CentOS 下 svnauthz-validate 的位置通常为 /usr/bin/svn-tools/svnauthz-validate' . PHP_EOL;
+            }
             echo '自动检测到以下程序路径：' . PHP_EOL;
             passthru("which $key 2>/dev/null");
             echo '请输入回车使用默认检测路径或手动输入：';
@@ -337,7 +349,7 @@ class Install
             if ($binPath == "\n") {
                 $binPath = trim(shell_exec("which $key 2>/dev/null"));
                 if ($binPath == '') {
-                    if ($key == 'svnmucc') {
+                    if ($key == 'svnmucc' || $key == 'svnauthz-validate') {
                         echo "未检测到 $key ，请手动输入程序路径！" . PHP_EOL;
                         echo "由于 $key 在当前版本非必要，因此无安装可忽略" . PHP_EOL;
                         echo '===============================================' . PHP_EOL;
@@ -367,14 +379,15 @@ class Install
             'svnsync' => '{$needBin['svnsync']}',
             'svnrdump' => '{$needBin['svnrdump']}',
             'svndumpfilter' => '{$needBin['svndumpfilter']}',
-            'svnmucc' => '{$needBin['svnmucc']}'
+            'svnmucc' => '{$needBin['svnmucc']}',
+            'svnauthz-validate' => '{$needBin['svnauthz-validate']}'
         ];
 CON;
 
         file_put_contents(BASE_PATH . '/../config/bin.php', $binCon);
 
         /**
-         * 3、相关文件配置
+         * 4、相关文件配置
          */
         $templete_path = BASE_PATH . '/../templete/';
 
@@ -476,7 +489,7 @@ CON;
         echo '===============================================' . PHP_EOL;
 
         /**
-         * 4、关闭selinux 
+         * 5、关闭selinux 
          * 包括临时关闭和永久关闭
          */
         echo '临时关闭并永久关闭seliux' . PHP_EOL;
@@ -490,7 +503,7 @@ CON;
         echo '===============================================' . PHP_EOL;
 
         /**
-         * 5、配置SQLite数据库文件
+         * 6、配置SQLite数据库文件
          */
         echo '配置并启用SQLite数据库' . PHP_EOL;
 
@@ -521,7 +534,7 @@ CON;
         echo '===============================================' . PHP_EOL;
 
         /**
-         * 6、主目录授权
+         * 7、主目录授权
          */
         echo '配置主目录权限' . PHP_EOL;
 
@@ -530,7 +543,7 @@ CON;
         echo '===============================================' . PHP_EOL;
 
         /**
-         * 7、将svnserve注册为系统服务
+         * 8、将svnserve注册为系统服务
          */
         echo '清理之前注册的svnserve服务' . PHP_EOL;
 

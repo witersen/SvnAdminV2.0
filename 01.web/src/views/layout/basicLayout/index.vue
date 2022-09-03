@@ -148,6 +148,7 @@ export default {
             sessionStorage.removeItem("user_name");
             sessionStorage.removeItem("user_role_id");
             sessionStorage.removeItem("user_role_name");
+            sessionStorage.removeItem("sync");
             that.$Message.success(result.message);
             that.$router.push({ name: "login" });
           } else {
