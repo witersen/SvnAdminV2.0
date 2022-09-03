@@ -424,7 +424,7 @@
               </template>
               <template slot-scope="{ row }" slot="invert">
                 <Switch
-                  v-if="row.type != '*'"
+                  v-if="row.objectType != '*'"
                   v-model="row.invert"
                   @on-change="
                     (invert) =>

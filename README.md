@@ -6,8 +6,8 @@
   - GitHub地址：https://github.com/witersen/SvnAdminV2.0 
   - Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
 - 发行包：
-  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.3.3/v2.3.3.zip
-  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.3.3/v2.3.3.zip
+  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.3.3.1/2.3.3.1.zip
+  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.3.3.1/2.3.3.1.zip
 - 兼容性
 
   - 本程序提供 docker 镜像，基于 centos7.9.2009 构建
@@ -17,32 +17,6 @@
   - 数据库：SQLite、MySQL
   - Subversion：1.8+
 - 问题协助或功能建议加Q群：633108141
-
-ps
-
-```
-2.3.3.1作为2.3.3的修复版本发布在演示地址测试1-2天后正式发布
-支持ldap的2.3.4版本还处于开发测试阶段
-发行包：https://download.witersen.com/2.3.3.1.zip
-docker：harbor.witersen.com:9443/personal/svnadmin:2.3.3.1
-----------------------------------------------------
-【修复内容】
-1、重构了底层的匹配程序，修复2.3.3的诸多匹配问题
-2、修复仓库钩子无效的问题
-3、消除后台程序的警告问题
-4、仓库目录浏览没有考虑面包屑过长的问题
-5、关闭后台程序的二次检测提示
-6、二维码生成后进行二次检测确保被写入数据库
-7、修复不能创建单个字母命名的仓库的问题
-8、修复多处文本过长导致的溢出问题
-9、修复示例 pre-commit 中没有指定 svnlook 程序导致报错的问题
-10、优化仓库列表的下标问题
-11、创建信息时增加备注表单（用户、分组、仓库）
-12、用户名中带有.造成的登录影响
-【新特性】
-1、完全支持 Subversion 1.5+ 支持的authz特性
-2、授权处支持搜索用户
-```
 
 ## 一、手动安装
 
@@ -55,10 +29,10 @@ docker：harbor.witersen.com:9443/personal/svnadmin:2.3.3.1
 yum install -y zip unzip wget vim
 
 # 由于CentOS7默认源中提供的PHP版本为5.4，而我们需要 5.5+，因此使用remi源
-# 可将 remi-php55 切换为想安装的版本
+# 可将 remi-php55 切换为想安装的版本 如喜欢 php7.4 则 remi-php74
 yum install -y epel-release yum-utils
 rpm -Uvh https://mirrors.aliyun.com/remi/enterprise/remi-release-7.rpm
-yum-config-manager --enable remi-php55
+yum-config-manager --enable remi-php74
 
 # 安装php及相关扩展
 yum install -y php php-common php-cli php-fpm php-json php-mysqlnd php-mysql php-pdo php-process php-json php-gd php-bcmath
@@ -80,10 +54,10 @@ systemctl enable httpd
 cd /var/www/html/
 
 # 代码包从发行版获取
-wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.3.3/v2.3.3.zip
+wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.3.3.1/2.3.3.1.zip
 
 # 解压
-unzip v2.3.3.zip
+unzip v2.3.3.1.zip
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）
@@ -180,7 +154,7 @@ php install.php
 
   - ```
     #拉取镜像
-    docker pull witersencom/svnadmin:2.3.3
+    docker pull witersencom/svnadmin:2.3.3.1
     ```
 
 - 仅运行查看效果（不挂载数据）
@@ -191,7 +165,7 @@ php install.php
     -p 80:80 \
     -p 3690:3690 \
     --privileged \
-    witersencom/svnadmin:2.3.3
+    witersencom/svnadmin:2.3.3.1
     ```
 
 - 用于生产环境（挂载数据到容器中，容器销毁数据不会丢失）
@@ -203,7 +177,7 @@ php install.php
       docker run -d \
       --name svnadmintemp \
       --privileged=true \
-      witersencom/svnadmin:2.3.3 \
+      witersencom/svnadmin:2.3.3.1 \
       /usr/sbin/init
       
       #复制的数据目录为 /home/svnadmin/
@@ -219,7 +193,7 @@ php install.php
       -p 3690:3690 \
       -v /home/svnadmin/:/home/svnadmin/ \
       --privileged \
-      witersencom/svnadmin:2.3.3
+      witersencom/svnadmin:2.3.3.1
       ```
   
   - 老用户（2.3.1+）
@@ -231,7 +205,7 @@ php install.php
       -p 3690:3690 \
       -v /home/svnadmin/:/home/svnadmin/ \
       --privileged \
-      svnadmin:2.3.3
+      svnadmin:2.3.3.1
       ```
 
 ## 三、手动升级
