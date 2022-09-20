@@ -391,8 +391,22 @@ chmod 777 -R /home/svnadmin
 如果是容器部署，需要在容器中执行此操作而不是在宿主机执行
 ```
 
+### 18、关于修改数据存储主目录后的升级
 
-### 18、本程序的工作模式
+```
+修改过数据存储主目录的，升级新版本程序需要注意：
+升级后程序的配置还是默认的目录路径不是修改过的路径
+需要做以下修改
+1、停止后台程序 php server/svnadmind.php stop
+2、修改配置文件 config/svn.php 中的一处默认路径 /home/svnadmin/ 为自己配置的路径
+3、停止 svnserve 服务 systemctl stop svnserve 或者直接 kill pid
+4、修改 svnserve 的服务文件中的两处默认路径 /home/svnadmin/ 为自己配置的路径
+5、启动后台程序和启动 svnserve 服务
+
+会在下个版本简化升级步骤并解决此问题
+```
+
+### 19、本程序的工作模式
 
 - 通过使 svnadmind.php 成为守护进程并监听指定端口来工作
 - php-fpm与php-cli程序的使用TCP套接字通信
