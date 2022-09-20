@@ -28,7 +28,7 @@ class Statistics extends Base
         /**
          * ----------负载计算开始----------
          */
-        $laodavg = FunShellExec("cat /proc/loadavg | awk '{print $1,$2,$3}'");
+        $laodavg = funShellExec("cat /proc/loadavg | awk '{print $1,$2,$3}'");
         $laodavg = $laodavg['result'];
         $laodavgArray = explode(' ', $laodavg);
 
@@ -42,7 +42,7 @@ class Statistics extends Base
         $cpuLoad1Min = (float)trim($laodavgArray[0]);
 
         //获取cpu总核数
-        $cpuCount  = FunShellExec('grep -c "model name" /proc/cpuinfo');
+        $cpuCount  = funShellExec('grep -c "model name" /proc/cpuinfo');
         $cpuCount = $cpuCount['result'];
         $cpuCount = (int)trim($cpuCount);
 
@@ -81,14 +81,14 @@ class Statistics extends Base
          * si software          软件中断 
          * st steal             实时
          */
-        $topResult = FunShellExec('top -b -n 1 | grep Cpu');
+        $topResult = funShellExec('top -b -n 1 | grep Cpu');
         $topResult = $topResult['result'];
         preg_match('/ni,(.*?)id/', $topResult, $matches);
         $id = 100 - (float)trim($matches[1]);
 
         //cpu型号
         $cpuModelArray = [];
-        $cpuModelName = FunShellExec("cat /proc/cpuinfo | grep 'model name' | uniq");
+        $cpuModelName = funShellExec("cat /proc/cpuinfo | grep 'model name' | uniq");
         $cpuModelName = $cpuModelName['result'];
         $explodeArray = explode("\n", trim($cpuModelName));
         foreach ($explodeArray as $value) {
@@ -99,12 +99,12 @@ class Statistics extends Base
         }
 
         //物理cpu个数
-        $cpuPhysical = FunShellExec("cat /proc/cpuinfo | grep 'physical id' | sort -u | wc -l");
+        $cpuPhysical = funShellExec("cat /proc/cpuinfo | grep 'physical id' | sort -u | wc -l");
         $cpuPhysical = $cpuPhysical['result'];
         $cpuPhysical = (int)trim($cpuPhysical);
 
         //每个物理cpu的物理核心数
-        $cpuPhysicalCore = FunShellExec("cat /proc/cpuinfo | grep 'cpu cores' | wc -l");
+        $cpuPhysicalCore = funShellExec("cat /proc/cpuinfo | grep 'cpu cores' | wc -l");
         $cpuPhysicalCore = $cpuPhysicalCore['result'];
         $cpuPhysicalCore = (int)trim($cpuPhysicalCore);
 
@@ -112,7 +112,7 @@ class Statistics extends Base
         $cpuCore = $cpuPhysical * $cpuPhysicalCore;
 
         //逻辑核心总数（线程总数）
-        $cpuProcessor = FunShellExec("cat /proc/cpuinfo | grep 'processor' | wc -l");
+        $cpuProcessor = funShellExec("cat /proc/cpuinfo | grep 'processor' | wc -l");
         $cpuProcessor = $cpuProcessor['result'];
         $cpuProcessor = (int)trim($cpuProcessor);
 
@@ -138,12 +138,12 @@ class Statistics extends Base
          * MemAvailable 可用内存（MemFree + 可回收的内存），系统中有些内存虽然已被使用但是可以回收，比如cache、buffer、slab都有一部分可以回收
          */
         //物理内存总量
-        $memTotal = FunShellExec("cat /proc/meminfo | grep 'MemTotal' | awk '{print $2}'");
+        $memTotal = funShellExec("cat /proc/meminfo | grep 'MemTotal' | awk '{print $2}'");
         $memTotal = $memTotal['result'];
         $memTotal = (int)trim($memTotal);
 
         //操作系统可用内存总量（没有使用空闲内存）
-        $memFree =  FunShellExec("cat /proc/meminfo | grep 'MemAvailable' | awk '{print $2}'");
+        $memFree =  funShellExec("cat /proc/meminfo | grep 'MemAvailable' | awk '{print $2}'");
         $memFree = $memFree['result'];
         $memFree = (int)trim($memFree);
 
@@ -174,7 +174,7 @@ class Statistics extends Base
      */
     public function GetDisk()
     {
-        $rs = FunShellExec('df -lh | grep -E "^(/)"');
+        $rs = funShellExec('df -lh | grep -E "^(/)"');
         $rs = $rs['result'];
 
         //将多个连续的空格换为一个
@@ -219,11 +219,11 @@ class Statistics extends Base
     {
         //操作系统类型和版本
         if (file_exists('/etc/redhat-release')) {
-            $os = FunShellExec("cat /etc/redhat-release");
+            $os = funShellExec("cat /etc/redhat-release");
             $os = $os['result'];
             // $os = file_get_contents('/etc/redhat-release');
         } else if (file_exists('/etc/lsb-release')) {
-            $os = FunShellExec("cat /etc/lsb-release");
+            $os = funShellExec("cat /etc/lsb-release");
             $os = $os['result'];
             // $os = file_get_contents('/etc/lsb-release');
         } else {

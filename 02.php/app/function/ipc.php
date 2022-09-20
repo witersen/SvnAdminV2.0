@@ -10,7 +10,7 @@
 /**
  * 与守护进程通信
  */
-function FunShellExec($shell)
+function funShellExec($shell)
 {
     $config_daemon = Config::get('daemon');
 
@@ -18,50 +18,36 @@ function FunShellExec($shell)
         'type' => 'passthru',
         'content' => $shell
     ];
-    $request = serialize($request);
+    $request = json_encode($request);
+
+    $length = $config_daemon['socket_data_length'];
 
     //检测信息长度
-    if (strlen($request) >= $config_daemon['SOCKET_READ_LENGTH']) {
-        json1(200, 0, '数据长度超过' . $config_daemon['SOCKET_READ_LENGTH'] . ' 请向上调整参数：SOCKET_READ_LENGTH');
+    if (strlen($request) >= $length) {
+        json1(200, 0, '数据长度超过' . $length . ' 请向上调整参数：socket_data_length');
     }
-    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("error:" . socket_strerror(socket_last_error()));
-    $server = socket_connect($socket, $config_daemon['IPC_ADDRESS'], (int)$config_daemon['IPC_PORT']);
-    socket_write($socket, $request);
-    $reply = socket_read($socket, (int)$config_daemon['SOCKET_READ_LENGTH']);
+
+    $socket = @socket_create(AF_UNIX, SOCK_STREAM, 0) or exit('创建套接字失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
+
+    $server = socket_connect($socket, $config_daemon['ipc_file'], 0);
+
+    socket_write($socket, $request, strlen($request));
+
+    $reply = socket_read($socket, $length);
+
     socket_close($socket);
-    return unserialize($reply);
+
+    return json_decode($reply, true);
 }
 
 /**
  * file_put_contents
  */
-function FunFilePutContents($filename, $data, $flags = 0, $context = '')
+function funFilePutContents($filename, $data)
 {
-    $config_daemon = Config::get('daemon');
+    funShellExec(sprintf("chmod 777 '%s'", $filename));
 
-    $content = [
-        'filename' => $filename,
-        'data' => $data,
-        'flags' => $flags,
-        'context' => $context
-    ];
-
-    $request = [
-        'type' => 'file_put_contents',
-        'content' => $content
-    ];
-    $request = serialize($request);
-
-    //检测信息长度
-    if (strlen($request) >= $config_daemon['SOCKET_READ_LENGTH']) {
-        json1(200, 0, '数据长度超过' . $config_daemon['SOCKET_READ_LENGTH'] . ' 请向上调整参数：SOCKET_READ_LENGTH');
-    }
-    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("error:" . socket_strerror(socket_last_error()));
-    $server = socket_connect($socket, $config_daemon['IPC_ADDRESS'], (int)$config_daemon['IPC_PORT']);
-    socket_write($socket, $request);
-    $reply = socket_read($socket, (int)$config_daemon['SOCKET_READ_LENGTH']);
-    socket_close($socket);
-    return unserialize($reply);
+    file_put_contents($filename, $data);
 }
 
 /**
@@ -70,21 +56,19 @@ function FunFilePutContents($filename, $data, $flags = 0, $context = '')
  * 1 打开
  * 2 关闭
  */
-function FunDetectState()
+function funDetectState()
 {
     $config_daemon = Config::get('daemon');
 
-    $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+    $sock = @socket_create(AF_UNIX, SOCK_STREAM, 0);
 
-    @socket_connect($sock, $config_daemon['IPC_ADDRESS'], (int)$config_daemon['IPC_PORT']);
+    @socket_connect($sock, $config_daemon['ipc_file'], 0);
 
     socket_set_nonblock($sock);
 
     socket_set_block($sock);
 
-    $v = array($sock);
-
-    $state = @socket_select($r = $v, $w = $v, $f = $v, 5);
+    $state = @socket_select($r = [$sock], $w = [$sock], $f = [$sock], 5);
 
     socket_close($sock);
 

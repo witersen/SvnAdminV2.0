@@ -829,7 +829,7 @@ class Rep extends Core
      */
     function GetSimpleRepList()
     {
-        FunShellExec('chmod 777 -R ' . $this->config_svn['home_path']);
+        funShellExec('chmod 777 -R ' . $this->config_svn['home_path']);
 
         $repArray = [];
         $file_arr = scandir($this->config_svn['rep_base_path']);
@@ -855,7 +855,7 @@ class Rep extends Core
     function InitRepStruct($templetePath, $repPath, $initUser = 'SVNAdmin', $initPass = 'SVNAdmin', $message = 'Initial structure')
     {
         $cmd = sprintf("'%s' import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $this->config_bin['svn'], $templetePath, $repPath, $initUser, $initPass, $message);
-        FunShellExec($cmd);
+        funShellExec($cmd);
     }
 
     /**
@@ -880,7 +880,7 @@ class Rep extends Core
 
         $svnadminInfoCmd = sprintf("'%s' info '%s'", $this->config_bin['svnadmin'], $repPath);
 
-        $cmdResult = FunShellExec($svnadminInfoCmd);
+        $cmdResult = funShellExec($svnadminInfoCmd);
         $cmdResult = $cmdResult['result'];
 
         preg_match_all($this->REG_REP_INFO, $cmdResult, $svnadminInfoPreg);
@@ -899,12 +899,12 @@ class Rep extends Core
     {
         $repPath = $this->config_svn['rep_base_path'] .  $repName;
         $svnadminInfoCmd = sprintf("'%s' tree '%s'", $this->config_bin['svnlook'], $repPath);
-        $cmdResult = FunShellExec($svnadminInfoCmd);
+        $cmdResult = funShellExec($svnadminInfoCmd);
         if ($cmdResult['resultCode'] != 0) {
             return message(200, 0, $cmdResult['error']);
         }
         $cmdResult = $cmdResult['result'];
-        // $cmdResult = FunShellExec($svnadminInfoCmd);
+        // $cmdResult = funShellExec($svnadminInfoCmd);
         $treeArray = explode("\n", $cmdResult);
         //去除数组中的空字符串键值 通常为最后一项
         $treeArray = array_filter($treeArray, 'FunArrayValueFilter');
@@ -1216,7 +1216,7 @@ class Rep extends Core
 
         $cmd = sprintf("'%s' youngest '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $repName);
 
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
 
         return (int)trim($result['result']);
     }
@@ -1228,7 +1228,7 @@ class Rep extends Core
     {
         $cmd = sprintf("'%s' uuid '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $repName);
 
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
 
         return trim($result['result']);
     }
@@ -1242,7 +1242,7 @@ class Rep extends Core
     function GetRepDetail110($repName)
     {
         $cmd = sprintf("'%s' info '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName);
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
         return $result;
     }
 
@@ -1258,7 +1258,7 @@ class Rep extends Core
     function GetRepRevFileSize($repName, $filePath)
     {
         $cmd = sprintf("'%s' filesize '%s' '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] . $repName, $filePath);
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
         $size = (int)$result['result'];
         return FunFormatSize($size);
     }
@@ -1271,7 +1271,7 @@ class Rep extends Core
     function GetRepFileRev($repName, $filePath)
     {
         $cmd = sprintf("'%s' history --limit 1 '%s' '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $repName, $filePath);
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
         $result = $result['result'];
         $resultArray = explode("\n", $result);
         $content = preg_replace("/\s{2,}/", ' ', $resultArray[2]);
@@ -1287,7 +1287,7 @@ class Rep extends Core
     function GetRepFileAuthor($repName, $rev)
     {
         $cmd = sprintf("'%s' author -r %s '%s'", $this->config_bin['svnlook'], $rev, $this->config_svn['rep_base_path'] .  $repName);
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
         return $result['result'];
     }
 
@@ -1299,7 +1299,7 @@ class Rep extends Core
     function GetRepFileDate($repName, $rev)
     {
         $cmd = sprintf("'%s' date -r %s '%s'", $this->config_bin['svnlook'], $rev, $this->config_svn['rep_base_path'] .  $repName);
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
         return $result['result'];
     }
 
@@ -1311,7 +1311,7 @@ class Rep extends Core
     function GetRepFileLog($repName, $rev)
     {
         $cmd = sprintf("'%s' log -r %s '%s'", $this->config_bin['svnlook'], $rev, $this->config_svn['rep_base_path'] .  $repName);
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
         return $result['result'];
     }
 
@@ -1323,7 +1323,7 @@ class Rep extends Core
     function RepDump($repName, $backupName)
     {
         $cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName, $this->config_svn['backup_base_path'] .  $backupName);
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
         return $result;
     }
 
@@ -1333,7 +1333,7 @@ class Rep extends Core
     function DelRepBackup($fileName)
     {
         $cmd = sprintf("cd '%s' && rm -f './%s'", $this->config_svn['backup_base_path'], $fileName);
-        FunShellExec($cmd);
+        funShellExec($cmd);
     }
 
     /**
@@ -1342,7 +1342,7 @@ class Rep extends Core
     function RepLoad($repName, $fileName)
     {
         $cmd = sprintf("'%s' load --quiet '%s' < '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $repName, $this->config_svn['backup_base_path'] .  $fileName);
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
         return $result;
     }
 
@@ -1352,7 +1352,7 @@ class Rep extends Core
     function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, $svnUserPass)
     {
         $cmd = sprintf("'%s' list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $this->config_bin['svn'], $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
 
         if ($result['resultCode'] != 0) {
             //: Authentication error from server: Password incorrect

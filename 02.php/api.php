@@ -95,7 +95,7 @@ foreach ($disable_functions as $disable) {
 }
 
 //检测守护进程状态
-$state = FunDetectState();
+$state = funDetectState();
 if ($state == 0) {
     json1(401, 0, '守护进程响应超时');
 } else if ($state == 2) {

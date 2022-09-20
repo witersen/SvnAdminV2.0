@@ -48,31 +48,27 @@ class Daemon
      */
     private function InitSocket()
     {
-        //创建套接字
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or exit('启动失败：socket_create 错误：' . socket_strerror(socket_last_error()) . PHP_EOL);
-
-        //设置可重复使用端口号
-        if (!socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1)) {
-            exit('启动失败：设置套接字选项错误：' . socket_strerror(socket_last_error()) . PHP_EOL);
+        if (file_exists($this->config_daemon['ipc_file'])) {
+            unlink($this->config_daemon['ipc_file']);
         }
+
+        //创建套接字
+        $socket = @socket_create(AF_UNIX, SOCK_STREAM, 0) or die('创建套接字失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
 
         //绑定地址和端口
-        socket_bind($socket, $this->config_daemon['IPC_ADDRESS'], $this->config_daemon['IPC_PORT']) or exit('启动失败：socket_bind 错误，可能是由于频繁启动，端口未释放，请稍后重试或检查端口冲突' . PHP_EOL);
-
-        $rval = socket_get_option($socket, SOL_SOCKET, SO_REUSEADDR);
-
-        if ($rval === false) {
-            exit('启动失败：无法获取套接字选项：' . socket_strerror(socket_last_error()) . PHP_EOL);
-        }
+        @socket_bind($socket, $this->config_daemon['ipc_file'], 0) or die('绑定失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
 
         //监听 设置并发队列的最大长度
-        socket_listen($socket, $this->config_daemon['SOCKET_LISTEN_BACKLOG']);
+        @socket_listen($socket, $this->config_daemon['socket_listen_backlog']) or die('监听失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
+
+        //使其它用户可用
+        shell_exec('chmod 777 ' . $this->config_daemon['ipc_file']);
 
         while (true) {
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
 
-            $client = socket_accept($socket) or exit('启动失败：socket_accept 错误' . PHP_EOL);
+            $client = @socket_accept($socket) or die('接收连接失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
 
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
@@ -92,14 +88,16 @@ class Daemon
      */
     private function HandleRequest($client)
     {
+        $length = $this->config_daemon['socket_data_length'];
+
         //接收客户端发送的数据
-        $receive = socket_read($client, $this->config_daemon['SOCKET_READ_LENGTH']);
+        $receive = socket_read($client, $length);
 
         $type = 'detect';
         $content = '';
 
         if (!empty($receive)) {
-            $receive = unserialize($receive);
+            $receive = json_decode($receive, true);
 
             $type = $receive['type'];
             $content = $receive['content'];
@@ -140,17 +138,6 @@ class Daemon
                     'error' => ''
                 ];
             }
-        } else if ($type == 'file_put_contents') {
-            if ($content['flags'] == 0) {
-                file_put_contents($content['filename'], $content['data']);
-            } else {
-                file_put_contents($content['filename'], $content['data'], $content['flags'], $content['context']);
-            }
-            $result = [
-                'resultCode' => 0,
-                'result' => '',
-                'error' => ''
-            ];
         } else {
             $result = [
                 'resultCode' => 0,
@@ -168,7 +155,7 @@ class Daemon
         }
 
         //将结果序列化并返回
-        socket_write($client, serialize($result), strlen(serialize($result))) or die('失败：socket_write 错误' . PHP_EOL);
+        @socket_write($client, json_encode($result), $length) or die('socket_write失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
 
         //关闭会话
         socket_close($client);

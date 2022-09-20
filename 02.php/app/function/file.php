@@ -62,7 +62,7 @@ function FunFormatSize($size)
 function FunGetDirSizeDu($path)
 {
     $cmd = sprintf("du -s '%s' | awk '{print $1}'", $path);
-    $result =  FunShellExec($cmd);
+    $result =  funShellExec($cmd);
     $result = $result['result'];
     $result  = (int)trim($result) * 1024;
     return $result;

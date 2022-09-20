@@ -14,26 +14,17 @@
 return [
 
     /**
-     * 程序与守护进程通信的本地地址
-     * 不要修改
+     * 通信文件
      */
-    'IPC_ADDRESS' => '127.0.0.1',
-
-    /**
-     * 程序与守护进程通信的本地端口
-     * 如与现有业务端口冲突 请自行修改
-     */
-    'IPC_PORT' => 6666,
+    'ipc_file' => '/tmp/svnadmind.socket',
 
     /**
      * socket_read 和 socket_write 的最大传输字节
-     * 如果没有需要 8192 字节已经极大的满足需求
      */
-    'SOCKET_READ_LENGTH' => 81920,
-    'SOCKET_WRITE_LENGTH' => 81920,
+    'socket_data_length' => 81920,
 
     /**
      * socket 处理并发的最大队列长度
      */
-    'SOCKET_LISTEN_BACKLOG' => 2000,
+    'socket_listen_backlog' => 2000,
 ];

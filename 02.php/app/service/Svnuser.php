@@ -209,7 +209,7 @@ class Svnuser extends Base
             }
         }
 
-        FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
+        funFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
         return message();
     }
@@ -257,7 +257,7 @@ class Svnuser extends Base
         }
 
         //写入配置文件
-        FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
+        funFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
         //写入数据库
         $this->database->insert('svn_users', [
@@ -300,7 +300,7 @@ class Svnuser extends Base
         }
 
         //写入配置文件
-        FunFilePutContents($this->config_svn['svn_passwd_file'], $result);
+        funFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
         //写入数据库
         $this->database->update('svn_users', [
@@ -346,9 +346,9 @@ class Svnuser extends Base
             'svn_user_name' => $this->payload['svn_user_name']
         ]);
 
-        FunFilePutContents($this->config_svn['svn_authz_file'], $resultAuthz);
+        funFilePutContents($this->config_svn['svn_authz_file'], $resultAuthz);
 
-        FunFilePutContents($this->config_svn['svn_passwd_file'], $resultPasswd);
+        funFilePutContents($this->config_svn['svn_passwd_file'], $resultPasswd);
 
         //日志
         $this->Logs->InsertLog(

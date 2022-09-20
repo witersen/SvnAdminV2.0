@@ -196,7 +196,7 @@ class Svngroup extends Base
         }
 
         //写入配置文件
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //写入数据库
         $this->database->insert('svn_groups', [
@@ -233,7 +233,7 @@ class Svngroup extends Base
             }
         }
 
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //从数据库删除
         $this->database->delete('svn_groups', [
@@ -280,7 +280,7 @@ class Svngroup extends Base
             }
         }
 
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         return message();
     }
@@ -394,7 +394,7 @@ class Svngroup extends Base
             }
         }
 
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         return message();
     }

@@ -21,7 +21,7 @@ class Svn extends Base
      */
     public function GetStatus()
     {
-        $result = FunShellExec("ps auxf | grep -v 'grep' | grep svnserve");
+        $result = funShellExec("ps auxf | grep -v 'grep' | grep svnserve");
         $result = $result['result'];
 
         if ($result == '') {
@@ -61,11 +61,11 @@ class Svn extends Base
     public function GetSubversion()
     {
         //检测是否有正在运行的进程
-        $isRun = FunShellExec('ps auxf|grep -v "grep"|grep svnserve');
+        $isRun = funShellExec('ps auxf|grep -v "grep"|grep svnserve');
         $isRun = $isRun['result'] == '' ? false : true;
 
         //检测安装程序是否存在于环境变量
-        $isInstall =  FunShellExec('whereis svnserve');
+        $isInstall =  funShellExec('whereis svnserve');
         $isInstall = $isInstall['result'] == 'svnserve:' ? false : true;
 
         //运行中+未加入环境变量
@@ -103,7 +103,7 @@ class Svn extends Base
         //获取Subversion版本
         $version = '-';
         if ($installed != 0) {
-            $versionInfo = FunShellExec(sprintf("'%s' --version", $this->config_bin['svnserve']));
+            $versionInfo = funShellExec(sprintf("'%s' --version", $this->config_bin['svnserve']));
             $versionInfo = $versionInfo['result'];
             preg_match_all($this->config_reg['REG_SUBVERSION_VERSION'], $versionInfo, $versionInfoPreg);
             if (array_key_exists(0, $versionInfoPreg[0])) {
@@ -216,7 +216,7 @@ class Svn extends Base
      */
     public function Start()
     {
-        FunShellExec("systemctl start svnserve");
+        funShellExec("systemctl start svnserve");
         return message();
     }
 
@@ -225,7 +225,7 @@ class Svn extends Base
      */
     public function Stop()
     {
-        FunShellExec("systemctl stop svnserve");
+        funShellExec("systemctl stop svnserve");
         return message();
     }
 
@@ -244,16 +244,16 @@ class Svn extends Base
         }
 
         //停止svnserve
-        FunShellExec('systemctl stop svnserve');
+        funShellExec('systemctl stop svnserve');
 
         //重新构建配置文件内容
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $this->payload['bindPort'], $result['bindHost']);
 
         //写入配置文件
-        FunFilePutContents($this->config_svn['svnserve_env_file'], $config);
+        funFilePutContents($this->config_svn['svnserve_env_file'], $config);
 
         //启动svnserve
-        $result = FunShellExec('systemctl start svnserve');
+        $result = funShellExec('systemctl start svnserve');
 
         if ($result['resultCode'] != 0) {
             return message(200, 0, '启动异常' . $result['error']);
@@ -278,16 +278,16 @@ class Svn extends Base
         }
 
         //停止svnserve
-        FunShellExec('systemctl stop svnserve');
+        funShellExec('systemctl stop svnserve');
 
         //重新构建配置文件内容
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $result['bindPort'], $this->payload['bindHost']);
 
         //写入配置文件
-        FunFilePutContents($this->config_svn['svnserve_env_file'], $config);
+        funFilePutContents($this->config_svn['svnserve_env_file'], $config);
 
         //启动svnserve
-        $result = FunShellExec('systemctl start svnserve');
+        $result = funShellExec('systemctl start svnserve');
 
         if ($result['resultCode'] != 0) {
             return message(200, 0, '启动异常' . $result['error']);
@@ -393,7 +393,7 @@ class Svn extends Base
             return message(200, 0, '未在 config/bin.php 文件中配置 svnauthz-validate 路径');
         }
 
-        $result = FunShellExec(sprintf("'%s' '%s'", '/usr/bin/svn-tools/svnauthz-validate', $this->config_svn['svn_authz_file'], $this->config_bin['svnauthz-validate']));
+        $result = funShellExec(sprintf("'%s' '%s'", '/usr/bin/svn-tools/svnauthz-validate', $this->config_svn['svn_authz_file'], $this->config_bin['svnauthz-validate']));
         if ($result['resultCode'] != 0) {
             return message(200, 2, '检测到异常', $result['error']);
         } else {

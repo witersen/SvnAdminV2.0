@@ -58,10 +58,10 @@ class Svnrep extends Base
         //创建空仓库
         //解决创建中文仓库乱码问题
         $cmd = sprintf("export LC_CTYPE=en_US.UTF-8 &&  '%s' create " . $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $this->config_bin['svnadmin']);
-        FunShellExec($cmd);
+        funShellExec($cmd);
 
         //关闭selinux
-        FunShellExec('setenforce 0');
+        funShellExec('setenforce 0');
 
         if ($this->payload['rep_type'] == '2') {
             //以指定的目录结构初始化仓库
@@ -83,7 +83,7 @@ class Svnrep extends Base
                 return message(200, 0, "同步到配置文件错误$result");
             }
         }
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //写入数据库
         $this->database->insert('svn_reps', [
@@ -190,7 +190,7 @@ class Svnrep extends Base
         }
 
         if ($authzContet != $this->authzContent) {
-            FunFilePutContents($this->config_svn['svn_authz_file'], $authzContet);
+            funFilePutContents($this->config_svn['svn_authz_file'], $authzContet);
         }
     }
 
@@ -223,7 +223,7 @@ class Svnrep extends Base
 
         foreach ($userRepList as $key => $value) {
             $cmd = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $value['repName'], $value['priPath']);
-            $result = FunShellExec($cmd);
+            $result = funShellExec($cmd);
 
             if (strstr($result['error'], 'svnlook: E160013:')) {
                 //路径在仓库不存在
@@ -237,7 +237,7 @@ class Svnrep extends Base
 
         //写入配置文件
         if ($authzContent != $this->authzContent) {
-            FunFilePutContents($this->config_svn['svn_authz_file'], $authzContent);
+            funFilePutContents($this->config_svn['svn_authz_file'], $authzContent);
         }
     }
 
@@ -673,7 +673,7 @@ class Svnrep extends Base
 
         //获取全路径的一层目录树
         $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $path);
-        $result = FunShellExec($cmdSvnlookTree);
+        $result = funShellExec($cmdSvnlookTree);
         if ($result['resultCode'] != 0) {
             return ['code' => 200, 'status' => 0, 'message' => $result['error'], 'data' => []];
         }
@@ -779,7 +779,7 @@ class Svnrep extends Base
 
         //获取全路径的一层目录树
         $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path']  . $this->payload['rep_name'], $path);
-        $result = FunShellExec($cmdSvnlookTree);
+        $result = funShellExec($cmdSvnlookTree);
         if ($result['resultCode'] != 0) {
             return message(200, 0, $result['error']);
         }
@@ -907,7 +907,7 @@ class Svnrep extends Base
         }
 
         //写入
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -945,7 +945,7 @@ class Svnrep extends Base
         }
 
         //写入
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -976,7 +976,7 @@ class Svnrep extends Base
         }
 
         //写入
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -1006,7 +1006,7 @@ class Svnrep extends Base
         }
 
         //从仓库目录修改仓库名称
-        FunShellExec('mv ' . $this->config_svn['rep_base_path'] .  $this->payload['old_rep_name'] . ' ' . $this->config_svn['rep_base_path'] . $this->payload['new_rep_name']);
+        funShellExec('mv ' . $this->config_svn['rep_base_path'] .  $this->payload['old_rep_name'] . ' ' . $this->config_svn['rep_base_path'] . $this->payload['new_rep_name']);
 
         //检查修改过的仓库名称是否存在
         $checkResult = $this->SVNAdminRep->CheckRepCreate($this->payload['new_rep_name'], '修改仓库名称失败');
@@ -1031,7 +1031,7 @@ class Svnrep extends Base
             }
         }
 
-        FunFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //日志
         $this->Logs->InsertLog(
@@ -1056,7 +1056,7 @@ class Svnrep extends Base
                 return message(200, 0, "错误码$authzContet");
             }
         } else {
-            FunFilePutContents($this->config_svn['svn_authz_file'], $authzContet);
+            funFilePutContents($this->config_svn['svn_authz_file'], $authzContet);
         }
 
         //从数据库中删除
@@ -1065,7 +1065,7 @@ class Svnrep extends Base
         ]);
 
         //从仓库目录删除仓库文件夹
-        FunShellExec('cd ' . $this->config_svn['rep_base_path'] . ' && rm -rf ./' . $this->payload['rep_name']);
+        funShellExec('cd ' . $this->config_svn['rep_base_path'] . ' && rm -rf ./' . $this->payload['rep_name']);
         $checkResult = $this->SVNAdminRep->CheckRepDelete($this->payload['rep_name']);
         if ($checkResult['status'] != 1) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
@@ -1138,7 +1138,7 @@ class Svnrep extends Base
             $cmd = sprintf("'%s' setuuid '%s' '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $this->payload['uuid']);
         }
 
-        $result = FunShellExec($cmd);
+        $result = funShellExec($cmd);
 
         if ($result['resultCode'] == 0) {
             return message();
@@ -1295,7 +1295,7 @@ class Svnrep extends Base
 
             //保存
             $cmd = sprintf("mv '%s' '%s'", $_FILES['file']['tmp_name'], $localFilePath);
-            FunShellExec($cmd);
+            funShellExec($cmd);
             // move_uploaded_file($_FILES['file']['tmp_name'], $localFilePath);
 
             return message();
@@ -1449,7 +1449,7 @@ class Svnrep extends Base
             return message(200, 0, '已经移除该仓库钩子');
         }
 
-        FunShellExec(sprintf("cd '%s' && rm -f ./'%s'", $hooksPath, $this->payload['fileName']));
+        funShellExec(sprintf("cd '%s' && rm -f ./'%s'", $hooksPath, $this->payload['fileName']));
 
         return message(200, 1, '移除成功');
     }
@@ -1462,9 +1462,9 @@ class Svnrep extends Base
         $hooksPath = $this->config_svn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
 
         //使用echo写入文件 当出现不规则的不成对的 ' " 等会出问题 当然也会包括其他问题
-        FunFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
+        funFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
 
-        FunShellExec('chmod 777 -R ' . $this->config_svn['home_path']);
+        funShellExec('chmod 777 -R ' . $this->config_svn['home_path']);
 
         return message();
     }
