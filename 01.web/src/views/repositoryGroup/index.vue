@@ -408,7 +408,7 @@ export default {
             that.tableGroupData = result.data.data;
             that.totalGroup = result.data.total;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -433,7 +433,7 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -464,7 +464,7 @@ export default {
             that.modalAddGroup = false;
             that.GetGroupList();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -503,7 +503,7 @@ export default {
             that.modalEditGroupName = false;
             that.GetGroupList();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -622,7 +622,7 @@ export default {
                 that.$Message.success(result.message);
                 that.GetGroupList();
               } else {
-                that.$Message.error(result.message);
+                that.$Message.error({content: result.message,duration: 2,});
               }
             })
             .catch(function (error) {
@@ -667,7 +667,7 @@ export default {
             that.tableRepAllUserData = result.data.userList;
             that.tableRepAllGroupData = result.data.groupList;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -718,7 +718,7 @@ export default {
             that.$Message.success(result.message);
             that.GetGroupMember();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
             that.GetGroupMember();
           }
         })

@@ -504,19 +504,19 @@
                 </Row>
               </FormItem>
               <FormItem>
-                <Tooltip
+                <!-- <Tooltip
                   max-width="300"
                   content="此操作是通过读取位于GitHub和Gitee公开仓库(witersen/update)的配置文件进行软件更新检测 所以需要软件所在主机能够访问外网"
                   placement="top"
                   transfer
+                > -->
+                <Button
+                  type="primary"
+                  :loading="loadingCheckUpdate"
+                  @click="CheckUpdate()"
+                  >检测更新</Button
                 >
-                  <Button
-                    type="primary"
-                    :loading="loadingCheckUpdate"
-                    @click="CheckUpdate()"
-                    >检测更新</Button
-                  >
-                </Tooltip>
+                <!-- </Tooltip> -->
               </FormItem>
             </Form>
           </Card>
@@ -628,7 +628,7 @@ export default {
       disabledEditPort: true,
       disabledEditHost: true,
       disabledEditManageHost: true,
-      isDocker: true,
+      isDocker: false,
 
       /**
        * tab
@@ -785,7 +785,7 @@ export default {
             that.disabledEditHost = true;
             that.disabledEditManageHost = true;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -836,7 +836,7 @@ export default {
           if (result.status == 1) {
             that.formMailSmtp = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -885,7 +885,7 @@ export default {
             that.$Message.success(result.message);
             that.GetEmail();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -920,7 +920,7 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -942,7 +942,7 @@ export default {
           if (result.status == 1) {
             that.configList = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -963,7 +963,7 @@ export default {
           if (result.status == 1) {
             that.listPush = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -984,7 +984,7 @@ export default {
           if (result.status == 1) {
             that.listSafe = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -1045,7 +1045,7 @@ export default {
             that.$Message.success(result.message);
             that.GetPush();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -1072,7 +1072,7 @@ export default {
             that.$Message.success(result.message);
             that.GetSafeConfig();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -1109,7 +1109,7 @@ export default {
                 that.$Message.success(result.message);
                 that.GetDetail();
               } else {
-                that.$Message.error(result.message);
+                that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {
@@ -1140,7 +1140,7 @@ export default {
                 that.$Message.success(result.message);
                 that.GetDetail();
               } else {
-                that.$Message.error(result.message);
+                that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {
@@ -1175,7 +1175,7 @@ export default {
                 that.GetDetail();
               } else {
                 that.GetDetail();
-                that.$Message.error(result.message);
+                that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {
@@ -1210,7 +1210,7 @@ export default {
                 that.GetDetail();
               } else {
                 that.GetDetail();
-                that.$Message.error(result.message);
+                that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {
@@ -1245,7 +1245,7 @@ export default {
                 that.GetDetail();
               } else {
                 that.GetDetail();
-                that.$Message.error(result.message);
+                that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {
@@ -1273,7 +1273,7 @@ export default {
             that.GetDetail();
           } else {
             that.GetDetail();
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -1299,7 +1299,7 @@ export default {
               that.$Message.success(result.message);
             }
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {

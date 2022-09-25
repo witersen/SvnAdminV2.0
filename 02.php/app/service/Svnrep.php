@@ -9,6 +9,8 @@
 
 namespace app\service;
 
+use Config;
+
 class Svnrep extends Base
 {
     /**
@@ -317,6 +319,24 @@ class Svnrep extends Base
 
         //分页
         $begin = $pageSize * ($currentPage - 1);
+
+        /**
+         * 特殊字符转义处理 todo
+         */
+        // $configDatabase = Config::get('database');
+        // if ($configDatabase['database_type'] == 'mysql') {
+        //     $searchKeyword = str_replace([
+        //         '_',
+        //     ], [
+        //         '[_]',
+        //     ], $searchKeyword);
+        // } else if ($configDatabase['database_type'] == 'sqlite') {
+        //     $searchKeyword = str_replace([
+        //         '/', "'", '[', ']', '%', '&', '_', '(', ')'
+        //     ], [
+        //         '//', "''", '/[', '/]', '/%', '/&', '/_', '/(', '/)'
+        //     ], $searchKeyword);
+        // }
 
         $list = $this->database->select('svn_reps', [
             'rep_id',
@@ -1474,6 +1494,8 @@ class Svnrep extends Base
      */
     public function GetRecommendHooks()
     {
+        clearstatcache();
+
         $list = [];
 
         $recommend_hook_path = $this->config_svn['recommend_hook_path'];
@@ -1487,6 +1509,8 @@ class Svnrep extends Base
         $dirs = scandir($recommend_hook_path);
 
         foreach ($dirs as $dir) {
+            clearstatcache();
+
             if ($dir == '.' || $dir == '..') {
                 continue;
             }

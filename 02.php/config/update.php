@@ -13,12 +13,9 @@
 return [
     'update_server' => [
         [
-            'nodeName' => 'gitee.com',
-            'url' => 'https://gitee.com/witersen/update/raw/master/SvnAdmin/update2.json'
-        ],
-        [
-            'nodeName' => 'github.com',
-            'url' => 'https://gitee.com/witersen/update/raw/master/SvnAdmin/update2.json'
+            //主更新节点 提供常规的 检测更新和及时的beat版本、紧急修复版本等
+            'nodeName' => 'witersen.com',
+            'url' => 'http://update.witersen.com/svnadmin/api.php?c=Update&a=Detect&version=%s'
         ]
     ]
 ];

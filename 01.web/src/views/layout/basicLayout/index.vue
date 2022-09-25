@@ -152,7 +152,7 @@ export default {
             that.$Message.success(result.message);
             that.$router.push({ name: "login" });
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {

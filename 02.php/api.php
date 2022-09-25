@@ -55,30 +55,19 @@ $type = empty($_GET['t']) ? '' : $_GET['t'];
 $payload = file_get_contents("php://input");
 $payload = !empty($payload) ? json_decode($payload, true) : [];
 
-/**
- * 获取文件信息
- * 适用请求方式 fordata
- * Content-Type: multipart/form-data;
- * 
- * 示例数据
- * 其中 file 为前端请求的自定义字段 使用时候要自行判断是否存在该键值
- * {
- * 	"file": {
- * 		"name": "tmp_bda9c778201ffb47ebfea61617a16d1c564ca6d0b8ad52b8.jpg",
- * 		"type": "image\/jpeg",
- * 		"tmp_name": "\/tmp\/phpwxfAaU",
- * 		"error": 0,
- * 		"size": 166881
- * 	}
- * }
- */
-
 //检测PHP版本
-if (PHP_VERSION < '5.5') {
-    json1(200, 0, '支持的最低PHP版本为 5.5 而不是 ' . PHP_VERSION);
-} else if (PHP_VERSION >= '8.0') {
-    json1(200, 0, '支持的最高PHP版本低于 8.0 而不是 ' . PHP_VERSION);
+$version = Config::get('version');
+if (isset($version['php']['lowest']) && !empty($version['php']['lowest'])) {
+    if (PHP_VERSION < $version['php']['lowest']) {
+        json1(200, 0, sprintf('支持的最低PHP版本为[%s]当前的PHP版本为[%s]', $version['php']['lowest'], PHP_VERSION));
+    }
 }
+if (isset($version['php']['highest']) && !empty($version['php']['highest'])) {
+    if (PHP_VERSION >= $version['php']['highest']) {
+        json1(200, 0, sprintf('支持的最高PHP版本为[%s]当前的PHP版本为[%s]', $version['php']['highest'], PHP_VERSION));
+    }
+}
+
 
 //检测open_basedir
 if (ini_get('open_basedir') != '') {

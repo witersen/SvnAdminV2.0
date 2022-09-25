@@ -1996,11 +1996,11 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
           } else if (result.status == 2) {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
             that.modalValidateAuthz = true;
             that.tempmodalValidateAuthz = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2034,7 +2034,7 @@ export default {
             sessionStorage.setItem("sync", "yes");
             that.GetRepList();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2087,7 +2087,7 @@ export default {
             that.totalRep = result.data.total;
             sessionStorage.setItem("sync", "no");
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2147,7 +2147,7 @@ export default {
             that.tableDataUserRep = result.data.data;
             that.totalUserRep = result.data.total;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2199,7 +2199,7 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2285,7 +2285,7 @@ export default {
               that.checkInfo = result.data;
             } else {
               that.loadingRepCon = false;
-              that.$Message.error(result.message);
+              that.$Message.error({content: result.message,duration: 2,});
             }
             resolve(response);
           })
@@ -2322,7 +2322,7 @@ export default {
               that.currentRepName +
               that.currentRepTreePath;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2357,7 +2357,7 @@ export default {
               that.currentRepName +
               that.currentRepTreePath;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2434,7 +2434,7 @@ export default {
           if (result.status == 1) {
             that.tableDataBackup = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2458,7 +2458,7 @@ export default {
             that.$Message.success(result.message);
             that.GetBackupList();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2493,7 +2493,7 @@ export default {
                 that.$Message.success(result.message);
                 that.GetBackupList();
               } else {
-                that.$Message.error(result.message);
+                that.$Message.error({content: result.message,duration: 2,});
               }
             })
             .catch(function (error) {
@@ -2528,7 +2528,7 @@ export default {
         if (result.status == 1) {
           that.treeRep = result.data;
         } else {
-          that.$Message.error(result.message);
+          that.$Message.error({content: result.message,duration: 2,});
         }
       });
       //获取仓库根路径的所有对象的权限列表
@@ -2638,7 +2638,7 @@ export default {
             callback([]);
           }
         } else {
-          that.$Message.error(result.message);
+          that.$Message.error({content: result.message,duration: 2,});
           callback(data);
         }
       });
@@ -2668,7 +2668,7 @@ export default {
           if (result.status == 1) {
             that.tableDataRepPathAllPri = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2698,7 +2698,7 @@ export default {
             that.$Message.success(result.message);
             that.GetRepPathAllPri();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2729,7 +2729,7 @@ export default {
             that.$Message.success(result.message);
             that.GetRepPathAllPri();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2758,7 +2758,7 @@ export default {
             that.$Message.success(result.message);
             that.GetRepPathAllPri();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2787,7 +2787,7 @@ export default {
           if (result.status == 1) {
             that.tableDataAllUsers = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2817,7 +2817,7 @@ export default {
           if (result.status == 1) {
             that.tableDataAllGroups = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2847,7 +2847,7 @@ export default {
           if (result.status == 1) {
             that.tableDataAllAliases = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2889,7 +2889,7 @@ export default {
           if (result.status == 1) {
             that.formRepHooks = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2911,7 +2911,7 @@ export default {
           if (result.status == 1) {
             that.recommendHooks = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -2938,7 +2938,7 @@ export default {
             that.GetRepHooks();
           } else {
             that.loadingGetRepHooks = false;
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -3005,7 +3005,7 @@ export default {
             that.$Message.success(result.message);
             that.GetRepHooks();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -3050,7 +3050,7 @@ export default {
           if (result.status == 1) {
             that.tableDataRepDetail = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -3103,7 +3103,7 @@ export default {
             that.GetRepDetail();
             that.modalSetUUID = false;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -3135,7 +3135,7 @@ export default {
           if (result.status == 1) {
             that.uploadLimit = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -3155,7 +3155,7 @@ export default {
       if (result.status == 1) {
         this.$Message.success(result.message);
       } else {
-        this.$Message.error(result.message);
+        this.$Message.error({content: result.message,duration: 2,});
       }
     },
     /**
@@ -3185,7 +3185,7 @@ export default {
             that.$Message.success(result.message);
             that.formUploadBackup.errorInfo = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
             that.formUploadBackup.errorInfo = result.data;
           }
         })
@@ -3227,7 +3227,7 @@ export default {
             sessionStorage.setItem("sync", "yes");
             that.GetRepList();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -3351,7 +3351,7 @@ export default {
                 sessionStorage.setItem("sync", "yes");
                 that.GetRepList();
               } else {
-                that.$Message.error(result.message);
+                that.$Message.error({content: result.message,duration: 2,});
               }
             })
             .catch(function (error) {

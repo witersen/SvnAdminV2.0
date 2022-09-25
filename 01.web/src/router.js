@@ -94,6 +94,21 @@ const routers = [
                 component: (resolve) => require(['./views/systemLog/index.vue'], resolve),
             },
             {
+                name: 'crond',
+                path: '/crond',
+                meta: {
+                    title: '任务计划',
+                    icon: 'md-bug',
+                    requireAuth: true,
+                    user_role_id: ['1'],
+                    group: {
+                        name: "",
+                        num: 2
+                    }
+                },
+                component: (resolve) => require(['./views/systemLog/index.vue'], resolve),
+            },
+            {
                 name: 'personal',
                 path: '/personal',
                 meta: {
@@ -107,6 +122,21 @@ const routers = [
                     }
                 },
                 component: (resolve) => require(['./views/personal/index.vue'], resolve),
+            },
+            {
+                name: 'subadmin',
+                path: '/subadmin',
+                meta: {
+                    title: '子管理员',
+                    icon: 'md-settings',
+                    requireAuth: true,
+                    user_role_id: ['1'],
+                    group: {
+                        name: "",
+                        num: 3
+                    }
+                },
+                component: (resolve) => require(['./views/advance/index.vue'], resolve),
             },
             {
                 name: 'advance',

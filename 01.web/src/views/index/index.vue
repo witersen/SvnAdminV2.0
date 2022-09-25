@@ -275,7 +275,7 @@ export default {
             // that.$Message.success(result.message);
             that.diskList = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -297,7 +297,7 @@ export default {
             // that.$Message.success(result.message);
             that.statusInfo = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -319,7 +319,7 @@ export default {
             // that.$Message.success(result.message);
             that.systemBrif = result.data;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {

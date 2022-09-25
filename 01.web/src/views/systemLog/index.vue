@@ -172,7 +172,7 @@ export default {
             that.tableDataLog = result.data.data;
             that.totalLog = result.data.total;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -201,7 +201,7 @@ export default {
                 that.$Message.success(result.message);
                 that.GetLogList();
               } else {
-                that.$Message.error(result.message);
+                that.$Message.error({content: result.message,duration: 2,});
               }
             })
             .catch(function (error) {

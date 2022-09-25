@@ -34,7 +34,7 @@ function FunCurlRequest($url)
     curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "GET");
 
     //设置请求超时时间
-    curl_setopt($curl, CURLOPT_TIMEOUT, 5);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 10);
 
     //设置false将不检查证书
     curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);

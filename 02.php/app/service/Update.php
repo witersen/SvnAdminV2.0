@@ -21,32 +21,35 @@ class Update extends Base
      */
     public function CheckUpdate()
     {
+        $code = 200;
+        $status = 0;
+        $message = '更新服务器故障';
+
         foreach ($this->config_update['update_server'] as $key1 => $value1) {
 
-            $json = FunCurlRequest($value1['url']);
+            $result = FunCurlRequest(sprintf($value1['url'], $this->config_version['version']));
 
-            if ($json == null) {
+            if (empty($result)) {
                 continue;
             }
 
             //json => array
-            $array = json_decode($json, true);
+            $result = json_decode($result, true);
 
-            $last = $array['version'];
-
-            if ($this->config_version['version'] == $last) {
-                return message(200, 1, '当前为最新版');
+            if (!isset($result['code'])) {
+                continue;
             }
 
-            if ($this->config_version['version'] < $last) {
-                return message(200, 1, '有新版本', $array);
+            if ($result['code'] != 200) {
+                $code = $result['code'];
+                $status = $result['status'];
+                $message = $result['message'];
+                continue;
             }
 
-            if ($this->config_version['version'] > $last) {
-                return message(200, 1, '当前版本高于已发布版本');
-            }
+            return message($result['code'], $result['status'], $result['message'], $result['data']);
         }
 
-        return message(200, 0, '检测超时');
+        return message($code, $status, $message);
     }
 }

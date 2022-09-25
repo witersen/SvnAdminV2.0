@@ -346,7 +346,7 @@ export default {
             that.tableDataUser = result.data.data;
             that.totalUser = result.data.total;
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -382,7 +382,7 @@ export default {
             that.$Message.success(result.message);
             that.GetUserList();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -406,7 +406,7 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -448,7 +448,7 @@ export default {
             that.modalCreateUser = false;
             that.GetUserList();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -477,7 +477,7 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -520,7 +520,7 @@ export default {
             that.$Message.success(result.message);
             that.GetUserList();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -640,7 +640,7 @@ export default {
                 that.$Message.success(result.message);
                 that.GetUserList();
               } else {
-                that.$Message.error(result.message);
+                that.$Message.error({content: result.message,duration: 2,});
               }
             })
             .catch(function (error) {

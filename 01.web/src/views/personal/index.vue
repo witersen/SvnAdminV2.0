@@ -192,7 +192,7 @@ export default {
             that.LogOut();
           } else {
             that.loadingEditAdminUserName = false;
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -225,7 +225,7 @@ export default {
             that.LogOut();
           } else {
             that.loadingEditAdminUserPass = false;
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -255,7 +255,7 @@ export default {
             that.$Message.success(result.message);
             that.LogOut();
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {
@@ -283,7 +283,7 @@ export default {
             that.$Message.success(result.message);
             that.$router.push({ name: "login" });
           } else {
-            that.$Message.error(result.message);
+            that.$Message.error({content: result.message,duration: 2,});
           }
         })
         .catch(function (error) {

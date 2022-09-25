@@ -19,8 +19,6 @@ $backup_base_path = $home_path . 'backup/';
 
 $log_base_path = $home_path . 'logs/';
 
-$temp_base_path = $home_path . 'temp/';
-
 $templete_base_path = $home_path . 'templete/';
 
 $templete_init_struct = $templete_base_path . 'initStruct/';
@@ -88,11 +86,6 @@ return [
      * svnserve 运行日志文件
      */
     'svnserve_log_file' => $log_base_path . 'svnserve.log',
-
-    /**
-     * 临时数据目录
-     */
-    'temp_base_path' => $temp_base_path,
 
     /**
      * 模板文件目录

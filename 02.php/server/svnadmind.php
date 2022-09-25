@@ -53,13 +53,13 @@ class Daemon
         }
 
         //创建套接字
-        $socket = @socket_create(AF_UNIX, SOCK_STREAM, 0) or die('创建套接字失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
+        $socket = @socket_create(AF_UNIX, SOCK_STREAM, 0) or die(sprintf('创建套接字失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
 
         //绑定地址和端口
-        @socket_bind($socket, $this->config_daemon['ipc_file'], 0) or die('绑定失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
+        @socket_bind($socket, $this->config_daemon['ipc_file'], 0) or die(sprintf('绑定失败[%s][%s]%s', socket_strerror(socket_last_error()), $this->config_daemon['ipc_file'], PHP_EOL));
 
         //监听 设置并发队列的最大长度
-        @socket_listen($socket, $this->config_daemon['socket_listen_backlog']) or die('监听失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
+        @socket_listen($socket, $this->config_daemon['socket_listen_backlog']) or die(sprintf('监听失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
 
         //使其它用户可用
         shell_exec('chmod 777 ' . $this->config_daemon['ipc_file']);
@@ -68,14 +68,14 @@ class Daemon
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
 
-            $client = @socket_accept($socket) or die('接收连接失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
+            $client = @socket_accept($socket) or die(sprintf('接收连接失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
 
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
 
             $pid = pcntl_fork();
             if ($pid == -1) {
-                exit('启动失败：pcntl_fork 错误' . PHP_EOL);
+                die(sprintf('pcntl_fork失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
             } else if ($pid == 0) {
                 $this->HandleRequest($client);
             } else {
@@ -91,17 +91,18 @@ class Daemon
         $length = $this->config_daemon['socket_data_length'];
 
         //接收客户端发送的数据
-        $receive = socket_read($client, $length);
-
-        $type = 'detect';
-        $content = '';
-
-        if (!empty($receive)) {
-            $receive = json_decode($receive, true);
-
-            $type = $receive['type'];
-            $content = $receive['content'];
+        if (empty($receive = socket_read($client, $length))) {
+            exit();
         }
+
+        $receive = json_decode($receive, true);
+
+        if (!isset($receive['type']) || !isset($receive['content'])) {
+            exit();
+        }
+
+        $type = $receive['type'];
+        $content = $receive['content'];
 
         //console模式
         if ($this->workMode == 'console') {
@@ -110,34 +111,24 @@ class Daemon
         }
 
         if ($type == 'passthru') {
-            if (trim($content) != '') {
-                //定义错误输出文件路径
-                $stderrFile = $this->config_svn['temp_base_path'] . uniqid();
+            //定义错误输出文件路径
+            $stderrFile = tempnam('/tmp', 'svnadmin_');
 
-                //将标准错误重定向到文件
-                //使用状态码来标识错误信息
-                ob_start();
-                passthru($content . " 2>$stderrFile", $resultCode);
-                $buffer = ob_get_contents();
-                ob_end_clean();
+            //将标准错误重定向到文件
+            //使用状态码来标识错误信息
+            ob_start();
+            passthru($content . " 2>$stderrFile", $resultCode);
+            $buffer = ob_get_contents();
+            ob_end_clean();
 
-                //将错误信息和正确信息分类收集
-                $result = [
-                    'resultCode' => $resultCode,
-                    'result' => trim($buffer),
-                    'error' => file_get_contents($stderrFile)
-                ];
+            //将错误信息和正确信息分类收集
+            $result = [
+                'resultCode' => $resultCode,
+                'result' => trim($buffer),
+                'error' => file_get_contents($stderrFile)
+            ];
 
-                //销毁文件
-                unlink($stderrFile);
-            } else {
-                //探测程序会发送空信息
-                $result = [
-                    'resultCode' => 0,
-                    'result' => '',
-                    'error' => ''
-                ];
-            }
+            @unlink($stderrFile);
         } else {
             $result = [
                 'resultCode' => 0,
@@ -154,8 +145,8 @@ class Daemon
             echo 'error: ' . $result['error'] . PHP_EOL;
         }
 
-        //将结果序列化并返回
-        @socket_write($client, json_encode($result), $length) or die('socket_write失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
+        //返回json格式
+        @socket_write($client, json_encode($result), $length) or die(sprintf('socket_write失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
 
         //关闭会话
         socket_close($client);
@@ -170,7 +161,7 @@ class Daemon
     private function CheckSysType()
     {
         if (PHP_OS != 'Linux') {
-            exit('启动失败：当前操作系统不为Linux' . PHP_EOL);
+            die(sprintf('当前操作系统不为Linux%s', PHP_EOL));
         }
         if (file_exists('/etc/redhat-release')) {
             $readhat_release = file_get_contents('/etc/redhat-release');
@@ -206,10 +197,16 @@ class Daemon
      */
     private function CheckPhpVersion()
     {
-        if (PHP_VERSION < '5.5') {
-            exit('支持的最低PHP版本为 5.5 而不是 ' . PHP_VERSION . PHP_EOL);
-        } else if (PHP_VERSION >= '8.0') {
-            exit('支持的最高PHP版本低于 8.0 而不是 ' . PHP_VERSION . PHP_EOL);
+        $version = Config::get('version');
+        if (isset($version['php']['lowest']) && !empty($version['php']['lowest'])) {
+            if (PHP_VERSION < $version['php']['lowest']) {
+                die(sprintf('支持的最低PHP版本为[%s]当前的PHP版本为[%s]%s', $version['php']['lowest'], PHP_VERSION, PHP_EOL));
+            }
+        }
+        if (isset($version['php']['highest']) && !empty($version['php']['highest'])) {
+            if (PHP_VERSION >= $version['php']['highest']) {
+                die(sprintf('支持的最高PHP版本为[%s]当前的PHP版本为[%s]%s', $version['php']['highest'], PHP_VERSION, PHP_EOL));
+            }
         }
     }
 

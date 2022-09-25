@@ -20,15 +20,33 @@ if (!preg_match('/cli/i', php_sapi_name())) {
 
 define('BASE_PATH', __DIR__);
 
-require_once BASE_PATH . '/../app/util/Config.php';
+auto_require(BASE_PATH . '/../app/util/Config.php');
 
-require_once BASE_PATH . '/../config/database.php';
-require_once BASE_PATH . '/../config/reg.php';
-require_once BASE_PATH . '/../config/svn.php';
-require_once BASE_PATH . '/../config/update.php';
-require_once BASE_PATH . '/../config/version.php';
+auto_require(BASE_PATH . '/../config/');
 
-require_once BASE_PATH . '/../app/function/curl.php';
+auto_require(BASE_PATH . '/../app/function/');
+
+function auto_require($path, $recursively = false)
+{
+    if (is_file($path)) {
+        if (substr($path, -4) == '.php') {
+            require_once $path;
+        }
+    } else {
+        $files = scandir($path);
+        foreach ($files as $file) {
+            if ($file != '.' && $file != '..') {
+                if (is_dir($path . '/' . $file)) {
+                    $recursively ? auto_require($path . '/' . $file, true) : '';
+                } else {
+                    if (substr($file, -4) == '.php') {
+                        require_once $path . '/' . $file;
+                    }
+                }
+            }
+        }
+    }
+}
 
 class Install
 {
@@ -71,128 +89,142 @@ class Install
     }
 
     /**
-     * 由于array_column到php5.5+才支持
-     * 为了兼容php5.4
-     * 这里选择手动实现 可能性能不高
-     */
-    function array_column($array, $columnKey)
-    {
-        $resultArray = [];
-        foreach ($array as $key => $value) {
-            if (!array_key_exists($columnKey, $value)) {
-                return false;
-            }
-            array_push($resultArray, $value[$columnKey]);
-        }
-        return $resultArray;
-    }
-
-    /**
      * 检测SVNAdmin的新版本并选择更新
      */
     function DetectUpdate()
     {
-        //拿到升级服务器配置信息
-        //对升级服务器地址进行轮询
-        //获取当前版本可升级的版本信息
-
         foreach ($this->config_update['update_server'] as $key1 => $value1) {
 
-            $json = FunCurlRequest($value1['url']);
+            $result = FunCurlRequest(sprintf($value1['url'], $this->config_version['version']));
 
-            if ($json == null) {
-                echo '节点 ' . $value1['nodeName'] . ' 访问超时，切换下一节点' . PHP_EOL;
+            if (empty($result)) {
+                echo sprintf('节点[%s]访问超时-切换下一节点%s', $value1['nodeName'], PHP_EOL);
                 echo '===============================================' . PHP_EOL;
                 continue;
             }
 
             //json => array
-            $array = json_decode($json, true);
+            $result = json_decode($result, true);
 
-            $last = $array['version'];
+            if (!isset($result['code'])) {
+                echo sprintf('节点[%s]返回信息错误-切换下一节点%s', $value1['nodeName'], PHP_EOL);
+                echo '===============================================' . PHP_EOL;
+                continue;
+            }
 
-            if ($this->config_version['version'] == $last) {
-                echo '当前为最新版：' . $last . PHP_EOL;
+            if ($result['code'] != 200) {
+                echo sprintf('节点[%s]返回状态码[%s]状态[%s]错误信息[%s]-切换下一节点%s', $value1['nodeName'], $result['status'], $result['message'], $result['code'], PHP_EOL);
+                echo '===============================================' . PHP_EOL;
+                continue;
+            }
+
+            if (empty($result['data'])) {
+                echo sprintf('当前为最新版[%s]%s', $this->config_version['version'], PHP_EOL);
                 echo '===============================================' . PHP_EOL;
                 exit();
             }
-            if ($this->config_version['version'] < $last) {
-                echo '有新版本：' . $last . PHP_EOL;
 
-                echo '修复内容如下：' . PHP_EOL;
-                foreach ($array['fixd']['con'] as $cons) {
-                    echo '    [' . $cons['title'] . ']' . ' ' . $cons['content'] . PHP_EOL;
-                }
+            echo sprintf('有新版本[%s]%s', $result['data']['version'], PHP_EOL);
 
-                echo '新增内容如下：' . PHP_EOL;
-                foreach ($array['add']['con'] as $cons) {
-                    echo '    [' . $cons['title'] . ']' . ' ' . $cons['content'] . PHP_EOL;
-                }
+            echo sprintf('修复内容如下:%s', PHP_EOL);
+            foreach ($result['data']['fixd']['con'] as $cons) {
+                echo sprintf('    [%s] %s%s', $cons['title'], $cons['content'], PHP_EOL);
+                // echo '    [' . $cons['title'] . ']' . ' ' . $cons['content'] . PHP_EOL;
+            }
 
-                echo '移除内容如下：' . PHP_EOL;
-                foreach ($array['remove']['con'] as $cons) {
-                    echo '    [' . $cons['title'] . ']' . ' ' . $cons['content'] . PHP_EOL;
-                }
+            echo sprintf('新增内容如下:%s', PHP_EOL);
+            foreach ($result['data']['add']['con'] as $cons) {
+                echo sprintf('    [%s] %s%s', $cons['title'], $cons['content'], PHP_EOL);
+                // echo '    [' . $cons['title'] . ']' . ' ' . $cons['content'] . PHP_EOL;
+            }
 
-                echo "确定要升级到 $last 版本吗[y/n]：";
+            echo sprintf('移除内容如下:%s', PHP_EOL);
+            foreach ($result['data']['remove']['con'] as $cons) {
+                echo sprintf('    [%s] %s%s', $cons['title'], $cons['content'], PHP_EOL);
+                // echo '    [' . $cons['title'] . ']' . ' ' . $cons['content'] . PHP_EOL;
+            }
 
-                $answer = strtolower(trim(fgets(STDIN)));
+            echo sprintf('确定要升级到[%s]版本吗[y/n]: ', $result['data']['version']);
 
-                if (!in_array($answer, ['y', 'n'])) {
-                    echo '不正确的选项！'  . PHP_EOL;
-                    echo '===============================================' . PHP_EOL;
-                    exit();
-                }
+            $answer = strtolower(trim(fgets(STDIN)));
 
-                if ($answer == 'n') {
-                    echo '已取消！' . PHP_EOL;
-                    echo '===============================================' . PHP_EOL;
-                    exit();
-                }
-
-                //下载并执行升级脚本
-                $packages = $array['update']['download'][$key1]['packages'];
-                $forList = $this->array_column($packages, 'for');
-                $current = [
-                    'source' => $this->config_version['version'],
-                    'dest' => $last
-                ];
-                if (!in_array($current, $forList)) {
-                    echo '没有合适的升级包，请尝试直接手动安装最新版！' . PHP_EOL;
-                    echo '===============================================' . PHP_EOL;
-                    exit();
-                }
-                $index = array_search($current, $forList);
-                $update_download_url = $packages[$index]['url'];
-                $update_zip = FunCurlRequest($update_download_url);
-                if ($update_zip == null) {
-                    echo '从节点 ' . $value1['nodeName'] . ' 下载升级包超时，切换下一节点' . PHP_EOL;
-                    echo '===============================================' . PHP_EOL;
-                    continue;
-                }
-                file_put_contents(BASE_PATH . '/update.zip', $update_zip);
-                passthru('unzip ' . BASE_PATH . '/update.zip');
-                if (!is_dir(BASE_PATH . '/update')) {
-                    echo '解压升级包出错，请尝试手动解压并执行升级程序！' . PHP_EOL;
-                    echo '===============================================' . PHP_EOL;
-                    exit();
-                }
-
-                echo '正在执行升级程序' . PHP_EOL;
-
-                passthru('php ' . BASE_PATH . '/update/index.php');
-
-                passthru(sprintf("cd '%s' && rm -rf ./update && rm -f update.zip", BASE_PATH));
-
-                echo '升级成功！请重启守护进程文件使部分配置文件生效' . PHP_EOL;
+            if (!in_array($answer, ['y', 'n'])) {
+                echo sprintf('不正确的选项%s', PHP_EOL);
                 echo '===============================================' . PHP_EOL;
                 exit();
             }
-            if ($this->config_version['version'] > $last) {
-                echo '当前版本高于已发布版本' . PHP_EOL;
+
+            if ($answer == 'n') {
+                echo sprintf('已取消%s', PHP_EOL);
                 echo '===============================================' . PHP_EOL;
                 exit();
             }
+
+            //下载并执行升级脚本
+            echo sprintf('开始下载升级包%s', PHP_EOL);
+            echo '===============================================' . PHP_EOL;
+            $packages = isset($result['data']['update']['download'][$key1]['packages']) ? $result['data']['update']['download'][$key1]['packages'] : [];
+            $forList = array_column($packages, 'for');
+            $current = [
+                'source' => $this->config_version['version'],
+                'dest' => $result['data']['version']
+            ];
+            if (!in_array($current, $forList)) {
+                echo sprintf('没有合适的升级包-请尝试直接手动安装最新版%s', PHP_EOL);
+                echo '===============================================' . PHP_EOL;
+                exit();
+            }
+            $index = array_search($current, $forList);
+            $update_download_url = $packages[$index]['url'];
+            $update_zip = FunCurlRequest($update_download_url);
+            if ($update_zip == null) {
+                echo sprintf('从节点[%s]下载升级包超时-切换下一节点%s', $value1['nodeName'], PHP_EOL);
+                echo '===============================================' . PHP_EOL;
+                continue;
+            }
+            file_put_contents(BASE_PATH . '/update.zip', $update_zip);
+            echo sprintf('升级包下载完成%s', PHP_EOL);
+            echo '===============================================' . PHP_EOL;
+
+            echo sprintf('开始解压升级包[覆盖解压]%s', PHP_EOL);
+            echo '===============================================' . PHP_EOL;
+            passthru('unzip -o ' . BASE_PATH . '/update.zip');
+            if (!is_dir(BASE_PATH . '/update')) {
+                echo sprintf('解压升级包出错-请尝试手动解压并执行升级程序[php update/index.php]%s', PHP_EOL);
+                echo '===============================================' . PHP_EOL;
+                exit();
+            }
+            echo sprintf('升级包解压完成%s', PHP_EOL);
+            echo '===============================================' . PHP_EOL;
+
+            echo sprintf('确定要执行升级程序吗[y/n]: ');
+
+            $answer = strtolower(trim(fgets(STDIN)));
+
+            if (!in_array($answer, ['y', 'n'])) {
+                echo sprintf('不正确的选项%s', PHP_EOL);
+                echo '===============================================' . PHP_EOL;
+                exit();
+            }
+
+            if ($answer == 'n') {
+                echo sprintf('已取消%s', PHP_EOL);
+                echo '===============================================' . PHP_EOL;
+                exit();
+            }
+
+            echo sprintf('正在执行升级程序%s', PHP_EOL);
+            echo '===============================================' . PHP_EOL;
+
+            passthru('php ' . BASE_PATH . '/update/index.php');
+
+            passthru(sprintf("cd '%s' && rm -rf ./update && rm -f update.zip", BASE_PATH));
+
+            echo '===============================================' . PHP_EOL;
+
+            echo sprintf('升级成功-请重启守护进程使部分配置文件生效%s', PHP_EOL);
+            echo '===============================================' . PHP_EOL;
+            exit();
         }
     }
 
@@ -410,9 +442,6 @@ CON;
 
         //创建日志目录
         is_dir($this->config_svn['log_base_path']) ? '' : mkdir($this->config_svn['log_base_path'], 0700, true);
-
-        //创建临时数据目录
-        is_dir($this->config_svn['temp_base_path']) ? '' : mkdir($this->config_svn['temp_base_path'], 0700, true);
 
         //创建模板文件目录
         is_dir($this->config_svn['templete_base_path']) ? '' : mkdir($this->config_svn['templete_base_path'], 0700, true);
@@ -789,7 +818,7 @@ CON;
 
         echo '===============================================' . PHP_EOL;
 
-        if (!in_array($answer, $this->array_column($this->scripts, 'index'))) {
+        if (!in_array($answer, array_column($this->scripts, 'index'))) {
             exit('错误的命令编号：' . PHP_EOL);
         }
 
