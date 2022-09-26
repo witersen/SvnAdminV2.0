@@ -26,32 +26,32 @@
               <FormItem label="运行状态">
                 <Row>
                   <Col span="12">
-                    <span style="color: #ff9900" v-if="formSvn.installed == 0"
-                      >未安装</span
+                    <Tooltip
+                      :transfer="true"
+                      max-width="300"
+                      content="运行状态通过pid文件和pid数值进行判断-如有误判请检查svnserve程序的启动方式"
                     >
-                    <span style="color: #f90" v-if="formSvn.installed == 1"
-                      >未启动</span
-                    >
-                    <span style="color: #19be6b" v-if="formSvn.installed == 2"
-                      >运行中</span
-                    >
-                    <span style="color: #ed4014" v-if="formSvn.installed == -1"
-                      >未知</span
-                    >
+                      <span style="color: #f90" v-if="!formSvn.status"
+                        >未启动</span
+                      >
+                      <span style="color: #19be6b" v-if="formSvn.status"
+                        >运行中</span
+                      >
+                    </Tooltip>
                   </Col>
                   <Col span="1"> </Col>
                   <Col span="6">
                     <Button
                       :loading="loadingSvnserveStart"
                       type="success"
-                      v-if="formSvn.installed == 1"
+                      v-if="!formSvn.status"
                       @click="Start"
                       >启动</Button
                     >
                     <Button
                       :loading="loadingSvnserveStop"
                       type="warning"
-                      v-if="formSvn.installed == 2"
+                      v-if="formSvn.status"
                       @click="Stop"
                       :disabled="isDocker"
                       >停止</Button
@@ -639,8 +639,8 @@ export default {
        * 版本信息
        */
       version: {
-        current_verson: "2.3.3.1",
-        php_version: "5.5 <= PHP < 8.0",
+        current_verson: "2.3.4",
+        php_version: "5.5 <= PHP",
         database: "MYSQL、SQLite",
         github: "https://github.com/witersen/SvnAdminV2.0",
         gitee: "https://gitee.com/witersen/SvnAdminV2.0",
@@ -675,7 +675,6 @@ export default {
        */
       formSvn: {
         version: "",
-        installed: null,
         bindPort: "",
         bindHost: "",
         manageHost: "",

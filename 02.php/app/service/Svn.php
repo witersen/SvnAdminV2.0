@@ -9,6 +9,8 @@
 
 namespace app\service;
 
+use Config;
+
 class Svn extends Base
 {
     function __construct()
@@ -21,13 +23,33 @@ class Svn extends Base
      */
     public function GetStatus()
     {
-        $result = funShellExec("ps auxf | grep -v 'grep' | grep svnserve");
-        $result = $result['result'];
-
-        if ($result == '') {
-            return message(200, 0, 'svnserve服务未在运行，出于安全原因，SVN用户将无法使用系统的仓库在线内容浏览功能，其它功能不受影响');
-        } else {
+        if ($this->GetSvnserveStatus()) {
             return message();
+        } else {
+            return message(200, 0, 'svnserve服务未在运行，出于安全原因，SVN用户将无法使用系统的仓库在线内容浏览功能，其它功能不受影响');
+        }
+    }
+
+    /**
+     * 获取 svnserve 的运行状态
+     *
+     * @return bool
+     */
+    private function GetSvnserveStatus()
+    {
+        clearstatcache();
+
+        funShellExec(sprintf("chmod 777 '%s'", $this->config_svn['svnserve_pid_file']));
+
+        if (!file_exists($this->config_svn['svnserve_pid_file'])) {
+            return false;
+        } else {
+            $pid = trim(file_get_contents($this->config_svn['svnserve_pid_file']));
+            if (is_dir("/proc/$pid")) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -51,45 +73,6 @@ class Svn extends Base
     }
 
     /**
-     * 获取Subversion的安装情况
-     * 
-     * 0 未安装
-     * 1 已安装未运行
-     * 2 已安装运行中
-     * -1 未知
-     */
-    public function GetSubversion()
-    {
-        //检测是否有正在运行的进程
-        $isRun = funShellExec('ps auxf|grep -v "grep"|grep svnserve');
-        $isRun = $isRun['result'] == '' ? false : true;
-
-        //检测安装程序是否存在于环境变量
-        $isInstall =  funShellExec('whereis svnserve');
-        $isInstall = $isInstall['result'] == 'svnserve:' ? false : true;
-
-        //运行中+未加入环境变量
-        if ($isRun && !$isInstall) {
-            return 2;
-        }
-
-        //运行中+已加入环境变量
-        if ($isRun && $isInstall) {
-            return 2;
-        }
-
-        //未运行+未加入环境变量
-        if (!$isRun && !$isInstall) {
-            return 0;
-        }
-
-        //未运行+已加入环境变量
-        if (!$isRun && $isInstall) {
-            return 1;
-        }
-    }
-
-    /**
      * 获取Subversion的详细信息
      */
     public function GetDetail()
@@ -97,25 +80,21 @@ class Svn extends Base
         //获取绑定主机、端口等信息
         $bindInfo = $this->GetSvnserveListen();
 
-        //获取安装和运行状态
-        $installed = $this->GetSubversion();
-
         //获取Subversion版本
         $version = '-';
-        if ($installed != 0) {
-            $versionInfo = funShellExec(sprintf("'%s' --version", $this->config_bin['svnserve']));
-            $versionInfo = $versionInfo['result'];
-            preg_match_all($this->config_reg['REG_SUBVERSION_VERSION'], $versionInfo, $versionInfoPreg);
+        $result = funShellExec(sprintf("'%s' --version", $this->config_bin['svnserve']));
+        if ($result['resultCode'] == 0) {
+            preg_match_all($this->config_reg['REG_SUBVERSION_VERSION'], $result['result'], $versionInfoPreg);
             if (array_key_exists(0, $versionInfoPreg[0])) {
                 $version = trim($versionInfoPreg[1][0]);
             } else {
-                $version = '-';
+                $version = '--';
             }
         }
 
         return message(200, 1, '成功', [
             'version' => $version,
-            'installed' => $installed,
+            'status' => $this->GetSvnserveStatus(),
             'bindPort' => (int)$bindInfo['bindPort'],
             'bindHost' => $bindInfo['bindHost'],
             'manageHost' => $bindInfo['manageHost'],
@@ -216,8 +195,26 @@ class Svn extends Base
      */
     public function Start()
     {
-        funShellExec("systemctl start svnserve");
-        return message();
+        $result = $this->GetSvnserveListen();
+
+        $cmdStart = sprintf(
+            "'%s' --daemon --pid-file '%s' -r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s",
+            $this->config_bin['svnserve'],
+            $this->config_svn['svnserve_pid_file'],
+            $this->config_svn['rep_base_path'],
+            $this->config_svn['svn_conf_file'],
+            $this->config_svn['svnserve_log_file'],
+            $result['bindPort'],
+            $result['bindHost']
+        );
+
+        $result = funShellExec($cmdStart);
+
+        if ($result['resultCode'] == 0) {
+            return message();
+        } else {
+            return message(200, 0, $result['error']);
+        }
     }
 
     /**
@@ -225,8 +222,19 @@ class Svn extends Base
      */
     public function Stop()
     {
-        funShellExec("systemctl stop svnserve");
-        return message();
+        if (!file_exists($this->config_svn['svnserve_pid_file'])) {
+            return message(200, 0, 'pid文件不存在');
+        }
+
+        $pid = trim(file_get_contents($this->config_svn['svnserve_pid_file']));
+
+        $result = funShellExec(sprintf("kill -9 '%s'", $pid));
+
+        if ($result['resultCode'] == 0) {
+            return message();
+        } else {
+            return message(200, 0, $result['error']);
+        }
     }
 
     /**
@@ -244,7 +252,8 @@ class Svn extends Base
         }
 
         //停止svnserve
-        funShellExec('systemctl stop svnserve');
+        $resultStop = $this->Stop();
+        //还要针对返回结果判断 todo
 
         //重新构建配置文件内容
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $this->payload['bindPort'], $result['bindHost']);
@@ -253,13 +262,10 @@ class Svn extends Base
         funFilePutContents($this->config_svn['svnserve_env_file'], $config);
 
         //启动svnserve
-        $result = funShellExec('systemctl start svnserve');
+        $resultStart = $this->Start();
+        //还要针对返回结果判断 todo
 
-        if ($result['resultCode'] != 0) {
-            return message(200, 0, '启动异常' . $result['error']);
-        } else {
-            return message();
-        }
+        return message();
     }
 
     /**
@@ -278,7 +284,7 @@ class Svn extends Base
         }
 
         //停止svnserve
-        funShellExec('systemctl stop svnserve');
+        $this->Stop();
 
         //重新构建配置文件内容
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $result['bindPort'], $this->payload['bindHost']);
@@ -287,7 +293,7 @@ class Svn extends Base
         funFilePutContents($this->config_svn['svnserve_env_file'], $config);
 
         //启动svnserve
-        $result = funShellExec('systemctl start svnserve');
+        $this->Start();
 
         if ($result['resultCode'] != 0) {
             return message(200, 0, '启动异常' . $result['error']);
