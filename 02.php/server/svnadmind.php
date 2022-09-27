@@ -117,13 +117,13 @@ class Daemon
             //将标准错误重定向到文件
             //使用状态码来标识错误信息
             ob_start();
-            passthru($content . " 2>$stderrFile", $resultCode);
+            passthru($content . " 2>$stderrFile", $code);
             $buffer = ob_get_contents();
             ob_end_clean();
 
             //将错误信息和正确信息分类收集
             $result = [
-                'resultCode' => $resultCode,
+                'code' => $code,
                 'result' => trim($buffer),
                 'error' => file_get_contents($stderrFile)
             ];
@@ -131,7 +131,7 @@ class Daemon
             @unlink($stderrFile);
         } else {
             $result = [
-                'resultCode' => 0,
+                'code' => 0,
                 'result' => '',
                 'error' => ''
             ];
@@ -140,7 +140,7 @@ class Daemon
         //console模式
         if ($this->workMode == 'console') {
             echo PHP_EOL . '---------result---------' . PHP_EOL;
-            echo 'resultCode: ' . $result['resultCode'] . PHP_EOL;
+            echo 'code: ' . $result['code'] . PHP_EOL;
             echo 'result: ' . $result['result'] . PHP_EOL;
             echo 'error: ' . $result['error'] . PHP_EOL;
         }

@@ -900,7 +900,7 @@ class Rep extends Core
         $repPath = $this->config_svn['rep_base_path'] .  $repName;
         $svnadminInfoCmd = sprintf("'%s' tree '%s'", $this->config_bin['svnlook'], $repPath);
         $cmdResult = funShellExec($svnadminInfoCmd);
-        if ($cmdResult['resultCode'] != 0) {
+        if ($cmdResult['code'] != 0) {
             return message(200, 0, $cmdResult['error']);
         }
         $cmdResult = $cmdResult['result'];
@@ -1354,7 +1354,7 @@ class Rep extends Core
         $cmd = sprintf("'%s' list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $this->config_bin['svn'], $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
         $result = funShellExec($cmd);
 
-        if ($result['resultCode'] != 0) {
+        if ($result['code'] != 0) {
             //: Authentication error from server: Password incorrect
             if (strstr($result['error'], 'svn: E170001') && strstr($result['error'], 'Password incorrect')) {
                 return ['code' => 200, 'status' => 0, 'message' => '密码错误', 'data' => []];

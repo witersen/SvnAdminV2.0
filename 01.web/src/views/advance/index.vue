@@ -53,7 +53,6 @@
                       type="warning"
                       v-if="formSvn.status"
                       @click="Stop"
-                      :disabled="isDocker"
                       >停止</Button
                     >
                   </Col>
@@ -63,7 +62,6 @@
                 <Row>
                   <Col span="12">
                     <InputNumber
-                      :disabled="isDocker"
                       :min="1"
                       v-model="tempBindPort"
                       @on-change="ChangeEditPort"
@@ -85,7 +83,6 @@
                 <Row>
                   <Col span="12">
                     <Input
-                      :disabled="isDocker"
                       v-model="tempBindHost"
                       @on-change="ChangeEditHost"
                       placeholder="默认地址：0.0.0.0"
@@ -137,7 +134,7 @@
                       v-model="formSvn.enable"
                       @on-change="EditEnable"
                     >
-                      <Radio :disabled="isDocker" label="bindHost"
+                      <Radio label="bindHost"
                         >绑定主机</Radio
                       >
                       <Radio label="manageHost">自定义主机</Radio>
@@ -628,7 +625,6 @@ export default {
       disabledEditPort: true,
       disabledEditHost: true,
       disabledEditManageHost: true,
-      isDocker: false,
 
       /**
        * tab

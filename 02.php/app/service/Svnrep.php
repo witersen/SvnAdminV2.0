@@ -694,7 +694,7 @@ class Svnrep extends Base
         //获取全路径的一层目录树
         $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $path);
         $result = funShellExec($cmdSvnlookTree);
-        if ($result['resultCode'] != 0) {
+        if ($result['code'] != 0) {
             return ['code' => 200, 'status' => 0, 'message' => $result['error'], 'data' => []];
         }
         $result = $result['result'];
@@ -800,7 +800,7 @@ class Svnrep extends Base
         //获取全路径的一层目录树
         $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path']  . $this->payload['rep_name'], $path);
         $result = funShellExec($cmdSvnlookTree);
-        if ($result['resultCode'] != 0) {
+        if ($result['code'] != 0) {
             return message(200, 0, $result['error']);
         }
         $result = $result['result'];
@@ -1114,7 +1114,7 @@ class Svnrep extends Base
         }
 
         $result = $this->SVNAdminRep->GetRepDetail110($this->payload['rep_name']);
-        if ($result['resultCode'] == 0) {
+        if ($result['code'] == 0) {
             $result = $result['result'];
             //Subversion 1.10 及以上版本
             $resultArray = explode("\n", $result);
@@ -1160,7 +1160,7 @@ class Svnrep extends Base
 
         $result = funShellExec($cmd);
 
-        if ($result['resultCode'] == 0) {
+        if ($result['code'] == 0) {
             return message();
         } else {
             return message(200, 0, $result['error']);
@@ -1195,7 +1195,7 @@ class Svnrep extends Base
 
         $result = $this->SVNAdminRep->RepDump($this->payload['rep_name'], $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . FunGetRandStr() . '.dump');
 
-        if ($result['resultCode'] != 0) {
+        if ($result['code'] != 0) {
             return message(200, 0, $result['error'], []);
         }
 
