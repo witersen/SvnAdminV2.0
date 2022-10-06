@@ -11,5 +11,6 @@
  * jwt的token模式中的签名
  */
 return [
-    'signature' => 'QOWIREUQWIOFN'
+    'signature' => 'QOWIREUQWIOFN',
+    'signSeparator' => '|'
 ];

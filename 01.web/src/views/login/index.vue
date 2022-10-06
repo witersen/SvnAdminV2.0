@@ -128,8 +128,8 @@ export default {
       setTimeout(function () {
         if (sessionStorage.user_role_id == 1) {
           //管理员跳转到首页
-          that.$router.push({ name: "index" });
           sessionStorage.setItem("sync", "yes");
+          that.$router.push({ name: "index" });
         } else if (sessionStorage.user_role_id == 2) {
           //用户跳转到仓库页
           that.$router.push({ name: "repositoryInfo" });
@@ -168,7 +168,7 @@ export default {
               that.verifyOption = false;
             }
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -192,7 +192,7 @@ export default {
             that.formUserLogin.uuid = result.data.uuid;
             that.formUserLogin.base64 = result.data.base64;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -237,7 +237,7 @@ export default {
             }
           } else {
             that.GetVerifyCode();
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {

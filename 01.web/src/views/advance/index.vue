@@ -134,9 +134,7 @@
                       v-model="formSvn.enable"
                       @on-change="EditEnable"
                     >
-                      <Radio label="bindHost"
-                        >绑定主机</Radio
-                      >
+                      <Radio label="bindHost">绑定主机</Radio>
                       <Radio label="manageHost">自定义主机</Radio>
                     </RadioGroup>
                   </Col>
@@ -468,7 +466,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="系统更新" name="7">
+        <TabPane :label="labelUpd" name="7">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">
@@ -605,8 +603,21 @@
 export default {
   data() {
     return {
+      //render的系统更新标点
+      labelUpd: (h) => {
+        return h("div", [
+          h("span", "系统更新"),
+          h("Badge", {
+            props: {
+              //通过此状态设置有无更新
+              dot: sessionStorage.hasUpdate == 1 ? true : false,
+              offset: [-12, -10],
+            },
+          }),
+        ]);
+      },
       /**
-       * 临变量
+       * 临时变量
        */
       //svnserve绑定端口
       tempBindPort: 0,

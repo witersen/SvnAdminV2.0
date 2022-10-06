@@ -9,6 +9,7 @@
 
 namespace app\service;
 
+use Config;
 use Verifycode;
 
 class Common extends Base
@@ -130,11 +131,34 @@ class Common extends Base
         $this->Mail->SendMail('Common/Login', '用户登录成功通知', '账号：' . $this->payload['user_name'] . ' ' . 'IP地址：' . $_SERVER["REMOTE_ADDR"] . ' ' . '时间：' . date('Y-m-d H:i:s'));
 
         return message(200, 1, '登陆成功', [
-            'token' => parent::CreateToken($this->payload['user_role'], $this->payload['user_name']),
+            'token' => $this->CreateToken($this->payload['user_role'], $this->payload['user_name']),
             'user_name' => $this->payload['user_name'],
             'user_role_name' => $this->payload['user_role'] == 1 ? '管理人员' : 'SVN用户',
             'user_role_id' => $this->payload['user_role']
         ]);
+    }
+
+    /**
+     * 生成token
+     *
+     * @param int $userRoleId
+     * @param string $userName
+     * @return string
+     */
+    private function CreateToken($userRoleId, $userName)
+    {
+        $nowTime = time();
+
+        $startTime = $nowTime;
+
+        //配置登录凭证过期时间为6个小时
+        $endTime = $nowTime + 60 * 60 * 6;
+
+        $part1 = $userRoleId . $this->config_sign['signSeparator'] . $userName . $this->config_sign['signSeparator'] . $startTime . $this->config_sign['signSeparator'] . $endTime;
+
+        $part2 = hash_hmac('md5', $part1, $this->config_sign['signature']);
+
+        return $part1 . $this->config_sign['signSeparator'] . $part2;
     }
 
     /**
@@ -231,7 +255,7 @@ class Common extends Base
      */
     private function AddBlack()
     {
-        $arr = explode($this->signSeparator, $this->token);
+        $arr = explode($this->config_sign['signSeparator'], $this->token);
         $this->database->insert('black_token', [
             'token' => $this->token,
             'start_time' => $arr[2],

@@ -395,7 +395,7 @@ class Svnrep extends Base
         /**
          * 及时更新
          */
-        parent::GetAuthz();
+        $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
 
         /**
          * 对用户有权限的仓库路径列表进行一一验证
@@ -407,7 +407,7 @@ class Svnrep extends Base
         /**
          * 及时更新
          */
-        parent::GetAuthz();
+        $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
 
         /**
          * 用户有权限的仓库路径列表 => svn_user_pri_paths数据表

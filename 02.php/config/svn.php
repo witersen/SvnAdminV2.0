@@ -78,6 +78,11 @@ return [
     'backup_base_path' => $backup_base_path,
 
     /**
+     * 任务计划目录
+     */
+    'crond_base_path' => $home_path . 'crond/',
+
+    /**
      * 日志目录
      */
     'log_base_path' => $log_base_path,

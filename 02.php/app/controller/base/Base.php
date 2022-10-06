@@ -13,10 +13,10 @@ namespace app\controller;
 auto_require(BASE_PATH . '/config/');
 
 //require function
-auto_require(BASE_PATH . '/app/function/');
+// auto_require(BASE_PATH . '/app/function/');
 
 //require util
-auto_require(BASE_PATH . '/app/util/', true);
+// auto_require(BASE_PATH . '/app/util/', true);
 
 //require controller
 auto_require(BASE_PATH . '/app/controller/');
@@ -28,14 +28,14 @@ auto_require(BASE_PATH . '/app/service/');
 //require extension
 auto_require(BASE_PATH . '/extension/Medoo-1.7.10/src/Medoo.php');
 
-auto_require(BASE_PATH . '/extension/PHPMailer-6.6.0/src/Exception.php');
-auto_require(BASE_PATH . '/extension/PHPMailer-6.6.0/src/PHPMailer.php');
-auto_require(BASE_PATH . '/extension/PHPMailer-6.6.0/src/SMTP.php');
-auto_require(BASE_PATH . '/extension/PHPMailer-6.6.0/language/phpmailer.lang-zh_cn.php');
+// auto_require(BASE_PATH . '/extension/PHPMailer-6.6.0/src/Exception.php');
+// auto_require(BASE_PATH . '/extension/PHPMailer-6.6.0/src/PHPMailer.php');
+// auto_require(BASE_PATH . '/extension/PHPMailer-6.6.0/src/SMTP.php');
+// auto_require(BASE_PATH . '/extension/PHPMailer-6.6.0/language/phpmailer.lang-zh_cn.php');
 
-auto_require(BASE_PATH . '/extension/Verifycode/Verifycode.php');
+// auto_require(BASE_PATH . '/extension/Verifycode/Verifycode.php');
 
-auto_require(BASE_PATH . '/extension/Witersen/SVNAdmin.php');
+// auto_require(BASE_PATH . '/extension/Witersen/SVNAdmin.php');
 
 function auto_require($path, $recursively = false)
 {
@@ -59,9 +59,82 @@ function auto_require($path, $recursively = false)
     }
 }
 
+use Config;
+
+use Medoo\Medoo;
+
 class Base
 {
     function __construct()
     {
+        global $token;
+        global $type;
+        global $controller_perifx;
+        global $action;
+
+        //配置信息
+        $configRouters =  Config::get('router');                //路由
+        $configDatabase = Config::get('database');              //数据库配置
+        $configSvn = Config::get('svn');                        //仓库
+        $configSign = Config::get('sign');                      //密钥
+
+        /**
+         * 2、检查接口类型
+         */
+        !in_array($type, array_keys($configRouters['public'])) ? json1(401, 0, '无效的接口类型') : '';
+
+        /**
+         * 3、检查白名单路由
+         */
+        if (!in_array("$controller_perifx/$action", $configRouters['public'][$type])) {
+            /**
+             * 如果请求不在对应类型的白名单中 则需要进行token校验
+             */
+
+            //判断是否为空
+            empty($token) ? json1(401, 0, 'token为空') : '';
+
+            //校验token格式
+            substr_count($token, $configSign['signSeparator']) != 4 ? json1(401, 0, 'token格式错误') : '';
+
+            $arr = explode($configSign['signSeparator'], $token);
+
+            //校验token格式
+            foreach ($arr as $value) {
+                trim($value) == '' ? json1(401, 0, 'token格式错误') : '';
+            }
+
+            //检验token内容
+            $part1 =  hash_hmac('md5', $arr[0] . $configSign['signSeparator'] . $arr[1] . $configSign['signSeparator'] . $arr[2] . $configSign['signSeparator'] . $arr[3], $configSign['signature']);
+            $part2 = $arr[4];
+            $part1 != $part2 ? json1(401, 0, 'token校验失败') : '';
+
+            //校验是否过期
+            time() > $arr[3] ? json1(401, 0, '登陆过期') : '';
+        }
+
+        /**
+         * 5、检查特定角色权限路由
+         */
+        if (empty($token)) {
+            $userRoleId = 0;
+        } else {
+            $array = explode($configSign['signSeparator'], $token);
+            $userRoleId = $array[0];
+        }
+        if ($userRoleId == 2) {
+            if (!in_array("$controller_perifx/$action", array_merge($configRouters['svn_user_routers'], $configRouters['public'][$type]))) {
+                json1(401, 0, '无权限');
+            }
+        }
+
+        /**
+         * 7、检查token是否已注销
+         */
+        if (array_key_exists('database_file', $configDatabase)) {
+            $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
+        }
+        $black = (new Medoo($configDatabase))->get('black_token', ['token_id'], ['token' => $token]);
+        !empty($black) ? json1(401, 0, 'token已注销') : '';
     }
 }

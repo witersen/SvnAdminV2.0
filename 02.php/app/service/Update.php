@@ -9,6 +9,8 @@
 
 namespace app\service;
 
+use Config;
+
 class Update extends Base
 {
     function __construct()
@@ -25,9 +27,13 @@ class Update extends Base
         $status = 0;
         $message = '更新服务器故障';
 
-        foreach ($this->config_update['update_server'] as $key1 => $value1) {
+        $configVersion = Config::get('version');
 
-            $result = FunCurlRequest(sprintf($value1['url'], $this->config_version['version']));
+        $configUpdate = Config::get('update');
+
+        foreach ($configUpdate['update_server'] as $key1 => $value1) {
+
+            $result = FunCurlRequest(sprintf($value1['url'], $configVersion['version']));
 
             if (empty($result)) {
                 continue;

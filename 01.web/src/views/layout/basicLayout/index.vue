@@ -20,18 +20,30 @@
           position: fixed;
           width: 100%;
           z-index: 99;
+          align-items: center;
+          display: flex;
+          justify-content: flex-end;
+          line-height: 0px;
         "
       >
         <img
           src="../../../assets/images/logo.png"
           style="line-height: 64px; position: absolute; top: 12px; left: 1%"
         />
-        <Dropdown
-          :transfer="true"
-          trigger="click"
-          @on-click="LogOut"
-          style="float: right; zindex: 99"
-        >
+        <!-- 实时任务 -->
+        <!-- <Badge dot style="margin-right: 8px; cursor: pointer">
+          <Icon type="md-notifications-outline" size="26"></Icon>
+        </Badge> -->
+        <!-- 分割线 -->
+        <!-- <Divider type="vertical" /> -->
+        <!-- 用户身份 -->
+        <a style="margin-left: 8px; color: #fff; cursor: default">{{
+          currentRoleName
+        }}</a>
+        <!-- 分割线 -->
+        <Divider type="vertical" />
+        <!-- 当前登录用户 -->
+        <Dropdown :transfer="true" trigger="click" @on-click="LogOut">
           <a href="javascript:void(0)" style="margin-left: 8px; color: #fff">
             {{ currentUsername }}
             <Icon type="md-arrow-dropdown" />
@@ -40,10 +52,8 @@
             <DropdownItem>退出</DropdownItem>
           </DropdownMenu>
         </Dropdown>
-        <!-- <div style="float: right">
-          <Divider type="vertical" />
-        </div>
-        <Dropdown trigger="click" style="float: right; zindex: 99">
+        <!-- 多语言切换 -->
+        <!-- <Dropdown trigger="click">
           <a href="javascript:void(0)" style="margin-left: 8px; color: #fff">
             语言
             <Icon type="md-arrow-dropdown" />
@@ -58,15 +68,8 @@
             <DropdownItem>English</DropdownItem>
           </DropdownMenu>
         </Dropdown> -->
-        <div style="float: right">
-          <Divider type="vertical" />
-        </div>
-        <div style="float: right">
-          <!-- <Avatar icon="ios-person" /> -->
-          <a style="margin-left: 8px; color: #fff; cursor: default">{{
-            currentRoleName
-          }}</a>
-        </div>
+        <!-- 分割线 -->
+        <!-- <Divider type="vertical" /> -->
       </Header>
       <Layout style="margin-top: 64px">
         <Sider
@@ -94,8 +97,14 @@
                 v-for="(itemItem, indexItem) in itemGroup.value"
                 :key="indexGroup + '-' + indexItem"
               >
-                <Icon :type="itemItem.meta.icon" />
-                {{ itemItem.meta.title }}
+                <Badge
+                  :dot="hasUpdate"
+                  :count="itemItem.name == 'advance' && hasUpdate ? 1 : 0"
+                  :offset="[0, -10]"
+                >
+                  <Icon :type="itemItem.meta.icon" />
+                  {{ itemItem.meta.title }}
+                </Badge>
               </MenuItem>
             </MenuGroup>
           </Menu>
@@ -121,6 +130,8 @@
 export default {
   data() {
     return {
+      //是否有更新
+      hasUpdate: sessionStorage.hasUpdate == 1 ? true : false,
       //当前选中的导航
       currentActiveName: "",
       //logo文字内容
@@ -144,15 +155,11 @@ export default {
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            sessionStorage.removeItem("token");
-            sessionStorage.removeItem("user_name");
-            sessionStorage.removeItem("user_role_id");
-            sessionStorage.removeItem("user_role_name");
-            sessionStorage.removeItem("sync");
+            sessionStorage.clear();
             that.$Message.success(result.message);
             that.$router.push({ name: "login" });
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -221,15 +228,52 @@ export default {
     SetActiveName() {
       this.currentActiveName = this.$route.name;
     },
+    //检测更新
+    CheckUpdate() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Update&a=CheckUpdate&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            if (result.data != "") {
+              that.hasUpdate = true;
+              //有新版本 
+              //0 未检测 1 有新版本 2 无新版本
+              sessionStorage.setItem("hasUpdate", 1);
+            } else {
+              //无新版本
+              sessionStorage.setItem("hasUpdate", 2);
+            }
+          } else {
+            // that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
   },
   mounted() {
     var that = this;
+    if (sessionStorage.hasUpdate == null) {
+      //未检测更新 有新版本 0 未检测 1 有新版本 2 无新版本
+      sessionStorage.setItem("hasUpdate", 0);
+    }
     //生成导航
     that.CreateNav();
     //生成面包屑
     that.SetBreadcrumb();
     //设置导航选中状态
-    this.SetActiveName();
+    that.SetActiveName();
+    //管理员或者子管理员登录才可自动检测更新
+    if (sessionStorage.user_role_id == 1) {
+      //未检测过才检测更新
+      if (sessionStorage.hasUpdate == 0) {
+        that.CheckUpdate();
+      }
+    }
   },
   watch: {
     //监听路由变化

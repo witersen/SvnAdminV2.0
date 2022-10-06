@@ -329,6 +329,53 @@ class Mail extends Base
     }
 
     /**
+     * 任务计划触发通知邮件
+     */
+    public function SendMail2($subject, $body)
+    {
+        $mail_smtp = $this->GetEmail();
+        $mail_smtp = $mail_smtp['data'];
+
+        //检查邮件服务是否启用
+        if (!$mail_smtp['status']) {
+            return message(200, 0, '邮件服务未开启');
+        }
+
+        $host = $mail_smtp['host'];
+        $auth = $mail_smtp['auth'];
+        $user = $mail_smtp['user'];
+        $pass = $mail_smtp['pass'];
+        $encryption = $mail_smtp['encryption'];
+        $autotls = $mail_smtp['autotls'];
+        $port = $mail_smtp['port'];
+        $to = $mail_smtp['to'];
+        $cc = [];
+        $bcc = [];
+        $reply = [];
+        $from = $mail_smtp['from'];
+        $timeout = $mail_smtp['timeout'];
+        $result = $this->Send(
+            $host,
+            $auth,
+            $user,
+            $pass,
+            $encryption,
+            $autotls,
+            $port,
+            $subject,
+            $body,
+            $to,
+            $cc,
+            $bcc,
+            $reply,
+            $from,
+            $timeout
+        );
+
+        return message(200, $result === true ? 1 : 0, $result === true ? '发送成功' : $result);
+    }
+
+    /**
      * 获取消息推送信息配置
      */
     public function GetPush()
@@ -372,7 +419,7 @@ class Mail extends Base
                 'option_value' => serialize($message_push_null),
                 'option_description' => ''
             ]);
-            
+
             return message(200, 1, '成功', $message_push_null);
         }
         if ($message_push['option_value'] == '') {

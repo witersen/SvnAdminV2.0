@@ -98,7 +98,7 @@ const routers = [
                 path: '/crond',
                 meta: {
                     title: '任务计划',
-                    icon: 'md-bug',
+                    icon: 'ios-alarm',
                     requireAuth: true,
                     user_role_id: ['1'],
                     group: {
@@ -106,7 +106,7 @@ const routers = [
                         num: 2
                     }
                 },
-                component: (resolve) => require(['./views/systemLog/index.vue'], resolve),
+                component: (resolve) => require(['./views/crond/index.vue'], resolve),
             },
             {
                 name: 'personal',
@@ -128,7 +128,7 @@ const routers = [
                 path: '/subadmin',
                 meta: {
                     title: '子管理员',
-                    icon: 'md-settings',
+                    icon: 'md-hand',
                     requireAuth: true,
                     user_role_id: ['1'],
                     group: {
@@ -136,9 +136,10 @@ const routers = [
                         num: 3
                     }
                 },
-                component: (resolve) => require(['./views/advance/index.vue'], resolve),
+                component: (resolve) => require(['./views/subadmin/index.vue'], resolve),
             },
             {
+                //name 绑定了更新的badge 修改要修改全部地方名称
                 name: 'advance',
                 path: '/advance',
                 meta: {

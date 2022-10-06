@@ -18,9 +18,10 @@ ini_set('display_errors', '1');
 
 error_reporting(E_ALL);
 
-define('BASE_PATH', __DIR__);
+//与web入口文件保持一致
+define('BASE_PATH', __DIR__ . '/..');
 
-require_once BASE_PATH . '/../app/util/Config.php';
+require_once BASE_PATH . '/app/util/Config.php';
 
 class Daemon
 {
@@ -38,7 +39,7 @@ class Daemon
     {
         $this->pidFile = dirname(__FILE__) . '/svnadmind.pid';
 
-        Config::load(BASE_PATH . '/../config/');
+        Config::load(BASE_PATH . '/config/');
         $this->config_daemon = Config::get('daemon');
         $this->config_svn = Config::get('svn');
     }
@@ -229,8 +230,16 @@ class Daemon
      */
     private function UpdateSign()
     {
-        $signCon = sprintf("<?php\n\nreturn ['signature' => '%s'];", uniqid());
-        file_put_contents(BASE_PATH . '/../config/sign.php', $signCon);
+        Config::load(BASE_PATH . '/config/');
+        $sign = Config::get('sign');
+
+        $content = "<?php\n\nreturn [\n";
+        foreach ($sign as $key => $value) {
+            $content .= sprintf("'%s' => '%s',%s", $key, $key == 'signature' ? uniqid() : $value, "\n");
+        }
+        $content .= "];\n";
+
+        file_put_contents(BASE_PATH . '/config/sign.php', $content);
     }
 
     /**

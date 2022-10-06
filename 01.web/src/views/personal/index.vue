@@ -276,10 +276,7 @@ export default {
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            sessionStorage.removeItem("token");
-            sessionStorage.removeItem("user_name");
-            sessionStorage.removeItem("user_role_id");
-            sessionStorage.removeItem("user_role_name");
+            sessionStorage.clear();
             that.$Message.success(result.message);
             that.$router.push({ name: "login" });
           } else {
