@@ -37,36 +37,39 @@
           <Tag
             color="red"
             style="width: 90px; text-align: center"
-            v-if="row.notice == 0"
+            v-if="row.notice.length == 0"
             >通知关闭</Tag
           >
           <Tag
             color="purple"
             style="width: 90px; text-align: center"
-            v-if="row.notice == 1"
+            v-if="row.notice.length == 1 && row.notice.indexOf('success') != -1"
             >仅成功通知</Tag
           >
           <Tag
             color="magenta"
             style="width: 90px; text-align: center"
-            v-if="row.notice == 2"
+            v-if="row.notice.length == 1 && row.notice.indexOf('fail') != -1"
             >仅失败通知</Tag
           >
           <Tag
             color="blue"
             style="width: 90px; text-align: center"
-            v-if="row.notice == 3"
+            v-if="
+              row.notice.indexOf('fail') != -1 &&
+              row.notice.indexOf('success') != -1
+            "
             >全部通知</Tag
           >
         </template>
-        <template slot-scope="{ row }" slot="action">
+        <template slot-scope="{ row, index }" slot="action">
           <Button
             type="info"
             size="small"
             @click="ModalViewCrondLog(row.crond_id)"
             >日志</Button
           >
-          <Button type="warning" size="small" @click="ModalEditCrond()"
+          <Button type="warning" size="small" @click="ModalUpdCrond(index)"
             >编辑</Button
           >
           <Button type="error" size="small" @click="DelCrond(row.crond_id)"
@@ -100,7 +103,7 @@
         <FormItem label="任务类型">
           <Select
             style="width: 200px"
-            v-model="cycle.task_type"
+            v-model="formAddCrond.task_type"
             @on-change="ChangeCrondType"
           >
             <Option
@@ -113,13 +116,13 @@
         </FormItem>
         <FormItem label="任务名称">
           <Input
-            v-model="cycle.task_name"
-            :readonly="[1, 2, 3, 4, 5].indexOf(cycle.task_type) != -1"
+            v-model="formAddCrond.task_name"
+            :readonly="[1, 2, 3, 4, 5].indexOf(formAddCrond.task_type) != -1"
           ></Input>
         </FormItem>
         <FormItem label="执行周期">
           <!-- 周期类型 -->
-          <Select style="width: 130px" v-model="cycle.cycle_type">
+          <Select style="width: 130px" v-model="formAddCrond.cycle_type">
             <Option
               v-for="(type, index) in cycleType"
               :value="type.value"
@@ -130,8 +133,8 @@
           <!-- 周 -->
           <Select
             style="width: 100px"
-            v-model="cycle.week"
-            v-if="['week'].indexOf(cycle.cycle_type) != -1"
+            v-model="formAddCrond.week"
+            v-if="['week'].indexOf(formAddCrond.cycle_type) != -1"
           >
             <Option
               v-for="(week, index) in weekList"
@@ -146,8 +149,8 @@
             :max="31"
             :formatter="(value) => `${value}日`"
             :parser="(value) => value.replace('日', '')"
-            v-model="cycle.day"
-            v-if="['month'].indexOf(cycle.cycle_type) != -1"
+            v-model="formAddCrond.day"
+            v-if="['month'].indexOf(formAddCrond.cycle_type) != -1"
           ></InputNumber>
           <!-- 天 -->
           <InputNumber
@@ -155,8 +158,8 @@
             :max="31"
             :formatter="(value) => `${value}天`"
             :parser="(value) => value.replace('天', '')"
-            v-model="cycle.day"
-            v-if="['day_n'].indexOf(cycle.cycle_type) != -1"
+            v-model="formAddCrond.day"
+            v-if="['day_n'].indexOf(formAddCrond.cycle_type) != -1"
           ></InputNumber>
           <!-- 小时 -->
           <InputNumber
@@ -164,10 +167,10 @@
             :max="23"
             :formatter="(value) => `${value}小时`"
             :parser="(value) => value.replace('小时', '')"
-            v-model="cycle.hour"
+            v-model="formAddCrond.hour"
             v-if="
               ['month', 'week', 'day', 'day_n', 'hour_n'].indexOf(
-                cycle.cycle_type
+                formAddCrond.cycle_type
               ) != -1
             "
           ></InputNumber>
@@ -177,7 +180,7 @@
             :max="59"
             :formatter="(value) => `${value}分钟`"
             :parser="(value) => value.replace('分钟', '')"
-            v-model="cycle.minute"
+            v-model="formAddCrond.minute"
             v-if="
               [
                 'month',
@@ -187,17 +190,17 @@
                 'hour',
                 'hour_n',
                 'minute_n',
-              ].indexOf(cycle.cycle_type) != -1
+              ].indexOf(formAddCrond.cycle_type) != -1
             "
           ></InputNumber>
         </FormItem>
         <FormItem
           label="仓库选择"
-          v-if="[1, 2, 3, 4, 5].indexOf(cycle.task_type) != -1"
+          v-if="[1, 2, 3, 4, 5].indexOf(formAddCrond.task_type) != -1"
         >
           <Select
             style="width: 200px"
-            v-model="cycle.rep_key"
+            v-model="formAddCrond.rep_key"
             @on-change="ChangeRep"
             filterable
           >
@@ -211,22 +214,25 @@
         </FormItem>
         <FormItem
           label="消息通知"
-          v-if="[1, 2, 3, 4, 5].indexOf(cycle.task_type) != -1"
+          v-if="[1, 2, 3, 4, 5, 6].indexOf(formAddCrond.task_type) != -1"
         >
-          <CheckboxGroup v-model="cycle.notice">
+          <CheckboxGroup v-model="formAddCrond.notice">
             <Checkbox label="success">成功通知</Checkbox>
             <Checkbox label="fail">失败通知</Checkbox>
           </CheckboxGroup>
         </FormItem>
         <FormItem
           label="保存数量"
-          v-if="[1, 2, 3, 4, 5].indexOf(cycle.task_type) != -1"
+          v-if="[1, 2, 3, 4].indexOf(formAddCrond.task_type) != -1"
         >
-          <InputNumber :min="1" v-model="cycle.save_count"></InputNumber>
+          <InputNumber :min="1" v-model="formAddCrond.save_count"></InputNumber>
         </FormItem>
-        <FormItem label="脚本内容" v-if="[6].indexOf(cycle.task_type) != -1">
+        <FormItem
+          label="脚本内容"
+          v-if="[6].indexOf(formAddCrond.task_type) != -1"
+        >
           <Input
-            v-model="cycle.shell"
+            v-model="formAddCrond.shell"
             :rows="8"
             show-word-limit
             type="textarea"
@@ -245,7 +251,162 @@
         >
       </div>
     </Modal>
-    <Modal v-model="modalEditCrond" title="编辑任务计划信息"> </Modal>
+    <Modal v-model="modalUpdCrond" title="编辑任务计划信息">
+      <Form :model="formEditCrond" :label-width="80">
+        <FormItem label="任务类型">
+          <Select
+            style="width: 200px"
+            v-model="formEditCrond.task_type"
+            @on-change="ChangeCrondType"
+          >
+            <Option
+              v-for="(type, index) in taskType"
+              :value="type.key"
+              :key="index"
+              >{{ type.value }}</Option
+            >
+          </Select>
+        </FormItem>
+        <FormItem label="任务名称">
+          <Input
+            v-model="formEditCrond.task_name"
+            :readonly="[1, 2, 3, 4, 5].indexOf(formEditCrond.task_type) != -1"
+          ></Input>
+        </FormItem>
+        <FormItem label="执行周期">
+          <!-- 周期类型 -->
+          <Select style="width: 130px" v-model="formEditCrond.cycle_type">
+            <Option
+              v-for="(type, index) in cycleType"
+              :value="type.value"
+              :key="index"
+              >{{ type.name }}</Option
+            >
+          </Select>
+          <!-- 周 -->
+          <Select
+            style="width: 100px"
+            v-model="formEditCrond.week"
+            v-if="['week'].indexOf(formEditCrond.cycle_type) != -1"
+          >
+            <Option
+              v-for="(week, index) in weekList"
+              :value="week.value"
+              :key="index"
+              >{{ week.name }}</Option
+            >
+          </Select>
+          <!-- 日 -->
+          <InputNumber
+            :min="1"
+            :max="31"
+            :formatter="(value) => `${value}日`"
+            :parser="(value) => value.replace('日', '')"
+            v-model="formEditCrond.day"
+            v-if="['month'].indexOf(formEditCrond.cycle_type) != -1"
+          ></InputNumber>
+          <!-- 天 -->
+          <InputNumber
+            :min="1"
+            :max="31"
+            :formatter="(value) => `${value}天`"
+            :parser="(value) => value.replace('天', '')"
+            v-model="formEditCrond.day"
+            v-if="['day_n'].indexOf(formEditCrond.cycle_type) != -1"
+          ></InputNumber>
+          <!-- 小时 -->
+          <InputNumber
+            :min="0"
+            :max="23"
+            :formatter="(value) => `${value}小时`"
+            :parser="(value) => value.replace('小时', '')"
+            v-model="formEditCrond.hour"
+            v-if="
+              ['month', 'week', 'day', 'day_n', 'hour_n'].indexOf(
+                formEditCrond.cycle_type
+              ) != -1
+            "
+          ></InputNumber>
+          <!-- 分钟 -->
+          <InputNumber
+            :min="0"
+            :max="59"
+            :formatter="(value) => `${value}分钟`"
+            :parser="(value) => value.replace('分钟', '')"
+            v-model="formEditCrond.minute"
+            v-if="
+              [
+                'month',
+                'week',
+                'day',
+                'day_n',
+                'hour',
+                'hour_n',
+                'minute_n',
+              ].indexOf(formEditCrond.cycle_type) != -1
+            "
+          ></InputNumber>
+        </FormItem>
+        <FormItem
+          label="仓库选择"
+          v-if="[1, 2, 3, 4, 5].indexOf(formEditCrond.task_type) != -1"
+        >
+          <Select
+            style="width: 200px"
+            v-model="formEditCrond.rep_key"
+            @on-change="ChangeRep"
+            filterable
+          >
+            <Option
+              v-for="(rep, index) in repList"
+              :value="rep.rep_key"
+              :key="index"
+              >{{ rep.rep_name }}</Option
+            >
+          </Select>
+        </FormItem>
+        <FormItem
+          label="消息通知"
+          v-if="[1, 2, 3, 4, 5, 6].indexOf(formEditCrond.task_type) != -1"
+        >
+          <CheckboxGroup v-model="formEditCrond.notice">
+            <Checkbox label="success">成功通知</Checkbox>
+            <Checkbox label="fail">失败通知</Checkbox>
+          </CheckboxGroup>
+        </FormItem>
+        <FormItem
+          label="保存数量"
+          v-if="[1, 2, 3, 4].indexOf(formEditCrond.task_type) != -1"
+        >
+          <InputNumber
+            :min="1"
+            v-model="formEditCrond.save_count"
+          ></InputNumber>
+        </FormItem>
+        <FormItem
+          label="脚本内容"
+          v-if="[6].indexOf(formEditCrond.task_type) != -1"
+        >
+          <Input
+            v-model="formEditCrond.shell"
+            :rows="8"
+            show-word-limit
+            type="textarea"
+            placeholder="请输入脚本内容"
+          />
+        </FormItem>
+        <FormItem>
+          <Button type="primary" @click="UpdCrond" :loading="loadingUpdCrond"
+            >确定</Button
+          >
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalUpdCrond = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
     <Modal v-model="modalViewCrondLog" title="查看任务计划日志">
       <Input
         readonly
@@ -292,6 +453,7 @@ export default {
        * 加载
        */
       loadingAddCrond: false,
+      loadingUpdCrond: false,
       loadingGetCrondList: true,
       laodingGetLog: true,
       /**
@@ -301,7 +463,12 @@ export default {
       /**
        * 表单
        */
-      cycle: {
+      //新建任务计划
+      formAddCrond: {
+        //主键id
+        crond_id: 0,
+        //文件标识
+        sign: "",
         //任务计划类型
         task_type: 1,
         //任务名称
@@ -310,6 +477,10 @@ export default {
         cycle_type: "month",
         //执行周期描述
         cycle_desc: "",
+        //启用状态
+        status: false,
+        //保存数量
+        save_count: 3,
         //默认周一
         week: 1,
         //默认每月3日 或 每3天
@@ -318,16 +489,49 @@ export default {
         hour: 1,
         //默认每30分钟
         minute: 30,
+        //成功和失败通知
+        notice: ["success", "fail"],
+        //上次执行时间
+        last_exec_time: "",
         //仓库选择 -1 为全部 其他值为指定仓库名称
         rep_key: "-1",
         //脚本内容
         shell: "",
+      },
+      //编辑任务计划
+      formEditCrond: {
+        //主键id
+        crond_id: 0,
+        //文件标识
+        sign: "",
+        //任务计划类型
+        task_type: 1,
+        //任务名称
+        task_name: "",
+        //周期类型
+        cycle_type: "month",
+        //执行周期描述
+        cycle_desc: "",
+        //启用状态
+        status: false,
         //保存数量
         save_count: 3,
-        //上次执行时间
-        last_exec: "",
+        //默认周一
+        week: 1,
+        //默认每月3日 或 每3天
+        day: 3,
+        //默认每1小时
+        hour: 1,
+        //默认每30分钟
+        minute: 30,
         //成功和失败通知
         notice: ["success", "fail"],
+        //上次执行时间
+        last_exec_time: "",
+        //仓库选择 -1 为全部 其他值为指定仓库名称
+        rep_key: "-1",
+        //脚本内容
+        shell: "",
       },
       /**
        * 下拉
@@ -440,14 +644,7 @@ export default {
       //查看任务计划日志
       modalViewCrondLog: false,
       //编辑任务计划
-      modalEditCrond: false,
-      /**
-       * 表单
-       */
-      //新建任务计划
-      formAddCrond: {},
-      //编辑任务计划
-      formEditCrond: {},
+      modalUpdCrond: false,
       /**
        * 表格
        */
@@ -486,7 +683,7 @@ export default {
           minWidth: 120,
         },
         {
-          title: "保留数量",
+          title: "保存数量",
           key: "save_count",
           width: 100,
           minWidth: 100,
@@ -494,8 +691,9 @@ export default {
         {
           title: "上次执行时间",
           key: "last_exec_time",
+          tooltip: true,
           // width: 180,
-          minWidth: 120,
+          minWidth: 140,
         },
         {
           title: "操作",
@@ -503,16 +701,7 @@ export default {
           width: 240,
         },
       ],
-      tableDataCrond: [
-        {
-          task_name: "仓库备份[dump-全量][所有仓库]",
-          cycle_desc: "每天, 2点30分 执行",
-          notice: 3,
-          status: true,
-          save_count: 3,
-          last_exec: "2022-10-13",
-        },
-      ],
+      tableDataCrond: [],
 
       //任务计划日志
       tableColumnCrondLog: [
@@ -668,17 +857,19 @@ export default {
         case 4:
         case 5:
           //修改任务名称
-          this.cycle.task_name =
-            this.taskType.find((item) => item.key === this.cycle.task_type)
-              .value +
+          this.formAddCrond.task_name =
+            this.taskType.find(
+              (item) => item.key === this.formAddCrond.task_type
+            ).value +
             "[" +
-            this.repList.find((item) => item.rep_key === this.cycle.rep_key)
-              .rep_name +
+            this.repList.find(
+              (item) => item.rep_key === this.formAddCrond.rep_key
+            ).rep_name +
             "]";
           break;
         case 6:
           //修改任务名称
-          this.cycle.task_name = "";
+          this.formAddCrond.task_name = "";
           break;
       }
     },
@@ -687,10 +878,11 @@ export default {
      */
     ChangeRep(value) {
       //修改任务名称
-      this.cycle.task_name =
-        this.taskType.find((item) => item.key === this.cycle.task_type).value +
+      this.formAddCrond.task_name =
+        this.taskType.find((item) => item.key === this.formAddCrond.task_type)
+          .value +
         "[" +
-        this.repList.find((item) => item.rep_key === this.cycle.rep_key)
+        this.repList.find((item) => item.rep_key === this.formAddCrond.rep_key)
           .rep_name +
         "]";
     },
@@ -700,10 +892,11 @@ export default {
     ModalAddCrond() {
       //获取仓库名称列表 todo
       //修改任务名称
-      this.cycle.task_name =
-        this.taskType.find((item) => item.key === this.cycle.task_type).value +
+      this.formAddCrond.task_name =
+        this.taskType.find((item) => item.key === this.formAddCrond.task_type)
+          .value +
         "[" +
-        this.repList.find((item) => item.rep_key === this.cycle.rep_key)
+        this.repList.find((item) => item.rep_key === this.formAddCrond.rep_key)
           .rep_name +
         "]";
       //显示对话框
@@ -716,7 +909,7 @@ export default {
       var that = this;
       that.loadingAddCrond = true;
       var data = {
-        cycle: that.cycle,
+        formAddCrond: that.formAddCrond,
       };
       that.$axios
         .post("/api.php?c=Crond&a=SetCrond&t=web", data)
@@ -770,10 +963,35 @@ export default {
     /**
      * 编辑任务计划
      */
-    ModalEditCrond(index, repName) {
-      this.modalEditCrond = true;
+    ModalUpdCrond(index) {
+      this.modalUpdCrond = true;
+      this.formEditCrond = this.tableDataCrond[index];
     },
-    EditCrond() {},
+    UpdCrond() {
+      var that = this;
+      that.loadingUpdCrond = true;
+      var data = {
+        formEditCrond: that.formEditCrond,
+      };
+      that.$axios
+        .post("/api.php?c=Crond&a=UpdCrond&t=web", data)
+        .then(function (response) {
+          that.loadingUpdCrond = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.modalUpdCrond = false;
+            that.GetCrondList();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingUpdCrond = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
     /**
      * 删除任务计划
      */
@@ -809,22 +1027,4 @@ export default {
 </script>
 
 <style >
-.loader {
-  width: 30px;
-  height: 30px;
-  position: relative;
-  margin: 0 auto;
-}
-.circular {
-  animation: rotate 2s linear infinite;
-  height: 100%;
-  transform-origin: center center;
-  width: 100%;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-}
 </style>

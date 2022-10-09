@@ -53,17 +53,19 @@ class Crond extends Base
         $list = $this->database->select('crond', [
             'crond_id',
             'sign',
-            'task_type',
+            'task_type [Int]',
             'task_name',
             'cycle_type',
             'cycle_desc',
             'status',
             'save_count',
-            'week',
-            'day',
-            'hour',
-            'minute',
+            'rep_name',
+            'week [Int]',
+            'day [Int]',
+            'hour [Int]',
+            'minute [Int]',
             'notice',
+            'shell',
             'last_exec_time',
             'create_time',
         ], [
@@ -91,7 +93,29 @@ class Crond extends Base
         ]);
 
         foreach ($list as $key => $value) {
+            // 5 6 类型不需要 count 字段
+            if (in_array($value['task_type'], [5, 6])) {
+                $list[$key]['save_count'] = '-';
+            }
+
+            //数字到布尔值
             $list[$key]['status'] = $value['status'] == 1 ? true : false;
+
+            //数字到数组
+            if ($value['notice'] == 0) {
+                $list[$key]['notice'] = [];
+            } else if ($value['notice'] == 1) {
+                $list[$key]['notice'] = ['success'];
+            } else if ($value['notice'] == 2) {
+                $list[$key]['notice'] = ['fail'];
+            } else if ($value['notice'] == 3) {
+                $list[$key]['notice'] = ['success', 'fail'];
+            } else {
+                $list[$key]['notice'] = [];
+            }
+
+            //仓库
+            $list[$key]['rep_key'] = json_decode($value['rep_name'])[0];
         }
 
         return message(200, 1, '成功', [
@@ -108,12 +132,11 @@ class Crond extends Base
     public function SetCrond()
     {
         //todo 检查crond服务有无开启
-        //todo 上次执行时间
 
-        if (!isset($this->payload['cycle'])) {
-            return message(200, 0, '参数[cycle]不存在');
+        if (!isset($this->payload['formAddCrond'])) {
+            return message(200, 0, '参数[formAddCrond]不存在');
         }
-        $cycle = $this->payload['cycle'];
+        $cycle = $this->payload['formAddCrond'];
 
         //sign 处理
         $sign = md5(time());
@@ -176,44 +199,22 @@ class Crond extends Base
         $nameCrond = $this->config_svn['crond_base_path'] . $sign;
         $nameCrondLog = $nameCrond . '.log';
 
-        $conCrond = '';
-        switch ($cycle['task_type']) {
-            case 1: //仓库备份[dump-全量]
-                $conCrond = sprintf(
-                    "#!/bin/bash
-                PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
-                export PATH
-                startDate=`date +%s`
-                echo ----------starTime:[\$startDate]--------------------------------------------
-                php %s %s %s
-                endDate=`date +%s`
-                echo ----------endTime:[\$endDate]--------------------------------------------",
-                    "\"%Y-%m-%d %H:%M:%S\"",
-                    BASE_PATH . '/server/command.php',
-                    $cycle['task_type'],
-                    $sign,
-                    "\"%Y-%m-%d %H:%M:%S\""
-                );
-                break;
-            case 2: //仓库备份[dump-增量]
-                return message(200, 0, '暂未支持的类型');
-                break;
-            case 3: //仓库备份[hotcopy-全量]
-                return message(200, 0, '暂未支持的类型');
-                break;
-            case 4: //仓库备份[hotcopy-增量]
-                return message(200, 0, '暂未支持的类型');
-                break;
-            case 5: //仓库检查
-                return message(200, 0, 'todo');
-                break;
-            case 6: //shell脚本
-                $conCrond = sprintf("#!/bin/bash\nPATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin\nexport PATH\n%s", $cycle['shell']);
-                break;
-            default:
-                return message(200, 0, '暂未支持的类型');
-                break;
-        }
+        $conCrond = sprintf(
+            "#!/bin/bash
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+startDate=`date +%s`
+echo ----------starTime:[\$startDate]--------------------------------------------
+php %s %s %s
+endDate=`date +%s`
+echo ----------endTime:[\$endDate]--------------------------------------------",
+            "\"%Y-%m-%d %H:%M:%S\"",
+            BASE_PATH . '/server/command.php',
+            $cycle['task_type'],
+            $sign,
+            "\"%Y-%m-%d %H:%M:%S\""
+        );
+
         file_put_contents($nameCrond, $conCrond);
         // funShellExec(sprintf("chmod 777 '%s' && chmod 777 '%s'", $nameCrond, $nameCrondLog));
         funShellExec(sprintf("chmod 777 '%s'", $nameCrond));
@@ -262,6 +263,8 @@ class Crond extends Base
      */
     public function UpdCrond()
     {
+        //todo
+        return message(200, 0, 'todo');
     }
 
     /**
@@ -377,6 +380,9 @@ class Crond extends Base
 
         //从文件删除
         @unlink($this->config_svn['crond_base_path'] . $sign);
+
+        //删除日志
+        @unlink($this->config_svn['crond_base_path'] . $sign . '.log');
 
         //从数据库删除
         $this->database->delete('crond', [

@@ -236,7 +236,7 @@ export default {
               that.$router.push({ name: "repositoryInfo" });
             }
           } else {
-            that.GetVerifyCode();
+            that.GetVerifyOption();
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
