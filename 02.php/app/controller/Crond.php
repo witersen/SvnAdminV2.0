@@ -98,9 +98,31 @@ class Crond extends Base
      *
      * @return array
      */
-    public function GetLog()
+    public function GetCrondLog()
     {
-        $result = $this->ServiceCrond->GetLog();
+        $result = $this->ServiceCrond->GetCrondLog();
+        json2($result);
+    }
+
+    /**
+     * 现在执行任务计划
+     *
+     * @return array
+     */
+    public function CrondNow()
+    {
+        $result = $this->ServiceCrond->CrondNow();
+        json2($result);
+    }
+
+    /**
+     * 检查 crontab at 是否安装和启动
+     *
+     * @return array
+     */
+    public function GetCronStatus()
+    {
+        $result = $this->ServiceCrond->GetCronStatus();
         json2($result);
     }
 }

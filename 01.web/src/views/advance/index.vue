@@ -647,7 +647,7 @@ export default {
        */
       version: {
         current_verson: "2.3.4",
-        php_version: "5.5 <= PHP",
+        php_version: "5.5+",
         database: "MYSQL、SQLite",
         github: "https://github.com/witersen/SvnAdminV2.0",
         gitee: "https://gitee.com/witersen/SvnAdminV2.0",

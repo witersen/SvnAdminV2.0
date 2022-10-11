@@ -1193,7 +1193,7 @@ class Svnrep extends Base
             return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
         }
 
-        $result = $this->SVNAdminRep->RepDump($this->payload['rep_name'], $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . FunGetRandStr() . '.dump');
+        $result = $this->SVNAdminRep->RepDump($this->payload['rep_name'], $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . uniqid() . FunGetRandStr() . '.dump');
 
         if ($result['code'] != 0) {
             return message(200, 0, $result['error'], []);
