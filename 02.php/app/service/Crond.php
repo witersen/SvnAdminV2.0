@@ -369,7 +369,11 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         $result = funShellExec('crontab -l');
         $crontabs = trim($result['result']);
 
-        if ($this->payload['disable']) {
+        if ($this->payload['status']) {
+            $nameCrond = $this->config_svn['crond_base_path'] . $sign;
+            $nameCrondLog = $nameCrond . '.log';
+            $crontabs = (empty($crontabs) ? '' : $crontabs . "\n") . sprintf("%s %s >> %s 2>&1", $code, $nameCrond, $nameCrondLog);
+        } else {
             //查询标识并删除标识所在行
             $contabArray = explode("\n", $crontabs);
             foreach ($contabArray as $key => $value) {
@@ -378,10 +382,6 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
                 }
             }
             $crontabs = trim(implode("\n", $contabArray));
-        } else {
-            $nameCrond = $this->config_svn['crond_base_path'] . $sign;
-            $nameCrondLog = $nameCrond . '.log';
-            $crontabs = (empty($crontabs) ? '' : $crontabs . "\n") . sprintf("%s %s >> %s 2>&1", $code, $nameCrond, $nameCrondLog);
         }
 
         if (empty($crontabs)) {
@@ -398,7 +398,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
 
         //从数据库修改
         $this->database->update('crond', [
-            'status' => $this->payload['disable'] ? 0 : 1
+            'status' => $this->payload['status'] ? 1 : 0
         ], [
             'crond_id' => $this->payload['crond_id']
         ]);

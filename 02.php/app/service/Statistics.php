@@ -132,25 +132,15 @@ class Statistics extends Base
         /**
          * ----------内存计算开始----------
          */
-        /**
-         * MemTotal 总内存
-         * MemFree 空闲内存
-         * MemAvailable 可用内存（MemFree + 可回收的内存），系统中有些内存虽然已被使用但是可以回收，比如cache、buffer、slab都有一部分可以回收
-         */
-        //物理内存总量
-        $memTotal = funShellExec("cat /proc/meminfo | grep 'MemTotal' | awk '{print $2}'");
-        $memTotal = $memTotal['result'];
-        $memTotal = (int)trim($memTotal);
+        $meminfo = funShellExec('cat /proc/meminfo')['result'];
 
-        //操作系统可用内存总量（没有使用空闲内存）
-        $memFree =  funShellExec("cat /proc/meminfo | grep 'MemAvailable' | awk '{print $2}'");
-        $memFree = $memFree['result'];
-        $memFree = (int)trim($memFree);
+        preg_match_all('/^([a-zA-Z()_0-9]+)\s*\:\s*([\d\.]+)\s*([a-zA-z]*)$/m', $meminfo, $meminfos);
+        
+        $meminfos = array_combine($meminfos[1], $meminfos[2]);
+        $memTotal = (int)$meminfos['MemTotal'];
+        $memUsed = $memTotal - (int)$meminfos['MemFree'] - (int)$meminfos['Cached'] - (int)$meminfos['Buffers'];
+        $memFree = $memTotal - $memUsed;
 
-        //操作系统已使用内存总量
-        $memUsed =  $memTotal - $memFree;
-
-        //内存使用率
         $percent = round($memUsed / $memTotal * 100, 1);
 
         /**

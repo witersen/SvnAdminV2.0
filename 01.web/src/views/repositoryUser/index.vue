@@ -51,7 +51,7 @@
           <Switch
             v-model="row.svn_user_status"
             false-color="#ff4949"
-            @on-change="(value) => ChangeUserStatus(value, row.svn_user_name)"
+            @on-change="(value) => UpdUserStatus(value, row.svn_user_name)"
           >
             <Icon type="md-checkmark" slot="open"></Icon>
             <Icon type="md-close" slot="close"></Icon>
@@ -358,21 +358,11 @@ export default {
     /**
      * 启用或禁用用户
      */
-    ChangeUserStatus(value, svn_user_name) {
-      if (value == true) {
-        this.UpdUserStatus(svn_user_name, false);
-      } else {
-        this.UpdUserStatus(svn_user_name, true);
-      }
-    },
-    /**
-     * 启用或禁用用户
-     */
-    UpdUserStatus(svn_user_name, disable) {
+    UpdUserStatus(status, svn_user_name) {
       var that = this;
       var data = {
         svn_user_name: svn_user_name,
-        disable: disable,
+        status: status,
       };
       that.$axios
         .post("/api.php?c=Svnuser&a=UpdUserStatus&t=web", data)

@@ -123,21 +123,21 @@ const routers = [
                 },
                 component: (resolve) => require(['./views/personal/index.vue'], resolve),
             },
-            // {
-            //     name: 'subadmin',
-            //     path: '/subadmin',
-            //     meta: {
-            //         title: '子管理员',
-            //         icon: 'md-hand',
-            //         requireAuth: true,
-            //         user_role_id: ['1'],
-            //         group: {
-            //             name: "",
-            //             num: 3
-            //         }
-            //     },
-            //     component: (resolve) => require(['./views/subadmin/index.vue'], resolve),
-            // },
+            {
+                name: 'subadmin',
+                path: '/subadmin',
+                meta: {
+                    title: '子管理员',
+                    icon: 'md-hand',
+                    requireAuth: true,
+                    user_role_id: ['1'],
+                    group: {
+                        name: "",
+                        num: 3
+                    }
+                },
+                component: (resolve) => require(['./views/subadmin/index.vue'], resolve),
+            },
             {
                 //name 绑定了更新的badge 修改要修改全部地方名称
                 name: 'advance',

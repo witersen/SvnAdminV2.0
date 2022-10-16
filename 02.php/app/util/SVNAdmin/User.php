@@ -41,11 +41,11 @@ class User extends Core
                 return $passwdContent . $userStr;
             } else {
                 preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[3], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[3], 'funArrayValueTrim');
 
                 $enabledAllUser = $resultPreg[1];
-                array_walk($enabledAllUser, 'FunArrayValueEnabled');
+                array_walk($enabledAllUser, 'funArrayValueEnabled');
 
                 if (in_array($userName, $resultPreg[1]) || in_array($userName, $enabledAllUser)) {
                     return '1';
@@ -88,8 +88,8 @@ class User extends Core
                 return '1';
             } else {
                 preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[3], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[3], 'funArrayValueTrim');
                 if (in_array($userName, $resultPreg[1])) {
                     $resultStr = "[users]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[3]) as $key => $value) {
@@ -142,7 +142,7 @@ class User extends Core
                 return [];
             } else {
                 preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
                 $result = [];
                 foreach ($resultPreg[1] as $value) {
                     $item = [];
@@ -199,8 +199,8 @@ class User extends Core
                 return [];
             } else {
                 preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[3], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[3], 'funArrayValueTrim');
                 $result = [];
                 foreach (array_combine($resultPreg[1], $resultPreg[3]) as $userName => $userPass) {
                     $item = [];
@@ -240,8 +240,8 @@ class User extends Core
                 return [];
             } else {
                 preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[3], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[3], 'funArrayValueTrim');
                 if (array_search($userName, $resultPreg[1]) !== false) {
                     return $resultPreg[3][array_search($userName, $resultPreg[1])];
                 } else {
@@ -272,8 +272,8 @@ class User extends Core
                 return '1';
             } else {
                 preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[3], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[3], 'funArrayValueTrim');
                 if (in_array($userName, $resultPreg[1])) {
                     $resultStr = "[users]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[3]) as $key => $value) {
@@ -316,12 +316,12 @@ class User extends Core
                 return [];
             } else {
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 $userArray = [];
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                    array_walk($userGroupArray, 'FunArrayValueTrim');
+                    array_walk($userGroupArray, 'funArrayValueTrim');
                     if (in_array($userName, $userGroupArray)) {
                         array_push($userArray, $groupStr);
                     }
@@ -352,7 +352,7 @@ class User extends Core
         $userName = trim($userName);
         preg_match_all(sprintf($this->REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
-            array_walk($authzContentPreg[1], 'FunArrayValueTrim');
+            array_walk($authzContentPreg[1], 'funArrayValueTrim');
             return $authzContentPreg[1];
         } else {
             return [];
@@ -385,8 +385,8 @@ class User extends Core
         $userName = trim($userName);
         preg_match_all(sprintf($this->REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
-            array_walk($authzContentPreg[1], 'FunArrayValueTrim');
-            array_walk($authzContentPreg[3], 'FunArrayValueTrim');
+            array_walk($authzContentPreg[1], 'funArrayValueTrim');
+            array_walk($authzContentPreg[3], 'funArrayValueTrim');
             $result = [];
             foreach (array_combine($authzContentPreg[1], $authzContentPreg[3]) as $key => $value) {
                 $item = [];
@@ -428,9 +428,9 @@ class User extends Core
         $userName = trim($userName);
         preg_match_all(sprintf($this->REG_AUTHZ_USER_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
-            array_walk($authzContentPreg[1], 'FunArrayValueTrim');
-            array_walk($authzContentPreg[2], 'FunArrayValueTrim');
-            array_walk($authzContentPreg[3], 'FunArrayValueTrim');
+            array_walk($authzContentPreg[1], 'funArrayValueTrim');
+            array_walk($authzContentPreg[2], 'funArrayValueTrim');
+            array_walk($authzContentPreg[3], 'funArrayValueTrim');
             $result = [];
             foreach ($authzContentPreg[1] as $key => $value) {
                 array_push($result, [
@@ -473,13 +473,13 @@ class User extends Core
             $temp1 = trim($authzContentPreg1[1][0]);
             if (!empty($temp1)) {
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg1[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 $groupContent = "";
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                     $groupContent .= "$groupStr=";
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                    array_walk($userGroupArray, 'FunArrayValueTrim');
+                    array_walk($userGroupArray, 'funArrayValueTrim');
                     if (in_array($userName, $userGroupArray)) {
                         unset($userGroupArray[array_search($userName, $userGroupArray)]);
                     }
@@ -510,8 +510,8 @@ class User extends Core
                 return '1';
             } else {
                 preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[3], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[3], 'funArrayValueTrim');
                 if (in_array($userName, $resultPreg[1])) {
                     $resultStr = "[users]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[3]) as $key => $value) {
@@ -545,8 +545,8 @@ class User extends Core
                 return '1';
             } else {
                 preg_match_all(sprintf($this->REG_PASSWD_USER_PASSWD, $this->REG_SVN_USER_DISABLED), $passwdContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[3], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[3], 'funArrayValueTrim');
                 if (in_array($this->REG_SVN_USER_DISABLED . $userName, $resultPreg[1])) {
                     $resultStr = "[users]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[3]) as $key => $value) {

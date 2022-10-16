@@ -131,7 +131,7 @@ class Svnuser extends Base
             'svn_user_id',
             'svn_user_name',
             'svn_user_pass',
-            'svn_user_status',
+            'svn_user_status [Int]',
             'svn_user_note'
         ], [
             'AND' => [
@@ -160,7 +160,7 @@ class Svnuser extends Base
         ]);
 
         foreach ($list as $key => $value) {
-            $list[$key]['svn_user_status'] = $value['svn_user_status'] == '1' ? true : false;
+            $list[$key]['svn_user_status'] = $value['svn_user_status'] == 1 ? true : false;
         }
 
         return message(200, 1, '成功', [
@@ -197,8 +197,8 @@ class Svnuser extends Base
      */
     public function UpdUserStatus()
     {
-        //disable true 禁用用户 false 启用用户
-        $result = $this->SVNAdmin->UpdUserStatus($this->passwdContent, $this->payload['svn_user_name'], $this->payload['disable']);
+        //status true 启用用户 false 禁用用户
+        $result = $this->SVNAdmin->UpdUserStatus($this->passwdContent, $this->payload['svn_user_name'], !$this->payload['status']);
         if (is_numeric($result)) {
             if ($result == 621) {
                 return message(200, 0, '文件格式错误(不存在[users]标识)');
@@ -270,7 +270,7 @@ class Svnuser extends Base
         //日志
         $this->Logs->InsertLog(
             '创建用户',
-            sprintf("用户名 %s", $this->payload['svn_user_name']),
+            sprintf("用户名:%s", $this->payload['svn_user_name']),
             $this->userName
         );
 
@@ -353,7 +353,7 @@ class Svnuser extends Base
         //日志
         $this->Logs->InsertLog(
             '删除用户',
-            sprintf("用户名 %s", $this->payload['svn_user_name']),
+            sprintf("用户名:%s", $this->payload['svn_user_name']),
             $this->userName
         );
 

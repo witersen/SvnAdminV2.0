@@ -10,7 +10,7 @@
 /**
  * 对数据每项键值进行trim操作 
  */
-function FunArrayValueTrim(&$value, $key)
+function funArrayValueTrim(&$value, $key)
 {
     $value = trim($value);
 }
@@ -18,7 +18,7 @@ function FunArrayValueTrim(&$value, $key)
 /**
  * 去除数组中的空字符串
  */
-function FunArrayValueFilter($value)
+function funArrayValueFilter($value)
 {
     return trim($value) != '';
 }
@@ -26,7 +26,7 @@ function FunArrayValueFilter($value)
 /**
  * 获取数组中每个键值开始的空格数
  */
-function FunArrayGetStrSpaceCount($string)
+function funArrayGetStrSpaceCount($string)
 {
     for ($i = 0; $i < strlen($string); $i++) {
         if ($string[$i] != ' ') {
@@ -39,7 +39,7 @@ function FunArrayGetStrSpaceCount($string)
 /**
  * 根据数组中每个键值结尾是否包含 / 判断键值是否为目录或文件
  */
-function FunArrayIsStrFolder($string)
+function funArrayIsStrFolder($string)
 {
     if (substr($string, strlen($string) - 1) == '/') {
         return '1';
@@ -51,7 +51,7 @@ function FunArrayIsStrFolder($string)
 /**
  * 对数据每项键值进行去除 #disabled# 操作
  */
-function FunArrayValueEnabled(&$value, $key)
+function funArrayValueEnabled(&$value, $key)
 {
     $REG_SVN_USER_DISABLED = '#disabled#';
 
@@ -63,7 +63,7 @@ function FunArrayValueEnabled(&$value, $key)
 /**
  * 检查表单的参数
  */
-function FunCheckForm($checkedArray, $columns)
+function funCheckForm($checkedArray, $columns)
 {
     //检查数组本身是否合法
     if (empty($checkedArray) || !isset($checkedArray)) {
@@ -79,11 +79,12 @@ function FunCheckForm($checkedArray, $columns)
             return false;
         }
         //检查是否可以为空
-        if ($value['notNull']) {
+        if (isset($value['notNull']) && $value['notNull']) {
             if (empty($checkedArray[$key])) {
                 return false;
             }
         }
     }
+    
     return true;
 }

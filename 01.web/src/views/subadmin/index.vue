@@ -10,71 +10,74 @@
           :md="19"
           :lg="18"
         >
-          <Button icon="md-add" type="primary" ghost @click="ModalCreateUser"
+          <Button
+            icon="md-add"
+            type="primary"
+            ghost
+            @click="ModalCreateSubadmin"
             >新建子管理员</Button
           >
-          <!-- <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
-            >自动识别</Button
-          > -->
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
           <Input
-            v-model="searchKeywordUser"
+            v-model="searchKeywordSubadmin"
             search
             enter-button
-            placeholder="通过SVN用户名、备注搜索..."
+            placeholder="通过用户名、备注信息搜索..."
             style="width: 100%"
-            @on-search="SearchGetUserList"
+            @on-search="SearchGetSubadminList"
         /></Col>
       </Row>
       <Table
-        @on-sort-change="SortChangeUser"
+        @on-sort-change="SortChangeSubadmin"
         border
-        :columns="tableColumnUser"
-        :data="tableDataUser"
-        :loading="loadingUser"
+        :columns="tableColumnSubadmin"
+        :data="tableDataSubadmin"
+        :loading="loadingSubadmin"
         size="small"
       >
         <template slot-scope="{ index }" slot="index">
-          {{ pageSizeUser * (pageCurrentUser - 1) + index + 1 }}
+          {{ pageSizeUser * (pageCurrentSubadmin - 1) + index + 1 }}
         </template>
-        <template slot-scope="{ row }" slot="svn_user_pass">
+        <template slot-scope="{ row }" slot="subadmin_password">
           <Input
             :border="false"
-            v-model="row.svn_user_pass"
+            v-model="row.subadmin_password"
             readonly
             type="password"
             password
           />
         </template>
-        <template slot-scope="{ row }" slot="svn_user_status">
+        <template slot-scope="{ row }" slot="subadmin_status">
           <Switch
-            v-model="row.svn_user_status"
+            v-model="row.subadmin_status"
             false-color="#ff4949"
-            @on-change="(value) => ChangeUserStatus(value, row.svn_user_name)"
+            @on-change="(value) => UpdSubadminStatus(value, row.subadmin_id)"
           >
             <Icon type="md-checkmark" slot="open"></Icon>
             <Icon type="md-close" slot="close"></Icon>
           </Switch>
         </template>
-        <template slot-scope="{ row, index }" slot="svn_user_note">
+        <template slot-scope="{ row, index }" slot="subadmin_note">
           <Input
             :border="false"
-            v-model="tableDataUser[index].svn_user_note"
-            @on-blur="EditUserNote(index, row.svn_user_name)"
+            v-model="tableDataSubadmin[index].subadmin_note"
+            @on-blur="UpdSubadminNote(index, row.subadmin_id)"
           />
         </template>
         <template slot-scope="{ row, index }" slot="action">
           <Button
             type="warning"
             size="small"
-            @click="ModalEditUserPass(index, row.svn_user_name)"
-            >修改</Button
+            @click="
+              ModalUpdSubadminPass(index, row.subadmin_id, row.subadmin_name)
+            "
+            >重置</Button
           >
           <Button
             type="error"
             size="small"
-            @click="DelUser(index, row.svn_user_name)"
+            @click="DelSubadmin(index, row.subadmin_id)"
             >删除</Button
           >
         </template>
@@ -83,7 +86,7 @@
         <Page
           v-if="totalUser != 0"
           :total="totalUser"
-          :current="pageCurrentUser"
+          :current="pageCurrentSubadmin"
           :page-size="pageSizeUser"
           @on-page-size-change="UserPageSizeChange"
           @on-change="UserPageChange"
@@ -92,80 +95,54 @@
         />
       </Card>
     </Card>
-    <Modal v-model="modalCreateUser" title="新建SVN用户">
-      <Form :model="formCreateUser" :label-width="80">
+    <Modal v-model="modalCreateSubadmin" title="新建子管理员">
+      <Form :model="formCreateSubadmin" :label-width="80">
         <FormItem label="用户名">
-          <Input v-model="formCreateUser.svn_user_name"></Input>
-        </FormItem>
-        <FormItem>
-          <Alert type="warning" show-icon
-            >用户名只能包含字母、数字、破折号、下划线、点。</Alert
-          >
+          <Input v-model="formCreateSubadmin.subadmin_name"></Input>
         </FormItem>
         <FormItem label="密码">
           <Input
             type="password"
             password
-            v-model="formCreateUser.svn_user_pass"
+            v-model="formCreateSubadmin.subadmin_password"
           ></Input>
         </FormItem>
         <FormItem label="备注">
-          <Input v-model="formCreateUser.svn_user_note"></Input>
+          <Input v-model="formCreateSubadmin.subadmin_note"></Input>
         </FormItem>
         <FormItem>
           <Button
             type="primary"
-            @click="CreateUser"
-            :loading="loadingCreateUser"
+            @click="CreateSubadmin"
+            :loading="loadingCreateSubadmin"
             >确定</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalCreateUser = false"
+        <Button type="primary" ghost @click="modalCreateSubadmin = false"
           >取消</Button
-        >
-      </div>
-    </Modal>
-    <Modal v-model="modalScanPasswd" title="自动识别">
-      <Input
-        v-model="tempPasswdContent"
-        placeholder="请粘贴 passwd 文件内容
-
-示例：  
-
-[users]
-user1=passwd1
-user2=passwd2
-user3=passwd3"
-        :rows="15"
-        show-word-limit
-        type="textarea"
-      />
-      <div slot="footer">
-        <Button
-          type="primary"
-          ghost
-          @click="ScanPasswd"
-          :loading="loadingScanPasswd"
-          >识别</Button
         >
       </div>
     </Modal>
     <Modal
       v-model="modalEditUserPass"
       :title="titleEditUser"
-      @on-ok="EditUserPass"
+      @on-ok="UpdSubadminPass"
     >
-      <Form :model="formEditUser" :label-width="80">
+      <Form :model="formUpdSubadmin" :label-width="80">
         <FormItem label="新密码">
-          <Input v-model="formEditUser.svn_user_pass"></Input>
+          <Input
+            v-model="formUpdSubadmin.subadmin_password"
+            type="password"
+            password
+          ></Input>
         </FormItem>
         <FormItem>
           <Button
             type="primary"
-            @click="EditUserPass"
-            :loading="loadingEditUserPass"
+            @click="UpdSubadminPass"
+            :loading="loadingUpdSubadminPass"
             >确定</Button
           >
         </FormItem>
@@ -186,33 +163,31 @@ export default {
       /**
        * 分页数据
        */
-      //用户
-      pageCurrentUser: 1,
+      //子管理员
+      pageCurrentSubadmin: 1,
       pageSizeUser: 20,
       totalUser: 0,
 
       /**
        * 搜索关键词
        */
-      searchKeywordUser: "",
+      searchKeywordSubadmin: "",
 
       /**
        * 排序数据
        */
-      sortName: "svn_user_name",
+      sortName: "subadmin_id",
       sortType: "asc",
 
       /**
        * 加载
        */
-      //用户列表
-      loadingUser: true,
-      //创建用户
-      loadingCreateUser: false,
-      //修改用户密码
-      loadingEditUserPass: false,
-      //识别 passwd 文件
-      loadingScanPasswd: false,
+      //子管理员列表
+      loadingSubadmin: true,
+      //创建子管理员
+      loadingCreateSubadmin: false,
+      //重置子管理员密码
+      loadingUpdSubadminPass: false,
 
       /**
        * 临时变量
@@ -224,7 +199,7 @@ export default {
        * 对话框
        */
       //新建仓库
-      modalCreateUser: false,
+      modalCreateSubadmin: false,
       //编辑仓库信息
       modalEditUserPass: false,
       //识别 passwd 文件
@@ -232,17 +207,17 @@ export default {
       /**
        * 表单
        */
-      //新建用户
-      formCreateUser: {
-        svn_user_name: "",
-        svn_user_pass: "",
-        svn_user_note: "",
+      //新建子管理员
+      formCreateSubadmin: {
+        subadmin_name: "",
+        subadmin_password: "",
+        subadmin_note: "",
       },
-      //编辑用户
-      formEditUser: {
-        svn_user_name: "",
-        svn_user_pass: "",
-        index: -1,
+      //编辑子管理员
+      formUpdSubadmin: {
+        subadmin_id: 0,
+        subadmin_name: "",
+        subadmin_password: "",
       },
       /**
        * 标题
@@ -252,7 +227,7 @@ export default {
        * 表格
        */
       //仓库信息
-      tableColumnUser: [
+      tableColumnSubadmin: [
         {
           title: "序号",
           slot: "index",
@@ -261,26 +236,26 @@ export default {
         },
         {
           title: "用户名",
-          key: "svn_user_name",
+          key: "subadmin_name",
           tooltip: true,
           sortable: "custom",
           minWidth: 120,
         },
         {
-          title: "密码",
-          slot: "svn_user_pass",
-          minWidth: 120,
-        },
-        {
           title: "启用状态",
-          key: "svn_user_status",
-          slot: "svn_user_status",
+          key: "subadmin_status",
+          slot: "subadmin_status",
           sortable: "custom",
           minWidth: 120,
         },
         {
           title: "备注信息",
-          slot: "svn_user_note",
+          slot: "subadmin_note",
+          minWidth: 120,
+        },
+        {
+          title: "创建时间",
+          key: "create_time",
           minWidth: 120,
         },
         {
@@ -289,13 +264,13 @@ export default {
           minWidth: 180,
         },
       ],
-      tableDataUser: [],
+      tableDataSubadmin: [],
     };
   },
   computed: {},
   created() {},
   mounted() {
-    this.GetUserList();
+    this.GetSubadminList();
   },
   methods: {
     /**
@@ -304,85 +279,75 @@ export default {
     UserPageSizeChange(value) {
       //设置每页条数
       this.pageSizeUser = value;
-      this.GetUserList();
+      this.GetSubadminList();
     },
     /**
      * 页码改变
      */
     UserPageChange(value) {
       //设置当前页数
-      this.pageCurrentUser = value;
-      this.GetUserList();
+      this.pageCurrentSubadmin = value;
+      this.GetSubadminList();
     },
     /**
-     * 获取SVN用户列表
+     * 获取SVN子管理员列表
      */
-    SearchGetUserList() {
-      // if (this.searchKeywordUser == "") {
+    SearchGetSubadminList() {
+      // if (this.searchKeywordSubadmin == "") {
       //   this.$Message.error("请输入搜索内容");
       //   return;
       // }
-      this.GetUserList();
+      this.GetSubadminList();
     },
-    GetUserList() {
+    GetSubadminList() {
       var that = this;
-      that.loadingUser = true;
-      that.tableDataUser = [];
+      that.loadingSubadmin = true;
+      that.tableDataSubadmin = [];
       // that.totalUser = 0;
       var data = {
         pageSize: that.pageSizeUser,
-        currentPage: that.pageCurrentUser,
-        searchKeyword: that.searchKeywordUser,
+        currentPage: that.pageCurrentSubadmin,
+        searchKeyword: that.searchKeywordSubadmin,
         sortName: that.sortName,
         sortType: that.sortType,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=GetUserList&t=web", data)
+        .post("/api.php?c=Subadmin&a=GetSubadminList&t=web", data)
         .then(function (response) {
-          that.loadingUser = false;
+          that.loadingSubadmin = false;
           var result = response.data;
           if (result.status == 1) {
             // that.$Message.success(result.message);
-            that.tableDataUser = result.data.data;
+            that.tableDataSubadmin = result.data.data;
             that.totalUser = result.data.total;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
-          that.loadingUser = false;
+          that.loadingSubadmin = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
-     * 启用或禁用用户
+     * 启用或禁用子管理员
      */
-    ChangeUserStatus(value, svn_user_name) {
-      if (value == true) {
-        this.UpdUserStatus(svn_user_name, false);
-      } else {
-        this.UpdUserStatus(svn_user_name, true);
-      }
-    },
-    /**
-     * 启用或禁用用户
-     */
-    UpdUserStatus(svn_user_name, disable) {
+    UpdSubadminStatus(status, subadmin_id) {
       var that = this;
       var data = {
-        svn_user_name: svn_user_name,
-        disable: disable,
+        subadmin_id: subadmin_id,
+        status: status,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=UpdUserStatus&t=web", data)
+        .post("/api.php?c=Subadmin&a=UpdSubadminStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetUserList();
+            that.GetSubadminList();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -391,22 +356,22 @@ export default {
         });
     },
     /**
-     * 编辑用户备注信息
+     * 编辑子管理员备注信息
      */
-    EditUserNote(index, svn_user_name) {
+    UpdSubadminNote(index, subadmin_id) {
       var that = this;
       var data = {
-        svn_user_name: svn_user_name,
-        svn_user_note: that.tableDataUser[index].svn_user_note,
+        subadmin_id: subadmin_id,
+        subadmin_note: that.tableDataSubadmin[index].subadmin_note,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=EditUserNote&t=web", data)
+        .post("/api.php?c=Subadmin&a=UpdSubadminNote&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -415,124 +380,89 @@ export default {
         });
     },
     /**
-     * 用户排序
+     * 子管理员排序
      */
-    SortChangeUser(value) {
+    SortChangeSubadmin(value) {
       this.sortName = value.key;
       if (value.order == "desc" || value.order == "asc") {
         this.sortType = value.order;
       }
-      this.GetUserList();
+      this.GetSubadminList();
     },
     /**
-     * 新建用户
+     * 新建子管理员
      */
-    ModalCreateUser() {
-      this.modalCreateUser = true;
+    ModalCreateSubadmin() {
+      this.modalCreateSubadmin = true;
     },
-    CreateUser() {
+    CreateSubadmin() {
       var that = this;
-      that.loadingCreateUser = true;
+      that.loadingCreateSubadmin = true;
       var data = {
-        svn_user_name: that.formCreateUser.svn_user_name,
-        svn_user_pass: that.formCreateUser.svn_user_pass,
-        svn_user_note: that.formCreateUser.svn_user_note,
+        subadmin_name: that.formCreateSubadmin.subadmin_name,
+        subadmin_password: that.formCreateSubadmin.subadmin_password,
+        subadmin_note: that.formCreateSubadmin.subadmin_note,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=CreateUser&t=web", data)
+        .post("/api.php?c=Subadmin&a=CreateSubadmin&t=web", data)
         .then(function (response) {
-          that.loadingCreateUser = false;
+          that.loadingCreateSubadmin = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.modalCreateUser = false;
-            that.GetUserList();
+            that.modalCreateSubadmin = false;
+            that.GetSubadminList();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
-          that.loadingCreateUser = false;
+          that.loadingCreateSubadmin = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
-     * 识别 passwd 文件
+     * 重置子管理员密码
      */
-    ModalScanPasswd() {
-      this.modalScanPasswd = true;
-    },
-    ScanPasswd() {
-      var that = this;
-      that.loadingScanPasswd = true;
-      var data = {
-        passwdContent: that.tempPasswdContent,
-      };
-      that.$axios
-        .post("/api.php?c=Svnuser&a=ScanPasswd&t=web", data)
-        .then(function (response) {
-          that.loadingScanPasswd = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-          } else {
-            that.$Message.error({content: result.message,duration: 2,});
-          }
-        })
-        .catch(function (error) {
-          that.loadingScanPasswd = false;
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
-     * 修改用户密码
-     */
-    ModalEditUserPass(index, svn_user_name) {
+    ModalUpdSubadminPass(index, subadmin_id, subadmin_name) {
       //设置标题
-      this.titleEditUser = "修改密码 - " + svn_user_name;
-      //设置选中用户
-      this.formEditUser.svn_user_name = svn_user_name;
-      //设置密码同步到输入框
-      this.formEditUser.svn_user_pass = this.tableDataUser[index].svn_user_pass;
-      //设置选中下标
-      this.formEditUser.index = index;
+      this.titleEditUser = "重置密码 - " + subadmin_name;
+      //设置选中子管理员
+      this.formUpdSubadmin.subadmin_id = subadmin_id;
       //显示对话框
       this.modalEditUserPass = true;
     },
-    EditUserPass() {
+    UpdSubadminPass() {
       var that = this;
-      that.loadingEditUserPass = true;
+      that.loadingUpdSubadminPass = true;
       var data = {
-        svn_user_name: that.formEditUser.svn_user_name,
-        svn_user_pass: that.formEditUser.svn_user_pass,
-        svn_user_status:
-          that.tableDataUser[that.formEditUser.index].svn_user_status,
+        subadmin_id: that.formUpdSubadmin.subadmin_id,
+        subadmin_password: that.formUpdSubadmin.subadmin_password,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=EditUserPass&t=web", data)
+        .post("/api.php?c=Subadmin&a=UpdSubadminPass&t=web", data)
         .then(function (response) {
-          that.loadingEditUserPass = false;
+          that.loadingUpdSubadminPass = false;
           var result = response.data;
           if (result.status == 1) {
             that.modalEditUserPass = false;
             that.$Message.success(result.message);
-            that.GetUserList();
+            that.GetSubadminList();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
-          that.loadingEditUserPass = false;
+          that.loadingUpdSubadminPass = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
     },
     /**
-     * 删除SVN用户
+     * 删除子管理员
      */
-    DelUser(index, svn_user_name) {
+    DelSubadmin(index, subadmin_id, subadmin_name) {
       var that = this;
       that.$Modal.confirm({
         render: (h) => {
@@ -582,7 +512,7 @@ export default {
                         display: "inline-block",
                       },
                       domProps: {
-                        innerHTML: "删除SVN用户 - " + svn_user_name,
+                        innerHTML: "删除子管理员 - " + subadmin_name,
                       },
                     }),
                     h(
@@ -601,7 +531,7 @@ export default {
                               fontSize: "15px",
                             },
                           },
-                          "删除SVN用户 - " + svn_user_name
+                          "删除子管理员 - " + subadmin_name
                         ),
                       ]
                     ),
@@ -619,8 +549,7 @@ export default {
                 h("p", {
                   style: { marginBottom: "15px" },
                   domProps: {
-                    innerHTML:
-                      "确定要删除该用户吗？<br/>将会从所有仓库和分组下将该用户移除！<br/>该操作不可逆！",
+                    innerHTML: "确定要删除该子管理员吗？<br/>该操作不可逆！",
                   },
                 }),
               ]
@@ -629,18 +558,17 @@ export default {
         },
         onOk: () => {
           var data = {
-            svn_user_name: svn_user_name,
-            svn_user_status: that.tableDataUser[index].svn_user_status,
+            subadmin_id: subadmin_id,
           };
           that.$axios
-            .post("/api.php?c=Svnuser&a=DelUser&t=web", data)
+            .post("/api.php?c=Subadmin&a=DelSubadmin&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetUserList();
+                that.GetSubadminList();
               } else {
-                that.$Message.error({content: result.message,duration: 2,});
+                that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {

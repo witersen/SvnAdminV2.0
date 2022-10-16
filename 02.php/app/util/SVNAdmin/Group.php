@@ -35,8 +35,8 @@ class Group extends Core
                 return str_replace($authzContentPreg[0][0], str_replace("[groups]", $groupContent, $authzContentPreg[0][0]), $authzContent);
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
                     return '1';
                 } else {
@@ -44,7 +44,7 @@ class Group extends Core
                     foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                         $groupContent .= "$groupStr=";
                         $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                        array_walk($userGroupArray, 'FunArrayValueTrim');
+                        array_walk($userGroupArray, 'funArrayValueTrim');
                         $groupContent .=  implode(',', $userGroupArray) . "\n";
                     }
                     $groupContent .= "$groupName=\n";
@@ -75,8 +75,8 @@ class Group extends Core
             $temp1 = trim($authzContentPreg[1][0]);
             if (!empty($temp1)) {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
                     $groupContent = "";
                     foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
@@ -86,7 +86,7 @@ class Group extends Core
                         }
                         $groupContent .= "$groupStr=";
                         $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                        array_walk($userGroupArray, 'FunArrayValueTrim');
+                        array_walk($userGroupArray, 'funArrayValueTrim');
                         //处理右值
                         foreach ($userGroupArray as $key => $value) {
                             if ($value == "@$groupName") {
@@ -127,8 +127,8 @@ class Group extends Core
             $temp1 = trim($authzContentPreg[1][0]);
             if (!empty($temp1)) {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 $groupContent = "";
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                     //处理左值
@@ -137,7 +137,7 @@ class Group extends Core
                     }
                     $groupContent .= "$groupStr=";
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                    array_walk($userGroupArray, 'FunArrayValueTrim');
+                    array_walk($userGroupArray, 'funArrayValueTrim');
                     //处理右值
                     foreach ($userGroupArray as $key => $value) {
                         if ($value == "@$oldGroup") {
@@ -181,7 +181,7 @@ class Group extends Core
                 return [];
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
                 return $resultPreg[1];
             }
         } else {
@@ -218,13 +218,13 @@ class Group extends Core
                 return [];
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
                     $groupArray = [];
                     foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                         $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                        array_walk($userGroupArray, 'FunArrayValueTrim');
+                        array_walk($userGroupArray, 'funArrayValueTrim');
                         if (in_array("@$groupName", $userGroupArray)) {
                             array_push($groupArray, $groupStr);
                         }
@@ -268,12 +268,12 @@ class Group extends Core
                 return '1';
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
                     $userGroupStr = array_combine($resultPreg[1], $resultPreg[2])[$groupName];
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                    array_walk($userGroupArray, 'FunArrayValueTrim');
+                    array_walk($userGroupArray, 'funArrayValueTrim');
                     $userArray = [];
                     foreach ($userGroupArray as $key => $value) {
                         if (substr($value, 0, 1) != '@') {
@@ -319,12 +319,12 @@ class Group extends Core
                 return '1';
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
                     $userGroupStr = array_combine($resultPreg[1], $resultPreg[2])[$groupName];
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                    array_walk($userGroupArray, 'FunArrayValueTrim');
+                    array_walk($userGroupArray, 'funArrayValueTrim');
                     $groupArray = [];
                     foreach ($userGroupArray as $key => $value) {
                         if (substr($value, 0, 1) == '@') {
@@ -395,14 +395,14 @@ class Group extends Core
                 return [];
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 $result = [];
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                     $userArray = [];
                     $groupArray = [];
                     $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr); //解决 key=value 中 value 为空的匹配的bug
-                    array_walk($userGroupArray, 'FunArrayValueTrim');
+                    array_walk($userGroupArray, 'funArrayValueTrim');
                     foreach ($userGroupArray as $key => $value) {
                         substr($value, 0, 1) == '@' ? array_push($groupArray, substr($value, 1, strlen($value) - 1)) : array_push($userArray, $value);
                     }
@@ -440,14 +440,14 @@ class Group extends Core
                 return '1';
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
                     $groupContent = "[groups]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                         $groupContent .= "$groupStr=";
                         $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                        array_walk($userGroupArray, 'FunArrayValueTrim');
+                        array_walk($userGroupArray, 'funArrayValueTrim');
                         if ($groupStr == $groupName) {
                             if (in_array($userName, $userGroupArray)) {
                                 return '2';
@@ -485,14 +485,14 @@ class Group extends Core
                 return '1';
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
                     $groupContent = "[groups]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                         $groupContent .= "$groupStr=";
                         $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                        array_walk($userGroupArray, 'FunArrayValueTrim');
+                        array_walk($userGroupArray, 'funArrayValueTrim');
                         if ($groupStr == $groupName) {
                             if (in_array($userName, $userGroupArray)) {
                                 unset($userGroupArray[array_search($userName, $userGroupArray)]);
@@ -535,14 +535,14 @@ class Group extends Core
                 return '1';
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
                     $groupContent = "[groups]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                         $groupContent .= "$groupStr=";
                         $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                        array_walk($userGroupArray, 'FunArrayValueTrim');
+                        array_walk($userGroupArray, 'funArrayValueTrim');
                         if ($groupStr == $groupName) {
                             if (in_array("@$groupName2", $userGroupArray)) {
                                 return '2';
@@ -580,14 +580,14 @@ class Group extends Core
                 return '1';
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_KEY_VALUE, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 if (in_array($groupName, $resultPreg[1])) {
                     $groupContent = "[groups]\n";
                     foreach (array_combine($resultPreg[1], $resultPreg[2]) as $groupStr => $userGroupStr) {
                         $groupContent .= "$groupStr=";
                         $userGroupArray = $userGroupStr == '' ? [] : explode(',', $userGroupStr);
-                        array_walk($userGroupArray, 'FunArrayValueTrim');
+                        array_walk($userGroupArray, 'funArrayValueTrim');
                         if ($groupStr == $groupName) {
                             if (in_array("@$groupName2", $userGroupArray)) {
                                 unset($userGroupArray[array_search("@$groupName2", $userGroupArray)]);
@@ -625,7 +625,7 @@ class Group extends Core
         $groupName = trim($groupName);
         preg_match_all(sprintf($this->REG_AUTHZ_GROUP_PRI_REPS, $groupName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
-            array_walk($authzContentPreg[1], 'FunArrayValueTrim');
+            array_walk($authzContentPreg[1], 'funArrayValueTrim');
             return $authzContentPreg[1];
         } else {
             return [];
@@ -658,8 +658,8 @@ class Group extends Core
         $groupName = trim($groupName);
         preg_match_all(sprintf($this->REG_AUTHZ_GROUP_PRI_REPS, $groupName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
-            array_walk($authzContentPreg[1], 'FunArrayValueTrim');
-            array_walk($authzContentPreg[3], 'FunArrayValueTrim');
+            array_walk($authzContentPreg[1], 'funArrayValueTrim');
+            array_walk($authzContentPreg[3], 'funArrayValueTrim');
             $result = [];
             foreach (array_combine($authzContentPreg[1], $authzContentPreg[3]) as $key => $value) {
                 $item = [];
@@ -681,9 +681,9 @@ class Group extends Core
         $groupName = trim($groupName);
         preg_match_all(sprintf($this->REG_AUTHZ_GROUP_PRI_REPS, $groupName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
-            array_walk($authzContentPreg[1], 'FunArrayValueTrim');
-            array_walk($authzContentPreg[2], 'FunArrayValueTrim');
-            array_walk($authzContentPreg[3], 'FunArrayValueTrim');
+            array_walk($authzContentPreg[1], 'funArrayValueTrim');
+            array_walk($authzContentPreg[2], 'funArrayValueTrim');
+            array_walk($authzContentPreg[3], 'funArrayValueTrim');
             $result = [];
             foreach ($authzContentPreg[1] as $key => $value) {
                 array_push($result, [

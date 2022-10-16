@@ -46,7 +46,7 @@
           <Switch
             v-model="row.status"
             false-color="#ff4949"
-            @on-change="(value) => ChangeCrondStatus(value, row.crond_id)"
+            @on-change="(value) => UpdCrondStatus(value, row.crond_id)"
           >
             <Icon type="md-checkmark" slot="open"></Icon>
             <Icon type="md-close" slot="close"></Icon>
@@ -546,7 +546,7 @@ export default {
           minWidth: 140,
         },
         {
-          title: "操作",
+          title: "其它",
           slot: "action",
           width: 240,
         },
@@ -608,23 +608,13 @@ export default {
       this.GetCrondList();
     },
     /**
-     * 启用或禁用任务计划
-     */
-    ChangeCrondStatus(value, crond_id) {
-      if (value == true) {
-        this.UpdCrondStatus(crond_id, false);
-      } else {
-        this.UpdCrondStatus(crond_id, true);
-      }
-    },
-    /**
      * 启用或禁用用户
      */
-    UpdCrondStatus(crond_id, disable) {
+    UpdCrondStatus(status, crond_id) {
       var that = this;
       var data = {
         crond_id: crond_id,
-        disable: disable,
+        status: status,
       };
       that.$axios
         .post("/api.php?c=Crond&a=UpdCrondStatus&t=web", data)

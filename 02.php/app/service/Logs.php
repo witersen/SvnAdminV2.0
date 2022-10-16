@@ -43,7 +43,10 @@ class Logs extends Base
                     'log_add_time[~]' => $searchKeyword,
                 ],
             ],
-            'LIMIT' => [$begin, $pageSize]
+            'LIMIT' => [$begin, $pageSize],
+            'ORDER' => [
+                'log_add_time' => 'DESC'
+            ]
         ]);
 
         $total = $this->database->count('logs', [

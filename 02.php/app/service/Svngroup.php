@@ -209,7 +209,7 @@ class Svngroup extends Base
         //日志
         $this->Logs->InsertLog(
             '创建分组',
-            sprintf("分组名 %s", $this->payload['svn_group_name']),
+            sprintf("分组名:%s", $this->payload['svn_group_name']),
             $this->userName
         );
 
@@ -243,7 +243,7 @@ class Svngroup extends Base
         //日志
         $this->Logs->InsertLog(
             '删除分组',
-            sprintf("分组名 %s", $this->payload['svn_group_name']),
+            sprintf("分组名:%s", $this->payload['svn_group_name']),
             $this->userName
         );
 

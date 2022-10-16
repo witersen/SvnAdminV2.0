@@ -212,6 +212,9 @@ class Command
             $cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $rep, $this->config_svn['backup_base_path'] .  $backupName);
             passthru($cmd . " 2>$stderrFile", $this->code);
 
+            // $cmd = sprintf("'%s' dump '%s' > '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $rep, $this->config_svn['backup_base_path'] .  $backupName);
+            // passthru($cmd . " 2>$stderrFile", $this->code);
+
             if ($this->code == 0) {
                 print_r(sprintf('仓库[%s]备份结束%s', $rep, PHP_EOL));
             } else {

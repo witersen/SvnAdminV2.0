@@ -74,7 +74,7 @@ class Common extends Base
             }
         }
 
-        $checkResult = FunCheckForm($this->payload, [
+        $checkResult = funCheckForm($this->payload, [
             'user_name' => ['type' => 'string', 'notNull' => true],
             'user_pass' => ['type' => 'string', 'notNull' => true],
             'user_role' => ['type' => 'string', 'notNull' => true],
@@ -123,7 +123,7 @@ class Common extends Base
         //日志
         $this->Logs->InsertLog(
             '用户登录',
-            sprintf("账号 %s IP地址 %s", $this->payload['user_name'], $_SERVER["REMOTE_ADDR"]),
+            sprintf("账号:%s IP地址:%s", $this->payload['user_name'], $_SERVER["REMOTE_ADDR"]),
             $this->payload['user_name']
         );
 
@@ -176,7 +176,7 @@ class Common extends Base
         //日志
         $this->Logs->InsertLog(
             '用户注销',
-            sprintf("账号 %s IP地址 %s", $this->userName, $_SERVER["REMOTE_ADDR"]),
+            sprintf("账号:%s IP地址:%s", $this->userName, $_SERVER["REMOTE_ADDR"]),
             $this->userName
         );
 

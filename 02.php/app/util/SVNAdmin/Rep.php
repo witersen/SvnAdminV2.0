@@ -48,7 +48,7 @@ class Rep extends Core
                 return [];
             } else {
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
                 return $resultPreg[1];
             }
         } else {
@@ -96,8 +96,8 @@ class Rep extends Core
                 return [];
             } else {
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 $result = [];
                 //注意$value的值 不限于合法的 r 、rw、空 以及不合法的其它字符
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $key => $value) {
@@ -145,7 +145,7 @@ class Rep extends Core
                 return [];
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
                 return $resultPreg[1];
             }
         } else {
@@ -193,8 +193,8 @@ class Rep extends Core
                 return [];
             } else {
                 preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
                 $result = [];
                 foreach (array_combine($resultPreg[1], $resultPreg[2]) as $key => $value) {
                     $item = [];
@@ -236,13 +236,13 @@ class Rep extends Core
             } else {
                 //进一步判断有没有用户数据
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
 
                 //处理分组
                 preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
-                array_walk($resultPregGroup[1], 'FunArrayValueTrim');
-                array_walk($resultPregGroup[2], 'FunArrayValueTrim');
+                array_walk($resultPregGroup[1], 'funArrayValueTrim');
+                array_walk($resultPregGroup[2], 'funArrayValueTrim');
 
                 if (in_array($user, $resultPreg[1])) {
                     //编辑
@@ -310,13 +310,13 @@ class Rep extends Core
             } else {
                 //进一步判断有没有用户数据
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
 
                 //处理分组
                 preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
-                array_walk($resultPregGroup[1], 'FunArrayValueTrim');
-                array_walk($resultPregGroup[2], 'FunArrayValueTrim');
+                array_walk($resultPregGroup[1], 'funArrayValueTrim');
+                array_walk($resultPregGroup[2], 'funArrayValueTrim');
 
                 if (in_array($user, $resultPreg[1])) {
                     //删除
@@ -368,13 +368,13 @@ class Rep extends Core
             } else {
                 //进一步判断有没有用户数据
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
 
                 //处理分组
                 preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
-                array_walk($resultPregGroup[1], 'FunArrayValueTrim');
-                array_walk($resultPregGroup[2], 'FunArrayValueTrim');
+                array_walk($resultPregGroup[1], 'funArrayValueTrim');
+                array_walk($resultPregGroup[2], 'funArrayValueTrim');
 
                 //编辑
                 $userContent = "[$repName:$repPath]\n";
@@ -425,13 +425,13 @@ class Rep extends Core
             } else {
                 //进一步判断有没有分组数据
                 preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
-                array_walk($resultPregGroup[1], 'FunArrayValueTrim');
-                array_walk($resultPregGroup[2], 'FunArrayValueTrim');
+                array_walk($resultPregGroup[1], 'funArrayValueTrim');
+                array_walk($resultPregGroup[2], 'funArrayValueTrim');
 
                 //处理用户
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
 
                 if (in_array($group, $resultPregGroup[1])) {
                     //编辑
@@ -499,13 +499,13 @@ class Rep extends Core
             } else {
                 //进一步判断有没有分组数据
                 preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
-                array_walk($resultPregGroup[1], 'FunArrayValueTrim');
-                array_walk($resultPregGroup[2], 'FunArrayValueTrim');
+                array_walk($resultPregGroup[1], 'funArrayValueTrim');
+                array_walk($resultPregGroup[2], 'funArrayValueTrim');
 
                 //处理用户
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
 
                 if (in_array($group, $resultPregGroup[1])) {
                     //编辑
@@ -559,13 +559,13 @@ class Rep extends Core
             } else {
                 //进一步判断有没有分组数据
                 preg_match_all($this->REG_AUTHZ_GROUP_PRI, $authzContentPreg[1][0], $resultPregGroup);
-                array_walk($resultPregGroup[1], 'FunArrayValueTrim');
-                array_walk($resultPregGroup[2], 'FunArrayValueTrim');
+                array_walk($resultPregGroup[1], 'funArrayValueTrim');
+                array_walk($resultPregGroup[2], 'funArrayValueTrim');
 
                 //处理用户
                 preg_match_all($this->REG_AUTHZ_USER_PRI, $authzContentPreg[1][0], $resultPreg);
-                array_walk($resultPreg[1], 'FunArrayValueTrim');
-                array_walk($resultPreg[2], 'FunArrayValueTrim');
+                array_walk($resultPreg[1], 'funArrayValueTrim');
+                array_walk($resultPreg[2], 'funArrayValueTrim');
 
                 if (in_array($group, $resultPregGroup[1])) {
                     //编辑
@@ -674,7 +674,7 @@ class Rep extends Core
     function GetNoPathAndConRepAuthz($authzContent)
     {
         preg_match_all($this->REG_AUTHZ_ALL_REP_WITHOUT_PATH_AND_CON, $authzContent, $authzContentPreg);
-        array_walk($authzContentPreg[1], 'FunArrayValueTrim');
+        array_walk($authzContentPreg[1], 'funArrayValueTrim');
         return array_values(array_unique($authzContentPreg[1]));
     }
 
@@ -727,8 +727,8 @@ class Rep extends Core
         $userName = '*';
         preg_match_all(sprintf($this->REG_AUTHZ_ALL_HAVE_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
-            array_walk($authzContentPreg[1], 'FunArrayValueTrim');
-            array_walk($authzContentPreg[3], 'FunArrayValueTrim');
+            array_walk($authzContentPreg[1], 'funArrayValueTrim');
+            array_walk($authzContentPreg[3], 'funArrayValueTrim');
             $result = [];
             foreach (array_combine($authzContentPreg[1], $authzContentPreg[3]) as $key => $value) {
                 $item = [];
@@ -761,8 +761,8 @@ class Rep extends Core
         $userName = '*';
         preg_match_all(sprintf($this->REG_AUTHZ_ALL_HAVE_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
-            array_walk($authzContentPreg[1], 'FunArrayValueTrim');
-            array_walk($authzContentPreg[3], 'FunArrayValueTrim');
+            array_walk($authzContentPreg[1], 'funArrayValueTrim');
+            array_walk($authzContentPreg[3], 'funArrayValueTrim');
             $result = [];
             foreach (array_combine($authzContentPreg[1], $authzContentPreg[3]) as $key => $value) {
                 array_push($result, $key);
@@ -782,8 +782,8 @@ class Rep extends Core
         $userName = '*';
         preg_match_all(sprintf($this->REG_AUTHZ_ALL_NO_PRI_REPS, $userName), $authzContent, $authzContentPreg);
         if (array_key_exists(0, $authzContentPreg[1])) {
-            array_walk($authzContentPreg[1], 'FunArrayValueTrim');
-            array_walk($authzContentPreg[3], 'FunArrayValueTrim');
+            array_walk($authzContentPreg[1], 'funArrayValueTrim');
+            array_walk($authzContentPreg[3], 'funArrayValueTrim');
             $result = [];
             foreach (array_combine($authzContentPreg[1], $authzContentPreg[3]) as $key => $value) {
                 if ($value == '') {
@@ -907,11 +907,11 @@ class Rep extends Core
         // $cmdResult = funShellExec($svnadminInfoCmd);
         $treeArray = explode("\n", $cmdResult);
         //去除数组中的空字符串键值 通常为最后一项
-        $treeArray = array_filter($treeArray, 'FunArrayValueFilter');
+        $treeArray = array_filter($treeArray, 'funArrayValueFilter');
         //获取对应空格数开头的数组
-        $spaceCountArray = array_map('FunArrayGetStrSpaceCount', $treeArray);
+        $spaceCountArray = array_map('funArrayGetStrSpaceCount', $treeArray);
         //获取是否为目录或者文件的数组
-        $isFolderArray = array_map('FunArrayIsStrFolder', $treeArray);
+        $isFolderArray = array_map('funArrayIsStrFolder', $treeArray);
         //合并数组
         $complateArray = [];
         foreach ($treeArray as $key => $value) {

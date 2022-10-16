@@ -30,6 +30,11 @@ function FunGetColor($percent)
             'value' => 0,
             'color' => '#28bcfe'
         ],
+        [
+            'title' => '未知',
+            'value' => -1,
+            'color' => '#ed4014'
+        ],
     ];
 
     foreach ($array as $value) {
@@ -37,4 +42,6 @@ function FunGetColor($percent)
             return $value;
         }
     }
+
+    return end($array);
 }

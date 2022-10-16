@@ -36,7 +36,7 @@ class Svnrep extends Base
     public function CreateRep()
     {
         //检查表单
-        $checkResult = FunCheckForm($this->payload, [
+        $checkResult = funCheckForm($this->payload, [
             'rep_name' => ['type' => 'string', 'notNull' => true],
             'rep_note' => ['type' => 'string', 'notNull' => false],
             'rep_type' => ['type' => 'string', 'notNull' => true],
@@ -99,7 +99,7 @@ class Svnrep extends Base
         //日志
         $this->Logs->InsertLog(
             '创建仓库',
-            sprintf("仓库名 %s", $this->payload['rep_name']),
+            sprintf("仓库名:%s", $this->payload['rep_name']),
             $this->userName
         );
 
@@ -598,7 +598,7 @@ class Svnrep extends Base
                 $lastRevLog = $this->SVNAdminRep->GetRepFileLog($repName, $lastRev);
 
                 $pathArray = explode('/', $value);
-                $pathArray = array_values(array_filter($pathArray, 'FunArrayValueFilter'));
+                $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
                 $pathArrayCount = count($pathArray);
                 if (substr($value, strlen($value) - 1, 1) == '/') {
                     array_push($data, [
@@ -717,7 +717,7 @@ class Svnrep extends Base
             $lastRevLog = $this->SVNAdminRep->GetRepFileLog($this->payload['rep_name'], $lastRev);
 
             $pathArray = explode('/', $value);
-            $pathArray = array_values(array_filter($pathArray, 'FunArrayValueFilter'));
+            $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
             $pathArrayCount = count($pathArray);
             if (substr($value, strlen($value) - 1, 1) == '/') {
                 array_push($data, [
@@ -811,7 +811,7 @@ class Svnrep extends Base
         $data = [];
         foreach ($resultArray as $value) {
             $pathArray = explode('/', $value);
-            $pathArray = array_values(array_filter($pathArray, 'FunArrayValueFilter'));
+            $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
             $pathArrayCount = count($pathArray);
             if (substr($value, strlen($value) - 1, 1) == '/') {
                 array_push($data, [
@@ -1056,7 +1056,7 @@ class Svnrep extends Base
         //日志
         $this->Logs->InsertLog(
             '修改仓库名称',
-            sprintf("原仓库名 %s 新仓库名 %s", $this->payload['old_rep_name'], $this->payload['new_rep_name']),
+            sprintf("原仓库名:%s 新仓库名:%s", $this->payload['old_rep_name'], $this->payload['new_rep_name']),
             $this->userName
         );
 
@@ -1094,7 +1094,7 @@ class Svnrep extends Base
         //日志
         $this->Logs->InsertLog(
             '删除仓库',
-            sprintf("仓库名 %s", $this->payload['rep_name']),
+            sprintf("仓库名:%s", $this->payload['rep_name']),
             $this->userName
         );
 
