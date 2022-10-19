@@ -139,14 +139,13 @@ php install.php
 
 - 参考视频：[SVNAdmin V2.2.1 系统部署与使用演示视频【针对宝塔面板】]( https://www.bilibili.com/video/BV1XR4y1H7p3?share_source=copy_web&vd_source=f4620db503611c42618f1afd9c8afecd) 
 
-
 ### 3、在ubutntu18安装示例
 
-- 注意以root用户执行 server/install.php 和 server/svnadmind.php 即可
+- 步骤同1（注意需要以root用户执行 server/install.php 和 server/svnadmind.php ）
 
 ### 4、在Rocky安装示例
 
-- 无注意事项
+- 步骤同1
 
 ## 二、docker安装
 
