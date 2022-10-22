@@ -203,10 +203,10 @@ class Common extends Base
         $this->Clean();
 
         //生成验证码
-        $code = FunGetRandStrL(4);
+        $code = funGetRandStrL(4);
 
         //生成唯一标识
-        $uuid = time() . FunGetRandStr() . FunGetRandStr();
+        $uuid = time() . funGetRandStr() . funGetRandStr();
 
         //
         $prefix = time();

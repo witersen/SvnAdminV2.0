@@ -28,8 +28,11 @@ class Statistics extends Base
         /**
          * ----------负载计算开始----------
          */
-        $laodavg = funShellExec("cat /proc/loadavg | awk '{print $1,$2,$3}'");
-        $laodavg = $laodavg['result'];
+        if (is_readable('/proc/loadavg')) {
+            $laodavg = file_get_contents('/proc/loadavg');
+        } else {
+            $laodavg = funShellExec("cat /proc/loadavg | awk '{print $1,$2,$3}'")['result'];
+        }
         $laodavgArray = explode(' ', $laodavg);
 
         //获取CPU15分钟前到现在的负载平均值
@@ -42,9 +45,12 @@ class Statistics extends Base
         $cpuLoad1Min = (float)trim($laodavgArray[0]);
 
         //获取cpu总核数
-        $cpuCount  = funShellExec('grep -c "model name" /proc/cpuinfo');
-        $cpuCount = $cpuCount['result'];
-        $cpuCount = (int)trim($cpuCount);
+        if (is_readable('/proc/cpuinfo')) {
+            $cpuCount = substr_count(file_get_contents('/proc/cpuinfo'), 'model name');
+        } else {
+            $cpuCount  = funShellExec('grep -c "model name" /proc/cpuinfo')['result'];
+            $cpuCount = (int)trim($cpuCount);
+        }
 
         //一分钟的平均负载 / （cpu总核数 * 2），超过100则为100 不超100为真实值取整
         $percent = round($cpuLoad1Min / ($cpuCount * 2) * 100, 1);
@@ -60,8 +66,8 @@ class Statistics extends Base
             'cpuLoad5Min' => $cpuLoad5Min,
             'cpuLoad1Min' => $cpuLoad1Min,
             'percent' => $percent,
-            'color' => FunGetColor($percent)['color'],
-            'title' => FunGetColor($percent)['title']
+            'color' => funGetColor($percent)['color'],
+            'title' => funGetColor($percent)['title']
         ];
 
         /**
@@ -88,33 +94,54 @@ class Statistics extends Base
 
         //cpu型号
         $cpuModelArray = [];
-        $cpuModelName = funShellExec("cat /proc/cpuinfo | grep 'model name' | uniq");
-        $cpuModelName = $cpuModelName['result'];
-        $explodeArray = explode("\n", trim($cpuModelName));
-        foreach ($explodeArray as $value) {
-            if (trim($value) != '') {
-                $tempArray = explode(':', $value);
-                array_push($cpuModelArray, trim($tempArray[1]));
+        if (is_readable('/proc/cpuinfo')) {
+            $cpuModelName = explode("\n", file_get_contents('/proc/cpuinfo'));
+            foreach ($cpuModelName as $value) {
+                if (strstr($value, 'model name')) {
+                    $tempArray = explode(':', $value);
+                    in_array(trim($tempArray[1]), $cpuModelArray) ? '' : array_push($cpuModelArray, trim($tempArray[1]));
+                }
+            }
+        } else {
+            $cpuModelName = funShellExec("cat /proc/cpuinfo | grep 'model name' | uniq")['result'];
+            $explodeArray = explode("\n", trim($cpuModelName));
+            foreach ($explodeArray as $value) {
+                if (trim($value) != '') {
+                    $tempArray = explode(':', $value);
+                    array_push($cpuModelArray, trim($tempArray[1]));
+                }
             }
         }
 
-        //物理cpu个数
-        $cpuPhysical = funShellExec("cat /proc/cpuinfo | grep 'physical id' | sort -u | wc -l");
-        $cpuPhysical = $cpuPhysical['result'];
-        $cpuPhysical = (int)trim($cpuPhysical);
+        $cpuPhysical = 0;
+        $cpuPhysicalCore = 0;
+        $cpuProcessor = 0;
+        if (is_readable('/proc/cpuinfo')) {
+            $cpuInfo = explode("\n", file_get_contents('/proc/cpuinfo'));
+            $cpuPhysicalArray = [];
+            foreach ($cpuInfo as $value) {
+                if (strstr($value, 'physical id')) {
+                    in_array($value, $cpuPhysicalArray) ? '' : array_push($cpuPhysicalArray, $value);
+                } else if (strstr($value, 'cpu cores')) {
+                    $cpuPhysicalCore++;
+                } else if (strstr($value, 'processor')) {
+                    $cpuProcessor++;
+                }
+            }
+            $cpuPhysical = count($cpuPhysicalArray);
+        } else {
+            //物理cpu个数
+            $cpuPhysical = (int)trim(funShellExec("cat /proc/cpuinfo | grep 'physical id' | sort -u | wc -l")['result']);
 
-        //每个物理cpu的物理核心数
-        $cpuPhysicalCore = funShellExec("cat /proc/cpuinfo | grep 'cpu cores' | wc -l");
-        $cpuPhysicalCore = $cpuPhysicalCore['result'];
-        $cpuPhysicalCore = (int)trim($cpuPhysicalCore);
+            //每个物理cpu的物理核心数
+            $cpuPhysicalCore = (int)trim(funShellExec("cat /proc/cpuinfo | grep 'cpu cores' | wc -l")['result']);
+
+            //逻辑核心总数（线程总数）
+            $cpuProcessor = (int)trim(funShellExec("cat /proc/cpuinfo | grep 'processor' | wc -l")['result']);
+        }
 
         //总物理核心数 = 物理cpu个数 * 每个物理cpu的物理核心数（每个物理cpu的物理核心数都一样吗？）
         $cpuCore = $cpuPhysical * $cpuPhysicalCore;
-
-        //逻辑核心总数（线程总数）
-        $cpuProcessor = funShellExec("cat /proc/cpuinfo | grep 'processor' | wc -l");
-        $cpuProcessor = $cpuProcessor['result'];
-        $cpuProcessor = (int)trim($cpuProcessor);
 
         /**
          * ----------cpu计算结束----------
@@ -126,16 +153,20 @@ class Statistics extends Base
             'cpuPhysicalCore' => $cpuPhysicalCore,
             'cpuCore' => $cpuCore,
             'cpuProcessor' => $cpuProcessor,
-            'color' => FunGetColor($id)['color']
+            'color' => funGetColor($id)['color']
         ];
 
         /**
          * ----------内存计算开始----------
          */
-        $meminfo = funShellExec('cat /proc/meminfo')['result'];
+        if (is_readable('/proc/meminfo')) {
+            $meminfo = file_get_contents('/proc/meminfo');
+        } else {
+            $meminfo = funShellExec('cat /proc/meminfo')['result'];
+        }
 
         preg_match_all('/^([a-zA-Z()_0-9]+)\s*\:\s*([\d\.]+)\s*([a-zA-z]*)$/m', $meminfo, $meminfos);
-        
+
         $meminfos = array_combine($meminfos[1], $meminfos[2]);
         $memTotal = (int)$meminfos['MemTotal'];
         $memUsed = $memTotal - (int)$meminfos['MemFree'] - (int)$meminfos['Cached'] - (int)$meminfos['Buffers'];
@@ -151,7 +182,7 @@ class Statistics extends Base
             'memUsed' => round($memUsed / 1024),
             'memFree' => round($memFree / 1024),
             'percent' => $percent,
-            'color' => FunGetColor($percent)['color']
+            'color' => funGetColor($percent)['color']
         ];
 
         return message(200, 1, '成功', $data);
@@ -186,7 +217,7 @@ class Statistics extends Base
                     'avail' => $diskInfo[3],
                     'percent' => (int)str_replace('%', '', $diskInfo[4]),
                     'mountedOn' => $diskInfo[5],
-                    'color' => FunGetColor((int)str_replace('%', '', $diskInfo[4]))['color']
+                    'color' => funGetColor((int)str_replace('%', '', $diskInfo[4]))['color']
                 ]);
             }
         }
@@ -221,10 +252,10 @@ class Statistics extends Base
         }
 
         //仓库占用体积
-        $repSize = FunFormatSize(FunGetDirSizeDu($this->config_svn['rep_base_path']));
+        $repSize = funFormatSize(funGetDirSizeDu($this->config_svn['rep_base_path']));
 
         //备份占用体积
-        $backupSize = FunFormatSize(FunGetDirSizeDu($this->config_svn['backup_base_path']));
+        $backupSize = funFormatSize(funGetDirSizeDu($this->config_svn['backup_base_path']));
 
         //SVN仓库数量
         $repCount = count($this->SVNAdminRep->GetSimpleRepList());

@@ -88,6 +88,9 @@ class Svnrep extends Base
         funFilePutContents($this->config_svn['svn_authz_file'], $result);
 
         //写入数据库
+        $this->database->delete('svn_reps', [
+            'rep_name' =>  $this->payload['rep_name'],
+        ]);
         $this->database->insert('svn_reps', [
             'rep_name' => $this->payload['rep_name'],
             'rep_size' => 0,
@@ -107,53 +110,75 @@ class Svnrep extends Base
     }
 
     /**
-     * 物理仓库 => svn_reps数据表
-     * 
-     * 1、将物理仓库存在而没有写入数据库的记录写入数据库
-     * 2、将物理仓库已经删除但是数据库依然存在的从数据库删除
+     * SVN仓库 => 数据库
      */
     private function SyncRepAndDb()
     {
-        $svnRepList = $this->SVNAdminRep->GetSimpleRepList();
-
+        /**
+         * 删除数据表重复插入的项
+         */
         $dbRepList = $this->database->select('svn_reps', [
+            'rep_id',
+            'rep_name',
+        ], [
+            'GROUP' => [
+                'rep_name'
+            ]
+        ]);
+        $dbRepListAll = $this->database->select('svn_reps', [
+            'rep_id',
             'rep_name',
         ]);
 
-        foreach ($dbRepList as $value) {
-            if (!in_array($value['rep_name'], $svnRepList)) {
-                $this->database->delete('svn_reps', [
-                    'rep_name' => $value['rep_name']
-                ]);
-            } else {
-                //更新
-                $this->database->update('svn_reps', [
-                    'rep_size' => FunGetDirSizeDu($this->config_svn['rep_base_path'] .  $value['rep_name']),
-                    'rep_rev' => $this->SVNAdminRep->GetRepRev($value['rep_name'])
-                ], [
-                    'rep_name' => $value['rep_name']
-                ]);
-            }
+        $duplicates = array_diff(array_column($dbRepListAll, 'rep_id'), array_column($dbRepList, 'rep_id'));
+        foreach ($duplicates as $value) {
+            $this->database->delete('svn_reps', [
+                'rep_id' => $value,
+            ]);
         }
 
-        foreach ($svnRepList as $value) {
-            if (!in_array($value, array_column($dbRepList, 'rep_name'))) {
-                $this->database->insert('svn_reps', [
-                    'rep_name' => $value,
-                    'rep_size' => FunGetDirSizeDu($this->config_svn['rep_base_path'] .  $value),
-                    'rep_note' => '',
-                    'rep_rev' => $this->SVNAdminRep->GetRepRev($value),
-                    'rep_uuid' => ''
-                ]);
-            }
+        /**
+         * 数据对比增删改
+         */
+        $old = array_column($dbRepList, 'rep_name');
+        $new = $this->SVNAdminRep->GetSimpleRepList();
+
+        //删除
+        $delete = array_diff($old, $new);
+        foreach ($delete as $value) {
+            $this->database->delete('svn_reps', [
+                'rep_name' => $value,
+            ]);
         }
+
+        //新增
+        $create = array_diff($new, $old);
+        foreach ($create as $value) {
+            $this->database->insert('svn_reps', [
+                'rep_name' => $value,
+                'rep_size' => funGetDirSizeDu($this->config_svn['rep_base_path'] .  $value),
+                'rep_note' => '',
+                'rep_rev' => $this->SVNAdminRep->GetRepRev($value),
+                'rep_uuid' => ''
+            ]);
+        }
+
+        //更新
+        $update = array_intersect($old, $new);
+        foreach ($update as $value) {
+            $this->database->update('svn_reps', [
+                'rep_size' => funGetDirSizeDu($this->config_svn['rep_base_path'] .  $value),
+                'rep_rev' => $this->SVNAdminRep->GetRepRev($value)
+            ], [
+                'rep_name' => $value
+            ]);
+        }
+
+        return message();
     }
 
     /**
-     * 物理仓库 => authz文件
-     * 
-     * 1、将物理仓库已经删除但是authz文件中依然存在的从authz文件删除
-     * 2、将在物理仓库存在但是authz文件中不存在的向authz文件写入
+     * SVN仓库 => authz文件
      */
     private function SyncRepAndAuthz()
     {
@@ -244,10 +269,7 @@ class Svnrep extends Base
     }
 
     /**
-     * 用户有权限的仓库路径列表 => svn_user_pri_paths数据表
-     * 
-     * 1、列表中存在的但是数据表不存在则向数据表插入
-     * 2、列表中不存在的但是数据表存在从数据表删除
+     * 用户有权限的仓库路径列表 => 数据库
      */
     private function SyncUserRepAndDb()
     {
@@ -264,28 +286,48 @@ class Svnrep extends Base
                 json1(200, 0, "错误码$userRepList");
             }
         }
-
-        //从数据库中删除该用户的所有权限
-        $this->database->delete('svn_user_pri_paths', [
-            'svn_user_name' => $this->userName
-        ]);
-
-        //处理数据格式为适合插入数据表的格式
-        foreach ($userRepList as $key => $value) {
-            $userRepList[$key]['rep_name'] = $value['repName'];
-            unset($userRepList[$key]['repName']);
-
-            $userRepList[$key]['pri_path'] = $value['priPath'];
-            unset($userRepList[$key]['priPath']);
-
-            $userRepList[$key]['rep_pri'] = $value['repPri'];
-            unset($userRepList[$key]['repPri']);
-
-            $userRepList[$key]['svn_user_name'] = $this->userName;
+        $new = [];
+        $newRepList = [];
+        foreach ($userRepList as $value) {
+            $unique = $value['repName'] . $value['priPath'] . $value['repPri'];
+            $new[] = $unique;
+            $newRepList[$unique] = $value;
         }
 
-        //向数据库插入该用户的所有权限
-        $this->database->insert('svn_user_pri_paths', $userRepList);
+        $userRepList = $this->database->select('svn_user_pri_paths', [
+            'svnn_user_pri_path_id',
+            'rep_name',
+            'pri_path',
+            'rep_pri',
+        ], [
+            'svn_user_name' => $this->userName
+        ]);
+        $old = [];
+        $oldRepList = [];
+        foreach ($userRepList as $value) {
+            $unique = $value['rep_name'] . $value['pri_path'] . $value['rep_pri'];
+            $old[] = $unique;
+            $oldRepList[$unique] = $value;
+        }
+        unset($userRepList);
+
+        $delete = array_diff($old, $new);
+        foreach ($delete as $value) {
+            $this->database->delete('svn_user_pri_paths', [
+                'svnn_user_pri_path_id' => $oldRepList[$value]['svnn_user_pri_path_id'],
+            ]);
+        }
+
+        $create = array_diff($new, $old);
+        foreach ($create as $value) {
+            $this->database->insert('svn_user_pri_paths', [
+                'rep_name' => $newRepList[$value]['repName'],
+                'pri_path' => $newRepList[$value]['priPath'],
+                'rep_pri' => $newRepList[$value]['repPri'],
+                'svn_user_name' => $this->userName,
+                'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
+            ]);
+        }
     }
 
     /**
@@ -294,8 +336,9 @@ class Svnrep extends Base
     public function GetRepList()
     {
         $sync = $this->payload['sync'];
+        $page = $this->payload['page'];
 
-        if ($sync == 'yes') {
+        if ($sync) {
             /**
              * 物理仓库 => authz文件
              * 
@@ -310,15 +353,22 @@ class Svnrep extends Base
              * 1、将物理仓库存在而没有写入数据库的记录写入数据库
              * 2、将物理仓库已经删除但是数据库依然存在的从数据库删除
              */
-            $this->SyncRepAndDb();
+            $syncResult = $this->SyncRepAndDb();
+            if ($syncResult['status'] != 1) {
+                return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
+            }
         }
 
-        $pageSize = $this->payload['pageSize'];
-        $currentPage = $this->payload['currentPage'];
+        if ($page) {
+            $pageSize = $this->payload['pageSize'];
+            $currentPage = $this->payload['currentPage'];
+        }
         $searchKeyword = trim($this->payload['searchKeyword']);
 
         //分页
-        $begin = $pageSize * ($currentPage - 1);
+        if ($page) {
+            $begin = $pageSize * ($currentPage - 1);
+        }
 
         /**
          * 特殊字符转义处理 todo
@@ -338,25 +388,46 @@ class Svnrep extends Base
         //     ], $searchKeyword);
         // }
 
-        $list = $this->database->select('svn_reps', [
-            'rep_id',
-            'rep_name',
-            'rep_size',
-            'rep_note',
-            'rep_rev',
-            'rep_uuid'
-        ], [
-            'AND' => [
-                'OR' => [
-                    'rep_name[~]' => $searchKeyword,
-                    'rep_note[~]' => $searchKeyword,
+        if ($page) {
+            $list = $this->database->select('svn_reps', [
+                'rep_id',
+                'rep_name',
+                'rep_size',
+                'rep_note',
+                'rep_rev',
+                'rep_uuid'
+            ], [
+                'AND' => [
+                    'OR' => [
+                        'rep_name[~]' => $searchKeyword,
+                        'rep_note[~]' => $searchKeyword,
+                    ],
                 ],
-            ],
-            'LIMIT' => [$begin, $pageSize],
-            'ORDER' => [
-                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
-            ]
-        ]);
+                'LIMIT' => [$begin, $pageSize],
+                'ORDER' => [
+                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+                ]
+            ]);
+        } else {
+            $list = $this->database->select('svn_reps', [
+                'rep_id',
+                'rep_name',
+                'rep_size',
+                'rep_note',
+                'rep_rev',
+                'rep_uuid'
+            ], [
+                'AND' => [
+                    'OR' => [
+                        'rep_name[~]' => $searchKeyword,
+                        'rep_note[~]' => $searchKeyword,
+                    ],
+                ],
+                'ORDER' => [
+                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+                ]
+            ]);
+        }
 
         $total = $this->database->count('svn_reps', [
             'rep_id'
@@ -370,7 +441,7 @@ class Svnrep extends Base
         ]);
 
         foreach ($list as $key => $value) {
-            $list[$key]['rep_size'] = FunFormatSize($value['rep_size']);
+            $list[$key]['rep_size'] = funFormatSize($value['rep_size']);
         }
 
         return message(200, 1, '成功', [
@@ -384,63 +455,92 @@ class Svnrep extends Base
      */
     public function GetSvnUserRepList()
     {
-        /**
-         * 物理仓库 => authz文件
-         * 
-         * 1、将物理仓库已经删除但是authz文件中依然存在的从authz文件删除
-         * 2、将在物理仓库存在但是authz文件中不存在的向authz文件写入
-         */
-        $this->SyncRepAndAuthz();
+        $sync = $this->payload['sync'];
+        $page = $this->payload['page'];
 
-        /**
-         * 及时更新
-         */
-        $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
+        if ($sync) {
+            /**
+             * 物理仓库 => authz文件
+             * 
+             * 1、将物理仓库已经删除但是authz文件中依然存在的从authz文件删除
+             * 2、将在物理仓库存在但是authz文件中不存在的向authz文件写入
+             */
+            $this->SyncRepAndAuthz();
 
-        /**
-         * 对用户有权限的仓库路径列表进行一一验证
-         * 
-         * 确保该仓库的路径存在于仓库的最新版本库中
-         */
-        $this->SyncRepPathCheck();
+            /**
+             * 及时更新
+             */
+            $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
 
-        /**
-         * 及时更新
-         */
-        $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
+            /**
+             * 对用户有权限的仓库路径列表进行一一验证
+             * 
+             * 确保该仓库的路径存在于仓库的最新版本库中
+             */
+            $this->SyncRepPathCheck();
 
-        /**
-         * 用户有权限的仓库路径列表 => svn_user_pri_paths数据表
-         * 
-         * 1、列表中存在的但是数据表不存在则向数据表插入
-         * 2、列表中不存在的但是数据表存在从数据表删除
-         */
-        $this->SyncUserRepAndDb();
+            /**
+             * 及时更新
+             */
+            $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
 
-        $pageSize = $this->payload['pageSize'];
-        $currentPage = $this->payload['currentPage'];
+            /**
+             * 用户有权限的仓库路径列表 => svn_user_pri_paths数据表
+             * 
+             * 1、列表中存在的但是数据表不存在则向数据表插入
+             * 2、列表中不存在的但是数据表存在从数据表删除
+             */
+            $this->SyncUserRepAndDb();
+        }
+
+        if ($page) {
+            $pageSize = $this->payload['pageSize'];
+            $currentPage = $this->payload['currentPage'];
+        }
+
         $searchKeyword = trim($this->payload['searchKeyword']);
 
-        //分页
-        $begin = $pageSize * ($currentPage - 1);
+        if ($page) {
+            //分页
+            $begin = $pageSize * ($currentPage - 1);
+        }
 
-        $list = $this->database->select('svn_user_pri_paths', [
-            'svnn_user_pri_path_id',
-            'rep_name',
-            'pri_path',
-            'rep_pri'
-        ], [
-            'AND' => [
-                'OR' => [
-                    'rep_name[~]' => $searchKeyword,
+        if ($page) {
+            $list = $this->database->select('svn_user_pri_paths', [
+                'svnn_user_pri_path_id',
+                'rep_name',
+                'pri_path',
+                'rep_pri'
+            ], [
+                'AND' => [
+                    'OR' => [
+                        'rep_name[~]' => $searchKeyword,
+                    ],
                 ],
-            ],
-            'LIMIT' => [$begin, $pageSize],
-            'ORDER' => [
-                'rep_name'  => strtoupper($this->payload['sortType'])
-            ],
-            'svn_user_name' => $this->userName
-        ]);
+                'LIMIT' => [$begin, $pageSize],
+                'ORDER' => [
+                    'rep_name'  => strtoupper($this->payload['sortType'])
+                ],
+                'svn_user_name' => $this->userName
+            ]);
+        } else {
+            $list = $this->database->select('svn_user_pri_paths', [
+                'svnn_user_pri_path_id',
+                'rep_name',
+                'pri_path',
+                'rep_pri'
+            ], [
+                'AND' => [
+                    'OR' => [
+                        'rep_name[~]' => $searchKeyword,
+                    ],
+                ],
+                'ORDER' => [
+                    'rep_name'  => strtoupper($this->payload['sortType'])
+                ],
+                'svn_user_name' => $this->userName
+            ]);
+        }
 
         $total = $this->database->count('svn_user_pri_paths', [
             'svnn_user_pri_path_id'
@@ -1172,7 +1272,7 @@ class Svnrep extends Base
      */
     public function GetBackupList()
     {
-        $result = FunGetDirFileList($this->config_svn['backup_base_path']);
+        $result = funGetDirFileList($this->config_svn['backup_base_path']);
 
         foreach ($result as $key => $value) {
             $result[$key]['fileToken'] = hash_hmac('md5', $value['fileName'], $this->config_sign['signature']);
@@ -1193,7 +1293,7 @@ class Svnrep extends Base
             return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
         }
 
-        $result = $this->SVNAdminRep->RepDump($this->payload['rep_name'], $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . uniqid() . FunGetRandStr() . '.dump');
+        $result = $this->SVNAdminRep->RepDump($this->payload['rep_name'], $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . uniqid() . funGetRandStr() . '.dump');
 
         if ($result['code'] != 0) {
             return message(200, 0, $result['error'], []);

@@ -812,7 +812,7 @@ class Rep extends Core
                             array_push($repArray, array(
                                 'repName' => $file_item,
                                 'repUrl' => $this->config_svn['rep_base_path'] .  $file_item,
-                                'repSize' => round(FunGetDirSize($this->config_svn['rep_base_path'] .  $file_item) / (1024 * 1024), 2),
+                                'repSize' => round(funGetDirSize($this->config_svn['rep_base_path'] .  $file_item) / (1024 * 1024), 2),
                                 'repCheckoutUrl' => 'svn://' . 'SERVER_DOMAIN' . '/' . $file_item,
                             ));
                             break;
@@ -1260,7 +1260,7 @@ class Rep extends Core
         $cmd = sprintf("'%s' filesize '%s' '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] . $repName, $filePath);
         $result = funShellExec($cmd);
         $size = (int)$result['result'];
-        return FunFormatSize($size);
+        return funFormatSize($size);
     }
 
     /**

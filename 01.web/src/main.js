@@ -83,10 +83,7 @@ axios.interceptors.request.use(function (config) {
 axios.interceptors.response.use(function (response) {
     if (response.data.code != undefined && response.data.code != '') {
         if (response.data.code == 401) {
-            sessionStorage.removeItem('token');
-            sessionStorage.removeItem('user_name');
-            sessionStorage.removeItem('user_role_id');
-            sessionStorage.removeItem('user_role_name');
+            sessionStorage.clear();
             router.push('/');
         }
     }

@@ -7,7 +7,7 @@
  * @Description: QQ:1801168257
  */
 
-function FunCheckJson($string)
+function funCheckJson($string)
 {
     json_decode($string);
     return (json_last_error() == JSON_ERROR_NONE);

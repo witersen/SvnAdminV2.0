@@ -95,7 +95,7 @@ class Install
     {
         foreach ($this->config_update['update_server'] as $key1 => $value1) {
 
-            $result = FunCurlRequest(sprintf($value1['url'], $this->config_version['version']));
+            $result = funCurlRequest(sprintf($value1['url'], $this->config_version['version']));
 
             if (empty($result)) {
                 echo sprintf('节点[%s]访问超时-切换下一节点%s', $value1['nodeName'], PHP_EOL);
@@ -176,7 +176,7 @@ class Install
             }
             $index = array_search($current, $forList);
             $update_download_url = $packages[$index]['url'];
-            $update_zip = FunCurlRequest($update_download_url);
+            $update_zip = funCurlRequest($update_download_url);
             if ($update_zip == null) {
                 echo sprintf('从节点[%s]下载升级包超时-切换下一节点%s', $value1['nodeName'], PHP_EOL);
                 echo '===============================================' . PHP_EOL;

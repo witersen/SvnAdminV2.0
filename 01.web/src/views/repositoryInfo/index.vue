@@ -26,8 +26,8 @@
             >新建仓库</Button
           >
           <Tooltip
-            max-width="200"
-            content="为了避免不必要的性能浪费 初次登陆或主动点击才可同步仓库信息到管理系统和配置文件"
+            max-width="250"
+            content="手动刷新才可获取最新仓库列表"
             placement="bottom"
             :transfer="true"
           >
@@ -35,9 +35,24 @@
               icon="ios-sync"
               type="warning"
               ghost
-              @click="SyncRep"
+              @click="GetRepList(true)"
               v-if="user_role_id == 1"
-              >同步仓库</Button
+              >手动刷新</Button
+            >
+          </Tooltip>
+          <Tooltip
+            max-width="250"
+            content="手动刷新才可获取最新权限列表"
+            placement="bottom"
+            :transfer="true"
+          >
+            <Button
+              icon="ios-sync"
+              type="warning"
+              ghost
+              @click="GetSvnUserRepList(true)"
+              v-if="user_role_id == 2"
+              >手动刷新</Button
             >
           </Tooltip>
           <Tooltip
@@ -65,7 +80,7 @@
             search
             enter-button
             placeholder="通过SVN仓库名、备注搜索..."
-            @on-search="SearchGetRepList"
+            @on-search="GetRepList()"
             v-model="searchKeywordRep"
             v-if="user_role_id == 1"
           />
@@ -73,7 +88,7 @@
             search
             enter-button
             placeholder="通过SVN仓库名搜索..."
-            @on-search="GetSvnUserRepList"
+            @on-search="GetSvnUserRepList()"
             v-model="searchKeywordRep"
             v-if="user_role_id == 2"
           />
@@ -955,8 +970,8 @@
       </div>
     </Modal>
     <!-- 路径授权弹出框 -->
-    <Modal v-model="modalRepPathPri" :draggable="true" title="路径授权对象">
-      <Tabs size="small" class="custom-tabs-svn" @on-click="ClickRepPathPriTab">
+    <Modal v-model="modalRepPathPri" :draggable="true" title="对象列表">
+      <Tabs size="small" @on-click="ClickRepPathPriTab">
         <TabPane :label="custom_tab_svn_user" name="user">
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
@@ -1810,7 +1825,7 @@ export default {
           slot: "action",
         },
       ],
-      //路径授权对象-SVN用户列表
+      //对象列表-SVN用户列表
       tableColumnAllUsers: [
         {
           title: "用户名",
@@ -1833,7 +1848,7 @@ export default {
         },
       ],
       tableDataAllUsers: [],
-      //路径授权对象-SVN分组列表
+      //对象列表-SVN分组列表
       tableColumnAllGroups: [
         {
           title: "分组名",
@@ -1851,7 +1866,7 @@ export default {
         },
       ],
       tableDataAllGroups: [],
-      //路径授权对象-SVN别名列表
+      //对象列表-SVN别名列表
       tableColumnAllAliases: [
         {
           title: "别名",
@@ -1869,7 +1884,7 @@ export default {
         },
       ],
       tableDataAllAliases: [],
-      //路径授权对象-所有人
+      //对象列表-所有人
       tableColumnAll: [
         {
           title: "所有人",
@@ -1885,7 +1900,7 @@ export default {
           all: "*",
         },
       ],
-      //路径授权对象-所有已认证者
+      //对象列表-所有已认证者
       tableColumnAuthenticated: [
         {
           title: "所有已认证者",
@@ -1901,7 +1916,7 @@ export default {
           authenticated: "$authenticated",
         },
       ],
-      //路径授权对象-所有匿名者
+      //对象列表-所有匿名者
       tableColumnAnonymous: [
         {
           title: "所有匿名者",
@@ -1952,9 +1967,6 @@ export default {
   mounted() {
     this.GetStatus();
     if (this.user_role_id == 1) {
-      if (!sessionStorage.sync) {
-        sessionStorage.setItem("sync", "yes");
-      }
       this.GetRepList();
     } else if (this.user_role_id == 2) {
       this.GetSvnUserRepList();
@@ -1996,11 +2008,11 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
           } else if (result.status == 2) {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
             that.modalValidateAuthz = true;
             that.tempmodalValidateAuthz = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2031,10 +2043,9 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            sessionStorage.setItem("sync", "yes");
             that.GetRepList();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2044,37 +2055,19 @@ export default {
         });
     },
 
-    /**
-     * 同步仓库
-     */
-    SyncRep() {
-      sessionStorage.setItem("sync", "yes");
-      this.GetRepList();
-    },
-
-    /**
-     * 获取仓库列表
-     */
-    SearchGetRepList() {
-      // if (this.searchKeywordRep == "") {
-      //   this.$Message.error("请输入搜索内容");
-      //   return;
-      // }
-      this.GetRepList();
-    },
-    GetRepList() {
+    GetRepList(sync = false, page = true) {
       var that = this;
       that.loadingRep = true;
       that.tableDataRep = [];
       // that.totalRep = 0;
       var data = {
-        //是否主动刷新
-        sync: sessionStorage.sync,
         pageSize: that.pageSizeRep,
         currentPage: that.pageCurrentRep,
         searchKeyword: that.searchKeywordRep,
         sortName: that.sortName,
         sortType: that.sortType,
+        sync: sync,
+        page: page,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=GetRepList&t=web", data)
@@ -2085,9 +2078,8 @@ export default {
             // that.$Message.success(result.message);
             that.tableDataRep = result.data.data;
             that.totalRep = result.data.total;
-            sessionStorage.setItem("sync", "no");
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2126,7 +2118,7 @@ export default {
     /**
      * 获取用户仓库列表
      */
-    GetSvnUserRepList() {
+    GetSvnUserRepList(sync = false, page = true) {
       var that = this;
       that.loadingUserRep = true;
       that.tableDataUserRep = [];
@@ -2136,6 +2128,8 @@ export default {
         currentPage: that.pageCurrentUserRep,
         searchKeyword: that.searchKeywordRep,
         sortType: that.sortType,
+        sync: sync,
+        page: page,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=GetSvnUserRepList&t=web", data)
@@ -2147,7 +2141,7 @@ export default {
             that.tableDataUserRep = result.data.data;
             that.totalUserRep = result.data.total;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2199,7 +2193,7 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2285,7 +2279,7 @@ export default {
               that.checkInfo = result.data;
             } else {
               that.loadingRepCon = false;
-              that.$Message.error({content: result.message,duration: 2,});
+              that.$Message.error({ content: result.message, duration: 2 });
             }
             resolve(response);
           })
@@ -2322,7 +2316,7 @@ export default {
               that.currentRepName +
               that.currentRepTreePath;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2357,7 +2351,7 @@ export default {
               that.currentRepName +
               that.currentRepTreePath;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2434,7 +2428,7 @@ export default {
           if (result.status == 1) {
             that.tableDataBackup = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2458,7 +2452,7 @@ export default {
             that.$Message.success(result.message);
             that.GetBackupList();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2493,7 +2487,7 @@ export default {
                 that.$Message.success(result.message);
                 that.GetBackupList();
               } else {
-                that.$Message.error({content: result.message,duration: 2,});
+                that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {
@@ -2528,14 +2522,14 @@ export default {
         if (result.status == 1) {
           that.treeRep = result.data;
         } else {
-          that.$Message.error({content: result.message,duration: 2,});
+          that.$Message.error({ content: result.message, duration: 2 });
         }
       });
       //获取仓库根路径的所有对象的权限列表
       that.GetRepPathAllPri();
     },
     /**
-     * 点击路径授权对象弹出框下的 tab 触发
+     * 点击对象列表弹出框下的 tab 触发
      */
     ClickRepPathPriTab(name) {
       switch (name) {
@@ -2638,7 +2632,7 @@ export default {
             callback([]);
           }
         } else {
-          that.$Message.error({content: result.message,duration: 2,});
+          that.$Message.error({ content: result.message, duration: 2 });
           callback(data);
         }
       });
@@ -2668,7 +2662,7 @@ export default {
           if (result.status == 1) {
             that.tableDataRepPathAllPri = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2698,7 +2692,7 @@ export default {
             that.$Message.success(result.message);
             that.GetRepPathAllPri();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2729,7 +2723,7 @@ export default {
             that.$Message.success(result.message);
             that.GetRepPathAllPri();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2758,7 +2752,7 @@ export default {
             that.$Message.success(result.message);
             that.GetRepPathAllPri();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2777,17 +2771,21 @@ export default {
       //开始加载动画
       that.loadingAllUsers = true;
       var data = {
-        searchKeywordUser: that.searchKeywordUser,
+        searchKeyword: that.searchKeywordUser,
+        sortName: "svn_user_name",
+        sortType: "asc",
+        sync: false,
+        page: false,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=GetAllUserList&t=web", data)
+        .post("/api.php?c=Svnuser&a=GetUserList&t=web", data)
         .then(function (response) {
           that.loadingAllUsers = false;
           var result = response.data;
           if (result.status == 1) {
-            that.tableDataAllUsers = result.data;
+            that.tableDataAllUsers = result.data.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2807,17 +2805,21 @@ export default {
       //开始加载动画
       that.loadingAllGroups = true;
       var data = {
-        searchKeywordGroup: that.searchKeywordGroup,
+        searchKeyword: that.searchKeywordGroup,
+        sortName: "svn_group_name",
+        sortType: "asc",
+        sync: false,
+        page: false,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=GetAllGroupList&t=web", data)
+        .post("/api.php?c=Svngroup&a=GetGroupList&t=web", data)
         .then(function (response) {
           that.loadingAllGroups = false;
           var result = response.data;
           if (result.status == 1) {
-            that.tableDataAllGroups = result.data;
+            that.tableDataAllGroups = result.data.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2847,7 +2849,7 @@ export default {
           if (result.status == 1) {
             that.tableDataAllAliases = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2889,7 +2891,7 @@ export default {
           if (result.status == 1) {
             that.formRepHooks = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2911,7 +2913,7 @@ export default {
           if (result.status == 1) {
             that.recommendHooks = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -2938,7 +2940,7 @@ export default {
             that.GetRepHooks();
           } else {
             that.loadingGetRepHooks = false;
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -3005,7 +3007,7 @@ export default {
             that.$Message.success(result.message);
             that.GetRepHooks();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -3050,7 +3052,7 @@ export default {
           if (result.status == 1) {
             that.tableDataRepDetail = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -3103,7 +3105,7 @@ export default {
             that.GetRepDetail();
             that.modalSetUUID = false;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -3135,7 +3137,7 @@ export default {
           if (result.status == 1) {
             that.uploadLimit = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -3155,7 +3157,7 @@ export default {
       if (result.status == 1) {
         this.$Message.success(result.message);
       } else {
-        this.$Message.error({content: result.message,duration: 2,});
+        this.$Message.error({ content: result.message, duration: 2 });
       }
     },
     /**
@@ -3185,7 +3187,7 @@ export default {
             that.$Message.success(result.message);
             that.formUploadBackup.errorInfo = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
             that.formUploadBackup.errorInfo = result.data;
           }
         })
@@ -3224,10 +3226,9 @@ export default {
           if (result.status == 1) {
             that.$Message.success(result.message);
             that.modalEditRepName = false;
-            sessionStorage.setItem("sync", "yes");
             that.GetRepList();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -3348,10 +3349,9 @@ export default {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                sessionStorage.setItem("sync", "yes");
                 that.GetRepList();
               } else {
-                that.$Message.error({content: result.message,duration: 2,});
+                that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {
@@ -3375,14 +3375,6 @@ export default {
 </script>
 
 <style lang="less">
-// .hooks {
-//   .ivu-modal-body {
-//     padding: 0px 16px 0px 16px;
-//   }
-// }
-// .custom-tabs-svn > .ivu-tabs-bar > .ivu-tabs-nav-container > .ivu-tabs-nav-wrap > .ivu-tabs-nav-scroll > .ivu-tabs-nav > .ivu-tabs-tab-active{
-//   background-color: red;
-// }
 .my-modal {
   // 卡片
   .ivu-card-body {

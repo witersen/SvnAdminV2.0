@@ -13,6 +13,20 @@
           <Button icon="md-add" type="primary" ghost @click="ModalCreateUser"
             >新建SVN用户</Button
           >
+          <Tooltip
+            max-width="250"
+            content="手动刷新才可获取最新用户列表"
+            placement="bottom"
+            :transfer="true"
+          >
+            <Button
+              icon="ios-sync"
+              type="warning"
+              ghost
+              @click="GetUserList(true)"
+              >手动刷新</Button
+            >
+          </Tooltip>
           <!-- <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
             >自动识别</Button
           > -->
@@ -24,7 +38,7 @@
             enter-button
             placeholder="通过SVN用户名、备注搜索..."
             style="width: 100%"
-            @on-search="SearchGetUserList"
+            @on-search="GetUserList()"
         /></Col>
       </Row>
       <Table
@@ -63,6 +77,11 @@
             v-model="tableDataUser[index].svn_user_note"
             @on-blur="EditUserNote(index, row.svn_user_name)"
           />
+        </template>
+        <template slot-scope="{ row, index }" slot="svn_user_pri">
+          <Button type="info" size="small" @click="ModalSvnUserPriPath"
+            >查看</Button
+          >
         </template>
         <template slot-scope="{ row, index }" slot="action">
           <Button
@@ -176,6 +195,17 @@ user3=passwd3"
         >
       </div>
     </Modal>
+    <Modal
+      v-model="modalSvnUserPriPath"
+      title="权限路径列表"
+      @on-ok="EditUserPass"
+    >
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalSvnUserPriPath = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -229,6 +259,9 @@ export default {
       modalEditUserPass: false,
       //识别 passwd 文件
       modalScanPasswd: false,
+      //SVN用户权限路径列表
+      modalSvnUserPriPath: false,
+
       /**
        * 表单
        */
@@ -284,6 +317,11 @@ export default {
           minWidth: 120,
         },
         {
+          title: "权限路径",
+          slot: "svn_user_pri",
+          minWidth: 120,
+        },
+        {
           title: "其它",
           slot: "action",
           minWidth: 180,
@@ -314,17 +352,7 @@ export default {
       this.pageCurrentUser = value;
       this.GetUserList();
     },
-    /**
-     * 获取SVN用户列表
-     */
-    SearchGetUserList() {
-      // if (this.searchKeywordUser == "") {
-      //   this.$Message.error("请输入搜索内容");
-      //   return;
-      // }
-      this.GetUserList();
-    },
-    GetUserList() {
+    GetUserList(sync = false, page = true) {
       var that = this;
       that.loadingUser = true;
       that.tableDataUser = [];
@@ -335,6 +363,8 @@ export default {
         searchKeyword: that.searchKeywordUser,
         sortName: that.sortName,
         sortType: that.sortType,
+        sync: sync,
+        page: page,
       };
       that.$axios
         .post("/api.php?c=Svnuser&a=GetUserList&t=web", data)
@@ -639,6 +669,12 @@ export default {
             });
         },
       });
+    },
+    /**
+     * 查看权限路径列表
+     */
+    ModalSvnUserPriPath() {
+      this.modalSvnUserPriPath = true;
     },
   },
 };

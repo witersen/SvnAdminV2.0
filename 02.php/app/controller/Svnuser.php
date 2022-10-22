@@ -28,17 +28,6 @@ class Svnuser extends Base
     }
 
     /**
-     * 获取全部的SVN用户
-     * 
-     * 只包含用户名和启用状态
-     */
-    public function GetAllUserList()
-    {
-        $result = $this->ServiceSvnuser->GetAllUserList();
-        json2($result);
-    }
-
-    /**
      * 获取带有分页的SVN用户
      * 
      * 只包含用户名和启用状态

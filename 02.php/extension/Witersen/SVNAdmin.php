@@ -1394,7 +1394,7 @@ class SVNAdmin
                     'repName' => $authzContentPreg[2][$key],
                     'priPath' => $authzContentPreg[3][$key],
                     'repPri' => $authzContentPreg[6][$key],
-                    'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
+                    // 'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
                 ];
             }
         }
@@ -1709,7 +1709,7 @@ class SVNAdmin
                 foreach ($resultPreg[1] as $key => $value) {
                     $item = [];
                     $item['aliaseName'] = $value;
-                    $item['aliaseCon'] = $resultPreg[3][$key];
+                    $item['aliaseCon'] = $resultPreg[2][$key];
                     $result[] = $item;
                 }
                 return $aliaseName == '' ? $result : (empty($result) ? [] : $result[0]);

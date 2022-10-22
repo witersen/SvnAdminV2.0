@@ -10,7 +10,7 @@
 /**
  * 通用请求
  */
-function FunCurlRequest($url)
+function funCurlRequest($url)
 {
     //初始化
     $curl = curl_init();

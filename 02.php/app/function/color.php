@@ -7,7 +7,7 @@
  * @Description: QQ:1801168257
  */
 
-function FunGetColor($percent)
+function funGetColor($percent)
 {
     $array = [
         [

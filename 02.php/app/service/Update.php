@@ -33,7 +33,7 @@ class Update extends Base
 
         foreach ($configUpdate['update_server'] as $key1 => $value1) {
 
-            $result = FunCurlRequest(sprintf($value1['url'], $configVersion['version']));
+            $result = funCurlRequest(sprintf($value1['url'], $configVersion['version']));
 
             if (empty($result)) {
                 continue;

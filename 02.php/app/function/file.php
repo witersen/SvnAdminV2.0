@@ -12,7 +12,7 @@
  * 
  * 使用php的内置方法
  */
-function FunGetDirSize($dir)
+function funGetDirSize($dir)
 {
     clearstatcache();
     $dh = opendir($dir) or exit('打开目录错误'); //打开目录，返回一个目录流
@@ -21,7 +21,7 @@ function FunGetDirSize($dir)
         if ($file != '.' and $file != '..') {
             $path = $dir . '/' . $file; //设置目录，用于含有子目录的情况
             if (is_dir($path)) {
-                $size += FunGetDirSize($path); //递归调用，计算目录大小
+                $size += funGetDirSize($path); //递归调用，计算目录大小
             } elseif (is_file($path)) {
                 $size += filesize($path); //计算文件大小
             }
@@ -35,7 +35,7 @@ function FunGetDirSize($dir)
  * 传入以Byte为单位的值
  * 根据大小返回带有单位的值
  */
-function FunFormatSize($size)
+function funFormatSize($size)
 {
     if ($size == 0) {
         return 0;
@@ -59,7 +59,7 @@ function FunFormatSize($size)
  * 
  * 返回byte
  */
-function FunGetDirSizeDu($path)
+function funGetDirSizeDu($path)
 {
     $cmd = sprintf("du -s '%s' | awk '{print $1}'", $path);
     $result =  funShellExec($cmd);
@@ -75,7 +75,7 @@ function FunGetDirSizeDu($path)
  * 文件体积
  * 最后修改时间
  */
-function FunGetDirFileList($path)
+function funGetDirFileList($path)
 {
     $filename = scandir($path);
 
@@ -87,7 +87,7 @@ function FunGetDirFileList($path)
         }
         array_push($fileArray, [
             'fileName' => $value,
-            'fileSize' => FunFormatSize(filesize($path . '/' . $value)),
+            'fileSize' => funFormatSize(filesize($path . '/' . $value)),
             'fileEditTime' => date('Y-m-d H:i:s', (int)filemtime($path . '/' . $value))
         ]);
     }

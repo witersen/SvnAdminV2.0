@@ -28,15 +28,6 @@ class Svngroup extends Base
     }
 
     /**
-     * 获取所有的分组列表
-     */
-    public function GetAllGroupList()
-    {
-        $result = $this->ServiceSvngroup->GetAllGroupList();
-        json2($result);
-    }
-
-    /**
      * 获取带有分页的分组列表
      */
     public function GetGroupList()

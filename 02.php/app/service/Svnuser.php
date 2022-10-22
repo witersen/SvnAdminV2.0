@@ -26,85 +26,90 @@ class Svnuser extends Base
     }
 
     /**
-     * 将SVN用户数据同步到数据库
-     * 
-     * 目的为维护用户启用状态和自定义备注信息
+     * SVN用户 => 数据库
      */
     public function SyncUserToDb()
     {
-        $svnUserPassList =  $this->SVNAdmin->GetUserInfo($this->passwdContent);
-        if (is_numeric($svnUserPassList)) {
-            if ($svnUserPassList == 621) {
-                return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($svnUserPassList == 710) {
-                return message(200, 0, '用户不存在');
-            } else {
-                return message(200, 0, "错误码$svnUserPassList");
-            }
-        }
-
-        $dbUserPassList = $this->database->select('svn_users', [
+        /**
+         * 删除数据表重复插入的项
+         */
+        $dbUserList = $this->database->select('svn_users', [
             'svn_user_id',
             'svn_user_name',
             'svn_user_pass',
             'svn_user_status',
             'svn_user_note'
+        ], [
+            'GROUP' => [
+                'svn_user_name'
+            ]
+        ]);
+        $dbUserListAll = $this->database->select('svn_users', [
+            'svn_user_id',
+            'svn_user_name',
         ]);
 
-        $combinArray1 = array_combine(array_column($svnUserPassList, 'userName'), array_column($svnUserPassList, 'disabled'));
-        $combinArray2 = array_combine(array_column($svnUserPassList, 'userName'), array_column($svnUserPassList, 'userPass'));
-        foreach ($dbUserPassList as $value) {
-            if (!in_array($value['svn_user_name'], array_column($svnUserPassList, 'userName'))) {
-                $this->database->delete('svn_users', [
-                    'svn_user_name' => $value['svn_user_name']
-                ]);
-            } else {
-                //更新启用状态和密码
-                $this->database->update('svn_users', [
-                    'svn_user_pass' => $combinArray2[$value['svn_user_name']],
-                    'svn_user_status' => !$combinArray1[$value['svn_user_name']]
-                ], [
-                    'svn_user_name' => $value['svn_user_name']
-                ]);
-            }
+        $duplicates = array_diff(array_column($dbUserListAll, 'svn_user_id'), array_column($dbUserList, 'svn_user_id'));
+        foreach ($duplicates as $value) {
+            $this->database->delete('svn_users', [
+                'svn_user_id' => $value,
+            ]);
         }
 
-        foreach ($svnUserPassList as $value) {
-            if (!in_array($value['userName'], array_column($dbUserPassList, 'svn_user_name'))) {
-                $this->database->insert('svn_users', [
-                    'svn_user_name' => $value['userName'],
-                    'svn_user_pass' => $value['userPass'],
-                    'svn_user_status' => !$value['disabled'],
-                    'svn_user_note' => ''
+        /**
+         * 数据对比增删改
+         */
+        $old = array_column($dbUserList, 'svn_user_name');
+        $oldCombin = array_combine($old, $dbUserList);
+        $svnUserList =  $this->SVNAdmin->GetUserInfo($this->passwdContent);
+        if (is_numeric($svnUserList)) {
+            if ($svnUserList == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($svnUserList == 710) {
+                return message(200, 0, '用户不存在');
+            } else {
+                return message(200, 0, "错误码$svnUserList");
+            }
+        }
+        $new = array_column($svnUserList, 'userName');
+        $newCombin = array_combine($new, $svnUserList);
+
+        //删除
+        $delete = array_diff($old, $new);
+        foreach ($delete as $value) {
+            $this->database->delete('svn_users', [
+                'svn_user_name' => $value,
+            ]);
+        }
+
+        //新增
+        $create = array_diff($new, $old);
+        foreach ($create as $value) {
+            $this->database->insert('svn_users', [
+                'svn_user_name' => $value,
+                'svn_user_pass' => $newCombin[$value]['userPass'],
+                'svn_user_status' => $newCombin[$value]['disabled'] == 1 ? 0 : 1,
+                'svn_user_note' => ''
+            ]);
+        }
+
+        //更新
+        $update = array_intersect($old, $new);
+        foreach ($update as $value) {
+            if (
+                $oldCombin[$value]['svn_user_pass'] != $newCombin[$value]['userPass'] ||
+                $oldCombin[$value]['svn_user_status'] != ($newCombin[$value]['disabled'] == 1 ? 0 : 1)
+            ) {
+                $this->database->update('svn_users', [
+                    'svn_user_pass' => $newCombin[$value]['userPass'],
+                    'svn_user_status' => $newCombin[$value]['disabled'] == 1 ? 0 : 1,
+                ], [
+                    'svn_user_name' => $value
                 ]);
             }
         }
 
         return message();
-    }
-
-    /**
-     * 获取全部的SVN用户
-     */
-    public function GetAllUserList()
-    {
-        $searchKeyword = trim($this->payload['searchKeywordUser']);
-
-        $list = $this->database->select('svn_users', [
-            'svn_user_id',
-            'svn_user_name',
-            'svn_user_status',
-            'svn_user_note'
-        ], [
-            'AND' => [
-                'OR' => [
-                    'svn_user_name[~]' => $searchKeyword,
-                    'svn_user_note[~]' => $searchKeyword,
-                ],
-            ],
-        ]);
-
-        return message(200, 1, '成功', $list);
     }
 
     /**
@@ -114,38 +119,66 @@ class Svnuser extends Base
      */
     public function GetUserList()
     {
+        $sync = $this->payload['sync'];
+        $page = $this->payload['page'];
+
         //将SVN用户数据同步到数据库
-        $syncResult = $this->SyncUserToDb();
-        if ($syncResult['status'] != 1) {
-            return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
+        if ($sync) {
+            $syncResult = $this->SyncUserToDb();
+            if ($syncResult['status'] != 1) {
+                return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
+            }
         }
 
-        $pageSize = $this->payload['pageSize'];
-        $currentPage = $this->payload['currentPage'];
+        if ($page) {
+            $pageSize = $this->payload['pageSize'];
+            $currentPage = $this->payload['currentPage'];
+        }
         $searchKeyword = trim($this->payload['searchKeyword']);
 
-        //分页
-        $begin = $pageSize * ($currentPage - 1);
+        if ($page) {
+            //分页
+            $begin = $pageSize * ($currentPage - 1);
+        }
 
-        $list = $this->database->select('svn_users', [
-            'svn_user_id',
-            'svn_user_name',
-            'svn_user_pass',
-            'svn_user_status [Int]',
-            'svn_user_note'
-        ], [
-            'AND' => [
-                'OR' => [
-                    'svn_user_name[~]' => $searchKeyword,
-                    // 'svn_user_pass[~]' => $searchKeyword,
-                    'svn_user_note[~]' => $searchKeyword,
+        if ($page) {
+            $list = $this->database->select('svn_users', [
+                'svn_user_id',
+                'svn_user_name',
+                'svn_user_pass',
+                'svn_user_status [Int]',
+                'svn_user_note'
+            ], [
+                'AND' => [
+                    'OR' => [
+                        'svn_user_name[~]' => $searchKeyword,
+                        'svn_user_note[~]' => $searchKeyword,
+                    ],
                 ],
-            ],
-            'LIMIT' => [$begin, $pageSize],
-            'ORDER' => [
-                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
-            ]
-        ]);
+                'LIMIT' => [$begin, $pageSize],
+                'ORDER' => [
+                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+                ]
+            ]);
+        } else {
+            $list = $this->database->select('svn_users', [
+                'svn_user_id',
+                'svn_user_name',
+                'svn_user_pass',
+                'svn_user_status [Int]',
+                'svn_user_note'
+            ], [
+                'AND' => [
+                    'OR' => [
+                        'svn_user_name[~]' => $searchKeyword,
+                        'svn_user_note[~]' => $searchKeyword,
+                    ],
+                ],
+                'ORDER' => [
+                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+                ]
+            ]);
+        }
 
         $total = $this->database->count('svn_users', [
             'svn_user_id'
@@ -153,7 +186,6 @@ class Svnuser extends Base
             'AND' => [
                 'OR' => [
                     'svn_user_name[~]' => $searchKeyword,
-                    // 'svn_user_pass[~]' => $searchKeyword,
                     'svn_user_note[~]' => $searchKeyword,
                 ],
             ],
@@ -260,6 +292,9 @@ class Svnuser extends Base
         funFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
         //写入数据库
+        $this->database->delete('svn_users', [
+            'svn_user_name' => $this->payload['svn_user_name'],
+        ]);
         $this->database->insert('svn_users', [
             'svn_user_name' => $this->payload['svn_user_name'],
             'svn_user_pass' => $this->payload['svn_user_pass'],
