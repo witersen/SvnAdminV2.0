@@ -17,6 +17,16 @@ function message($code = 200, $status = 1, $message = '成功', $data = [])
     ];
 }
 
+function message2($message = ['code' => 200, 'status' => 1, 'message' => '成功', 'data' => []])
+{
+    return [
+        'code' => $message['code'],
+        'status' => $message['status'],
+        'message' => $message['message'],
+        'data' => $message['data']
+    ];
+}
+
 function json1($code = 200, $status = 1, $message = '成功', $data = [])
 {
     header('Content-Type:application/json; charset=utf-8');

@@ -20,11 +20,11 @@ class Svn extends Base
      */
     private $ServiceSvn;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceSvn = new ServiceSvn();
+        $this->ServiceSvn = new ServiceSvn($parm);
     }
 
     /**

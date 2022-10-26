@@ -969,18 +969,33 @@
         <Button type="primary" ghost @click="modalSetUUID = false">取消</Button>
       </div>
     </Modal>
-    <!-- 路径授权弹出框 -->
+    <!-- 对话框-对象列表 -->
     <Modal v-model="modalRepPathPri" :draggable="true" title="对象列表">
       <Tabs size="small" @on-click="ClickRepPathPriTab">
         <TabPane :label="custom_tab_svn_user" name="user">
           <Row style="margin-bottom: 15px">
-            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col type="flex" justify="space-between" span="12">
+              <Tooltip
+                max-width="250"
+                content="手动刷新才可获取最新用户列表"
+                placement="bottom"
+                :transfer="true"
+              >
+                <Button
+                  icon="ios-sync"
+                  type="warning"
+                  ghost
+                  @click="GetAllUsers(true)"
+                  >手动刷新</Button
+                >
+              </Tooltip>
+            </Col>
             <Col span="12">
               <Input
                 search
                 placeholder="通过用户名搜索..."
                 v-model="searchKeywordUser"
-                @on-change="GetAllUsers"
+                @on-change="GetAllUsers()"
               />
             </Col>
           </Row>
@@ -1013,13 +1028,28 @@
         </TabPane>
         <TabPane :label="custom_tab_svn_group" name="group">
           <Row style="margin-bottom: 15px">
-            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col type="flex" justify="space-between" span="12">
+              <Tooltip
+                max-width="250"
+                content="手动刷新才可获取最新分组列表"
+                placement="bottom"
+                :transfer="true"
+              >
+                <Button
+                  icon="ios-sync"
+                  type="warning"
+                  ghost
+                  @click="GetAllGroups(true)"
+                  >手动刷新</Button
+                >
+              </Tooltip>
+            </Col>
             <Col span="12">
               <Input
                 search
                 placeholder="通过分组名搜索..."
                 v-model="searchKeywordGroup"
-                @on-change="GetAllGroups"
+                @on-change="GetAllGroups()"
               />
             </Col>
           </Row>
@@ -1033,6 +1063,13 @@
             :data="tableDataAllGroups"
             style="margin-bottom: 10px"
           >
+            <template slot-scope="{ row }" slot="member">
+              <Tag
+                color="primary"
+                @click.native="ModalGetGroupMember(row.svn_group_name)"
+                >成员</Tag
+              >
+            </template>
             <template slot-scope="{ row }" slot="action">
               <Tag
                 color="primary"
@@ -1044,13 +1081,28 @@
         </TabPane>
         <TabPane :label="custom_tab_svn_aliase" name="aliase">
           <Row style="margin-bottom: 15px">
-            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col type="flex" justify="space-between" span="12">
+              <!-- <Tooltip
+                max-width="250"
+                content="手动刷新才可获取最新别名列表"
+                placement="bottom"
+                :transfer="true"
+              >
+                <Button
+                  icon="ios-sync"
+                  type="warning"
+                  ghost
+                  @click="GetAllAliases(true)"
+                  >手动刷新</Button
+                >
+              </Tooltip> -->
+            </Col>
             <Col span="12">
               <Input
                 search
                 placeholder="通过别名搜索..."
                 v-model="searchKeywordAliase"
-                @on-change="GetAllAliases"
+                @on-change="GetAllAliases()"
               />
             </Col>
           </Row>
@@ -1158,9 +1210,9 @@
         </TabPane>
       </Tabs>
       <Alert show-icon>授权的对象权限默认为读写</Alert>
-      <Alert show-icon
+      <!-- <Alert show-icon
         >如果对象信息用户等不是最新，需要回到对应的导航下刷新</Alert
-      >
+      > -->
       <div slot="footer">
         <Button type="primary" ghost @click="modalRepPathPri = false"
           >取消</Button
@@ -1178,6 +1230,59 @@
       />
       <div slot="footer">
         <Button type="primary" ghost @click="modalValidateAuthz = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
+    <!-- 对话框-分组成员列表 -->
+    <Modal
+      v-model="modalGetGroupMember"
+      :draggable="true"
+      :title="titleGetGroupMember"
+    >
+      <Row style="margin-bottom: 15px">
+        <Col type="flex" justify="space-between" span="12"> </Col>
+        <Col span="12">
+          <Input
+            search
+            placeholder="通过对象名称搜索..."
+            v-model="searchKeywordGroupMember"
+            @on-change="GetGroupMember"
+          />
+        </Col>
+      </Row>
+      <Table
+        border
+        :height="310"
+        size="small"
+        :loading="loadingGetGroupMember"
+        :columns="tableColumnGroupMember"
+        :data="tableDataGroupMember"
+        style="margin-top: 20px"
+      >
+        <template slot-scope="{ row }" slot="objectType">
+          <Tag
+            color="blue"
+            v-if="row.objectType == 'user'"
+            style="width: 90px; text-align: center"
+            >SVN用户</Tag
+          >
+          <Tag
+            color="geekblue"
+            v-if="row.objectType == 'group'"
+            style="width: 90px; text-align: center"
+            >SVN分组</Tag
+          >
+          <Tag
+            color="purple"
+            v-if="row.objectType == 'aliase'"
+            style="width: 90px; text-align: center"
+            >SVN别名</Tag
+          >
+        </template>
+      </Table>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalGetGroupMember = false"
           >取消</Button
         >
       </div>
@@ -1308,12 +1413,19 @@ export default {
       modalRepPathPri: false,
       //显示authz检测结果
       modalValidateAuthz: false,
+      //查看分组的成员列表
+      modalGetGroupMember: false,
 
       /**
        * 排序数据
        */
-      sortName: "rep_name",
-      sortType: "asc",
+      //获取仓库列表
+      sortNameGetRepList: "rep_name",
+      sortTypeGetRepList: "asc",
+
+      //获取SVN用户有权限的仓库路径列表
+      sortNameGetSvnUserRepList: "",
+      sortTypeGetSvnUserRepList: "asc",
 
       /**
        * 分页数据
@@ -1334,6 +1446,8 @@ export default {
       searchKeywordUser: "",
       searchKeywordGroup: "",
       searchKeywordAliase: "",
+      //搜索分组的成员的列表
+      searchKeywordGroupMember: "",
 
       /**
        * 表格无数据提示
@@ -1383,6 +1497,8 @@ export default {
       loadingEditRepHook: false,
       //重设仓库UUID
       loadingSetUUID: false,
+      //获取分组成员列表
+      loadingGetGroupMember: true,
 
       /**
        * 临时变量
@@ -1421,6 +1537,8 @@ export default {
       tempRepUUID: "",
       //authz检测结果
       tempmodalValidateAuthz: "",
+      //当前选中的分组名
+      currentSelectGroupName: "",
 
       /**
        * 对话框标题
@@ -1441,6 +1559,8 @@ export default {
       titleModalEditRepHook: "",
       //钩子文件模板
       titleModalStudyRepHook: "",
+      //分组成员对话框的标题
+      titleGetGroupMember: "",
 
       /**
        * 表单
@@ -1861,6 +1981,10 @@ export default {
           tooltip: true,
         },
         {
+          title: "成员",
+          slot: "member",
+        },
+        {
           title: "操作",
           slot: "action",
         },
@@ -1960,6 +2084,21 @@ export default {
       ],
       tableDataRepDetail: [],
       tableDataAllGroups: [],
+      //分组的成员列表
+      tableDataGroupMember: [],
+      tableColumnGroupMember: [
+        {
+          title: "对象类型",
+          slot: "objectType",
+          // width: 125,
+        },
+        {
+          title: "对象名称",
+          key: "objectName",
+          tooltip: true,
+          // width: 115,
+        },
+      ],
     };
   },
   computed: {},
@@ -2064,8 +2203,8 @@ export default {
         pageSize: that.pageSizeRep,
         currentPage: that.pageCurrentRep,
         searchKeyword: that.searchKeywordRep,
-        sortName: that.sortName,
-        sortType: that.sortType,
+        sortName: that.sortNameGetRepList,
+        sortType: that.sortTypeGetRepList,
         sync: sync,
         page: page,
       };
@@ -2108,9 +2247,9 @@ export default {
      * 所有仓库排序
      */
     SortChangeRep(value) {
-      this.sortName = value.key;
+      this.sortNameGetRepList = value.key;
       if (value.order == "desc" || value.order == "asc") {
-        this.sortType = value.order;
+        this.sortTypeGetRepList = value.order;
       }
       this.GetRepList();
     },
@@ -2127,7 +2266,7 @@ export default {
         pageSize: that.pageSizeUserRep,
         currentPage: that.pageCurrentUserRep,
         searchKeyword: that.searchKeywordRep,
-        sortType: that.sortType,
+        sortType: that.sortTypeGetSvnUserRepList,
         sync: sync,
         page: page,
       };
@@ -2170,9 +2309,8 @@ export default {
      * 用户仓库排序
      */
     SortChangeUserRep(value) {
-      this.sortName = value.key;
       if (value.order == "desc" || value.order == "asc") {
-        this.sortType = value.order;
+        this.sortTypeGetSvnUserRepList = value.order;
       }
       this.GetSvnUserRepList();
     },
@@ -2764,7 +2902,7 @@ export default {
     /**
      * 获取所有的SVN用户列表
      */
-    GetAllUsers() {
+    GetAllUsers(sync = false) {
       var that = this;
       //清空上次数据
       that.tableDataAllUsers = [];
@@ -2774,7 +2912,7 @@ export default {
         searchKeyword: that.searchKeywordUser,
         sortName: "svn_user_name",
         sortType: "asc",
-        sync: false,
+        sync: sync,
         page: false,
       };
       that.$axios
@@ -2798,7 +2936,7 @@ export default {
     /**
      * 获取所有的SVN分组列表
      */
-    GetAllGroups() {
+    GetAllGroups(sync = false) {
       var that = this;
       //清空上次数据
       that.tableDataAllGroups = [];
@@ -2808,7 +2946,7 @@ export default {
         searchKeyword: that.searchKeywordGroup,
         sortName: "svn_group_name",
         sortType: "asc",
-        sync: false,
+        sync: sync,
         page: false,
       };
       that.$axios
@@ -2830,15 +2968,58 @@ export default {
     },
 
     /**
+     * 获取SVN分组的成员列表
+     */
+    ModalGetGroupMember(grouName) {
+      //设置当前选中的分组名称
+      this.currentSelectGroupName = grouName;
+      //显示对话框
+      this.modalGetGroupMember = true;
+      //标题
+      this.titleGetGroupMember = "分组成员信息 - " + grouName;
+      //请求数据
+      this.GetGroupMember();
+    },
+    /**
+     * 获取SVN分组的成员列表
+     */
+    GetGroupMember() {
+      var that = this;
+      that.loadingGetGroupMember = true;
+      that.tableDataGroupMember = [];
+      var data = {
+        searchKeyword: that.searchKeywordGroupMember,
+        svn_group_name: that.currentSelectGroupName,
+      };
+      that.$axios
+        .post("/api.php?c=Svngroup&a=GetGroupMember&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          that.loadingGetGroupMember = false;
+          if (result.status == 1) {
+            that.tableDataGroupMember = result.data;
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingGetGroupMember = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+
+    /**
      * 获取所有的别名列表
      */
-    GetAllAliases() {
+    GetAllAliases(sync = false) {
       var that = this;
       //清空上次数据
       that.tableDataAllAliases = [];
       //开始加载动画
       that.loadingAllAliases = true;
       var data = {
+        sync: sync,
         searchKeywordAliase: that.searchKeywordAliase,
       };
       that.$axios

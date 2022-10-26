@@ -18,9 +18,9 @@ class Personal extends Base
      */
     private $Mail;
 
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
 
         $this->Mail = new Mail();
     }

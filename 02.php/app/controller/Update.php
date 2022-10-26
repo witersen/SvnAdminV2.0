@@ -20,11 +20,11 @@ class Update extends Base
      */
     private $ServiceUpdate;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceUpdate = new ServiceUpdate();
+        $this->ServiceUpdate = new ServiceUpdate($parm);
     }
 
     /**

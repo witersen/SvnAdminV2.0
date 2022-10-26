@@ -24,9 +24,9 @@ class Common extends Base
     private $Mail;
     private $Safe;
 
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
 
         $this->Svnuser = new Svnuser();
         $this->Logs = new Logs();
@@ -79,8 +79,8 @@ class Common extends Base
             'user_pass' => ['type' => 'string', 'notNull' => true],
             'user_role' => ['type' => 'string', 'notNull' => true],
         ]);
-        if (!$checkResult) {
-            return message(200, 0, '参数不完整');
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
         if ($this->payload['user_role'] == 1) {

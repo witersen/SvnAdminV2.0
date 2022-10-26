@@ -18,9 +18,9 @@ class Svngroup extends Base
      */
     private $Logs;
 
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
 
         $this->Logs = new Logs();
     }
@@ -351,6 +351,8 @@ class Svngroup extends Base
      */
     public function GetGroupMember()
     {
+        $searchKeyword = trim($this->payload['searchKeyword']);
+
         $list = $this->SVNAdmin->GetGroupInfo($this->authzContent, $this->payload['svn_group_name']);
         if (is_numeric($list)) {
             if ($list == 612) {
@@ -364,22 +366,28 @@ class Svngroup extends Base
 
         $result = [];
         foreach ($list['include']['users']['list'] as $value) {
-            $result[] = [
-                'objectType' => 'user',
-                'objectName' => $value,
-            ];
+            if (empty($searchKeyword) || strstr($value, $searchKeyword)) {
+                $result[] = [
+                    'objectType' => 'user',
+                    'objectName' => $value,
+                ];
+            }
         }
         foreach ($list['include']['groups']['list'] as $value) {
-            $result[] = [
-                'objectType' => 'group',
-                'objectName' => $value,
-            ];
+            if (empty($searchKeyword) || strstr($value, $searchKeyword)) {
+                $result[] = [
+                    'objectType' => 'group',
+                    'objectName' => $value,
+                ];
+            }
         }
         foreach ($list['include']['aliases']['list'] as $value) {
-            $result[] = [
-                'objectType' => 'aliase',
-                'objectName' => $value,
-            ];
+            if (empty($searchKeyword) || strstr($value, $searchKeyword)) {
+                $result[] = [
+                    'objectType' => 'aliase',
+                    'objectName' => $value,
+                ];
+            }
         }
 
         return message(200, 1, '成功', $result);

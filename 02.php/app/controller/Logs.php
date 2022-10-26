@@ -20,11 +20,11 @@ class Logs extends Base
      */
     private $ServiceLogs;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceLogs = new ServiceLogs();
+        $this->ServiceLogs = new ServiceLogs($parm);
     }
 
     /**

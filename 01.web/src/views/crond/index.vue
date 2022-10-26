@@ -329,8 +329,8 @@ export default {
       /**
        * 排序数据
        */
-      sortName: "crond_id",
-      sortType: "asc",
+      sortNameGetCrondList: "crond_id",
+      sortTypeGetCrondList: "asc",
 
       /**
        * 加载
@@ -601,9 +601,9 @@ export default {
      * 排序
      */
     SortChangeCrond(value) {
-      this.sortName = value.key;
+      this.sortNameGetCrondList = value.key;
       if (value.order == "desc" || value.order == "asc") {
-        this.sortType = value.order;
+        this.sortTypeGetCrondList = value.order;
       }
       this.GetCrondList();
     },
@@ -665,8 +665,8 @@ export default {
         pageSize: that.pageSizeCrond,
         currentPage: that.pageCurrentCrond,
         searchKeyword: that.searchKeywordCrond,
-        sortName: that.sortName,
-        sortType: that.sortType,
+        sortName: that.sortNameGetCrondList,
+        sortType: that.sortTypeGetCrondList,
       };
       that.$axios
         .post("/api.php?c=Crond&a=GetCrondList&t=web", data)

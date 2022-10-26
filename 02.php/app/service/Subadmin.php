@@ -18,9 +18,9 @@ class Subadmin extends Base
      */
     private $Logs;
 
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
 
         $this->Logs = new Logs();
     }
@@ -98,8 +98,8 @@ class Subadmin extends Base
             'subadmin_password' => ['type' => 'string', 'notNull' => true],
             'subadmin_note' => ['type' => 'string', 'notNull' => false],
         ]);
-        if (!$checkResult) {
-            return message(200, 0, '参数不完整');
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
         //检查重复
@@ -140,8 +140,8 @@ class Subadmin extends Base
         $checkResult = funCheckForm($this->payload, [
             'subadmin_id' => ['type' => 'integer', 'notNull' => true],
         ]);
-        if (!$checkResult) {
-            return message(200, 0, '参数不完整');
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
         $subadminName = $this->database->get('subadmin', 'subadmin_name', [
@@ -175,8 +175,8 @@ class Subadmin extends Base
             'subadmin_id' => ['type' => 'integer', 'notNull' => true],
             'subadmin_password' => ['type' => 'string', 'notNull' => true],
         ]);
-        if (!$checkResult) {
-            return message(200, 0, '参数不完整');
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
         $subadminName = $this->database->get('subadmin', 'subadmin_name', [
@@ -212,8 +212,8 @@ class Subadmin extends Base
             'subadmin_id' => ['type' => 'integer', 'notNull' => true],
             'status' => ['type' => 'boolean'],
         ]);
-        if (!$checkResult) {
-            return message(200, 0, '参数不完整');
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
         $subadminName = $this->database->get('subadmin', 'subadmin_name', [
@@ -249,8 +249,8 @@ class Subadmin extends Base
             'subadmin_id' => ['type' => 'integer', 'notNull' => true],
             'subadmin_note' => ['type' => 'string'],
         ]);
-        if (!$checkResult) {
-            return message(200, 0, '参数不完整');
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
         $subadminName = $this->database->get('subadmin', 'subadmin_name', [

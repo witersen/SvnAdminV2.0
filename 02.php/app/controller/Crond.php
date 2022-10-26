@@ -20,11 +20,11 @@ class Crond extends Base
      */
     private $ServiceCrond;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceCrond = new ServiceCrond();
+        $this->ServiceCrond = new ServiceCrond($parm);
     }
 
     /**

@@ -20,11 +20,11 @@ class Personal extends Base
      */
     private $ServicePersonal;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServicePersonal = new ServicePersonal();
+        $this->ServicePersonal = new ServicePersonal($parm);
     }
 
     /**

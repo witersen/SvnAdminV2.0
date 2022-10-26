@@ -20,11 +20,11 @@ class Svngroup extends Base
      */
     private $ServiceSvngroup;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceSvngroup = new ServiceSvngroup();
+        $this->ServiceSvngroup = new ServiceSvngroup($parm);
     }
 
     /**

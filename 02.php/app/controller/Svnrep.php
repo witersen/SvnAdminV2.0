@@ -13,6 +13,8 @@ use app\service\Svnrep as ServiceSvnrep;
 
 class Svnrep extends Base
 {
+    public $param;
+
     /**
      * 服务层对象
      *
@@ -20,11 +22,13 @@ class Svnrep extends Base
      */
     private $ServiceSvnrep;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        $this->param = $parm;
 
-        $this->ServiceSvnrep = new ServiceSvnrep();
+        parent::__construct($parm);
+
+        $this->ServiceSvnrep = new ServiceSvnrep($parm);
     }
 
     /**
@@ -51,6 +55,16 @@ class Svnrep extends Base
     public function GetSvnUserRepList()
     {
         $result = $this->ServiceSvnrep->GetSvnUserRepList();
+        json2($result);
+    }
+
+    /**
+     * 管理人员获取SVN用户有权限的仓库路径列表
+     */
+    public function GetSvnUserRepList2()
+    {
+        unset($this->param['token']);
+        $result = (new ServiceSvnrep($this->param))->GetSvnUserRepList();
         json2($result);
     }
 

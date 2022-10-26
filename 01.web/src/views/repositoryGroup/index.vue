@@ -152,15 +152,27 @@
       :draggable="true"
       :title="titleGetGroupMember"
     >
-      <Button icon="md-add" type="primary" ghost @click="ModalRepPathPri"
-        >添加成员</Button
-      >
+      <Row style="margin-bottom: 15px">
+        <Col type="flex" justify="space-between" span="12">
+          <Button icon="md-add" type="primary" ghost @click="ModalRepPathPri"
+            >添加成员</Button
+          >
+        </Col>
+        <Col span="12">
+          <Input
+            search
+            placeholder="通过对象名称搜索..."
+            v-model="searchKeywordGroupMember"
+            @on-change="GetGroupMember"
+          />
+        </Col>
+      </Row>
       <Table
         border
         :height="310"
         size="small"
         :loading="loadingGetGroupMember"
-        :columns="tableColumnGrouMember"
+        :columns="tableColumnGroupMember"
         :data="tableDataGroupMember"
         style="margin-top: 20px"
       >
@@ -383,12 +395,15 @@ export default {
       searchKeywordUser: "",
       searchKeywordGroup: "",
       searchKeywordAliase: "",
+      //搜索分组的成员列表
+      searchKeywordGroupMember: "",
 
       /**
        * 排序数据
        */
-      sortName: "svn_group_name",
-      sortType: "asc",
+      //获取SVN分组列表
+      sortNameGetGroupList: "svn_group_name",
+      sortTypeGetGroupList: "asc",
 
       /**
        * 加载
@@ -494,7 +509,7 @@ export default {
       tableGroupData: [],
 
       //分组的成员列表
-      tableColumnGrouMember: [
+      tableColumnGroupMember: [
         {
           title: "对象类型",
           slot: "objectType",
@@ -606,9 +621,9 @@ export default {
      * 分组排序
      */
     SortChangeGroup(value) {
-      this.sortName = value.key;
+      this.sortNameGetGroupList = value.key;
       if (value.order == "desc" || value.order == "asc") {
-        this.sortType = value.order;
+        this.sortTypeGetGroupList = value.order;
       }
       this.GetGroupList();
     },
@@ -621,8 +636,8 @@ export default {
         pageSize: that.pageSizeGroup,
         currentPage: that.pageCurrentGroup,
         searchKeyword: that.searchKeywordGroup,
-        sortName: that.sortName,
-        sortType: that.sortType,
+        sortName: that.sortNameGetGroupList,
+        sortType: that.sortTypeGetGroupList,
         sync: sync,
         page: page,
       };
@@ -881,6 +896,7 @@ export default {
       that.loadingGetGroupMember = true;
       that.tableDataGroupMember = [];
       var data = {
+        searchKeyword: that.searchKeywordGroupMember,
         svn_group_name: that.currentSelectGroupName,
       };
       that.$axios

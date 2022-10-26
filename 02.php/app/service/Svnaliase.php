@@ -18,9 +18,9 @@ class Svnaliase extends Base
      */
     private $Logs;
 
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
     }
 
     /**

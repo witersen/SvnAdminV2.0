@@ -20,11 +20,11 @@ class Safe extends Base
      */
     private $ServiceSafe;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceSafe = new ServiceSafe();
+        $this->ServiceSafe = new ServiceSafe($parm);
     }
 
     /**

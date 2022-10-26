@@ -20,11 +20,11 @@ class Subadmin extends Base
      */
     private $ServiceSuadmin;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceSubadmin = new ServiceSubadmin();
+        $this->ServiceSubadmin = new ServiceSubadmin($parm);
     }
 
     /**

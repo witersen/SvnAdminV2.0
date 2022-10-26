@@ -21,9 +21,9 @@ class Svnrep extends Base
     private $Svngroup;
     private $Logs;
 
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
 
         $this->Svngroup = new Svngroup();
         $this->Svn = new Svn();
@@ -41,8 +41,8 @@ class Svnrep extends Base
             'rep_note' => ['type' => 'string', 'notNull' => false],
             'rep_type' => ['type' => 'string', 'notNull' => true],
         ]);
-        if (!$checkResult) {
-            return message(200, 0, '参数不完整');
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
         //检查仓库名是否合法
@@ -451,7 +451,7 @@ class Svnrep extends Base
     }
 
     /**
-     * SVN用户获取自己有权限的仓库列表
+     * SVN用户获取有权限的仓库路径列表
      */
     public function GetSvnUserRepList()
     {
@@ -476,13 +476,15 @@ class Svnrep extends Base
              * 对用户有权限的仓库路径列表进行一一验证
              * 
              * 确保该仓库的路径存在于仓库的最新版本库中
+             * 
+             * 暂时去除 这样做可能会对已经配置的路径造成误删除 因为文件或者文件夹可能为误删除 进行此同步后就会造成整个路径误删除
              */
-            $this->SyncRepPathCheck();
+            // $this->SyncRepPathCheck();
 
             /**
              * 及时更新
              */
-            $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
+            // $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
 
             /**
              * 用户有权限的仓库路径列表 => svn_user_pri_paths数据表

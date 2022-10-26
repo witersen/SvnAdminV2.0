@@ -13,9 +13,9 @@ use Config;
 
 class Svn extends Base
 {
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
     }
 
     /**

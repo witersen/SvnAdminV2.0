@@ -20,11 +20,11 @@ class Common extends Base
      */
     private $ServiceCommon;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceCommon = new ServiceCommon();
+        $this->ServiceCommon = new ServiceCommon($parm);
     }
 
     /**

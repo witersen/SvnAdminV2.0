@@ -20,11 +20,11 @@ class Svnaliase extends Base
      */
     private $ServiceSvnaliase;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceSvnaliase = new ServiceSvnaliase();
+        $this->ServiceSvnaliase = new ServiceSvnaliase($parm);
     }
 
     /**

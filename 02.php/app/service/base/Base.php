@@ -68,7 +68,6 @@ use SVNAdmin\SVN\User;
 
 class Base
 {
-    //权限token
     public $token;
 
     //根据token得到的用户信息
@@ -101,11 +100,8 @@ class Base
     //检查
     public $checkService;
 
-    function __construct()
+    function __construct($parm)
     {
-        global $token;
-        global $payload;
-
         //配置信息
         $this->config_bin =  Config::get('bin');                       //可执行文件路径
         $configDatabase = Config::get('database');              //数据库配置
@@ -113,17 +109,16 @@ class Base
         $this->config_reg = Config::get('reg');                        //正则
         $this->config_sign = Config::get('sign');                      //密钥
 
-        //token
-        $this->token = $token;
+        $this->token = isset($parm['token']) ? $parm['token'] : '';
 
         /**
          * 4、用户信息获取
          */
-        if (empty($token)) {
-            $this->userRoleId = 0;
-            $this->userName = '';
+        if (empty($this->token)) {
+            $this->userRoleId = isset($parm['payload']['userRoleId']) ? $parm['payload']['userRoleId'] : 0;
+            $this->userName = isset($parm['payload']['userName']) ? $parm['payload']['userName'] : 0;
         } else {
-            $array = explode($this->config_sign['signSeparator'], $token);
+            $array = explode($this->config_sign['signSeparator'], $this->token);
             $this->userRoleId = $array[0];
             $this->userName = $array[1];
         }
@@ -145,7 +140,7 @@ class Base
         /**
          * 9、获取payload
          */
-        $this->payload = $payload;
+        $this->payload = isset($parm['payload']) ? $parm['payload'] : [];
 
         /**
          * 10、svnadmin对象

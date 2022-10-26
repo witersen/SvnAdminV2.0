@@ -67,24 +67,32 @@ function funCheckForm($checkedArray, $columns)
 {
     //检查数组本身是否合法
     if (empty($checkedArray) || !isset($checkedArray)) {
-        return false;
+        return message(200, 0, '参数不合法', [
+            'column' => ''
+        ]);
     }
     foreach ($columns as $key => $value) {
         //检查数组中是否包含指定的变量
         if (!array_key_exists($key, $checkedArray)) {
-            return false;
+            return message(200, 0, '缺少参数', [
+                'column' => $key
+            ]);
         }
         //检查变量类型是否正确
         if ($value['type'] != gettype($checkedArray[$key])) {
-            return false;
+            return message(200, 0, '参数类型错误', [
+                'column' =>  sprintf('参数[%s]-需要[%s]-实际为[%s]', $key, $value['type'], gettype($checkedArray[$key]))
+            ]);
         }
         //检查是否可以为空
         if (isset($value['notNull']) && $value['notNull']) {
             if (empty($checkedArray[$key])) {
-                return false;
+                return message(200, 0, '参数值不能为空', [
+                    'column' => $key
+                ]);
             }
         }
     }
-    
-    return true;
+
+    return message();
 }

@@ -78,8 +78,11 @@
             @on-blur="EditUserNote(index, row.svn_user_name)"
           />
         </template>
-        <template slot-scope="{ row, index }" slot="svn_user_pri">
-          <Button type="info" size="small" @click="ModalSvnUserPriPath"
+        <template slot-scope="{ row }" slot="svn_user_rep_list">
+          <Button
+            type="info"
+            size="small"
+            @click="ModalSvnUserPriPath(row.svn_user_name)"
             >查看</Button
           >
         </template>
@@ -197,9 +200,27 @@ user3=passwd3"
     </Modal>
     <Modal
       v-model="modalSvnUserPriPath"
-      title="权限路径列表"
-      @on-ok="EditUserPass"
+      :title="titleSvnUserPriPath"
+      :width="800"
     >
+      <Table
+        @on-sort-change="SortChangeUserRep"
+        border
+        :loading="loadingUserRep"
+        :columns="tableColumnUserRep"
+        :data="tableDataUserRep"
+        size="small"
+      >
+        <template slot-scope="{ row }" slot="second_pri">
+          <Switch>
+            <Icon type="md-checkmark" slot="open"></Icon>
+            <Icon type="md-close" slot="close"></Icon>
+          </Switch>
+        </template>
+        <template slot-scope="{ row }" slot="action">
+          <Button type="info" size="small">配置</Button>
+        </template>
+      </Table>
       <div slot="footer">
         <Button type="primary" ghost @click="modalSvnUserPriPath = false"
           >取消</Button
@@ -229,8 +250,13 @@ export default {
       /**
        * 排序数据
        */
-      sortName: "svn_user_name",
-      sortType: "asc",
+      //SVN用户列表
+      sortNameUserRepList: "",
+      sortTypeUserRepList: "asc",
+
+      //SVN用户有权限的仓库路径列表
+      sortNameUserList: "svn_user_name",
+      sortTypeUserList: "asc",
 
       /**
        * 加载
@@ -243,12 +269,16 @@ export default {
       loadingEditUserPass: false,
       //识别 passwd 文件
       loadingScanPasswd: false,
+      //用户有权限的仓库列表
+      loadingUserRep: true,
 
       /**
        * 临时变量
        */
       //输入的 passwd 文件内容
       tempPasswdContent: "",
+      //当前选中的svn用户名
+      currentSvnUserName: "",
 
       /**
        * 对话框
@@ -277,10 +307,15 @@ export default {
         svn_user_pass: "",
         index: -1,
       },
+
       /**
        * 标题
        */
+      //更新SVN用户密码
       titleEditUser: "",
+      //SVN用户有权限的仓库列表
+      titleSvnUserPriPath: "",
+
       /**
        * 表格
        */
@@ -318,7 +353,7 @@ export default {
         },
         {
           title: "权限路径",
-          slot: "svn_user_pri",
+          slot: "svn_user_rep_list",
           minWidth: 120,
         },
         {
@@ -328,6 +363,45 @@ export default {
         },
       ],
       tableDataUser: [],
+      //svn用户有权限的仓库路径
+      tableDataUserRep: [],
+      tableColumnUserRep: [
+        {
+          title: "序号",
+          type: "index",
+          fixed: "left",
+          minWidth: 80,
+        },
+        {
+          title: "仓库名",
+          key: "rep_name",
+          tooltip: true,
+          sortable: "custom",
+          minWidth: 120,
+        },
+        {
+          title: "路径/文件",
+          tooltip: true,
+          key: "pri_path",
+          minWidth: 120,
+        },
+        {
+          title: "权限",
+          key: "rep_pri",
+          minWidth: 120,
+        },
+        {
+          title: "可二次授权",
+          slot: "second_pri",
+          minWidth: 120,
+        },
+        {
+          title: "二次授权对象",
+          slot: "action",
+          width: 180,
+          // fixed:"right"
+        },
+      ],
     };
   },
   computed: {},
@@ -361,8 +435,8 @@ export default {
         pageSize: that.pageSizeUser,
         currentPage: that.pageCurrentUser,
         searchKeyword: that.searchKeywordUser,
-        sortName: that.sortName,
-        sortType: that.sortType,
+        sortName: that.sortNameUserList,
+        sortType: that.sortTypeUserList,
         sync: sync,
         page: page,
       };
@@ -438,9 +512,9 @@ export default {
      * 用户排序
      */
     SortChangeUser(value) {
-      this.sortName = value.key;
+      this.sortNameUserList = value.key;
       if (value.order == "desc" || value.order == "asc") {
-        this.sortType = value.order;
+        this.sortTypeUserList = value.order;
       }
       this.GetUserList();
     },
@@ -673,8 +747,54 @@ export default {
     /**
      * 查看权限路径列表
      */
-    ModalSvnUserPriPath() {
+    ModalSvnUserPriPath(svn_user_name) {
+      this.titleSvnUserPriPath = "权限路径列表 - " + svn_user_name;
       this.modalSvnUserPriPath = true;
+      this.currentSvnUserName = svn_user_name;
+      this.GetSvnUserRepList();
+    },
+    /**
+     * 管理人员获取SVN用户有权限的仓库路径列表
+     */
+    GetSvnUserRepList(sync = false) {
+      var that = this;
+      that.loadingUserRep = true;
+      that.tableDataUserRep = [];
+      // that.totalUserRep = 0;
+      var data = {
+        searchKeyword: "",
+        sortType: that.sortTypeUserRepList,
+        sync: sync,
+        page: false,
+        userName: that.currentSvnUserName,
+      };
+      that.$axios
+        .post("/api.php?c=Svnrep&a=GetSvnUserRepList2&t=web", data)
+        .then(function (response) {
+          that.loadingUserRep = false;
+          var result = response.data;
+          if (result.status == 1) {
+            // that.$Message.success(result.message);
+            that.tableDataUserRep = result.data.data;
+            // that.totalUserRep = result.data.total;
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingUserRep = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 用户仓库排序
+     */
+    SortChangeUserRep(value) {
+      if (value.order == "desc" || value.order == "asc") {
+        this.sortTypeUserRepList = value.order;
+      }
+      this.GetSvnUserRepList();
     },
   },
 };

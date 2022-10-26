@@ -20,11 +20,11 @@ class Statistics extends Base
      */
     private $ServiceStatistics;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceStatistics = new ServiceStatistics();
+        $this->ServiceStatistics = new ServiceStatistics($parm);
     }
 
     /**

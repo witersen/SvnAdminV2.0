@@ -13,9 +13,9 @@ use Config;
 
 class Update extends Base
 {
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
     }
 
     /**

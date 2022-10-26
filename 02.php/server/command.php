@@ -92,7 +92,13 @@ class Command
         if (array_key_exists('database_file', $this->config_database)) {
             $this->config_database['database_file'] = sprintf($this->config_database['database_file'], $this->config_svn['home_path']);
         }
-        $this->database = new Medoo($this->config_database);
+        try {
+            $this->database = new Medoo($this->config_database);
+        } catch (\Exception $e) {
+            print_r(sprintf('数据库连接失败[%s]', $e->getMessage()));
+            exit;
+        }
+
 
         //查询参数详情
         $this->crond = $this->database->get('crond', '*', [

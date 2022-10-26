@@ -25,33 +25,16 @@ require_once BASE_PATH . '/app/controller/base/Base.php';
 
 Config::load(BASE_PATH . '/config/');
 
-/**
- * token
- */
 $token = empty($_SERVER['HTTP_TOKEN']) ? '' : $_SERVER['HTTP_TOKEN'];
 
-/**
- * 控制器
- */
-$controller_perifx = empty($_GET['c']) ? '' : $_GET['c'];
-$controller = "\app\controller\\$controller_perifx";
-$controller_path = BASE_PATH . '/app/controller/' . $controller_perifx . '.php';
+$controller_prefix = empty($_GET['c']) ? '' : $_GET['c'];
+$controller = "\app\controller\\$controller_prefix";
+$controller_path = BASE_PATH . '/app/controller/' . $controller_prefix . '.php';
 
-/**
- * 方法
- */
 $action = empty($_GET['a']) ? '' : $_GET['a'];
 
-/**
- * 接口类型
- * 小程序还是web系统
- */
 $type = empty($_GET['t']) ? '' : $_GET['t'];
 
-/**
- * 请求参数即Request Payload
- * Content-Type: application/json
- */
 $payload = file_get_contents("php://input");
 $payload = !empty($payload) ? json_decode($payload, true) : [];
 
@@ -95,7 +78,13 @@ if ($state == 0) {
  * 检查控制器和方法是否存在并实例化
  */
 if (file_exists($controller_path)) {
-    $obj = new $controller();
+    $obj = new $controller($parm = [
+        'token' => $token,
+        'payload' => $payload,
+        'type' => $type,
+        'controller_prefix' => $controller_prefix,
+        'action' => $action
+    ]);
     if (is_callable(array($obj, $action))) {
         $obj->$action();
     } else {

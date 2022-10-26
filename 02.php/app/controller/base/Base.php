@@ -65,12 +65,11 @@ use Medoo\Medoo;
 
 class Base
 {
-    function __construct()
+    public $param;
+
+    function __construct($parm)
     {
-        global $token;
-        global $type;
-        global $controller_perifx;
-        global $action;
+        $this->param = $parm;
 
         //配置信息
         $configRouters =  Config::get('router');                //路由
@@ -81,23 +80,23 @@ class Base
         /**
          * 2、检查接口类型
          */
-        !in_array($type, array_keys($configRouters['public'])) ? json1(401, 0, '无效的接口类型') : '';
+        !in_array($parm['type'], array_keys($configRouters['public'])) ? json1(401, 0, '无效的接口类型') : '';
 
         /**
          * 3、检查白名单路由
          */
-        if (!in_array("$controller_perifx/$action", $configRouters['public'][$type])) {
+        if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], $configRouters['public'][$parm['type']])) {
             /**
              * 如果请求不在对应类型的白名单中 则需要进行token校验
              */
 
             //判断是否为空
-            empty($token) ? json1(401, 0, 'token为空') : '';
+            empty($parm['token']) ? json1(401, 0, 'token为空') : '';
 
             //校验token格式
-            substr_count($token, $configSign['signSeparator']) != 4 ? json1(401, 0, 'token格式错误') : '';
+            substr_count($parm['token'], $configSign['signSeparator']) != 4 ? json1(401, 0, 'token格式错误') : '';
 
-            $arr = explode($configSign['signSeparator'], $token);
+            $arr = explode($configSign['signSeparator'], $parm['token']);
 
             //校验token格式
             foreach ($arr as $value) {
@@ -116,14 +115,14 @@ class Base
         /**
          * 5、检查特定角色权限路由
          */
-        if (empty($token)) {
+        if (empty($parm['token'])) {
             $userRoleId = 0;
         } else {
-            $array = explode($configSign['signSeparator'], $token);
+            $array = explode($configSign['signSeparator'], $parm['token']);
             $userRoleId = $array[0];
         }
         if ($userRoleId == 2) {
-            if (!in_array("$controller_perifx/$action", array_merge($configRouters['svn_user_routers'], $configRouters['public'][$type]))) {
+            if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], array_merge($configRouters['svn_user_routers'], $configRouters['public'][$parm['type']]))) {
                 json1(401, 0, '无权限');
             }
         }
@@ -134,7 +133,11 @@ class Base
         if (array_key_exists('database_file', $configDatabase)) {
             $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
         }
-        $black = (new Medoo($configDatabase))->get('black_token', ['token_id'], ['token' => $token]);
-        !empty($black) ? json1(401, 0, 'token已注销') : '';
+        try {
+            $black = (new Medoo($configDatabase))->get('black_token', ['token_id'], ['token' => $parm['token']]);
+            !empty($black) ? json1(401, 0, 'token已注销') : '';
+        } catch (\Exception $e) {
+            json1(200, 0, $e->getMessage());
+        }
     }
 }

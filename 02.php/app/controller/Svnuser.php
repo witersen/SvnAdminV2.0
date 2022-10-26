@@ -20,11 +20,11 @@ class Svnuser extends Base
      */
     private $ServiceSvnuser;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceSvnuser = new ServiceSvnuser();
+        $this->ServiceSvnuser = new ServiceSvnuser($parm);
     }
 
     /**

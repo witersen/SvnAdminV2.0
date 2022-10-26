@@ -20,11 +20,11 @@ class Mail extends Base
      */
     private $ServiceMail;
 
-    function __construct()
+    function __construct($parm)
     {
-        parent::__construct();
+        parent::__construct($parm);
 
-        $this->ServiceMail = new ServiceMail();
+        $this->ServiceMail = new ServiceMail($parm);
     }
 
     /**

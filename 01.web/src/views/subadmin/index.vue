@@ -176,8 +176,8 @@ export default {
       /**
        * 排序数据
        */
-      sortName: "subadmin_id",
-      sortType: "asc",
+      sortNameGetSubadminList: "subadmin_id",
+      sortTypeGetSubadminList: "asc",
 
       /**
        * 加载
@@ -308,8 +308,8 @@ export default {
         pageSize: that.pageSizeUser,
         currentPage: that.pageCurrentSubadmin,
         searchKeyword: that.searchKeywordSubadmin,
-        sortName: that.sortName,
-        sortType: that.sortType,
+        sortName: that.sortNameGetSubadminList,
+        sortType: that.sortTypeGetSubadminList,
       };
       that.$axios
         .post("/api.php?c=Subadmin&a=GetSubadminList&t=web", data)
@@ -383,9 +383,9 @@ export default {
      * 子管理员排序
      */
     SortChangeSubadmin(value) {
-      this.sortName = value.key;
+      this.sortNameGetSubadminList = value.key;
       if (value.order == "desc" || value.order == "asc") {
-        this.sortType = value.order;
+        this.sortTypeGetSubadminList = value.order;
       }
       this.GetSubadminList();
     },

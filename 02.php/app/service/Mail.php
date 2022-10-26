@@ -17,9 +17,9 @@ class Mail extends Base
 {
     private $mail;
 
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
 
         $this->mail = new PHPMailer(true);
         $this->mail->setLanguage('zh_cn', BASE_PATH . '/extension/PHPMailer-6.6.0/language/'); //加载错误消息翻译包
@@ -230,6 +230,23 @@ class Mail extends Base
      */
     public function SendTest()
     {
+        $checkResult = funCheckForm($this->payload, [
+            'host' => ['type' => 'string', 'notNull' => true],
+            'auth' => ['type' => 'boolean'],
+            'user' => ['type' => 'string', 'notNull' => true],
+            'pass' => ['type' => 'string', 'notNull' => true],
+            'encryption' => ['type' => 'string', 'notNull' => true],
+            'autotls' => ['type' => 'boolean'],
+            'port' => ['type' => 'integer', 'notNull' => true],
+            'from' => ['type' => 'array'],
+            'test' => ['type' => 'string', 'notNull' => true],
+            'timeout' => ['type' => 'integer', 'notNull' => true],
+            'user' => ['type' => 'string', 'notNull' => true],
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
         $host = $this->payload['host'];
         $auth = $this->payload['auth'];
         $user = $this->payload['user'];

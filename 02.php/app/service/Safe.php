@@ -11,9 +11,9 @@ namespace app\service;
 
 class Safe extends Base
 {
-    function __construct()
+    function __construct($parm = [])
     {
-        parent::__construct();
+        parent::__construct($parm);
     }
 
     /**
