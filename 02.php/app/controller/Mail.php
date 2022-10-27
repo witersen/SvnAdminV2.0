@@ -30,45 +30,45 @@ class Mail extends Base
     /**
      * 获取邮件配置信息
      */
-    public function GetEmail()
+    public function GetMailInfo()
     {
-        $result = $this->ServiceMail->GetEmail();
+        $result = $this->ServiceMail->GetMailInfo();
         json2($result);
     }
 
     /**
      * 修改邮件配置信息
      */
-    public function EditEmail()
+    public function UpdMail()
     {
-        $this->ServiceMail->EditEmail();
+        $this->ServiceMail->UpdMail();
         json2();
     }
 
     /**
      * 发送测试邮件
      */
-    public function SendTest()
+    public function TestMail()
     {
-        $result = $this->ServiceMail->SendTest();
+        $result = $this->ServiceMail->TestMail();
         json2($result);
     }
 
     /**
      * 获取消息推送信息配置
      */
-    public function GetPush()
+    public function GetPushInfo()
     {
-        $result = $this->ServiceMail->GetPush();
+        $result = $this->ServiceMail->GetPushInfo();
         json2($result);
     }
 
     /**
      * 修改推送选项
      */
-    function EditPush()
+    function UpdPush()
     {
-        $result = $this->ServiceMail->EditPush();
+        $result = $this->ServiceMail->UpdPush();
         json2($result);
     }
 }

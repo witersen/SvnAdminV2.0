@@ -32,9 +32,9 @@ class Safe extends Base
      *
      * @return array
      */
-    public function GetSafeConfig()
+    public function GetSafeInfo()
     {
-        $result = $this->ServiceSafe->GetSafeConfig();
+        $result = $this->ServiceSafe->GetSafeInfo();
         json2($result);
     }
 
@@ -43,9 +43,9 @@ class Safe extends Base
      *
      * @return array
      */
-    public function SetSafeConfig()
+    public function UpdSafeConfig()
     {
-        $result = $this->ServiceSafe->SetSafeConfig();
+        $result = $this->ServiceSafe->UpdSafeConfig();
         json2($result);
     }
 

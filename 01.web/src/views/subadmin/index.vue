@@ -95,7 +95,7 @@
         />
       </Card>
     </Card>
-    <Modal v-model="modalCreateSubadmin" title="新建子管理员">
+    <Modal v-model="modalCreateSubadmin" :draggable="true" title="新建子管理员">
       <Form :model="formCreateSubadmin" :label-width="80">
         <FormItem label="用户名">
           <Input v-model="formCreateSubadmin.subadmin_name"></Input>
@@ -127,6 +127,7 @@
     </Modal>
     <Modal
       v-model="modalEditUserPass"
+      :draggable="true"
       :title="titleEditUser"
       @on-ok="UpdSubadminPass"
     >

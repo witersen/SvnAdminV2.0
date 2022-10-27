@@ -295,7 +295,7 @@ class Svnrep extends Base
         }
 
         $userRepList = $this->database->select('svn_user_pri_paths', [
-            'svnn_user_pri_path_id',
+            'svnn_user_pri_path_id [Int]',
             'rep_name',
             'pri_path',
             'rep_pri',
@@ -325,7 +325,8 @@ class Svnrep extends Base
                 'pri_path' => $newRepList[$value]['priPath'],
                 'rep_pri' => $newRepList[$value]['repPri'],
                 'svn_user_name' => $this->userName,
-                'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
+                'unique' => '', //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
+                'second_pri' => 0
             ]);
         }
     }
@@ -509,10 +510,11 @@ class Svnrep extends Base
 
         if ($page) {
             $list = $this->database->select('svn_user_pri_paths', [
-                'svnn_user_pri_path_id',
+                'svnn_user_pri_path_id [Int]',
                 'rep_name',
                 'pri_path',
-                'rep_pri'
+                'rep_pri',
+                'second_pri [Int]'
             ], [
                 'AND' => [
                     'OR' => [
@@ -527,10 +529,11 @@ class Svnrep extends Base
             ]);
         } else {
             $list = $this->database->select('svn_user_pri_paths', [
-                'svnn_user_pri_path_id',
+                'svnn_user_pri_path_id [Int]',
                 'rep_name',
                 'pri_path',
-                'rep_pri'
+                'rep_pri',
+                'second_pri [Int]'
             ], [
                 'AND' => [
                     'OR' => [
@@ -544,8 +547,12 @@ class Svnrep extends Base
             ]);
         }
 
+        foreach ($list as $key => $value) {
+            $list[$key]['second_pri'] = $value['second_pri'] == 1 ? true : false;
+        }
+
         $total = $this->database->count('svn_user_pri_paths', [
-            'svnn_user_pri_path_id'
+            'svnn_user_pri_path_id [Int]'
         ], [
             'AND' => [
                 'OR' => [

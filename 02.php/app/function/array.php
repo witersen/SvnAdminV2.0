@@ -86,7 +86,8 @@ function funCheckForm($checkedArray, $columns)
         }
         //检查是否可以为空
         if (isset($value['notNull']) && $value['notNull']) {
-            if (empty($checkedArray[$key])) {
+            if ($value['type'] == 'integer') {
+            } else if (empty($checkedArray[$key])) {
                 return message(200, 0, '参数值不能为空', [
                     'column' => $key
                 ]);

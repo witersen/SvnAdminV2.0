@@ -71,7 +71,7 @@ class Logs extends Base
     /**
      * 清空日志
      */
-    public function ClearLogs()
+    public function DelLogs()
     {
         $this->database->delete('logs', [
             'log_id[>]' => 0

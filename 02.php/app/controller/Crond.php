@@ -54,9 +54,9 @@ class Crond extends Base
      *
      * @return array
      */
-    public function SetCrond()
+    public function CreateCrond()
     {
-        $result = $this->ServiceCrond->SetCrond();
+        $result = $this->ServiceCrond->CreateCrond();
         json2($result);
     }
 
@@ -109,9 +109,9 @@ class Crond extends Base
      *
      * @return array
      */
-    public function CrondNow()
+    public function TriggerCrond()
     {
-        $result = $this->ServiceCrond->CrondNow();
+        $result = $this->ServiceCrond->TriggerCrond();
         json2($result);
     }
 

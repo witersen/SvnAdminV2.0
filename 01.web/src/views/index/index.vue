@@ -245,11 +245,11 @@ export default {
   mounted() {
     var that = this;
     if (that.display.part1) {
-      that.GetDisk();
-      that.GetSystemStatus();
+      that.GetDiskInfo();
+      that.GetLoadInfo();
       //设置定时器
       that.timer = window.setInterval(() => {
-        setTimeout(that.GetSystemStatus(), 0);
+        setTimeout(that.GetLoadInfo(), 0);
       }, 3000);
       //离开页面清除定时器
       that.$once("hook:beforeDestroy", () => {
@@ -257,18 +257,18 @@ export default {
       });
     }
     if (that.display.part2) {
-      that.GetSystemAnalysis();
+      that.GetStatisticsInfo();
     }
   },
   methods: {
     /**
      * 获取磁盘
      */
-    GetDisk() {
+    GetDiskInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Statistics&a=GetDisk&t=web", data)
+        .post("/api.php?c=Statistics&a=GetDiskInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -286,11 +286,11 @@ export default {
     /**
      * 获取状态
      */
-    GetSystemStatus() {
+    GetLoadInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Statistics&a=GetSystemStatus&t=web", data)
+        .post("/api.php?c=Statistics&a=GetLoadInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -308,11 +308,11 @@ export default {
     /**
      * 获取统计
      */
-    GetSystemAnalysis() {
+    GetStatisticsInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Statistics&a=GetSystemAnalysis&t=web", data)
+        .post("/api.php?c=Statistics&a=GetStatisticsInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

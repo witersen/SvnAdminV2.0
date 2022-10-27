@@ -90,7 +90,12 @@
         />
       </Card>
     </Card>
-    <Modal v-model="modalAddGroup" title="新建SVN分组" @on-ok="CreateGroup">
+    <Modal
+      v-model="modalAddGroup"
+      :draggable="true"
+      title="新建SVN分组"
+      @on-ok="CreateGroup"
+    >
       <Form :model="formCreateGroup" :label-width="80">
         <FormItem label="分组名">
           <Input v-model="formCreateGroup.svn_group_name"></Input>
@@ -120,6 +125,7 @@
     </Modal>
     <Modal
       v-model="modalEditGroupName"
+      :draggable="true"
       :title="titleEditGroupName"
       @on-ok="EditGroupName"
     >
@@ -216,13 +222,28 @@
       <Tabs size="small" @on-click="ClickObjectTab">
         <TabPane :label="custom_tab_svn_user" name="user">
           <Row style="margin-bottom: 15px">
-            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col type="flex" justify="space-between" span="12">
+              <Tooltip
+                max-width="250"
+                content="手动刷新才可获取最新用户列表"
+                placement="bottom"
+                :transfer="true"
+              >
+                <Button
+                  icon="ios-sync"
+                  type="warning"
+                  ghost
+                  @click="GetAllUsers(true)"
+                  >手动刷新</Button
+                >
+              </Tooltip>
+            </Col>
             <Col span="12">
               <Input
                 search
                 placeholder="通过用户名搜索..."
                 v-model="searchKeywordUser"
-                @on-change="GetAllUsers"
+                @on-change="GetAllUsers()"
               />
             </Col>
           </Row>
@@ -255,13 +276,28 @@
         </TabPane>
         <TabPane :label="custom_tab_svn_group" name="group">
           <Row style="margin-bottom: 15px">
-            <Col type="flex" justify="space-between" span="12"> </Col>
+            <Col type="flex" justify="space-between" span="12">
+              <Tooltip
+                max-width="250"
+                content="手动刷新才可获取最新分组列表"
+                placement="bottom"
+                :transfer="true"
+              >
+                <Button
+                  icon="ios-sync"
+                  type="warning"
+                  ghost
+                  @click="GetAllGroups(true)"
+                  >手动刷新</Button
+                >
+              </Tooltip>
+            </Col>
             <Col span="12">
               <Input
                 search
                 placeholder="通过分组名搜索..."
                 v-model="searchKeywordGroup"
-                @on-change="GetAllGroups"
+                @on-change="GetAllGroups()"
               />
             </Col>
           </Row>
@@ -968,7 +1004,7 @@ export default {
     /**
      * 获取所有的SVN用户列表
      */
-    GetAllUsers() {
+    GetAllUsers(sync = false) {
       var that = this;
       //清空上次数据
       that.tableDataAllUsers = [];
@@ -978,7 +1014,7 @@ export default {
         searchKeyword: that.searchKeywordUser,
         sortName: "svn_user_name",
         sortType: "asc",
-        sync: false,
+        sync: sync,
         page: false,
       };
       that.$axios
@@ -1002,7 +1038,7 @@ export default {
     /**
      * 获取所有的SVN分组列表
      */
-    GetAllGroups() {
+    GetAllGroups(sync = false) {
       var that = this;
       //清空上次数据
       that.tableDataAllGroups = [];
@@ -1012,7 +1048,7 @@ export default {
         searchKeyword: that.searchKeywordGroup,
         sortName: "svn_group_name",
         sortType: "asc",
-        sync: false,
+        sync: sync,
         page: false,
       };
       that.$axios

@@ -23,7 +23,7 @@ class Statistics extends Base
      * CPU使用率
      * 内存使用率
      */
-    public function GetSystemStatus()
+    public function GetLoadInfo()
     {
         /**
          * ----------负载计算开始----------
@@ -193,7 +193,7 @@ class Statistics extends Base
      * 
      * 获取硬盘数量和每个硬盘的详细信息
      */
-    public function GetDisk()
+    public function GetDiskInfo()
     {
         $rs = funShellExec('df -lh | grep -E "^(/)"');
         $rs = $rs['result'];
@@ -236,7 +236,7 @@ class Statistics extends Base
      * 计划任务数量
      * 运行日志数量
      */
-    public function GetSystemAnalysis()
+    public function GetStatisticsInfo()
     {
         //操作系统类型和版本
         if (file_exists('/etc/redhat-release')) {

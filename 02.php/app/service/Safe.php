@@ -21,7 +21,7 @@ class Safe extends Base
      *
      * @return array
      */
-    public function GetSafeConfig()
+    public function GetSafeInfo()
     {
         $safe_config = $this->database->get('options', [
             'option_value'
@@ -65,7 +65,7 @@ class Safe extends Base
      *
      * @return array
      */
-    public function SetSafeConfig()
+    public function UpdSafeConfig()
     {
         $this->database->update('options', [
             'option_value' => serialize($this->payload['listSafe'])
@@ -83,7 +83,7 @@ class Safe extends Base
      */
     public function GetVerifyOption()
     {
-        $result = $this->GetSafeConfig();
+        $result = $this->GetSafeInfo();
 
         if ($result['status'] != 1) {
             return message(200, 0, '获取配置信息出错');

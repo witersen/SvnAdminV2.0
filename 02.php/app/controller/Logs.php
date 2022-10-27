@@ -39,9 +39,9 @@ class Logs extends Base
     /**
      * 清空日志
      */
-    public function ClearLogs()
+    public function DelLogs()
     {
-        $result = $this->ServiceLogs->ClearLogs();
+        $result = $this->ServiceLogs->DelLogs();
         json2($result);
     }
 }

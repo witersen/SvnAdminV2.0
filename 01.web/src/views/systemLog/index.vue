@@ -15,7 +15,7 @@
             type="warning"
             ghost
             :loading="loadingClearLogs"
-            @click="ClearLogs"
+            @click="DelLogs"
             >清空日志</Button
           >
           <Button
@@ -184,7 +184,7 @@ export default {
     /**
      * 清空日志
      */
-    ClearLogs() {
+    DelLogs() {
       var that = this;
       that.$Modal.confirm({
         title: "清空日志",
@@ -193,7 +193,7 @@ export default {
           that.loadingClearLogs = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Logs&a=ClearLogs&t=web", data)
+            .post("/api.php?c=Logs&a=DelLogs&t=web", data)
             .then(function (response) {
               that.loadingClearLogs = false;
               var result = response.data;

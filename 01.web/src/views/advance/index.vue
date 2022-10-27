@@ -17,7 +17,7 @@
                       max-width="360"
                       content="可在命令行模式下执行 server/insta.php 进行Subversion安装和初始化等操作"
                     >
-                      <Button type="info">tips</Button>
+                      <Button type="info">说明</Button>
                     </Tooltip>
                   </Col>
                   <Col span="6"> </Col>
@@ -199,7 +199,7 @@
                       max-width="360"
                       content="对于大多数服务器，建议使用TLS。 如果您的SMTP提供商同时提供SSL和TLS选项，我们建议您使用TLS。"
                     >
-                      <Button type="info">tips</Button>
+                      <Button type="info">说明</Button>
                     </Tooltip>
                   </Col>
                 </Row>
@@ -230,7 +230,7 @@
                       max-width="360"
                       content="默认情况下，如果服务器支持TLS加密，则会自动使用TLS加密（推荐）。在某些情况下，由于服务器配置错误可能会导致问题，则需要将其禁用。"
                     >
-                      <Button type="info">tips</Button>
+                      <Button type="info">说明</Button>
                     </Tooltip>
                   </Col>
                 </Row>
@@ -257,7 +257,7 @@
                       max-width="360"
                       content="如果使用QQ邮件服务，请注意对于@qq.com的邮件地址，仅输入@前面的部分，对于@vip.qq.com的邮件地址，可能需填入完整的地址"
                     >
-                      <Button type="info">tips</Button>
+                      <Button type="info">说明</Button>
                     </Tooltip>
                   </Col>
                 </Row>
@@ -311,7 +311,7 @@
                       max-width="360"
                       content="收件人邮箱只有在触发消息推送选项且邮件服务启用的条件下才会收到邮件"
                     >
-                      <Button type="info">tips</Button>
+                      <Button type="info">说明</Button>
                     </Tooltip>
                   </Col>
                 </Row>
@@ -333,7 +333,7 @@
                     >
                       <Button
                         type="success"
-                        @click="SendTest"
+                        @click="TestMail"
                         :loading="loadingSendTest"
                         >发送</Button
                       >
@@ -360,7 +360,7 @@
               <FormItem>
                 <Button
                   type="primary"
-                  @click="EditEmail"
+                  @click="UpdMail"
                   :loading="loadingEditEmail"
                   >保存</Button
                 >
@@ -395,7 +395,7 @@
                 <Button
                   type="primary"
                   :loading="loadingEditPush"
-                  @click="EditPush"
+                  @click="UpdPush"
                   >保存</Button
                 >
               </FormItem>
@@ -423,7 +423,7 @@
                 <Button
                   type="primary"
                   :loading="loadingEditSafe"
-                  @click="SetSafeConfig"
+                  @click="UpdSafeConfig"
                   >保存</Button
                 >
               </FormItem>
@@ -518,7 +518,7 @@
         </TabPane>
       </Tabs>
     </Card>
-    <Modal v-model="modalSofawareUpdateGet" title="最新版本信息">
+    <Modal v-model="modalSofawareUpdateGet" :draggable="true" title="最新版本信息">
       <Scroll>
         <Form ref="formUpdate" :model="formUpdate" :label-width="90">
           <FormItem label="最新版本">
@@ -589,7 +589,12 @@
         </Form>
       </Scroll>
     </Modal>
-    <Modal v-model="modalAddToEmail" title="添加收件人邮箱" @on-ok="AddToEmail">
+    <Modal
+      v-model="modalAddToEmail"
+      :draggable="true"
+      title="添加收件人邮箱"
+      @on-ok="AddToEmail"
+    >
       <Form @submit.native.prevent>
         <FormItem>
           <Input type="text" v-model="tempToEmail"> </Input>
@@ -758,9 +763,9 @@ export default {
     }
     this.GetDetail();
     this.GetConfig();
-    this.GetEmail();
-    this.GetPush();
-    this.GetSafeConfig();
+    this.GetMailInfo();
+    this.GetPushInfo();
+    this.GetSafeInfo();
   },
   methods: {
     /**
@@ -832,11 +837,11 @@ export default {
     /**
      * 获取邮件配置信息
      */
-    GetEmail() {
+    GetMailInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Mail&a=GetEmail&t=web", data)
+        .post("/api.php?c=Mail&a=GetMailInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -866,7 +871,7 @@ export default {
     /**
      * 修改邮件配置信息
      */
-    EditEmail() {
+    UpdMail() {
       var that = this;
       that.loadingEditEmail = true;
       var data = {
@@ -883,13 +888,13 @@ export default {
         timeout: that.formMailSmtp.timeout,
       };
       that.$axios
-        .post("/api.php?c=Mail&a=EditEmail&t=web", data)
+        .post("/api.php?c=Mail&a=UpdMail&t=web", data)
         .then(function (response) {
           that.loadingEditEmail = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetEmail();
+            that.GetMailInfo();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -903,7 +908,7 @@ export default {
     /**
      * 发送测试邮件
      */
-    SendTest() {
+    TestMail() {
       var that = this;
       that.loadingSendTest = true;
       var data = {
@@ -919,7 +924,7 @@ export default {
         timeout: that.formMailSmtp.timeout,
       };
       that.$axios
-        .post("/api.php?c=Mail&a=SendTest&t=web", data)
+        .post("/api.php?c=Mail&a=TestMail&t=web", data)
         .then(function (response) {
           that.loadingSendTest = false;
           var result = response.data;
@@ -959,11 +964,11 @@ export default {
     /**
      * 获取消息推送配置
      */
-    GetPush() {
+    GetPushInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Mail&a=GetPush&t=web", data)
+        .post("/api.php?c=Mail&a=GetPushInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -980,11 +985,11 @@ export default {
     /**
      * 获取安全配置选项
      */
-    GetSafeConfig() {
+    GetSafeInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Safe&a=GetSafeConfig&t=web", data)
+        .post("/api.php?c=Safe&a=GetSafeInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1036,20 +1041,20 @@ export default {
     /**
      * 修改信息
      */
-    EditPush() {
+    UpdPush() {
       var that = this;
       that.loadingEditPush = true;
       var data = {
         listPush: that.listPush,
       };
       that.$axios
-        .post("/api.php?c=Mail&a=EditPush&t=web", data)
+        .post("/api.php?c=Mail&a=UpdPush&t=web", data)
         .then(function (response) {
           that.loadingEditPush = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetPush();
+            that.GetPushInfo();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -1063,20 +1068,20 @@ export default {
     /**
      * 保存安全配置选项
      */
-    SetSafeConfig() {
+    UpdSafeConfig() {
       var that = this;
       that.loadingEditSafe = true;
       var data = {
         listSafe: that.listSafe,
       };
       that.$axios
-        .post("/api.php?c=Safe&a=SetSafeConfig&t=web", data)
+        .post("/api.php?c=Safe&a=UpdSafeConfig&t=web", data)
         .then(function (response) {
           that.loadingEditSafe = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetSafeConfig();
+            that.GetSafeInfo();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }

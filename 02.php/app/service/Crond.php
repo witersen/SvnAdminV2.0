@@ -130,7 +130,7 @@ class Crond extends Base
      *
      * @return array
      */
-    public function SetCrond()
+    public function CreateCrond()
     {
         //todo 检查crond服务有无开启
 
@@ -474,7 +474,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
      *
      * @return void
      */
-    public function CrondNow()
+    public function TriggerCrond()
     {
         if (!isset($this->payload['crond_id'])) {
             return message(200, 0, '参数不完整');

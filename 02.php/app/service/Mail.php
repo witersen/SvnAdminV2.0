@@ -137,7 +137,7 @@ class Mail extends Base
     /**
      * 获取邮件配置信息
      */
-    public function GetEmail()
+    public function GetMailInfo()
     {
         $mail_smtp = $this->database->get('options', [
             'option_value'
@@ -203,7 +203,7 @@ class Mail extends Base
     /**
      * 修改邮件配置信息
      */
-    public function EditEmail()
+    public function UpdMail()
     {
         $this->database->update('options', [
             'option_value' => serialize([
@@ -228,7 +228,7 @@ class Mail extends Base
     /**
      * 发送测试邮件
      */
-    public function SendTest()
+    public function TestMail()
     {
         $checkResult = funCheckForm($this->payload, [
             'host' => ['type' => 'string', 'notNull' => true],
@@ -290,7 +290,7 @@ class Mail extends Base
      */
     public function SendMail($trigger, $subject, $body)
     {
-        $mail_smtp = $this->GetEmail();
+        $mail_smtp = $this->GetMailInfo();
         $mail_smtp = $mail_smtp['data'];
 
         //检查邮件服务是否启用
@@ -299,7 +299,7 @@ class Mail extends Base
         }
 
         //检查触发条件
-        $message_push = $this->GetPush();
+        $message_push = $this->GetPushInfo();
         $message_push = $message_push['data'];
 
         $triggers = array_column($message_push, 'trigger');
@@ -350,7 +350,7 @@ class Mail extends Base
      */
     public function SendMail2($subject, $body)
     {
-        $mail_smtp = $this->GetEmail();
+        $mail_smtp = $this->GetMailInfo();
         $mail_smtp = $mail_smtp['data'];
 
         //检查邮件服务是否启用
@@ -395,7 +395,7 @@ class Mail extends Base
     /**
      * 获取消息推送信息配置
      */
-    public function GetPush()
+    public function GetPushInfo()
     {
         $message_push = $this->database->get('options', [
             'option_value'
@@ -455,7 +455,7 @@ class Mail extends Base
     /**
      * 修改推送选项
      */
-    function EditPush()
+    function UpdPush()
     {
         $this->database->update('options', [
             'option_value' => serialize($this->payload['listPush'])

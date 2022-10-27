@@ -114,7 +114,7 @@
         />
       </Card>
     </Card>
-    <Modal v-model="modalCreateUser" title="新建SVN用户">
+    <Modal v-model="modalCreateUser" :draggable="true" title="新建SVN用户">
       <Form :model="formCreateUser" :label-width="80">
         <FormItem label="用户名">
           <Input v-model="formCreateUser.svn_user_name"></Input>
@@ -149,7 +149,7 @@
         >
       </div>
     </Modal>
-    <Modal v-model="modalScanPasswd" title="自动识别">
+    <Modal v-model="modalScanPasswd" :draggable="true" title="自动识别">
       <Input
         v-model="tempPasswdContent"
         placeholder="请粘贴 passwd 文件内容
@@ -176,6 +176,7 @@ user3=passwd3"
     </Modal>
     <Modal
       v-model="modalEditUserPass"
+      :draggable="true" 
       :title="titleEditUser"
       @on-ok="EditUserPass"
     >
@@ -202,17 +203,24 @@ user3=passwd3"
       v-model="modalSvnUserPriPath"
       :title="titleSvnUserPriPath"
       :width="800"
+      :draggable="true"
     >
       <Table
-        @on-sort-change="SortChangeUserRep"
+        @on-sort-change="SortChangeUserRep()"
         border
+        :height="420"
         :loading="loadingUserRep"
         :columns="tableColumnUserRep"
         :data="tableDataUserRep"
         size="small"
       >
         <template slot-scope="{ row }" slot="second_pri">
-          <Switch>
+          <Switch
+            v-model="row.second_pri"
+            @on-change="
+              (value) => UpdSecondpri(value, row.svnn_user_pri_path_id)
+            "
+          >
             <Icon type="md-checkmark" slot="open"></Icon>
             <Icon type="md-close" slot="close"></Icon>
           </Switch>
@@ -391,9 +399,66 @@ export default {
           minWidth: 120,
         },
         {
-          title: "可二次授权",
           slot: "second_pri",
           minWidth: 120,
+          renderHeader(h, params) {
+            return h(
+              "tooltip",
+              {
+                props: {
+                  transfer: true,
+                  placement: "left",
+                  "max-width": "400",
+                },
+              },
+              [
+                h("span", [
+                  h("span", "二次授权"),
+                  h("Icon", {
+                    props: {
+                      type: "ios-help-circle-outline",
+                      size: "15",
+                    },
+                    class: { iconClass: true },
+                  }),
+                ]),
+                h(
+                  "div",
+                  {
+                    slot: "content",
+                    style: {
+                      fontSize: "14px",
+                    },
+                  },
+                  [
+                    h(
+                      "p",
+                      {
+                        style: {
+                          color: "#479af1",
+                        },
+                      },
+                      "举例来讲"
+                    ),
+                    h("p", " "),
+                    h("p", "projects 仓库包含众多项目 project1 project2 ..."),
+                    h("p", "user1 user2 user3 负责项目 project1"),
+                    h("p", "user1 为项目组长"),
+                    h("p", "user2 为研发同学"),
+                    h("p", "user2 为测试同学"),
+                    h("p", " "),
+                    h("p", "(1) 管理员为 user1 开启此路径二次授权开关"),
+                    h(
+                      "p",
+                      "(2) 管理员选择二次授权管理对象(此处为 user2 user3)"
+                    ),
+                    h("p", " "),
+                    h("p", "user1 可随意为管理对象授权而无需管理员介入"),
+                  ]
+                ),
+              ]
+            );
+          },
         },
         {
           title: "二次授权对象",
@@ -795,6 +860,31 @@ export default {
         this.sortTypeUserRepList = value.order;
       }
       this.GetSvnUserRepList();
+    },
+    /**
+     * 设置二次授权状态
+     */
+    UpdSecondpri(type, svnn_user_pri_path_id) {
+      var that = this;
+      var data = {
+        svnn_user_pri_path_id: svnn_user_pri_path_id,
+        type: type ? 1 : 0,
+      };
+      that.$axios
+        .post("/api.php?c=Secondpri&a=UpdSecondpri&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetSvnUserRepList();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
     },
   },
 };

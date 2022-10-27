@@ -79,7 +79,7 @@
         </TabPane>
       </Tabs>
     </Card>
-    <Modal v-model="modalEditAdminUserName" title="修改管理员账号">
+    <Modal v-model="modalEditAdminUserName" :draggable="true" title="修改管理员账号">
       <Form :model="formEditAdminUserName" :label-width="80">
         <FormItem label="新账号">
           <Input v-model="formEditAdminUserName.userName"></Input>
@@ -102,7 +102,7 @@
         >
       </div>
     </Modal>
-    <Modal v-model="modalEditAdminUserPass" title="修改管理员密码">
+    <Modal v-model="modalEditAdminUserPass" :draggable="true" title="修改管理员密码">
       <Form :model="formEditAdminUserPass" :label-width="80">
         <FormItem label="新密码">
           <Input v-model="formEditAdminUserPass.password"></Input>

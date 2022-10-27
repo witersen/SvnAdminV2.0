@@ -100,7 +100,10 @@
             max-width="200"
             content="不确定任务是否配置成功可手动执行一次通过分析日志查看具体情况"
           >
-            <Button type="error" size="small" @click="CrondNow(row.crond_id)"
+            <Button
+              type="error"
+              size="small"
+              @click="TriggerCrond(row.crond_id)"
               >执行</Button
             >
           </Tooltip>
@@ -119,7 +122,7 @@
         />
       </Card>
     </Card>
-    <Modal v-model="modalCrond" :title="titleModalCrond">
+    <Modal v-model="modalCrond" :draggable="true" :title="titleModalCrond">
       <Form :model="cycle" :label-width="80">
         <FormItem label="任务类型">
           <Select
@@ -262,7 +265,7 @@
           <Button
             v-if="statusCrond == 'add'"
             type="primary"
-            @click="SetCrond"
+            @click="CreateCrond()"
             :loading="loadingAddCrond"
             >确定</Button
           >
@@ -279,7 +282,11 @@
         <Button type="primary" ghost @click="modalCrond = false">取消</Button>
       </div>
     </Modal>
-    <Modal v-model="modalViewCrondLog" title="查看任务计划日志">
+    <Modal
+      v-model="modalViewCrondLog"
+      :draggable="true"
+      title="查看任务计划日志"
+    >
       <Input
         readonly
         type="textarea"
@@ -746,14 +753,14 @@ export default {
     /**
      * 设置任务计划
      */
-    SetCrond() {
+    CreateCrond() {
       var that = this;
       that.loadingAddCrond = true;
       var data = {
         cycle: that.cycle,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=SetCrond&t=web", data)
+        .post("/api.php?c=Crond&a=CreateCrond&t=web", data)
         .then(function (response) {
           that.loadingAddCrond = false;
           var result = response.data;
@@ -870,7 +877,7 @@ export default {
     /**
      * 现在执行任务计划
      */
-    CrondNow(crond_id) {
+    TriggerCrond(crond_id) {
       var that = this;
       that.$Modal.confirm({
         title: "执行任务计划",
@@ -881,7 +888,7 @@ export default {
             crond_id: crond_id,
           };
           that.$axios
-            .post("/api.php?c=Crond&a=CrondNow&t=web", data)
+            .post("/api.php?c=Crond&a=TriggerCrond&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
