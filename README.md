@@ -86,9 +86,11 @@ php install.php
 
   - ```
     #新建文件 svnserve.service
-    vim /usr/lib/systemd/system/svnadmind.service
+    #centos一般为 /usr/lib/systemd/system/svnserve.service
+    #ubuntu 一般为 /lib/systemd/system/svnserve.service
+  vim /usr/lib/systemd/system/svnadmind.service
     ```
-
+    
   - ```
     #写入以下内容
     #注意 /var/www/html/server/svnadmind.php 要改为自己实际的文件路径
