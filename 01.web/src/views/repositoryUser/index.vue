@@ -114,6 +114,7 @@
         />
       </Card>
     </Card>
+    <!-- 对话框-新建SVN用户 -->
     <Modal v-model="modalCreateUser" :draggable="true" title="新建SVN用户">
       <Form :model="formCreateUser" :label-width="80">
         <FormItem label="用户名">
@@ -174,9 +175,10 @@ user3=passwd3"
         >
       </div>
     </Modal>
+    <!-- 对话框-更新SVN用户密码 -->
     <Modal
       v-model="modalEditUserPass"
-      :draggable="true" 
+      :draggable="true"
       :title="titleEditUser"
       @on-ok="EditUserPass"
     >
@@ -199,16 +201,50 @@ user3=passwd3"
         >
       </div>
     </Modal>
+    <!-- 对话框-查看权限路径列表 -->
     <Modal
       v-model="modalSvnUserPriPath"
       :title="titleSvnUserPriPath"
       :width="800"
       :draggable="true"
     >
+      <Row style="margin-bottom: 15px">
+        <Col
+          type="flex"
+          justify="space-between"
+          :xs="21"
+          :sm="20"
+          :md="19"
+          :lg="18"
+        >
+          <Tooltip
+            max-width="250"
+            content="手动刷新才可获取最新权限列表"
+            placement="bottom"
+            :transfer="true"
+          >
+            <Button
+              icon="ios-sync"
+              type="warning"
+              ghost
+              @click="GetSvnUserRepList2(true)"
+              >手动刷新</Button
+            >
+          </Tooltip>
+        </Col>
+        <Col :xs="3" :sm="4" :md="5" :lg="6">
+          <Input
+            search
+            placeholder="通过SVN仓库名搜索..."
+            @on-change="GetSvnUserRepList2()"
+            v-model="searchKeywordGetSvnUserRepList2"
+          />
+        </Col>
+      </Row>
       <Table
-        @on-sort-change="SortChangeUserRep()"
+        @on-sort-change="SortChangeUserRep"
         border
-        :height="420"
+        :height="320"
         :loading="loadingUserRep"
         :columns="tableColumnUserRep"
         :data="tableDataUserRep"
@@ -226,7 +262,13 @@ user3=passwd3"
           </Switch>
         </template>
         <template slot-scope="{ row }" slot="action">
-          <Button type="info" size="small">配置</Button>
+          <Button
+            type="info"
+            size="small"
+            @click="ModalGetSecondpriObject(row.svnn_user_pri_path_id)"
+            :disabled="!row.second_pri"
+            >配置</Button
+          >
         </template>
       </Table>
       <div slot="footer">
@@ -235,10 +277,91 @@ user3=passwd3"
         >
       </div>
     </Modal>
+    <!-- 对话框-二次授权对象 -->
+    <Modal
+      v-model="modalGetSecondpriObject"
+      :draggable="true"
+      title="二次授权对象"
+    >
+      <Row style="margin-bottom: 15px">
+        <Col type="flex" justify="space-between" span="12">
+          <Button
+            icon="md-add"
+            type="primary"
+            ghost
+            @click="modalSvnObject = true"
+            >添加成员</Button
+          >
+        </Col>
+        <Col span="12">
+          <Input
+            search
+            placeholder="通过对象名称搜索..."
+            v-model="searchKeywordSecondpriObject"
+            @on-change="GetSecondpriObjectList"
+          />
+        </Col>
+      </Row>
+      <Table
+        border
+        :height="310"
+        size="small"
+        :loading="loadingGetSecondpriObject"
+        :columns="tableColumnSecondpriObject"
+        :data="tableDataSecondpriObject"
+        style="margin-top: 20px"
+      >
+        <template slot-scope="{ row }" slot="objectType">
+          <Tag
+            color="blue"
+            v-if="row.objectType == 'user'"
+            style="width: 90px; text-align: center"
+            >SVN用户</Tag
+          >
+          <Tag
+            color="geekblue"
+            v-if="row.objectType == 'group'"
+            style="width: 90px; text-align: center"
+            >SVN分组</Tag
+          >
+          <Tag
+            color="purple"
+            v-if="row.objectType == 'aliase'"
+            style="width: 90px; text-align: center"
+            >SVN别名</Tag
+          >
+        </template>
+        <template slot-scope="{ row }" slot="action">
+          <Button
+            type="error"
+            size="small"
+            @click="DelSecondpriObject(row.svn_second_pri_id)"
+            >移除</Button
+          >
+        </template>
+      </Table>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalGetSecondpriObject = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
+    <!-- SVN对象列表组件 -->
+    <ModalSvnObject
+      :propModalSvnObject="modalSvnObject"
+      :propChangeParentModalObject="CloseModalObject"
+      :propSendParentObject="CreateSecondpriObject"
+      :propShowSvnAllTab="false"
+      :propShowSvnAuthenticatedTab="false"
+      :propShowSvnAnonymousTab="false"
+    />
   </div>
 </template>
 
 <script>
+//SVN对象列表组件
+import ModalSvnObject from "../../components/modalSvnObject.vue";
+
 export default {
   data() {
     return {
@@ -254,6 +377,10 @@ export default {
        * 搜索关键词
        */
       searchKeywordUser: "",
+      //二次授权对象
+      searchKeywordSecondpriObject: "",
+      //根据SVN仓库名称搜索用户有权限的路径列表
+      searchKeywordGetSvnUserRepList2: "",
 
       /**
        * 排序数据
@@ -279,6 +406,8 @@ export default {
       loadingScanPasswd: false,
       //用户有权限的仓库列表
       loadingUserRep: true,
+      //获取二次授权对象
+      loadingGetSecondpriObject: true,
 
       /**
        * 临时变量
@@ -287,6 +416,8 @@ export default {
       tempPasswdContent: "",
       //当前选中的svn用户名
       currentSvnUserName: "",
+      //当前选中的SVN用户权限路径id
+      currentSvnUserPriPathId: 0,
 
       /**
        * 对话框
@@ -299,6 +430,10 @@ export default {
       modalScanPasswd: false,
       //SVN用户权限路径列表
       modalSvnUserPriPath: false,
+      //SVN对象列表组件
+      modalSvnObject: false,
+      //二次授权对象
+      modalGetSecondpriObject: false,
 
       /**
        * 表单
@@ -360,7 +495,7 @@ export default {
           minWidth: 120,
         },
         {
-          title: "权限路径",
+          title: "有权路径",
           slot: "svn_user_rep_list",
           minWidth: 120,
         },
@@ -431,6 +566,8 @@ export default {
                     },
                   },
                   [
+                    h("p", "二次授权可赋予普通SVN用户分配路径权限的能力"),
+                    h("p", " "),
                     h(
                       "p",
                       {
@@ -467,7 +604,29 @@ export default {
           // fixed:"right"
         },
       ],
+      //二次授权对象
+      tableColumnSecondpriObject: [
+        {
+          title: "对象类型",
+          slot: "objectType",
+          // width: 125,
+        },
+        {
+          title: "对象名称",
+          key: "objectName",
+          tooltip: true,
+          // width: 115,
+        },
+        {
+          title: "操作",
+          slot: "action",
+        },
+      ],
+      tableDataSecondpriObject: [],
     };
+  },
+  components: {
+    ModalSvnObject,
   },
   computed: {},
   created() {},
@@ -475,6 +634,12 @@ export default {
     this.GetUserList();
   },
   methods: {
+    /**
+     * 子组件传递变量给父组件
+     */
+    CloseModalObject() {
+      this.modalSvnObject = false;
+    },
     /**
      * 每页数量改变
      */
@@ -813,21 +978,21 @@ export default {
      * 查看权限路径列表
      */
     ModalSvnUserPriPath(svn_user_name) {
-      this.titleSvnUserPriPath = "权限路径列表 - " + svn_user_name;
+      this.titleSvnUserPriPath = "用户有权限路径列表 - " + svn_user_name;
       this.modalSvnUserPriPath = true;
       this.currentSvnUserName = svn_user_name;
-      this.GetSvnUserRepList();
+      this.GetSvnUserRepList2();
     },
     /**
      * 管理人员获取SVN用户有权限的仓库路径列表
      */
-    GetSvnUserRepList(sync = false) {
+    GetSvnUserRepList2(sync = false) {
       var that = this;
       that.loadingUserRep = true;
       that.tableDataUserRep = [];
       // that.totalUserRep = 0;
       var data = {
-        searchKeyword: "",
+        searchKeyword: that.searchKeywordGetSvnUserRepList2,
         sortType: that.sortTypeUserRepList,
         sync: sync,
         page: false,
@@ -859,7 +1024,7 @@ export default {
       if (value.order == "desc" || value.order == "asc") {
         this.sortTypeUserRepList = value.order;
       }
-      this.GetSvnUserRepList();
+      this.GetSvnUserRepList2();
     },
     /**
      * 设置二次授权状态
@@ -876,7 +1041,95 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetSvnUserRepList();
+            that.GetSvnUserRepList2();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 配置二次授权可管理对象
+     */
+    ModalGetSecondpriObject(svnn_user_pri_path_id) {
+      this.modalGetSecondpriObject = true;
+      this.currentSvnUserPriPathId = svnn_user_pri_path_id;
+      this.GetSecondpriObjectList();
+    },
+    /**
+     * 获取二次授权对象
+     */
+    GetSecondpriObjectList() {
+      var that = this;
+      that.loadingGetSecondpriObject = true;
+      that.tableDataSecondpriObject = [];
+      var data = {
+        searchKeyword: that.searchKeywordSecondpriObject,
+        svnn_user_pri_path_id: that.currentSvnUserPriPathId,
+      };
+      that.$axios
+        .post("/api.php?c=Secondpri&a=GetSecondpriObjectList&t=web", data)
+        .then(function (response) {
+          that.loadingGetSecondpriObject = false;
+          var result = response.data;
+          if (result.status == 1) {
+            // that.$Message.success(result.message);
+            that.tableDataSecondpriObject = result.data;
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingGetSecondpriObject = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 添加二次授权可管理对象
+     */
+    CreateSecondpriObject(objectType, objectName) {
+      var that = this;
+      var data = {
+        svnn_user_pri_path_id: that.currentSvnUserPriPathId,
+        objectType: objectType,
+        objectName: objectName,
+      };
+      that.$axios
+        .post("/api.php?c=Secondpri&a=CreateSecondpriObject&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.modalSvnObject = false;
+            that.GetSecondpriObjectList();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 删除二次授权可管理对象
+     */
+    DelSecondpriObject(svn_second_pri_id) {
+      var that = this;
+      var data = {
+        svn_second_pri_id: svn_second_pri_id,
+      };
+      that.$axios
+        .post("/api.php?c=Secondpri&a=DelSecondpriObject&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetSecondpriObjectList();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }

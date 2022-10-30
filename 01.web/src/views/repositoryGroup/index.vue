@@ -90,6 +90,7 @@
         />
       </Card>
     </Card>
+    <!-- 对话框-新建SVN分组 -->
     <Modal
       v-model="modalAddGroup"
       :draggable="true"
@@ -123,6 +124,7 @@
         >
       </div>
     </Modal>
+    <!-- 对话框-编辑分组名 -->
     <Modal
       v-model="modalEditGroupName"
       :draggable="true"
@@ -153,6 +155,7 @@
         >
       </div>
     </Modal>
+    <!-- 对话框-编辑分组成员信息 -->
     <Modal
       v-model="modalGetGroupMember"
       :draggable="true"
@@ -160,7 +163,11 @@
     >
       <Row style="margin-bottom: 15px">
         <Col type="flex" justify="space-between" span="12">
-          <Button icon="md-add" type="primary" ghost @click="ModalRepPathPri"
+          <Button
+            icon="md-add"
+            type="primary"
+            ghost
+            @click="modalSvnObject = true"
             >添加成员</Button
           >
         </Col>
@@ -206,7 +213,7 @@
           <Button
             type="error"
             size="small"
-            @click="UpdGroupMember(row.objectName, row.objectType, 'delete')"
+            @click="UpdGroupMember(row.objectType, row.objectName, 'delete')"
             >移除</Button
           >
         </template>
@@ -217,205 +224,25 @@
         >
       </div>
     </Modal>
-    <!-- 对象列表弹出框 -->
-    <Modal v-model="modalObject" :draggable="true" title="对象列表">
-      <Tabs size="small" @on-click="ClickObjectTab">
-        <TabPane :label="custom_tab_svn_user" name="user">
-          <Row style="margin-bottom: 15px">
-            <Col type="flex" justify="space-between" span="12">
-              <Tooltip
-                max-width="250"
-                content="手动刷新才可获取最新用户列表"
-                placement="bottom"
-                :transfer="true"
-              >
-                <Button
-                  icon="ios-sync"
-                  type="warning"
-                  ghost
-                  @click="GetAllUsers(true)"
-                  >手动刷新</Button
-                >
-              </Tooltip>
-            </Col>
-            <Col span="12">
-              <Input
-                search
-                placeholder="通过用户名搜索..."
-                v-model="searchKeywordUser"
-                @on-change="GetAllUsers()"
-              />
-            </Col>
-          </Row>
-          <Table
-            highlight-row
-            border
-            :height="250"
-            size="small"
-            :loading="loadingAllUsers"
-            :columns="tableColumnAllUsers"
-            :data="tableDataAllUsers"
-            style="margin-bottom: 10px"
-          >
-            <template slot-scope="{ row }" slot="svn_user_status">
-              <Tag
-                color="blue"
-                v-if="row.svn_user_status == '1' || row.svn_user_status == 1"
-                >正常</Tag
-              >
-              <Tag color="red" v-else>禁用</Tag>
-            </template>
-            <template slot-scope="{ row }" slot="action">
-              <Tag
-                color="primary"
-                @click.native="UpdGroupMember(row.svn_user_name, 'user', 'add')"
-                >选择</Tag
-              >
-            </template>
-          </Table>
-        </TabPane>
-        <TabPane :label="custom_tab_svn_group" name="group">
-          <Row style="margin-bottom: 15px">
-            <Col type="flex" justify="space-between" span="12">
-              <Tooltip
-                max-width="250"
-                content="手动刷新才可获取最新分组列表"
-                placement="bottom"
-                :transfer="true"
-              >
-                <Button
-                  icon="ios-sync"
-                  type="warning"
-                  ghost
-                  @click="GetAllGroups(true)"
-                  >手动刷新</Button
-                >
-              </Tooltip>
-            </Col>
-            <Col span="12">
-              <Input
-                search
-                placeholder="通过分组名搜索..."
-                v-model="searchKeywordGroup"
-                @on-change="GetAllGroups()"
-              />
-            </Col>
-          </Row>
-          <Table
-            highlight-row
-            border
-            :height="250"
-            size="small"
-            :loading="loadingAllGroups"
-            :columns="tableColumnAllGroups"
-            :data="tableDataAllGroups"
-            style="margin-bottom: 10px"
-          >
-            <template slot-scope="{ row }" slot="action">
-              <Tag
-                color="primary"
-                @click.native="
-                  UpdGroupMember(row.svn_group_name, 'group', 'add')
-                "
-                >选择</Tag
-              >
-            </template>
-          </Table>
-        </TabPane>
-        <TabPane :label="custom_tab_svn_aliase" name="aliase">
-          <Row style="margin-bottom: 15px">
-            <Col type="flex" justify="space-between" span="12"> </Col>
-            <Col span="12">
-              <Input
-                search
-                placeholder="通过别名搜索..."
-                v-model="searchKeywordAliase"
-                @on-change="GetAllAliases"
-              />
-            </Col>
-          </Row>
-          <Table
-            highlight-row
-            border
-            :height="250"
-            size="small"
-            :columns="tableColumnAllAliases"
-            :data="tableDataAllAliases"
-            style="margin-bottom: 10px"
-          >
-            <template slot-scope="{ row }" slot="disabled">
-              <Tag color="blue" v-if="row.disabled == '0' || row.disabled == 0"
-                >正常</Tag
-              >
-              <Tag color="red" v-else>禁用</Tag>
-            </template>
-            <template slot-scope="{ row }" slot="action">
-              <Tag
-                color="primary"
-                @click.native="UpdGroupMember(row.aliaseName, 'aliase', 'add')"
-                >选择</Tag
-              >
-            </template>
-          </Table>
-        </TabPane>
-      </Tabs>
-      <Alert show-icon
-        >如果对象信息用户等不是最新，需要回到对应的导航下刷新</Alert
-      >
-      <div slot="footer">
-        <Button type="primary" ghost @click="modalObject = false">取消</Button>
-      </div>
-    </Modal>
+    <!-- SVN对象列表组件 -->
+    <ModalSvnObject
+      :propModalSvnObject="modalSvnObject"
+      :propChangeParentModalObject="CloseModalObject"
+      :propSendParentObject="UpdGroupMember"
+      :propShowSvnAllTab="false"
+      :propShowSvnAuthenticatedTab="false"
+      :propShowSvnAnonymousTab="false"
+    />
   </div>
 </template>
 
 <script>
+//SVN对象列表组件
+import ModalSvnObject from "../../components/modalSvnObject.vue";
+
 export default {
   data() {
     return {
-      /**
-       * 特定风格的路径授权弹出框的 tab
-       */
-      custom_tab_svn_user: (h) => {
-        return h("div", [
-          h(
-            "span",
-            {
-              style: {
-                color: "#1890ff",
-              },
-            },
-            "SVN用户"
-          ),
-        ]);
-      },
-      custom_tab_svn_group: (h) => {
-        return h("div", [
-          h(
-            "span",
-            {
-              style: {
-                color: "#2f54eb",
-              },
-            },
-            "SVN分组"
-          ),
-        ]);
-      },
-      custom_tab_svn_aliase: (h) => {
-        return h("div", [
-          h(
-            "span",
-            {
-              style: {
-                color: "#722ed1",
-              },
-            },
-            "SVN别名"
-          ),
-        ]);
-      },
-
       /**
        * 分页数据
        */
@@ -427,10 +254,8 @@ export default {
       /**
        * 搜索关键词
        */
+      //搜索分组
       searchKeywordGroup: "",
-      searchKeywordUser: "",
-      searchKeywordGroup: "",
-      searchKeywordAliase: "",
       //搜索分组的成员列表
       searchKeywordGroupMember: "",
 
@@ -452,12 +277,6 @@ export default {
       loadingEditGroupName: false,
       //分组的成员列表
       loadingGetGroupMember: true,
-      //全部的SVN用户列表
-      loadingAllUsers: true,
-      //全部的SVN分组列表
-      loadingAllGroups: true,
-      //全部的SVN别名列表
-      loadingAllAliases: true,
 
       /**
        * 临时变量
@@ -480,7 +299,7 @@ export default {
       //配置分组成员
       modalGetGroupMember: false,
       //对象列表弹出框
-      modalObject: false,
+      modalSvnObject: false,
 
       /**
        * 表单
@@ -495,6 +314,7 @@ export default {
         groupNameOld: "",
         groupNameNew: "",
       },
+
       /**
        * 表格
        */
@@ -569,67 +389,10 @@ export default {
           status: 1,
         },
       ],
-
-      //对象列表-SVN用户列表
-      tableColumnAllUsers: [
-        {
-          title: "用户名",
-          key: "svn_user_name",
-          tooltip: true,
-        },
-        {
-          title: "用户状态",
-          slot: "svn_user_status",
-        },
-        {
-          title: "备注信息",
-          key: "svn_user_note",
-          tooltip: true,
-        },
-        {
-          title: "操作",
-          slot: "action",
-          width: 90,
-        },
-      ],
-      tableDataAllUsers: [],
-      //对象列表-SVN分组列表
-      tableColumnAllGroups: [
-        {
-          title: "分组名",
-          key: "svn_group_name",
-          tooltip: true,
-        },
-        {
-          title: "备注信息",
-          key: "svn_group_note",
-          tooltip: true,
-        },
-        {
-          title: "操作",
-          slot: "action",
-        },
-      ],
-      tableDataAllGroups: [],
-      //对象列表-SVN别名列表
-      tableColumnAllAliases: [
-        {
-          title: "别名",
-          key: "aliaseName",
-          tooltip: true,
-        },
-        {
-          title: "别名内容",
-          key: "aliaseCon",
-          tooltip: true,
-        },
-        {
-          title: "操作",
-          slot: "action",
-        },
-      ],
-      tableDataAllAliases: [],
     };
+  },
+  components: {
+    ModalSvnObject,
   },
   computed: {},
   created() {},
@@ -637,6 +400,13 @@ export default {
     this.GetGroupList();
   },
   methods: {
+    /**
+     * 子组件传递变量给父组件
+     */
+    CloseModalObject() {
+      this.modalSvnObject = false;
+    },
+
     /**
      * 每页数量改变
      */
@@ -956,7 +726,7 @@ export default {
      * 为分组添加或者删除所包含的对象
      * 对象包括：用户、分组、用户别名
      */
-    UpdGroupMember(objectName, objectType, actionType) {
+    UpdGroupMember(objectType, objectName, actionType = "add") {
       var that = this;
       var data = {
         svn_group_name: that.currentSelectGroupName,
@@ -970,7 +740,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.modalObject = false;
+            that.modalSvnObject = false;
             that.GetGroupMember();
             that.GetGroupList();
           } else {
@@ -982,129 +752,6 @@ export default {
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
-    },
-    /**
-     * 点击对象列表弹出框下的 tab 触发
-     */
-    ClickObjectTab(name) {
-      switch (name) {
-        case "user":
-          this.GetAllUsers();
-          break;
-        case "group":
-          this.GetAllGroups();
-          break;
-        case "aliase":
-          this.GetAllAliases();
-          break;
-        default:
-          break;
-      }
-    },
-    /**
-     * 获取所有的SVN用户列表
-     */
-    GetAllUsers(sync = false) {
-      var that = this;
-      //清空上次数据
-      that.tableDataAllUsers = [];
-      //开始加载动画
-      that.loadingAllUsers = true;
-      var data = {
-        searchKeyword: that.searchKeywordUser,
-        sortName: "svn_user_name",
-        sortType: "asc",
-        sync: sync,
-        page: false,
-      };
-      that.$axios
-        .post("/api.php?c=Svnuser&a=GetUserList&t=web", data)
-        .then(function (response) {
-          that.loadingAllUsers = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.tableDataAllUsers = result.data.data;
-          } else {
-            that.$Message.error({ content: result.message, duration: 2 });
-          }
-        })
-        .catch(function (error) {
-          that.loadingAllUsers = false;
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-
-    /**
-     * 获取所有的SVN分组列表
-     */
-    GetAllGroups(sync = false) {
-      var that = this;
-      //清空上次数据
-      that.tableDataAllGroups = [];
-      //开始加载动画
-      that.loadingAllGroups = true;
-      var data = {
-        searchKeyword: that.searchKeywordGroup,
-        sortName: "svn_group_name",
-        sortType: "asc",
-        sync: sync,
-        page: false,
-      };
-      that.$axios
-        .post("/api.php?c=Svngroup&a=GetGroupList&t=web", data)
-        .then(function (response) {
-          that.loadingAllGroups = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.tableDataAllGroups = result.data.data;
-          } else {
-            that.$Message.error({ content: result.message, duration: 2 });
-          }
-        })
-        .catch(function (error) {
-          that.loadingAllGroups = false;
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-
-    /**
-     * 获取所有的别名列表
-     */
-    GetAllAliases() {
-      var that = this;
-      //清空上次数据
-      that.tableDataAllAliases = [];
-      //开始加载动画
-      that.loadingAllAliases = true;
-      var data = {
-        searchKeywordAliase: that.searchKeywordAliase,
-      };
-      that.$axios
-        .post("/api.php?c=Svnaliase&a=GetAllAliaseList&t=web", data)
-        .then(function (response) {
-          that.loadingAllAliases = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.tableDataAllAliases = result.data;
-          } else {
-            that.$Message.error({ content: result.message, duration: 2 });
-          }
-        })
-        .catch(function (error) {
-          that.loadingAllAliases = false;
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    /**
-     * 显示路径授权对话框
-     */
-    ModalRepPathPri() {
-      this.modalObject = true;
-      //默认加载第一个tab内的数据
-      this.GetAllUsers();
     },
   },
 };

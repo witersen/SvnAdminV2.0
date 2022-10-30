@@ -63,33 +63,33 @@ function funArrayValueEnabled(&$value, $key)
 /**
  * 检查表单的参数
  */
-function funCheckForm($checkedArray, $columns)
+function funCheckForm($form, $columns)
 {
     //检查数组本身是否合法
-    if (empty($checkedArray) || !isset($checkedArray)) {
+    if (empty($form) || !isset($form)) {
         return message(200, 0, '参数不合法', [
             'column' => ''
         ]);
     }
-    foreach ($columns as $key => $value) {
+    foreach ($columns as $column => $columnCheck) {
         //检查数组中是否包含指定的变量
-        if (!array_key_exists($key, $checkedArray)) {
+        if (!array_key_exists($column, $form)) {
             return message(200, 0, '缺少参数', [
-                'column' => $key
+                'column' => $column
             ]);
         }
         //检查变量类型是否正确
-        if ($value['type'] != gettype($checkedArray[$key])) {
+        if ($columnCheck['type'] != gettype($form[$column])) {
             return message(200, 0, '参数类型错误', [
-                'column' =>  sprintf('参数[%s]-需要[%s]-实际为[%s]', $key, $value['type'], gettype($checkedArray[$key]))
+                'column' =>  sprintf('参数[%s]-需要[%s]-实际为[%s]', $column, $columnCheck['type'], gettype($form[$column]))
             ]);
         }
         //检查是否可以为空
-        if (isset($value['notNull']) && $value['notNull']) {
-            if ($value['type'] == 'integer') {
-            } else if (empty($checkedArray[$key])) {
+        if (isset($columnCheck['notNull']) && $columnCheck['notNull']) {
+            if ($columnCheck['type'] == 'integer') {
+            } else if (empty($form[$column])) {
                 return message(200, 0, '参数值不能为空', [
-                    'column' => $key
+                    'column' => $column
                 ]);
             }
         }

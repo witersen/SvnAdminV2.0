@@ -243,6 +243,12 @@ class Svnuser extends Base
 
         funFilePutContents($this->config_svn['svn_passwd_file'], $result);
 
+        $this->database->update('svn_users', [
+            'svn_user_status' => $this->payload['status'] ? 1 : 0,
+        ], [
+            'svn_user_name' => $this->payload['svn_user_name']
+        ]);
+
         return message();
     }
 
