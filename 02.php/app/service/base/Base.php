@@ -16,7 +16,7 @@ auto_require(BASE_PATH . '/config/');
 auto_require(BASE_PATH . '/app/function/');
 
 //require util
-auto_require(BASE_PATH . '/app/util/', true);
+auto_require(BASE_PATH . '/app/util/');
 
 //require service
 auto_require(BASE_PATH . '/app/service/');
@@ -82,10 +82,10 @@ class Base
     public $database;
 
     //配置信息
-    public $config_bin;
-    public $config_svn;
-    public $config_reg;
-    public $config_sign;
+    public $configBin;
+    public $configSvn;
+    public $configReg;
+    public $configSign;
 
     //payload
     public $payload;
@@ -103,11 +103,11 @@ class Base
     function __construct($parm)
     {
         //配置信息
-        $this->config_bin =  Config::get('bin');                       //可执行文件路径
+        $this->configBin =  Config::get('bin');                       //可执行文件路径
         $configDatabase = Config::get('database');              //数据库配置
-        $this->config_svn = Config::get('svn');                        //仓库
-        $this->config_reg = Config::get('reg');                        //正则
-        $this->config_sign = Config::get('sign');                      //密钥
+        $this->configSvn = Config::get('svn');                        //仓库
+        $this->configReg = Config::get('reg');                        //正则
+        $this->configSign = Config::get('sign');                      //密钥
 
         $this->token = isset($parm['token']) ? $parm['token'] : '';
 
@@ -118,7 +118,7 @@ class Base
             $this->userRoleId = isset($parm['payload']['userRoleId']) ? $parm['payload']['userRoleId'] : 0;
             $this->userName = isset($parm['payload']['userName']) ? $parm['payload']['userName'] : 0;
         } else {
-            $array = explode($this->config_sign['signSeparator'], $this->token);
+            $array = explode($this->configSign['signSeparator'], $this->token);
             $this->userRoleId = $array[0];
             $this->userName = $array[1];
         }
@@ -127,15 +127,15 @@ class Base
          * 6、获取数据库连接
          */
         if (array_key_exists('database_file', $configDatabase)) {
-            $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $this->config_svn['home_path']);
+            $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $this->configSvn['home_path']);
         }
         $this->database = new Medoo($configDatabase);
 
         /**
          * 8、获取authz和passwd的配置文件信息
          */
-        $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
-        $this->passwdContent = file_get_contents($this->config_svn['svn_passwd_file']);
+        $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
+        $this->passwdContent = file_get_contents($this->configSvn['svn_passwd_file']);
 
         /**
          * 9、获取payload
@@ -146,13 +146,10 @@ class Base
          * 10、svnadmin对象
          */
         $this->SVNAdmin = new SVNAdmin();
-        // $this->SVNAdminGroup = new Group($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
-        $this->SVNAdminRep = new Rep($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
-        // $this->SVNAdminUser = new User($this->authzContent, $this->passwdContent, $this->config_svn, $this->config_bin);
 
         /**
          * 11、检查对象
          */
-        $this->checkService = new Check($this->config_reg);
+        $this->checkService = new Check($this->configReg);
     }
 }

@@ -16,7 +16,7 @@ auto_require(BASE_PATH . '/config/');
 // auto_require(BASE_PATH . '/app/function/');
 
 //require util
-// auto_require(BASE_PATH . '/app/util/', true);
+// auto_require(BASE_PATH . '/app/util/');
 
 //require controller
 auto_require(BASE_PATH . '/app/controller/');

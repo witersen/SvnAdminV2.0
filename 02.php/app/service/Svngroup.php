@@ -240,7 +240,7 @@ class Svngroup extends Base
         }
 
         //写入配置文件
-        funFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //写入数据库
         $this->database->delete('svn_groups', [
@@ -281,7 +281,7 @@ class Svngroup extends Base
             }
         }
 
-        funFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //从数据库删除
         $this->database->delete('svn_groups', [
@@ -334,10 +334,10 @@ class Svngroup extends Base
             }
         }
 
-        funFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //修改后同步下
-        $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
+        $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
         $syncResult = $this->SyncGroupToDb();
         if ($syncResult['status'] != 1) {
             return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
@@ -429,10 +429,10 @@ class Svngroup extends Base
             }
         }
 
-        funFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //修改后同步下
-        $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
+        $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
         $syncResult = $this->SyncGroupToDb();
         if ($syncResult['status'] != 1) {
             return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);

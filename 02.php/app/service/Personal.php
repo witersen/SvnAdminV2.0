@@ -125,7 +125,7 @@ class Personal extends Base
             }
         }
 
-        funFilePutContents($this->config_svn['svn_passwd_file'], $result);
+        funFilePutContents($this->configSvn['svn_passwd_file'], $result);
 
         $this->database->update('svn_users', [
             'svn_user_pass' => $this->payload['newPassword']

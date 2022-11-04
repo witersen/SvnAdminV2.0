@@ -28,12 +28,15 @@ Config::load(BASE_PATH . '/config/');
 $token = empty($_SERVER['HTTP_TOKEN']) ? '' : $_SERVER['HTTP_TOKEN'];
 
 $controller_prefix = empty($_GET['c']) ? '' : $_GET['c'];
+!strstr($controller_prefix, '/') or json1(401, 0, '包含特殊字符');
 $controller = "\app\controller\\$controller_prefix";
 $controller_path = BASE_PATH . '/app/controller/' . $controller_prefix . '.php';
 
 $action = empty($_GET['a']) ? '' : $_GET['a'];
+!strstr($action, '/') or json1(401, 0, '包含特殊字符');
 
 $type = empty($_GET['t']) ? '' : $_GET['t'];
+!strstr($type, '/') or json1(401, 0, '包含特殊字符');
 
 $payload = file_get_contents("php://input");
 $payload = !empty($payload) ? json_decode($payload, true) : [];

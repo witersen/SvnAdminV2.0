@@ -45,11 +45,11 @@ class Command
 {
     private $database;
 
-    private $config_database;
+    private $configDb;
 
-    private $config_svn;
+    private $configSvn;
 
-    private $config_bin;
+    private $configBin;
 
     private $argc;
 
@@ -67,7 +67,7 @@ class Command
         '3' => '仓库备份[hotcopy-全量]',
         '4' => '仓库备份[hotcopy-增量]',
         '5' => '仓库检查',
-        '6' => '仓库检查',
+        '6' => 'shell脚本',
     ];
 
     function __construct($argc, $argv)
@@ -84,16 +84,16 @@ class Command
         Config::load(BASE_PATH . '/config/');
 
         //配置
-        $this->config_database = Config::get('database');
-        $this->config_svn = Config::get('svn');
-        $this->config_bin =  Config::get('bin');
+        $this->configDb = Config::get('database');
+        $this->configSvn = Config::get('svn');
+        $this->configBin =  Config::get('bin');
 
         //数据库连接
-        if (array_key_exists('database_file', $this->config_database)) {
-            $this->config_database['database_file'] = sprintf($this->config_database['database_file'], $this->config_svn['home_path']);
+        if (array_key_exists('database_file', $this->configDb)) {
+            $this->configDb['database_file'] = sprintf($this->configDb['database_file'], $this->configSvn['home_path']);
         }
         try {
-            $this->database = new Medoo($this->config_database);
+            $this->database = new Medoo($this->configDb);
         } catch (\Exception $e) {
             print_r(sprintf('数据库连接失败[%s]', $e->getMessage()));
             exit;
@@ -184,7 +184,7 @@ class Command
             $this->currentRep = $rep;
 
             clearstatcache();
-            if (!is_dir($this->config_svn['rep_base_path'] .  $rep)) {
+            if (!is_dir($this->configSvn['rep_base_path'] .  $rep)) {
                 print_r(sprintf('仓库[%s]在磁盘中不存在-自动跳过%s', $rep, PHP_EOL));
                 continue;
             }
@@ -194,9 +194,9 @@ class Command
 
             //数量检查
             $backupList = [];
-            $fileList = scandir($this->config_svn['backup_base_path']);
+            $fileList = scandir($this->configSvn['backup_base_path']);
             foreach ($fileList as $key => $value) {
-                if ($value == '.' || $value == '..' || is_dir($this->config_svn['backup_base_path'] . '/' . $value)) {
+                if ($value == '.' || $value == '..' || is_dir($this->configSvn['backup_base_path'] . '/' . $value)) {
                     continue;
                 }
                 if (substr($value, 0, strlen($prefix)) == $prefix) {
@@ -207,7 +207,7 @@ class Command
                 rsort($backupList);
                 for ($i = $this->crond['save_count']; $i <= count($backupList); $i++) {
                     print_r(sprintf('删除仓库[%s]多余的备份文件[%s]%s', $rep, $backupList[$i - 1], PHP_EOL));
-                    @unlink($this->config_svn['backup_base_path'] . '/' . $backupList[$i - 1]);
+                    @unlink($this->configSvn['backup_base_path'] . '/' . $backupList[$i - 1]);
                 }
             }
 
@@ -215,10 +215,10 @@ class Command
 
             $stderrFile = tempnam('/tmp', 'svnadmin_');
 
-            $cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $rep, $this->config_svn['backup_base_path'] .  $backupName);
+            $cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $rep, $this->configSvn['backup_base_path'] .  $backupName);
             passthru($cmd . " 2>$stderrFile", $this->code);
 
-            // $cmd = sprintf("'%s' dump '%s' > '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $rep, $this->config_svn['backup_base_path'] .  $backupName);
+            // $cmd = sprintf("'%s' dump '%s' > '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $rep, $this->configSvn['backup_base_path'] .  $backupName);
             // passthru($cmd . " 2>$stderrFile", $this->code);
 
             if ($this->code == 0) {
@@ -280,7 +280,7 @@ class Command
             $this->currentRep = $rep;
 
             clearstatcache();
-            if (!is_dir($this->config_svn['rep_base_path'] .  $rep)) {
+            if (!is_dir($this->configSvn['rep_base_path'] .  $rep)) {
                 print_r(sprintf('仓库[%s]在磁盘中不存在-自动跳过%s', $rep, PHP_EOL));
                 continue;
             }
@@ -289,10 +289,10 @@ class Command
 
             $stderrFile = tempnam('/tmp', 'svnadmin_');
 
-            // $cmd = sprintf("'%s' verify --quiet '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $rep);
+            // $cmd = sprintf("'%s' verify --quiet '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $rep);
             // passthru($cmd . " 2>$stderrFile", $this->code);
 
-            $cmd = sprintf("'%s' verify '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $rep);
+            $cmd = sprintf("'%s' verify '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $rep);
             passthru($cmd, $this->code);
 
             if ($this->code == 0) {

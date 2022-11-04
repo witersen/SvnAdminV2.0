@@ -50,12 +50,12 @@ function auto_require($path, $recursively = false)
 
 class Install
 {
-    private $config_database;
-    private $config_reg;
-    private $config_svn;
-    private $config_update;
-    private $config_version;
-    private $config_bin;
+    private $configDb;
+    private $configReg;
+    private $configSvn;
+    private $configUpdate;
+    private $configVersion;
+    private $configBin;
 
     private $scripts = [
         [
@@ -80,12 +80,12 @@ class Install
     {
         Config::load(BASE_PATH . '/../config/');
 
-        $this->config_database = Config::get('database');
-        $this->config_reg = Config::get('reg');
-        $this->config_svn = Config::get('svn');
-        $this->config_update = Config::get('update');
-        $this->config_version = Config::get('version');
-        $this->config_bin = Config::get('bin');
+        $this->configDb = Config::get('database');
+        $this->configReg = Config::get('reg');
+        $this->configSvn = Config::get('svn');
+        $this->configUpdate = Config::get('update');
+        $this->configVersion = Config::get('version');
+        $this->configBin = Config::get('bin');
     }
 
     /**
@@ -93,9 +93,9 @@ class Install
      */
     function DetectUpdate()
     {
-        foreach ($this->config_update['update_server'] as $key1 => $value1) {
+        foreach ($this->configUpdate['update_server'] as $key1 => $value1) {
 
-            $result = funCurlRequest(sprintf($value1['url'], $this->config_version['version']));
+            $result = funCurlRequest(sprintf($value1['url'], $this->configVersion['version']));
 
             if (empty($result)) {
                 echo sprintf('节点[%s]访问超时-切换下一节点%s', $value1['nodeName'], PHP_EOL);
@@ -119,7 +119,7 @@ class Install
             }
 
             if (empty($result['data'])) {
-                echo sprintf('当前为最新版[%s]%s', $this->config_version['version'], PHP_EOL);
+                echo sprintf('当前为最新版[%s]%s', $this->configVersion['version'], PHP_EOL);
                 echo '===============================================' . PHP_EOL;
                 exit();
             }
@@ -166,7 +166,7 @@ class Install
             $packages = isset($result['data']['update']['download'][$key1]['packages']) ? $result['data']['update']['download'][$key1]['packages'] : [];
             $forList = array_column($packages, 'for');
             $current = [
-                'source' => $this->config_version['version'],
+                'source' => $this->configVersion['version'],
                 'dest' => $result['data']['version']
             ];
             if (!in_array($current, $forList)) {
@@ -428,27 +428,27 @@ CON;
         clearstatcache();
 
         //创建SVNAdmin软件配置信息的主目录
-        is_dir($this->config_svn['home_path']) ? '' : mkdir($this->config_svn['home_path'], 0700, true);
+        is_dir($this->configSvn['home_path']) ? '' : mkdir($this->configSvn['home_path'], 0700, true);
 
         //创建SVN仓库父目录
-        is_dir($this->config_svn['rep_base_path']) ? '' : mkdir($this->config_svn['rep_base_path'], 0700, true);
+        is_dir($this->configSvn['rep_base_path']) ? '' : mkdir($this->configSvn['rep_base_path'], 0700, true);
 
         //创建推荐钩子目录
-        is_dir($this->config_svn['recommend_hook_path']) ? '' : mkdir($this->config_svn['recommend_hook_path'], 0700, true);
-        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/hooks', $this->config_svn['home_path']));
+        is_dir($this->configSvn['recommend_hook_path']) ? '' : mkdir($this->configSvn['recommend_hook_path'], 0700, true);
+        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/hooks', $this->configSvn['home_path']));
 
         //创建备份目录
-        is_dir($this->config_svn['backup_base_path']) ? '' : mkdir($this->config_svn['backup_base_path'], 0700, true);
+        is_dir($this->configSvn['backup_base_path']) ? '' : mkdir($this->configSvn['backup_base_path'], 0700, true);
 
         //创建日志目录
-        is_dir($this->config_svn['log_base_path']) ? '' : mkdir($this->config_svn['log_base_path'], 0700, true);
+        is_dir($this->configSvn['log_base_path']) ? '' : mkdir($this->configSvn['log_base_path'], 0700, true);
 
         //创建模板文件目录
-        is_dir($this->config_svn['templete_base_path']) ? '' : mkdir($this->config_svn['templete_base_path'], 0700, true);
+        is_dir($this->configSvn['templete_base_path']) ? '' : mkdir($this->configSvn['templete_base_path'], 0700, true);
 
         //创建仓库结构模板目录
-        // is_dir($this->config_svn['templete_init_struct']) ? '' : mkdir($this->config_svn['templete_init_struct'], 0700, true);
-        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/initStruct', $this->config_svn['templete_base_path']));
+        // is_dir($this->configSvn['templete_init_struct']) ? '' : mkdir($this->configSvn['templete_init_struct'], 0700, true);
+        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/initStruct', $this->configSvn['templete_base_path']));
 
         echo '===============================================' . PHP_EOL;
 
@@ -456,16 +456,16 @@ CON;
 
         //写入svnserve环境变量文件
         $con_svnserve_env_file = file_get_contents($templete_path . 'svnserve/svnserve');
-        $con_svnserve_env_file = sprintf($con_svnserve_env_file, $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file']);
-        file_put_contents($this->config_svn['svnserve_env_file'], $con_svnserve_env_file);
+        $con_svnserve_env_file = sprintf($con_svnserve_env_file, $this->configSvn['rep_base_path'], $this->configSvn['svn_conf_file'], $this->configSvn['svnserve_log_file']);
+        file_put_contents($this->configSvn['svnserve_env_file'], $con_svnserve_env_file);
 
         //写入SVN仓库权限配置文件
         $con_svn_conf_file = file_get_contents($templete_path . 'svnserve/svnserve.conf');
-        file_put_contents($this->config_svn['svn_conf_file'], $con_svn_conf_file);
+        file_put_contents($this->configSvn['svn_conf_file'], $con_svn_conf_file);
 
         //写入authz文件
         $con_svn_authz_file = file_get_contents($templete_path . 'svnserve/authz');
-        if (file_exists($this->config_svn['svn_authz_file'])) {
+        if (file_exists($this->configSvn['svn_authz_file'])) {
             echo PHP_EOL . '===============================================' . PHP_EOL;
             echo '要覆盖原有的权限配置文件 authz 吗？[y/n]：';
             $continue = strtolower(trim(fgets(STDIN)));
@@ -478,17 +478,17 @@ CON;
 
             if ($continue == 'y') {
                 //备份
-                copy($this->config_svn['svn_authz_file'], $this->config_svn['home_path'] . time() . 'authz');
+                copy($this->configSvn['svn_authz_file'], $this->configSvn['home_path'] . time() . 'authz');
                 //操作
-                file_put_contents($this->config_svn['svn_authz_file'], $con_svn_authz_file);
+                file_put_contents($this->configSvn['svn_authz_file'], $con_svn_authz_file);
             }
         } else {
-            file_put_contents($this->config_svn['svn_authz_file'], $con_svn_authz_file);
+            file_put_contents($this->configSvn['svn_authz_file'], $con_svn_authz_file);
         }
 
         //写入passwd文件
         $con_svn_passwd_file = file_get_contents($templete_path . 'svnserve/passwd');
-        if (file_exists($this->config_svn['svn_passwd_file'])) {
+        if (file_exists($this->configSvn['svn_passwd_file'])) {
             echo PHP_EOL . '===============================================' . PHP_EOL;
             echo '要覆盖原有的权限配置文件 passwd 吗？[y/n]：';
             $continue = strtolower(trim(fgets(STDIN)));
@@ -501,19 +501,19 @@ CON;
 
             if ($continue == 'y') {
                 //备份
-                copy($this->config_svn['svn_passwd_file'], $this->config_svn['home_path'] . time() . 'passwd');
+                copy($this->configSvn['svn_passwd_file'], $this->configSvn['home_path'] . time() . 'passwd');
                 //操作
-                file_put_contents($this->config_svn['svn_passwd_file'], $con_svn_passwd_file);
+                file_put_contents($this->configSvn['svn_passwd_file'], $con_svn_passwd_file);
             }
         } else {
-            file_put_contents($this->config_svn['svn_passwd_file'], $con_svn_passwd_file);
+            file_put_contents($this->configSvn['svn_passwd_file'], $con_svn_passwd_file);
         }
 
         //创建svnserve运行日志文件
-        file_put_contents($this->config_svn['svnserve_log_file'], '');
+        file_put_contents($this->configSvn['svnserve_log_file'], '');
 
         //创建pid文件
-        file_put_contents($this->config_svn['svnserve_pid_file'], '');
+        file_put_contents($this->configSvn['svnserve_pid_file'], '');
 
         echo '===============================================' . PHP_EOL;
 
@@ -536,7 +536,7 @@ CON;
          */
         echo '配置并启用SQLite数据库' . PHP_EOL;
 
-        if (file_exists($this->config_svn['home_path'] . 'svnadmin.db')) {
+        if (file_exists($this->configSvn['home_path'] . 'svnadmin.db')) {
             echo PHP_EOL . '===============================================' . PHP_EOL;
             echo '要覆盖原有的SQLite数据库文件 svnadmin.db 吗？[y/n]：';
             $continue = strtolower(trim(fgets(STDIN)));
@@ -549,16 +549,16 @@ CON;
 
             if ($continue == 'y') {
                 //备份
-                copy($this->config_svn['home_path'] . 'svnadmin.db', $this->config_svn['home_path'] . time() . 'svnadmin.db');
+                copy($this->configSvn['home_path'] . 'svnadmin.db', $this->configSvn['home_path'] . time() . 'svnadmin.db');
                 //操作
-                copy($templete_path . '/database/sqlite/svnadmin.db', $this->config_svn['home_path'] . 'svnadmin.db');
+                copy($templete_path . '/database/sqlite/svnadmin.db', $this->configSvn['home_path'] . 'svnadmin.db');
             }
         } else {
-            copy($templete_path . '/database/sqlite/svnadmin.db', $this->config_svn['home_path'] . 'svnadmin.db');
+            copy($templete_path . '/database/sqlite/svnadmin.db', $this->configSvn['home_path'] . 'svnadmin.db');
         }
 
         //配置SQLite数据库文件的父目录权限配置为777 解决无法写入且不报错的问题
-        shell_exec('chmod 777 ' . $this->config_svn['home_path']);
+        shell_exec('chmod 777 ' . $this->configSvn['home_path']);
 
         echo '===============================================' . PHP_EOL;
 
@@ -567,7 +567,7 @@ CON;
          */
         echo '配置主目录权限' . PHP_EOL;
 
-        shell_exec(sprintf("chmod 777 -R '%s'", $this->config_svn['home_path']));
+        shell_exec(sprintf("chmod 777 -R '%s'", $this->configSvn['home_path']));
 
         echo '===============================================' . PHP_EOL;
 
@@ -586,15 +586,15 @@ CON;
 
         $os = $this->GetOS();
         $con_svnserve_service_file = file_get_contents($templete_path . 'svnserve/svnserve.service');
-        $con_svnserve_service_file = sprintf($con_svnserve_service_file, $this->config_svn['svnserve_env_file'], $needBin['svnserve'], $this->config_svn['svnserve_pid_file']);
+        $con_svnserve_service_file = sprintf($con_svnserve_service_file, $this->configSvn['svnserve_env_file'], $needBin['svnserve'], $this->configSvn['svnserve_pid_file']);
         if ($os == 'centos 7' || $os == 'centos 8') {
-            file_put_contents($this->config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+            file_put_contents($this->configSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
         } else if ($os == 'ubuntu') {
-            file_put_contents($this->config_svn['svnserve_service_file']['ubuntu'], $con_svnserve_service_file);
+            file_put_contents($this->configSvn['svnserve_service_file']['ubuntu'], $con_svnserve_service_file);
         } else if ($os == 'rocky') {
-            file_put_contents($this->config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+            file_put_contents($this->configSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
         } else {
-            file_put_contents($this->config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+            file_put_contents($this->configSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
             echo '===============================================' . PHP_EOL;
             echo '警告！当前操作系统版本未测试，使用过程中可能会遇到问题！' . PHP_EOL;
             echo '===============================================' . PHP_EOL;
@@ -657,7 +657,7 @@ CON;
         }
 
         //路径是否相同
-        if ($newHomePath == $this->config_svn['home_path']) {
+        if ($newHomePath == $this->configSvn['home_path']) {
             echo '===============================================' . PHP_EOL;
             echo '路径无变化！'  . PHP_EOL;
             echo '===============================================' . PHP_EOL;
@@ -685,7 +685,7 @@ CON;
 
         //再次确认
         echo '===============================================' . PHP_EOL;
-        echo sprintf('将数据存储主目录从 %s 修改为 %s', $this->config_svn['home_path'], $newHomePath) . PHP_EOL;
+        echo sprintf('将数据存储主目录从 %s 修改为 %s', $this->configSvn['home_path'], $newHomePath) . PHP_EOL;
         echo '===============================================' . PHP_EOL;
         echo '确定要继续操作吗[y/n]：';
         $continue = strtolower(trim(fgets(STDIN)));
@@ -704,7 +704,7 @@ CON;
         }
 
         //旧内容
-        $old_config_svn = $this->config_svn;
+        $oldConfigSvn = $this->configSvn;
 
         //修改配置文件 svn.php
         $con = file_get_contents(BASE_PATH . '/../config/svn.php');
@@ -713,29 +713,29 @@ CON;
         file_put_contents(BASE_PATH . '/../config/svn.php', $con);
 
         //新内容
-        $new_config_svn = Config::get('svn');
+        $newConfigSvn = Config::get('svn');
 
         //修改svnserve文件中的仓库路径、配置文件路径、日志文件路径
         echo '修改svnserve环境变量文件' . PHP_EOL;
 
         $templete_path = BASE_PATH . '/../templete/';
         $con_svnserve_env_file = file_get_contents($templete_path . 'svnserve/svnserve');
-        $con_svnserve_env_file = sprintf($con_svnserve_env_file, $new_config_svn['rep_base_path'], $new_config_svn['svn_conf_file'], $new_config_svn['svnserve_log_file']);
-        file_put_contents($old_config_svn['svnserve_env_file'], $con_svnserve_env_file);
+        $con_svnserve_env_file = sprintf($con_svnserve_env_file, $newConfigSvn['rep_base_path'], $newConfigSvn['svn_conf_file'], $newConfigSvn['svnserve_log_file']);
+        file_put_contents($oldConfigSvn['svnserve_env_file'], $con_svnserve_env_file);
 
         echo '===============================================' . PHP_EOL;
 
         //开始移动主目录
         echo '开始移动主目录' . PHP_EOL;
 
-        passthru(sprintf("mv %s* %s", $old_config_svn['home_path'], $new_config_svn['home_path']));
+        passthru(sprintf("mv %s* %s", $oldConfigSvn['home_path'], $newConfigSvn['home_path']));
 
         echo '===============================================' . PHP_EOL;
 
         //为新目录授权
         echo '为新目录授权' . PHP_EOL;
 
-        shell_exec('chmod 777 -R ' . $new_config_svn['home_path']);
+        shell_exec('chmod 777 -R ' . $newConfigSvn['home_path']);
 
         echo '===============================================' . PHP_EOL;
 
@@ -751,15 +751,15 @@ CON;
 
         $os = $this->GetOS();
         $con_svnserve_service_file = file_get_contents($templete_path . 'svnserve/svnserve.service');
-        $con_svnserve_service_file = sprintf($con_svnserve_service_file, $new_config_svn['svnserve_env_file'], $this->config_bin['svnserve'], $new_config_svn['svnserve_pid_file']);
+        $con_svnserve_service_file = sprintf($con_svnserve_service_file, $newConfigSvn['svnserve_env_file'], $this->configBin['svnserve'], $newConfigSvn['svnserve_pid_file']);
         if ($os == 'centos 7' || $os == 'centos 8') {
-            file_put_contents($new_config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+            file_put_contents($newConfigSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
         } else if ($os == 'ubuntu') {
-            file_put_contents($new_config_svn['svnserve_service_file']['ubuntu'], $con_svnserve_service_file);
+            file_put_contents($newConfigSvn['svnserve_service_file']['ubuntu'], $con_svnserve_service_file);
         } else if ($os == 'rocky') {
-            file_put_contents($new_config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+            file_put_contents($newConfigSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
         } else {
-            file_put_contents($new_config_svn['svnserve_service_file']['centos'], $con_svnserve_service_file);
+            file_put_contents($newConfigSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
             echo '===============================================' . PHP_EOL;
             echo '警告！当前操作系统版本未测试，使用过程中可能会遇到问题！' . PHP_EOL;
             echo '===============================================' . PHP_EOL;

@@ -154,11 +154,11 @@ class Common extends Base
         //配置登录凭证过期时间为6个小时
         $endTime = $nowTime + 60 * 60 * 6;
 
-        $part1 = $userRoleId . $this->config_sign['signSeparator'] . $userName . $this->config_sign['signSeparator'] . $startTime . $this->config_sign['signSeparator'] . $endTime;
+        $part1 = $userRoleId . $this->configSign['signSeparator'] . $userName . $this->configSign['signSeparator'] . $startTime . $this->configSign['signSeparator'] . $endTime;
 
-        $part2 = hash_hmac('md5', $part1, $this->config_sign['signature']);
+        $part2 = hash_hmac('md5', $part1, $this->configSign['signature']);
 
-        return $part1 . $this->config_sign['signSeparator'] . $part2;
+        return $part1 . $this->configSign['signSeparator'] . $part2;
     }
 
     /**
@@ -255,7 +255,7 @@ class Common extends Base
      */
     private function AddBlack()
     {
-        $arr = explode($this->config_sign['signSeparator'], $this->token);
+        $arr = explode($this->configSign['signSeparator'], $this->token);
         $this->database->insert('black_token', [
             'token' => $this->token,
             'start_time' => $arr[2],

@@ -251,52 +251,14 @@ class Statistics extends Base
             $os = 'Linux';
         }
 
-        //仓库占用体积
-        $repSize = funFormatSize(funGetDirSizeDu($this->config_svn['rep_base_path']));
-
-        //备份占用体积
-        $backupSize = funFormatSize(funGetDirSizeDu($this->config_svn['backup_base_path']));
-
-        //SVN仓库数量
-        $repCount = count($this->SVNAdminRep->GetSimpleRepList());
-
-        //SVN用户数量
-        $userCount = $this->SVNAdmin->GetUserInfo($this->passwdContent);
-        if (is_numeric($userCount)) {
-            if ($userCount == 621) {
-                return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($userCount == 710) {
-                return message(200, 0, '用户不存在');
-            } else {
-                return message(200, 0, "错误码$userCount");
-            }
-        }
-        $userCount  = count($userCount);
-
-        //SVN分组数量
-        $groupCount = $this->SVNAdmin->GetGroupInfo($this->authzContent);
-        if (is_numeric($groupCount)) {
-            if ($groupCount == 612) {
-                return message(200, 0, '文件格式错误(不存在[groups]标识)');
-            } else if ($groupCount == 720) {
-                return message(200, 0, '指定的分组不存在');
-            } else {
-                return message(200, 0, "错误码$groupCount");
-            }
-        }
-        $groupCount = count($groupCount);
-
-        //运行日志数量
-        $logCount = $this->database->count('logs', ['log_id[>]' => 0]);
-
         return message(200, 1, '成功', [
             'os' => trim($os),
-            'repSize' => $repSize,
-            'repCount' => $repCount,
-            'repUser' => $userCount,
-            'repGroup' => $groupCount,
-            'logCount' => $logCount,
-            'backupSize' => $backupSize
+            'repSize' => funFormatSize($this->database->sum('svn_reps', 'rep_size')),
+            'repCount' => $this->database->count('svn_reps'),
+            'repUser' => $this->database->count('svn_users'),
+            'repGroup' => $this->database->count('svn_groups'),
+            'logCount' => $this->database->count('logs', ['log_id[>]' => 0]),
+            'backupSize' => funFormatSize(funGetDirSizeDu($this->configSvn['backup_base_path']))
         ]);
     }
 }

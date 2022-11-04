@@ -37,14 +37,14 @@ class Svn extends Base
      */
     private function GetSvnserveStatus()
     {
+        funShellExec(sprintf("chmod 777 '%s'", $this->configSvn['svnserve_pid_file']));
+
         clearstatcache();
-
-        funShellExec(sprintf("chmod 777 '%s'", $this->config_svn['svnserve_pid_file']));
-
-        if (!file_exists($this->config_svn['svnserve_pid_file'])) {
+        
+        if (!file_exists($this->configSvn['svnserve_pid_file'])) {
             return false;
         } else {
-            $pid = trim(file_get_contents($this->config_svn['svnserve_pid_file']));
+            $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
             if (is_dir("/proc/$pid")) {
                 return true;
             } else {
@@ -82,9 +82,9 @@ class Svn extends Base
 
         //获取Subversion版本
         $version = '-';
-        $result = funShellExec(sprintf("'%s' --version", $this->config_bin['svnserve']));
+        $result = funShellExec(sprintf("'%s' --version", $this->configBin['svnserve']));
         if ($result['code'] == 0) {
-            preg_match_all($this->config_reg['REG_SUBVERSION_VERSION'], $result['result'], $versionInfoPreg);
+            preg_match_all($this->configReg['REG_SUBVERSION_VERSION'], $result['result'], $versionInfoPreg);
             if (array_key_exists(0, $versionInfoPreg[0])) {
                 $version = trim($versionInfoPreg[1][0]);
             } else {
@@ -99,7 +99,7 @@ class Svn extends Base
             'bindHost' => $bindInfo['bindHost'],
             'manageHost' => $bindInfo['manageHost'],
             'enable' => $bindInfo['enable'],
-            'svnserveLog' => $this->config_svn['svnserve_log_file']
+            'svnserveLog' => $this->configSvn['svnserve_log_file']
         ]);
     }
 
@@ -119,10 +119,10 @@ class Svn extends Base
         $bindPort = '';
         $bindHost = '';
 
-        if (!is_readable($this->config_svn['svnserve_env_file'])) {
-            json1(200, 0, '文件' . $this->config_svn['svnserve_env_file'] . '不可读');
+        if (!is_readable($this->configSvn['svnserve_env_file'])) {
+            json1(200, 0, '文件' . $this->configSvn['svnserve_env_file'] . '不可读');
         }
-        $svnserveContent = file_get_contents($this->config_svn['svnserve_env_file']);
+        $svnserveContent = file_get_contents($this->configSvn['svnserve_env_file']);
 
         //匹配端口
         if (preg_match('/--listen-port[\s]+([0-9]+)/', $svnserveContent, $portMatchs) != 0) {
@@ -199,11 +199,11 @@ class Svn extends Base
 
         $cmdStart = sprintf(
             "'%s' --daemon --pid-file '%s' -r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s",
-            $this->config_bin['svnserve'],
-            $this->config_svn['svnserve_pid_file'],
-            $this->config_svn['rep_base_path'],
-            $this->config_svn['svn_conf_file'],
-            $this->config_svn['svnserve_log_file'],
+            $this->configBin['svnserve'],
+            $this->configSvn['svnserve_pid_file'],
+            $this->configSvn['rep_base_path'],
+            $this->configSvn['svn_conf_file'],
+            $this->configSvn['svnserve_log_file'],
             $result['bindPort'],
             $result['bindHost']
         );
@@ -222,11 +222,11 @@ class Svn extends Base
      */
     public function Stop()
     {
-        if (!file_exists($this->config_svn['svnserve_pid_file'])) {
+        if (!file_exists($this->configSvn['svnserve_pid_file'])) {
             return message(200, 0, 'pid文件不存在');
         }
 
-        $pid = trim(file_get_contents($this->config_svn['svnserve_pid_file']));
+        $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
 
         $result = funShellExec(sprintf("kill -9 '%s'", $pid));
 
@@ -255,10 +255,10 @@ class Svn extends Base
         $this->Stop();
 
         //重新构建配置文件内容
-        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $this->payload['bindPort'], $result['bindHost']);
+        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->configSvn['rep_base_path'], $this->configSvn['svn_conf_file'], $this->configSvn['svnserve_log_file'], $this->payload['bindPort'], $result['bindHost']);
 
         //写入配置文件
-        funFilePutContents($this->config_svn['svnserve_env_file'], $config);
+        funFilePutContents($this->configSvn['svnserve_env_file'], $config);
 
         //启动svnserve
         $resultStart = $this->Start();
@@ -288,10 +288,10 @@ class Svn extends Base
         $this->Stop();
 
         //重新构建配置文件内容
-        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->config_svn['rep_base_path'], $this->config_svn['svn_conf_file'], $this->config_svn['svnserve_log_file'], $result['bindPort'], $this->payload['bindHost']);
+        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->configSvn['rep_base_path'], $this->configSvn['svn_conf_file'], $this->configSvn['svnserve_log_file'], $result['bindPort'], $this->payload['bindHost']);
 
         //写入配置文件
-        funFilePutContents($this->config_svn['svnserve_env_file'], $config);
+        funFilePutContents($this->configSvn['svnserve_env_file'], $config);
 
         //启动svnserve
         $resultStart = $this->Start();
@@ -355,31 +355,31 @@ class Svn extends Base
         return message(200, 1, '成功', [
             [
                 'key' => '主目录',
-                'value' => $this->config_svn['home_path']
+                'value' => $this->configSvn['home_path']
             ],
             [
                 'key' => '仓库父目录',
-                'value' => $this->config_svn['rep_base_path']
+                'value' => $this->configSvn['rep_base_path']
             ],
             [
                 'key' => '仓库配置文件',
-                'value' => $this->config_svn['svn_conf_file']
+                'value' => $this->configSvn['svn_conf_file']
             ],
             [
                 'key' => '仓库权限文件',
-                'value' => $this->config_svn['svn_authz_file']
+                'value' => $this->configSvn['svn_authz_file']
             ],
             [
                 'key' => '用户账号文件',
-                'value' => $this->config_svn['svn_passwd_file']
+                'value' => $this->configSvn['svn_passwd_file']
             ],
             [
                 'key' => '备份目录',
-                'value' => $this->config_svn['backup_base_path']
+                'value' => $this->configSvn['backup_base_path']
             ],
             [
                 'key' => 'svnserve环境变量文件',
-                'value' => $this->config_svn['svnserve_env_file']
+                'value' => $this->configSvn['svnserve_env_file']
             ],
         ]);
     }
@@ -391,15 +391,15 @@ class Svn extends Base
      */
     public function ValidateAuthz()
     {
-        if (!array_key_exists('svnauthz-validate', $this->config_bin)) {
+        if (!array_key_exists('svnauthz-validate', $this->configBin)) {
             return message(200, 0, '需要在 config/bin.php 文件中配置 svnauthz-validate 的路径');
         }
 
-        if ($this->config_bin['svnauthz-validate'] == '') {
+        if ($this->configBin['svnauthz-validate'] == '') {
             return message(200, 0, '未在 config/bin.php 文件中配置 svnauthz-validate 路径');
         }
 
-        $result = funShellExec(sprintf("'%s' '%s'", '/usr/bin/svn-tools/svnauthz-validate', $this->config_svn['svn_authz_file'], $this->config_bin['svnauthz-validate']));
+        $result = funShellExec(sprintf("'%s' '%s'", '/usr/bin/svn-tools/svnauthz-validate', $this->configSvn['svn_authz_file'], $this->configBin['svnauthz-validate']));
         if ($result['code'] != 0) {
             return message(200, 2, '检测到异常', $result['error']);
         } else {

@@ -32,16 +32,16 @@ class Daemon
         'stop',
         'console'
     ];
-    private $config_daemon;
-    private $config_svn;
+    private $configDaemon;
+    private $configSvn;
 
     function __construct()
     {
         $this->pidFile = dirname(__FILE__) . '/svnadmind.pid';
 
         Config::load(BASE_PATH . '/config/');
-        $this->config_daemon = Config::get('daemon');
-        $this->config_svn = Config::get('svn');
+        $this->configDaemon = Config::get('daemon');
+        $this->configSvn = Config::get('svn');
     }
 
     /**
@@ -49,21 +49,35 @@ class Daemon
      */
     private function InitSocket()
     {
-        if (file_exists($this->config_daemon['ipc_file'])) {
-            unlink($this->config_daemon['ipc_file']);
+        if (file_exists($this->configDaemon['ipc_file'])) {
+            unlink($this->configDaemon['ipc_file']);
         }
 
         //创建套接字
         $socket = @socket_create(AF_UNIX, SOCK_STREAM, 0) or die(sprintf('创建套接字失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
 
         //绑定地址和端口
-        @socket_bind($socket, $this->config_daemon['ipc_file'], 0) or die(sprintf('绑定失败[%s][%s]%s', socket_strerror(socket_last_error()), $this->config_daemon['ipc_file'], PHP_EOL));
+        @socket_bind($socket, $this->configDaemon['ipc_file'], 0) or die(sprintf('绑定失败[%s][%s]%s', socket_strerror(socket_last_error()), $this->configDaemon['ipc_file'], PHP_EOL));
 
         //监听 设置并发队列的最大长度
-        @socket_listen($socket, $this->config_daemon['socket_listen_backlog']) or die(sprintf('监听失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
+        @socket_listen($socket, $this->configDaemon['socket_listen_backlog']) or die(sprintf('监听失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
 
         //使其它用户可用
-        shell_exec('chmod 777 ' . $this->config_daemon['ipc_file']);
+        shell_exec('chmod 777 ' . $this->configDaemon['ipc_file']);
+
+        //创建任务进程 用于处理任务
+        // $pid = pcntl_fork();
+        // if ($pid == -1) {
+        //     die(sprintf('pcntl_fork失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
+        // } else if ($pid == 0) {
+        //     while (true) {
+        //         //处理任务
+        //         sleep(1);
+        //         date_default_timezone_set('PRC');
+        //         file_put_contents('task.log', date('Y-m-d H:i:s')."\n", FILE_APPEND);
+        //     }
+        //     exit();
+        // }
 
         while (true) {
             //非阻塞式回收僵尸进程
@@ -89,7 +103,7 @@ class Daemon
      */
     private function HandleRequest($client)
     {
-        $length = $this->config_daemon['socket_data_length'];
+        $length = $this->configDaemon['socket_data_length'];
 
         //接收客户端发送的数据
         if (empty($receive = socket_read($client, $length))) {

@@ -12,7 +12,7 @@
  */
 function funShellExec($shell)
 {
-    $config_daemon = Config::get('daemon');
+    $configDaemon = Config::get('daemon');
 
     $request = [
         'type' => 'passthru',
@@ -20,7 +20,7 @@ function funShellExec($shell)
     ];
     $request = json_encode($request);
 
-    $length = $config_daemon['socket_data_length'];
+    $length = $configDaemon['socket_data_length'];
 
     //检测信息长度
     if (strlen($request) >= $length) {
@@ -29,7 +29,7 @@ function funShellExec($shell)
 
     $socket = @socket_create(AF_UNIX, SOCK_STREAM, 0) or exit('创建套接字失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
 
-    $server = socket_connect($socket, $config_daemon['ipc_file'], 0);
+    $server = socket_connect($socket, $configDaemon['ipc_file'], 0);
 
     socket_write($socket, $request, strlen($request));
 
@@ -58,11 +58,11 @@ function funFilePutContents($filename, $data)
  */
 function funDetectState()
 {
-    $config_daemon = Config::get('daemon');
+    $configDaemon = Config::get('daemon');
 
     $sock = @socket_create(AF_UNIX, SOCK_STREAM, 0);
 
-    @socket_connect($sock, $config_daemon['ipc_file'], 0);
+    @socket_connect($sock, $configDaemon['ipc_file'], 0);
 
     socket_set_nonblock($sock);
 

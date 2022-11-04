@@ -55,6 +55,7 @@
             </template>
             <template slot-scope="{ row }" slot="action">
               <Tag
+                style="cursor: pointer"
                 color="primary"
                 @click.native="propSendParentObject('user', row.svn_user_name)"
                 >选择</Tag
@@ -105,6 +106,7 @@
           >
             <template slot-scope="{ row }" slot="member">
               <Tag
+                style="cursor: pointer"
                 color="primary"
                 @click.native="ModalGetGroupMember(row.svn_group_name)"
                 >成员</Tag
@@ -112,6 +114,7 @@
             </template>
             <template slot-scope="{ row }" slot="action">
               <Tag
+                style="cursor: pointer"
                 color="primary"
                 @click.native="
                   propSendParentObject('group', row.svn_group_name)
@@ -169,6 +172,7 @@
             </template>
             <template slot-scope="{ row }" slot="action">
               <Tag
+                style="cursor: pointer"
                 color="primary"
                 @click.native="propSendParentObject('aliase', row.aliaseName)"
                 >选择</Tag
@@ -195,6 +199,7 @@
             <template slot="action" slot-scope="{ index }">
               <template v-if="false">{{ index }}</template>
               <Tag
+                style="cursor: pointer"
                 color="primary"
                 @click.native="propSendParentObject('*', '*')"
                 >选择</Tag
@@ -225,6 +230,7 @@
             <template slot="action" slot-scope="{ index }">
               <template v-if="false">{{ index }}</template>
               <Tag
+                style="cursor: pointer"
                 color="primary"
                 @click.native="
                   propSendParentObject('$authenticated', '$authenticated')
@@ -257,6 +263,7 @@
             <template slot="action" slot-scope="{ index }">
               <template v-if="false">{{ index }}</template>
               <Tag
+                style="cursor: pointer"
                 color="primary"
                 @click.native="propSendParentObject('$anonymous', '$anonymous')"
                 >选择</Tag

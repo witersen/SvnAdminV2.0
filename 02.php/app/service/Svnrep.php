@@ -9,7 +9,7 @@
 
 namespace app\service;
 
-use Config;
+// use Config;
 
 class Svnrep extends Base
 {
@@ -18,14 +18,14 @@ class Svnrep extends Base
      *
      * @var object
      */
-    private $Svngroup;
+    // private $Svngroup;
     private $Logs;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
-        $this->Svngroup = new Svngroup();
+        // $this->Svngroup = new Svngroup();
         $this->Svn = new Svn();
         $this->Logs = new Logs();
     }
@@ -45,21 +45,25 @@ class Svnrep extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
+        $repBasePath = $this->configSvn['rep_base_path'];
+        $repName = $this->payload['rep_name'];
+        $repPath = $repBasePath . $repName;
+
         //检查仓库名是否合法
-        $checkResult = $this->checkService->CheckRepName($this->payload['rep_name']);
+        $checkResult = $this->checkService->CheckRepName($repName);
         if ($checkResult['status'] != 1) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
         }
 
         //检查仓库是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        clearstatcache();
+        if (is_dir($repPath)) {
+            return message(200, 0, '仓库已存在');
         }
 
         //创建空仓库
         //解决创建中文仓库乱码问题
-        $cmd = sprintf("export LC_CTYPE=en_US.UTF-8 &&  '%s' create " . $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $this->config_bin['svnadmin']);
+        $cmd = sprintf("export LC_CTYPE=en_US.UTF-8 &&  '%s' create " . $repPath, $this->configBin['svnadmin']);
         funShellExec($cmd);
 
         //关闭selinux
@@ -67,17 +71,16 @@ class Svnrep extends Base
 
         if ($this->payload['rep_type'] == '2') {
             //以指定的目录结构初始化仓库
-            $this->SVNAdminRep->InitRepStruct($this->config_svn['templete_init_struct_01'], $this->config_svn['rep_base_path'] . $this->payload['rep_name']);
+            $this->InitRepStruct($this->configSvn['templete_init_struct_01'], $repPath);
         }
 
         //检查是否创建成功
-        $checkResult = $this->SVNAdminRep->CheckRepCreate($this->payload['rep_name']);
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        if (!is_dir($repPath)) {
+            return message(200, 0, '创建仓库失败');
         }
 
         //向authz写入仓库信息
-        $result = $this->SVNAdmin->WriteRepPathToAuthz($this->authzContent, $this->payload['rep_name'], '/');
+        $result = $this->SVNAdmin->WriteRepPathToAuthz($this->authzContent, $repName, '/');
         if (is_numeric($result)) {
             if ($result == 851) {
                 $result = $this->authzContent;
@@ -85,24 +88,24 @@ class Svnrep extends Base
                 return message(200, 0, "同步到配置文件错误$result");
             }
         }
-        funFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //写入数据库
         $this->database->delete('svn_reps', [
-            'rep_name' =>  $this->payload['rep_name'],
+            'rep_name' =>  $repName,
         ]);
         $this->database->insert('svn_reps', [
-            'rep_name' => $this->payload['rep_name'],
-            'rep_size' => 0,
+            'rep_name' => $repName,
+            'rep_size' => funGetDirSizeDu($repPath),
             'rep_note' => $this->payload['rep_note'],
-            'rep_rev' => 0,
-            'rep_uuid' => 0
+            'rep_rev' => $this->GetRepRev($repName),
+            'rep_uuid' => $this->GetRepUUID($repName)
         ]);
 
         //日志
         $this->Logs->InsertLog(
             '创建仓库',
-            sprintf("仓库名:%s", $this->payload['rep_name']),
+            sprintf("仓库名:%s", $repName),
             $this->userName
         );
 
@@ -141,7 +144,7 @@ class Svnrep extends Base
          * 数据对比增删改
          */
         $old = array_column($dbRepList, 'rep_name');
-        $new = $this->SVNAdminRep->GetSimpleRepList();
+        $new = $this->GetSimpleRepList();
 
         //删除
         $delete = array_diff($old, $new);
@@ -156,10 +159,10 @@ class Svnrep extends Base
         foreach ($create as $value) {
             $this->database->insert('svn_reps', [
                 'rep_name' => $value,
-                'rep_size' => funGetDirSizeDu($this->config_svn['rep_base_path'] .  $value),
+                'rep_size' => funGetDirSizeDu($this->configSvn['rep_base_path'] .  $value),
                 'rep_note' => '',
-                'rep_rev' => $this->SVNAdminRep->GetRepRev($value),
-                'rep_uuid' => ''
+                'rep_rev' => $this->GetRepRev($value),
+                'rep_uuid' => $this->GetRepUUID($value)
             ]);
         }
 
@@ -167,8 +170,9 @@ class Svnrep extends Base
         $update = array_intersect($old, $new);
         foreach ($update as $value) {
             $this->database->update('svn_reps', [
-                'rep_size' => funGetDirSizeDu($this->config_svn['rep_base_path'] .  $value),
-                'rep_rev' => $this->SVNAdminRep->GetRepRev($value)
+                'rep_size' => funGetDirSizeDu($this->configSvn['rep_base_path'] .  $value),
+                'rep_rev' => $this->GetRepRev($value),
+                'rep_uuid' => $this->GetRepUUID($value)
             ], [
                 'rep_name' => $value
             ]);
@@ -182,7 +186,7 @@ class Svnrep extends Base
      */
     private function SyncRepAndAuthz()
     {
-        $svnRepList = $this->SVNAdminRep->GetSimpleRepList();
+        $svnRepList = $this->GetSimpleRepList();
 
         $svnRepAuthzList = $this->SVNAdmin->GetRepListFromAuthz($this->authzContent);
 
@@ -217,7 +221,7 @@ class Svnrep extends Base
         }
 
         if ($authzContet != $this->authzContent) {
-            funFilePutContents($this->config_svn['svn_authz_file'], $authzContet);
+            funFilePutContents($this->configSvn['svn_authz_file'], $authzContet);
         }
     }
 
@@ -249,7 +253,7 @@ class Svnrep extends Base
         }
 
         foreach ($userRepList as $key => $value) {
-            $cmd = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $value['repName'], $value['priPath']);
+            $cmd = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path'] .  $value['repName'], $value['priPath']);
             $result = funShellExec($cmd);
 
             if (strstr($result['error'], 'svnlook: E160013:')) {
@@ -264,7 +268,7 @@ class Svnrep extends Base
 
         //写入配置文件
         if ($authzContent != $this->authzContent) {
-            funFilePutContents($this->config_svn['svn_authz_file'], $authzContent);
+            funFilePutContents($this->configSvn['svn_authz_file'], $authzContent);
         }
     }
 
@@ -471,7 +475,7 @@ class Svnrep extends Base
             /**
              * 及时更新
              */
-            $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
+            $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
 
             /**
              * 对用户有权限的仓库路径列表进行一一验证
@@ -485,7 +489,7 @@ class Svnrep extends Base
             /**
              * 及时更新
              */
-            // $this->authzContent = file_get_contents($this->config_svn['svn_authz_file']);
+            // $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
 
             /**
              * 用户有权限的仓库路径列表 => svn_user_pri_paths数据表
@@ -621,7 +625,7 @@ class Svnrep extends Base
         /**
          * 使用svn list进行内容获取
          */
-        $checkResult = $this->SVNAdminRep->CheckSvnUserPathAutzh($checkoutHost, $repName, $path, $this->userName, $svnUserPass['userPass']);
+        $checkResult = $this->CheckSvnUserPathAutzh($checkoutHost, $repName, $path, $this->userName, $svnUserPass['userPass']);
         if ($checkResult['status'] != 1) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
         }
@@ -664,21 +668,21 @@ class Svnrep extends Base
         $data = [];
         if ($isSingleFilePri) {
             //获取文件或者文件夹最年轻的版本号
-            $lastRev  = $this->SVNAdminRep->GetRepFileRev($repName, $path);
+            $lastRev  = $this->GetRepFileRev($repName, $path);
 
             //获取文件或者文件夹最年轻的版本的作者
-            $lastRevAuthor = $this->SVNAdminRep->GetRepFileAuthor($repName, $lastRev);
+            $lastRevAuthor = $this->GetRepFileAuthor($repName, $lastRev);
 
             //同上 日期
-            $lastRevDate = $this->SVNAdminRep->GetRepFileDate($repName, $lastRev);
+            $lastRevDate = $this->GetRepFileDate($repName, $lastRev);
 
             //同上 日志
-            $lastRevLog = $this->SVNAdminRep->GetRepFileLog($repName, $lastRev);
+            $lastRevLog = $this->GetRepFileLog($repName, $lastRev);
 
             array_push($data, [
                 'resourceType' => 1,
                 'resourceName' => $tempArray[count($tempArray) - 1],
-                'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($repName, $path),
+                'fileSize' => $this->GetRepRevFileSize($repName, $path),
                 'revAuthor' => $lastRevAuthor,
                 'revNum' => 'r' . $lastRev,
                 'revTime' => $lastRevDate,
@@ -695,16 +699,16 @@ class Svnrep extends Base
                 }
 
                 //获取文件或者文件夹最年轻的版本号
-                $lastRev  = $this->SVNAdminRep->GetRepFileRev($repName, $value);
+                $lastRev  = $this->GetRepFileRev($repName, $value);
 
                 //获取文件或者文件夹最年轻的版本的作者
-                $lastRevAuthor = $this->SVNAdminRep->GetRepFileAuthor($repName, $lastRev);
+                $lastRevAuthor = $this->GetRepFileAuthor($repName, $lastRev);
 
                 //同上 日期
-                $lastRevDate = $this->SVNAdminRep->GetRepFileDate($repName, $lastRev);
+                $lastRevDate = $this->GetRepFileDate($repName, $lastRev);
 
                 //同上 日志
-                $lastRevLog = $this->SVNAdminRep->GetRepFileLog($repName, $lastRev);
+                $lastRevLog = $this->GetRepFileLog($repName, $lastRev);
 
                 $pathArray = explode('/', $value);
                 $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
@@ -724,7 +728,7 @@ class Svnrep extends Base
                     array_push($data, [
                         'resourceType' => 1,
                         'resourceName' => $pathArray[$pathArrayCount - 1],
-                        'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($repName, $value),
+                        'fileSize' => $this->GetRepRevFileSize($repName, $value),
                         'revAuthor' => $lastRevAuthor,
                         'revNum' => 'r' . $lastRev,
                         'revTime' => $lastRevDate,
@@ -787,9 +791,9 @@ class Svnrep extends Base
     public function GetRepCon()
     {
         //检查仓库是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
-        if ($checkResult['status'] != 0) {
-            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['rep_name'])) {
+            return message(200, 0, '仓库不存在');
         }
 
         /**
@@ -801,7 +805,7 @@ class Svnrep extends Base
         $path = $this->payload['path'];
 
         //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $path);
+        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $path);
         $result = funShellExec($cmdSvnlookTree);
         if ($result['code'] != 0) {
             return ['code' => 200, 'status' => 0, 'message' => $result['error'], 'data' => []];
@@ -814,16 +818,16 @@ class Svnrep extends Base
         $data = [];
         foreach ($resultArray as $key => $value) {
             //获取文件或者文件夹最年轻的版本号
-            $lastRev  = $this->SVNAdminRep->GetRepFileRev($this->payload['rep_name'], $value);
+            $lastRev  = $this->GetRepFileRev($this->payload['rep_name'], $value);
 
             //获取文件或者文件夹最年轻的版本的作者
-            $lastRevAuthor = $this->SVNAdminRep->GetRepFileAuthor($this->payload['rep_name'], $lastRev);
+            $lastRevAuthor = $this->GetRepFileAuthor($this->payload['rep_name'], $lastRev);
 
             //同上 日期
-            $lastRevDate = $this->SVNAdminRep->GetRepFileDate($this->payload['rep_name'], $lastRev);
+            $lastRevDate = $this->GetRepFileDate($this->payload['rep_name'], $lastRev);
 
             //同上 日志
-            $lastRevLog = $this->SVNAdminRep->GetRepFileLog($this->payload['rep_name'], $lastRev);
+            $lastRevLog = $this->GetRepFileLog($this->payload['rep_name'], $lastRev);
 
             $pathArray = explode('/', $value);
             $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
@@ -843,7 +847,7 @@ class Svnrep extends Base
                 array_push($data, [
                     'resourceType' => 1,
                     'resourceName' => $pathArray[$pathArrayCount - 1],
-                    'fileSize' => $this->SVNAdminRep->GetRepRevFileSize($this->payload['rep_name'], $value),
+                    'fileSize' => $this->GetRepRevFileSize($this->payload['rep_name'], $value),
                     'revAuthor' => $lastRevAuthor,
                     'revNum' => 'r' . $lastRev,
                     'revTime' => $lastRevDate,
@@ -898,16 +902,25 @@ class Svnrep extends Base
      */
     public function GetRepTree()
     {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'path' => ['type' => 'string', 'notNull' => true],
+            'rep_name' => ['type' => 'string', 'notNull' => false],
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
         //检查仓库是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
-        if ($checkResult['status'] != 0) {
-            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['rep_name'])) {
+            return message(200, 0, '仓库不存在');
         }
 
         $path = $this->payload['path'];
 
         //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->config_bin['svnlook'], $this->config_svn['rep_base_path']  . $this->payload['rep_name'], $path);
+        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path']  . $this->payload['rep_name'], $path);
         $result = funShellExec($cmdSvnlookTree);
         if ($result['code'] != 0) {
             return message(200, 0, $result['error']);
@@ -964,10 +977,19 @@ class Svnrep extends Base
      */
     public function GetRepPathAllPri()
     {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'path' => ['type' => 'string', 'notNull' => true],
+            'rep_name' => ['type' => 'string', 'notNull' => false],
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
         //检查仓库是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
-        if ($checkResult['status'] != 0) {
-            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['rep_name'])) {
+            return message(200, 0, '仓库不存在');
         }
 
         $result = $this->SVNAdmin->GetRepPathPri($this->authzContent, $this->payload['rep_name'], $this->payload['path']);
@@ -1036,7 +1058,7 @@ class Svnrep extends Base
         }
 
         //写入
-        funFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -1074,7 +1096,7 @@ class Svnrep extends Base
         }
 
         //写入
-        funFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -1105,7 +1127,7 @@ class Svnrep extends Base
         }
 
         //写入
-        funFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //返回
         return message();
@@ -1123,24 +1145,23 @@ class Svnrep extends Base
         }
 
         //检查原仓库是否不存在
-        $checkResult = $this->SVNAdminRep->CheckRepCreate($this->payload['old_rep_name'], '要修改的仓库不存在');
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['old_rep_name'])) {
+            return message(200, 0, '要修改的仓库不存在');
         }
 
         //检查新仓库名是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['new_rep_name'],  '已经存在同名仓库');
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        if (is_dir($this->configSvn['rep_base_path'] . $this->payload['new_rep_name'])) {
+            return message(200, 0, '已经存在同名仓库');
         }
 
         //从仓库目录修改仓库名称
-        funShellExec('mv ' . $this->config_svn['rep_base_path'] .  $this->payload['old_rep_name'] . ' ' . $this->config_svn['rep_base_path'] . $this->payload['new_rep_name']);
+        funShellExec('mv ' . $this->configSvn['rep_base_path'] .  $this->payload['old_rep_name'] . ' ' . $this->configSvn['rep_base_path'] . $this->payload['new_rep_name']);
 
         //检查修改过的仓库名称是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepCreate($this->payload['new_rep_name'], '修改仓库名称失败');
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['new_rep_name'])) {
+            return message(200, 0, '修改仓库名称失败');
         }
 
         //从数据库修改仓库名称
@@ -1160,7 +1181,7 @@ class Svnrep extends Base
             }
         }
 
-        funFilePutContents($this->config_svn['svn_authz_file'], $result);
+        funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //日志
         $this->Logs->InsertLog(
@@ -1185,7 +1206,7 @@ class Svnrep extends Base
                 return message(200, 0, "错误码$authzContet");
             }
         } else {
-            funFilePutContents($this->config_svn['svn_authz_file'], $authzContet);
+            funFilePutContents($this->configSvn['svn_authz_file'], $authzContet);
         }
 
         //从数据库中删除
@@ -1194,10 +1215,10 @@ class Svnrep extends Base
         ]);
 
         //从仓库目录删除仓库文件夹
-        funShellExec('cd ' . $this->config_svn['rep_base_path'] . ' && rm -rf ./' . $this->payload['rep_name']);
-        $checkResult = $this->SVNAdminRep->CheckRepDelete($this->payload['rep_name']);
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        funShellExec('cd ' . $this->configSvn['rep_base_path'] . ' && rm -rf ./' . $this->payload['rep_name']);
+        clearstatcache();
+        if (is_dir($this->configSvn['rep_base_path'] .  $this->payload['rep_name'])) {
+            return message(200, 0, '删除失败');
         }
 
         //日志
@@ -1217,12 +1238,12 @@ class Svnrep extends Base
     public function GetRepDetail()
     {
         //检查仓库是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
-        if ($checkResult['status'] != 0) {
-            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['rep_name'])) {
+            return message(200, 0, '仓库不存在');
         }
 
-        $result = $this->SVNAdminRep->GetRepDetail110($this->payload['rep_name']);
+        $result = $this->GetRepDetail110($this->payload['rep_name']);
         if ($result['code'] == 0) {
             $result = $result['result'];
             //Subversion 1.10 及以上版本
@@ -1244,11 +1265,13 @@ class Svnrep extends Base
             $newArray = [
                 [
                     'repKey' => 'Path',
-                    'repValue' => $this->config_svn['rep_base_path'] .  $this->payload['rep_name'],
+                    'repValue' => $this->configSvn['rep_base_path'] .  $this->payload['rep_name'],
                 ],
                 [
                     'repKey' => 'UUID',
-                    'repValue' => $this->SVNAdminRep->GetRepUUID($this->payload['rep_name'])
+                    'repValue' => $this->database->get('svn_reps', 'rep_uuid', [
+                        'rep_name' => $this->payload['rep_name']
+                    ])
                 ],
             ];
         }
@@ -1262,9 +1285,9 @@ class Svnrep extends Base
     public function SetUUID()
     {
         if ($this->payload['uuid'] == '') {
-            $cmd = sprintf("'%s' setuuid '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name']);
+            $cmd = sprintf("'%s' setuuid '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name']);
         } else {
-            $cmd = sprintf("'%s' setuuid '%s' '%s'", $this->config_bin['svnadmin'], $this->config_svn['rep_base_path'] .  $this->payload['rep_name'], $this->payload['uuid']);
+            $cmd = sprintf("'%s' setuuid '%s' '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $this->payload['uuid']);
         }
 
         $result = funShellExec($cmd);
@@ -1281,10 +1304,10 @@ class Svnrep extends Base
      */
     public function GetBackupList()
     {
-        $result = funGetDirFileList($this->config_svn['backup_base_path']);
+        $result = funGetDirFileList($this->configSvn['backup_base_path']);
 
         foreach ($result as $key => $value) {
-            $result[$key]['fileToken'] = hash_hmac('md5', $value['fileName'], $this->config_sign['signature']);
+            $result[$key]['fileToken'] = hash_hmac('md5', $value['fileName'], $this->configSign['signature']);
             $result[$key]['fileUrl'] = sprintf('/api.php?c=Svnrep&a=DownloadRepBackup&t=web&fileName=%s&token=%s', $value['fileName'], $result[$key]['fileToken']);
         }
 
@@ -1297,12 +1320,16 @@ class Svnrep extends Base
     public function RepDump()
     {
         //检查仓库是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepExist($this->payload['rep_name']);
-        if ($checkResult['status'] != 0) {
-            return ['code' => 200, 'status' => 0, 'message' => '仓库不存在-请主动同步仓库', 'data' => []];
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['rep_name'])) {
+            return message(200, 0, '仓库不存在');
         }
 
-        $result = $this->SVNAdminRep->RepDump($this->payload['rep_name'], $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . uniqid() . funGetRandStr() . '.dump');
+        $backupName = $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . uniqid() . funGetRandStr() . '.dump';
+
+        //使用 svnadmin dump 备份仓库
+        $cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $this->configSvn['backup_base_path'] .  $backupName);
+        $result = funShellExec($cmd);
 
         if ($result['code'] != 0) {
             return message(200, 0, $result['error'], []);
@@ -1316,7 +1343,8 @@ class Svnrep extends Base
      */
     public function DelRepBackup()
     {
-        $this->SVNAdminRep->DelRepBackup($this->payload['fileName']);
+        $cmd = sprintf("cd '%s' && rm -f './%s'", $this->configSvn['backup_base_path'], $this->payload['fileName']);
+        funShellExec($cmd);
 
         return message();
     }
@@ -1337,18 +1365,18 @@ class Svnrep extends Base
             json1(200, 0, '缺少文件名');
         }
         $fileName = $_GET['fileName'];
-        $filePath = $this->config_svn['backup_base_path'] .  $fileName;
+        $filePath = $this->configSvn['backup_base_path'] .  $fileName;
 
         if (empty($_GET['token'])) {
             json1(200, 0, '缺少文件token');
         }
         $token = $_GET['token'];
 
-        if ($token !== hash_hmac('md5', $fileName, $this->config_sign['signature'])) {
+        if ($token !== hash_hmac('md5', $fileName, $this->configSign['signature'])) {
             json1(200, 0, '文件token无效');
         }
 
-        if (!file_exists($this->config_svn['backup_base_path'] .  $fileName)) {
+        if (!file_exists($this->configSvn['backup_base_path'] .  $fileName)) {
             json1(200, 0, '文件不存在');
         }
 
@@ -1420,7 +1448,7 @@ class Svnrep extends Base
             $fileName = $_FILES['file']['name'];
 
             //备份文件夹
-            $localFilePath = $this->config_svn['backup_base_path'] .  $fileName;
+            $localFilePath = $this->configSvn['backup_base_path'] .  $fileName;
 
             //保存
             $cmd = sprintf("mv '%s' '%s'", $_FILES['file']['tmp_name'], $localFilePath);
@@ -1439,18 +1467,19 @@ class Svnrep extends Base
     public function ImportRep()
     {
         //检查备份文件是否存在
-        if (!file_exists($this->config_svn['backup_base_path'] .  $this->payload['fileName'])) {
+        if (!file_exists($this->configSvn['backup_base_path'] .  $this->payload['fileName'])) {
             return message(200, 0, '备份文件不存在');
         }
 
         //检查操作的仓库是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepCreate($this->payload['rep_name'], '仓库不存在');
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['rep_name'])) {
+            return message(200, 0, '仓库不存在');
         }
 
-        //使用svndump
-        $result = $this->SVNAdminRep->RepLoad($this->payload['rep_name'], $this->payload['fileName']);
+        //使用 svnadmin load 导入仓库
+        $cmd = sprintf("'%s' load --quiet '%s' < '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $this->configSvn['backup_base_path'] .  $this->payload['fileName']);
+        $result = funShellExec($cmd);
 
         if ($result['error'] == '') {
             return message();
@@ -1465,9 +1494,9 @@ class Svnrep extends Base
     public function GetRepHooks()
     {
         //检查仓库是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepCreate($this->payload['rep_name'], '仓库不存在');
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['rep_name'])) {
+            return message(200, 0, '仓库不存在');
         }
 
         $repHooks =  [
@@ -1527,8 +1556,9 @@ class Svnrep extends Base
             ],
         ];
 
-        $hooksPath = $this->config_svn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
+        $hooksPath = $this->configSvn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
 
+        clearstatcache();
         if (!is_dir($hooksPath)) {
             return message(200, 0, '该仓库不存在hooks文件夹');
         }
@@ -1562,20 +1592,16 @@ class Svnrep extends Base
      */
     public function DelRepHook()
     {
-        //检查仓库是否存在
-        $checkResult = $this->SVNAdminRep->CheckRepCreate($this->payload['rep_name'], '仓库不存在');
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
-        }
+        clearstatcache();
 
-        $hooksPath = $this->config_svn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
+        $hooksPath = $this->configSvn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
 
-        if (!is_dir($hooksPath)) {
-            return message(200, 0, '该仓库不存在hooks文件夹');
-        }
-
-        if (!file_exists($hooksPath . $this->payload['fileName'])) {
-            return message(200, 0, '已经移除该仓库钩子');
+        if (is_dir($hooksPath)) {
+            if (!file_exists($hooksPath . $this->payload['fileName'])) {
+                return message(200, 0, '已经移除该仓库钩子');
+            }
+        } else {
+            return message(200, 0, '仓库不存在');
         }
 
         funShellExec(sprintf("cd '%s' && rm -f ./'%s'", $hooksPath, $this->payload['fileName']));
@@ -1588,12 +1614,12 @@ class Svnrep extends Base
      */
     public function EditRepHook()
     {
-        $hooksPath = $this->config_svn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
+        $hooksPath = $this->configSvn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
 
         //使用echo写入文件 当出现不规则的不成对的 ' " 等会出问题 当然也会包括其他问题
         funFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
 
-        funShellExec('chmod 777 -R ' . $this->config_svn['home_path']);
+        funShellExec('chmod 777 -R ' . $this->configSvn['home_path']);
 
         return message();
     }
@@ -1607,7 +1633,8 @@ class Svnrep extends Base
 
         $list = [];
 
-        $recommend_hook_path = $this->config_svn['recommend_hook_path'];
+        $recommend_hook_path = $this->configSvn['recommend_hook_path'];
+        clearstatcache();
         if (!is_dir($recommend_hook_path)) {
             return message(200, 0, '未创建自定义钩子目录');
         }
@@ -1665,5 +1692,191 @@ class Svnrep extends Base
         }
 
         return message(200, 1, '成功', $list);
+    }
+
+    /**
+     * 获取简单SVN仓库列表
+     */
+    private function GetSimpleRepList()
+    {
+        funShellExec('chmod 777 -R ' . $this->configSvn['home_path']);
+
+        $repArray = [];
+        $file_arr = scandir($this->configSvn['rep_base_path']);
+        foreach ($file_arr as $file_item) {
+            clearstatcache();
+            if ($file_item != '.' && $file_item != '..') {
+                if (is_dir($this->configSvn['rep_base_path'] .  $file_item)) {
+                    $file_arr2 = scandir($this->configSvn['rep_base_path'] .  $file_item);
+                    foreach ($file_arr2 as $file_item2) {
+                        if (($file_item2 == 'conf' || $file_item2 == 'db' || $file_item2 == 'hooks' || $file_item2 == 'locks')) {
+                            array_push($repArray, $file_item);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return $repArray;
+    }
+
+    /**
+     * 初始化仓库结构为 trunk branches tags
+     */
+    private function InitRepStruct($templetePath, $repPath, $initUser = 'SVNAdmin', $initPass = 'SVNAdmin', $message = 'Initial structure')
+    {
+        $cmd = sprintf("'%s' import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $this->configBin['svn'], $templetePath, $repPath, $initUser, $initPass, $message);
+        funShellExec($cmd);
+    }
+
+    /**
+     * 获取仓库的修订版本数量
+     * svnadmin info
+     * 
+     * Subversion 1.9 及以前没有 svnadmin info 子指令 
+     * 因此使用 svnlook youngest 来代替
+     */
+    private function GetRepRev($repName)
+    {
+        // $cmd = sprintf("'%s' info '%s' | grep 'Revisions' | awk '{print $2}'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $repName);
+
+        $cmd = sprintf("'%s' youngest '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path'] .  $repName);
+
+        $result = funShellExec($cmd);
+
+        return (int)trim($result['result']);
+    }
+
+    /**
+     * 获取仓库的UUID
+     */
+    private function GetRepUUID($repName)
+    {
+        $cmd = sprintf("'%s' uuid '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path'] .  $repName);
+
+        $result = funShellExec($cmd);
+
+        return trim($result['result']);
+    }
+
+    /**
+     * 获取仓库的属性内容（key-value的形式）
+     * svnadmin info
+     * 
+     * Subversion 1.9 及以前没有 svnadmin info 子指令 
+     */
+    private function GetRepDetail110($repName)
+    {
+        $cmd = sprintf("'%s' info '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $repName);
+        $result = funShellExec($cmd);
+        return $result;
+    }
+
+    /**
+     * 获取仓库下某个文件的体积
+     * 
+     * 目前为默认最新版本
+     * 
+     * 根据体积大小自动调整单位
+     * 
+     * svnlook file
+     */
+    private function GetRepRevFileSize($repName, $filePath)
+    {
+        $cmd = sprintf("'%s' filesize '%s' '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path'] . $repName, $filePath);
+        $result = funShellExec($cmd);
+        $size = (int)$result['result'];
+        return funFormatSize($size);
+    }
+
+    /**
+     * 获取仓库下指定文件或者文件夹的最高修订版本
+     * 
+     * svnlook history
+     */
+    private function GetRepFileRev($repName, $filePath)
+    {
+        $cmd = sprintf("'%s' history --limit 1 '%s' '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path'] .  $repName, $filePath);
+        $result = funShellExec($cmd);
+        $result = $result['result'];
+        $resultArray = explode("\n", $result);
+        $content = preg_replace("/\s{2,}/", ' ', $resultArray[2]);
+        $contentArray = explode(' ', $content);
+        return trim($contentArray[1]);
+    }
+
+    /**
+     * 获取仓库下指定文件或者文件夹的作者
+     * 
+     * svnlook author
+     */
+    private function GetRepFileAuthor($repName, $rev)
+    {
+        $cmd = sprintf("'%s' author -r %s '%s'", $this->configBin['svnlook'], $rev, $this->configSvn['rep_base_path'] .  $repName);
+        $result = funShellExec($cmd);
+        return $result['result'];
+    }
+
+    /**
+     * 获取仓库下指定文件或者文件夹的提交日期
+     * 
+     * svnlook date
+     */
+    private function GetRepFileDate($repName, $rev)
+    {
+        $cmd = sprintf("'%s' date -r %s '%s'", $this->configBin['svnlook'], $rev, $this->configSvn['rep_base_path'] .  $repName);
+        $result = funShellExec($cmd);
+        return $result['result'];
+    }
+
+    /**
+     * 获取仓库下指定文件或者文件夹的提交日志
+     * 
+     * svnlook log
+     */
+    private function GetRepFileLog($repName, $rev)
+    {
+        $cmd = sprintf("'%s' log -r %s '%s'", $this->configBin['svnlook'], $rev, $this->configSvn['rep_base_path'] .  $repName);
+        $result = funShellExec($cmd);
+        return $result['result'];
+    }
+
+    /**
+     * 使用svn list进行内容获取
+     */
+    private function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, $svnUserPass)
+    {
+        $cmd = sprintf("'%s' list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $this->configBin['svn'], $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
+        $result = funShellExec($cmd);
+
+        if ($result['code'] != 0) {
+            //: Authentication error from server: Password incorrect
+            if (strstr($result['error'], 'svn: E170001') && strstr($result['error'], 'Password incorrect')) {
+                return ['code' => 200, 'status' => 0, 'message' => '密码错误', 'data' => []];
+            }
+            //: Authorization failed
+            if (strstr($result['error'], 'svn: E170001') && strstr($result['error'], 'Authorization failed')) {
+                return ['code' => 200, 'status' => 0, 'message' => '无访问权限', 'data' => []];
+            }
+            //svn: E170001类型的其它错误
+            if (strstr($result['error'], 'svn: E170001')) {
+                return ['code' => 200, 'status' => 0, 'message' => '无访问权限-svn: E170001', 'data' => []];
+            }
+            //: Invalid authz configuration
+            if (strstr($result['error'], 'svn: E220003')) {
+                return ['code' => 200, 'status' => 0, 'message' => 'authz文件配置错误 请使用svnauthz-validate工具检查', 'data' => []];
+            }
+            //: Unable to connect to a repository at URL
+            if (strstr($result['error'], 'svn: E170013')) {
+                return ['code' => 200, 'status' => 0, 'message' => '无法连接到仓库', 'data' => []];
+            }
+            //: Could not list all targets because some targets don't exist
+            if (strstr($result['error'], 'svn: warning: W160013') || strstr($result['error'], "svn: E200009")) {
+                return ['code' => 200, 'status' => 0, 'message' => '该授权路径在仓库不存在 请刷新以同步', 'data' => []];
+            }
+            return ['code' => 200, 'status' => 0, 'message' => '认证出错' . $result['error'], 'data' => []];
+        }
+
+        return ['code' => 200, 'status' => 1, 'message' => '成功', 'data' => $result['result']];
     }
 }

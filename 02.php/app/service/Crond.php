@@ -194,10 +194,10 @@ class Crond extends Base
         }
 
         //写入 /home/svnadmin/crond/xxx
-        if (!is_dir($this->config_svn['crond_base_path'])) {
-            funShellExec(sprintf("mkdir -p '%s' && chmod 777 -R '%s'", $this->config_svn['crond_base_path'], $this->config_svn['crond_base_path']));
+        if (!is_dir($this->configSvn['crond_base_path'])) {
+            funShellExec(sprintf("mkdir -p '%s' && chmod 777 -R '%s'", $this->configSvn['crond_base_path'], $this->configSvn['crond_base_path']));
         }
-        $nameCrond = $this->config_svn['crond_base_path'] . $sign;
+        $nameCrond = $this->configSvn['crond_base_path'] . $sign;
         $nameCrondLog = $nameCrond . '.log';
 
         $conCrond = sprintf(
@@ -370,7 +370,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         $crontabs = trim($result['result']);
 
         if ($this->payload['status']) {
-            $nameCrond = $this->config_svn['crond_base_path'] . $sign;
+            $nameCrond = $this->configSvn['crond_base_path'] . $sign;
             $nameCrondLog = $nameCrond . '.log';
             $crontabs = (empty($crontabs) ? '' : $crontabs . "\n") . sprintf("%s %s >> %s 2>&1", $code, $nameCrond, $nameCrondLog);
         } else {
@@ -456,10 +456,10 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         }
 
         //从文件删除
-        @unlink($this->config_svn['crond_base_path'] . $sign);
+        @unlink($this->configSvn['crond_base_path'] . $sign);
 
         //删除日志
-        @unlink($this->config_svn['crond_base_path'] . $sign . '.log');
+        @unlink($this->configSvn['crond_base_path'] . $sign . '.log');
 
         //从数据库删除
         $this->database->delete('crond', [
@@ -488,7 +488,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         }
         $sign = $result['sign'];
 
-        $nameCrond = $this->config_svn['crond_base_path'] . $sign;
+        $nameCrond = $this->configSvn['crond_base_path'] . $sign;
         $nameCrondLog = $nameCrond . '.log';
 
         $tempFile = tempnam('/tmp', 'svnadmin_crond_');
@@ -526,10 +526,10 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         $sign = $result['sign'];
 
         clearstatcache();
-        if (file_exists($this->config_svn['crond_base_path'] . $sign . '.log')) {
+        if (file_exists($this->configSvn['crond_base_path'] . $sign . '.log')) {
             return message(200, 1, '成功', [
-                'log_path' => $this->config_svn['crond_base_path'] . $sign . '.log',
-                'log_con' => file_get_contents($this->config_svn['crond_base_path'] . $sign . '.log')
+                'log_path' => $this->configSvn['crond_base_path'] . $sign . '.log',
+                'log_con' => file_get_contents($this->configSvn['crond_base_path'] . $sign . '.log')
             ]);
         } else {
             return message(200, 1, '成功', [
