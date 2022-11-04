@@ -975,12 +975,12 @@ class SVNAdmin
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
-                return [];
+                return $groupName == '' ? [] : 720;
             } else {
                 $list = [];
                 preg_match_all(sprintf($this->reg_5, $groupName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($groupName)), $authzContentPreg[1][0], $resultPreg);
                 if (empty($resultPreg[0])) {
-                    return 720;
+                    return $groupName == '' ? [] : 720;
                 }
                 foreach ($resultPreg[1] as $key => $groupStr) {
                     $userGroupStr = trim($resultPreg[2][$key]);
@@ -1018,7 +1018,7 @@ class SVNAdmin
                     }
                     $list[] = $item;
                 }
-                return $groupName == '' ? $list : (empty($list) ? [] : $list[0]);
+                return $groupName == '' ? $list : (empty($list) ? 720 : $list[0]);
             }
         } else {
             return 612;
@@ -1533,15 +1533,11 @@ class SVNAdmin
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
-                if ($userName == '') {
-                    return [];
-                } else {
-                    return 710;
-                }
+                return $userName == '' ? [] : 710;
             } else {
                 preg_match_all(sprintf($this->reg_5, "($this->reg_1)*" . ($userName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($userName))), $passwdContentPreg[1][0], $resultPreg);
                 if (empty($resultPreg[0])) {
-                    return 710;
+                    return $userName == '' ? [] : 710;
                 }
                 $result = [];
                 foreach ($resultPreg[1] as $key => $value) {
@@ -1557,15 +1553,7 @@ class SVNAdmin
                     }
                     $result[] = $item;
                 }
-                if ($userName == '') {
-                    return $result;
-                } else {
-                    if (empty($result)) {
-                        return 710;
-                    } else {
-                        return $result[0];
-                    }
-                }
+                return $userName == '' ? $result : (empty($result) ? 710 : $result[0]);
             }
         } else {
             return 621;
@@ -1699,7 +1687,7 @@ class SVNAdmin
         if (array_key_exists(0, $authzContentPreg[1])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
-                return [];
+                return $aliaseName == '' ? [] : 730;
             } else {
                 preg_match_all(sprintf($this->reg_5, ($aliaseName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($aliaseName))), $authzContentPreg[1][0], $resultPreg);
                 if (empty($resultPreg[0])) {
@@ -1712,7 +1700,7 @@ class SVNAdmin
                     $item['aliaseCon'] = $resultPreg[2][$key];
                     $result[] = $item;
                 }
-                return $aliaseName == '' ? $result : (empty($result) ? [] : $result[0]);
+                return $aliaseName == '' ? $result : (empty($result) ? 730 : $result[0]);
             }
         } else {
             return 611;
