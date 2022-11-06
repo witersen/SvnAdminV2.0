@@ -591,45 +591,30 @@ class Svnrep extends Base
      */
     public function GetUserRepCon()
     {
-        $path = $this->payload['path'];
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'path' => ['type' => 'string', 'notNull' => true],
+            'rep_name' => ['type' => 'string', 'notNull' => false],
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
 
+        //检查仓库是否存在
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['rep_name'])) {
+            return message(200, 0, '仓库不存在');
+        }
+
+        $path = $this->payload['path'];
         $repName = $this->payload['rep_name'];
 
-        /**
-         * 获取svn检出地址
-         * 
-         * 目的为使用当前SVN用户的身份来进行被授权过的路径的内容浏览
-         */
-        $bindInfo = $this->Svn->GetSvnserveListen();
-        $checkoutHost = 'svn://' . $bindInfo['bindHost'];
-        if ($bindInfo['bindPort'] != '3690') {
-            $checkoutHost = 'svn://' . $bindInfo['bindHost'] . ':' . $bindInfo['bindPort'];
+        $result = $this->GetSvnList($path, $repName);
+        if ($result['status'] != 1) {
+            return message($result['code'], $result['status'], $result['message']);
         }
 
-        /**
-         * 获取SVN用户密码
-         * 
-         * 目的为使用该用户的权限进行操作 确保用户看到的就是所授权的
-         */
-        $svnUserPass = $this->SVNAdmin->GetUserInfo($this->passwdContent, $this->userName);
-        if (is_numeric($svnUserPass)) {
-            if ($svnUserPass == 621) {
-                return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($svnUserPass == 710) {
-                return message(200, 0, '用户不存在');
-            } else {
-                return message(200, 0, "错误码$svnUserPass");
-            }
-        }
-
-        /**
-         * 使用svn list进行内容获取
-         */
-        $checkResult = $this->CheckSvnUserPathAutzh($checkoutHost, $repName, $path, $this->userName, $svnUserPass['userPass']);
-        if ($checkResult['status'] != 1) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
-        }
-        $result = $checkResult['data'];
+        $result = $result['data'];
 
         /**
          * 判断结果是否为空
@@ -650,12 +635,10 @@ class Svnrep extends Base
         $isSingleFilePri = false;
         if ($result != "") {
             if (count($resultArray) == 1) {
-                if (substr($result, strlen($result) - 1, 1) != '/') {
+                if (substr($result, -1) != '/') {
                     $tempArray = explode('/', $path);
-                    if ($result == $tempArray[count($tempArray) - 1]) {
-                        //确定为单文件授权
-                        $isSingleFilePri = true;
-                    }
+                    //确定为单文件授权
+                    $isSingleFilePri = ($result == end($tempArray)) ? true : false;
                 }
             }
         }
@@ -663,12 +646,15 @@ class Svnrep extends Base
         /**
          * 获取版本号等文件详细信息
          * 
-         * 此处也要针对但文件授权进行单独处理
+         * 此处也要针对单文件授权进行单独处理
          */
         $data = [];
-        if ($isSingleFilePri) {
+        foreach ($resultArray as $key => $value) {
+            //补全路径
+            $value = $isSingleFilePri ? $path : rtrim($path, '/') . '/' . $value;
+
             //获取文件或者文件夹最年轻的版本号
-            $lastRev  = $this->GetRepFileRev($repName, $path);
+            $lastRev  = $this->GetRepFileRev($repName, $value);
 
             //获取文件或者文件夹最年轻的版本的作者
             $lastRevAuthor = $this->GetRepFileAuthor($repName, $lastRev);
@@ -679,63 +665,30 @@ class Svnrep extends Base
             //同上 日志
             $lastRevLog = $this->GetRepFileLog($repName, $lastRev);
 
-            array_push($data, [
-                'resourceType' => 1,
-                'resourceName' => $tempArray[count($tempArray) - 1],
-                'fileSize' => $this->GetRepRevFileSize($repName, $path),
-                'revAuthor' => $lastRevAuthor,
-                'revNum' => 'r' . $lastRev,
-                'revTime' => $lastRevDate,
-                'revLog' => $lastRevLog,
-                'fullPath' => $path
-            ]);
-        } else {
-            foreach ($resultArray as $key => $value) {
-                //补全路径
-                if (substr($path, strlen($path) - 1, 1) == '/') {
-                    $value = $path .  $value;
-                } else {
-                    $value = $path . '/' . $value;
-                }
-
-                //获取文件或者文件夹最年轻的版本号
-                $lastRev  = $this->GetRepFileRev($repName, $value);
-
-                //获取文件或者文件夹最年轻的版本的作者
-                $lastRevAuthor = $this->GetRepFileAuthor($repName, $lastRev);
-
-                //同上 日期
-                $lastRevDate = $this->GetRepFileDate($repName, $lastRev);
-
-                //同上 日志
-                $lastRevLog = $this->GetRepFileLog($repName, $lastRev);
-
-                $pathArray = explode('/', $value);
-                $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
-                $pathArrayCount = count($pathArray);
-                if (substr($value, strlen($value) - 1, 1) == '/') {
-                    array_push($data, [
-                        'resourceType' => 2,
-                        'resourceName' => $pathArray[$pathArrayCount - 1],
-                        'fileSize' => '',
-                        'revAuthor' => $lastRevAuthor,
-                        'revNum' => 'r' . $lastRev,
-                        'revTime' => $lastRevDate,
-                        'revLog' => $lastRevLog,
-                        'fullPath' => $value
-                    ]);
-                } else {
-                    array_push($data, [
-                        'resourceType' => 1,
-                        'resourceName' => $pathArray[$pathArrayCount - 1],
-                        'fileSize' => $this->GetRepRevFileSize($repName, $value),
-                        'revAuthor' => $lastRevAuthor,
-                        'revNum' => 'r' . $lastRev,
-                        'revTime' => $lastRevDate,
-                        'revLog' => $lastRevLog,
-                        'fullPath' => $value
-                    ]);
-                }
+            $pathArray = explode('/', $value);
+            $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
+            if (substr($value, -1) == '/') {
+                array_push($data, [
+                    'resourceType' => 2,
+                    'resourceName' => end($pathArray),
+                    'fileSize' => '',
+                    'revAuthor' => $lastRevAuthor,
+                    'revNum' => 'r' . $lastRev,
+                    'revTime' => $lastRevDate,
+                    'revLog' => $lastRevLog,
+                    'fullPath' => $value
+                ]);
+            } else {
+                array_push($data, [
+                    'resourceType' => 1,
+                    'resourceName' => end($pathArray),
+                    'fileSize' => $this->GetRepRevFileSize($repName, $value),
+                    'revAuthor' => $lastRevAuthor,
+                    'revNum' => 'r' . $lastRev,
+                    'revTime' => $lastRevDate,
+                    'revLog' => $lastRevLog,
+                    'fullPath' => $value
+                ]);
             }
         }
 
@@ -831,11 +784,10 @@ class Svnrep extends Base
 
             $pathArray = explode('/', $value);
             $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
-            $pathArrayCount = count($pathArray);
-            if (substr($value, strlen($value) - 1, 1) == '/') {
+            if (substr($value, -1) == '/') {
                 array_push($data, [
                     'resourceType' => 2,
-                    'resourceName' => $pathArray[$pathArrayCount - 1],
+                    'resourceName' => end($pathArray),
                     'fileSize' => '',
                     'revAuthor' => $lastRevAuthor,
                     'revNum' => 'r' . $lastRev,
@@ -846,7 +798,7 @@ class Svnrep extends Base
             } else {
                 array_push($data, [
                     'resourceType' => 1,
-                    'resourceName' => $pathArray[$pathArrayCount - 1],
+                    'resourceName' => end($pathArray),
                     'fileSize' => $this->GetRepRevFileSize($this->payload['rep_name'], $value),
                     'revAuthor' => $lastRevAuthor,
                     'revNum' => 'r' . $lastRev,
@@ -899,6 +851,7 @@ class Svnrep extends Base
      * 根据目录名称获取该目录下的目录树
      * 
      * 管理员配置目录授权用
+     * SVN用户配置目录授权用
      */
     public function GetRepTree()
     {
@@ -911,43 +864,63 @@ class Svnrep extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
+        $path = $this->payload['path'];
+        $repName = $this->payload['rep_name'];
+
         //检查仓库是否存在
         clearstatcache();
-        if (!is_dir($this->configSvn['rep_base_path'] . $this->payload['rep_name'])) {
+        if (!is_dir($this->configSvn['rep_base_path'] . $repName)) {
             return message(200, 0, '仓库不存在');
         }
 
-        $path = $this->payload['path'];
+        $resultArray = [];
+        if ($this->userRoleId == 1) {
+            //获取全路径的一层目录树
+            $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path']  . $repName, $path);
+            $result = funShellExec($cmdSvnlookTree);
+            if ($result['code'] != 0) {
+                return message(200, 0, $result['error']);
+            }
+            $result = $result['result'];
 
-        //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path']  . $this->payload['rep_name'], $path);
-        $result = funShellExec($cmdSvnlookTree);
-        if ($result['code'] != 0) {
-            return message(200, 0, $result['error']);
+            $resultArray = explode("\n", trim($result));
+            unset($resultArray[0]);
+            $resultArray = array_values($resultArray);
+        } else if ($this->userRoleId == 2) {
+            $result = $this->GetSvnList($path, $repName);
+            if ($result['status'] != 1) {
+                return message($result['code'], $result['status'], $result['message']);
+            }
+            $result = $result['data'];
+
+            /**
+             * 判断结果是否为空
+             * 判断其他的意外情况
+             */
+            if ($result == '') {
+                $resultArray = [];
+            } else {
+                $resultArray = explode("\n", $result);
+            }
         }
-        $result = $result['result'];
-        $resultArray = explode("\n", trim($result));
-        unset($resultArray[0]);
-        $resultArray = array_values($resultArray);
 
         $data = [];
         foreach ($resultArray as $value) {
             $pathArray = explode('/', $value);
             $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
-            $pathArrayCount = count($pathArray);
-            if (substr($value, strlen($value) - 1, 1) == '/') {
+            if (substr($value, -1) == '/') {
                 array_push($data, [
                     'expand' => false,
                     'loading' => false,
                     'resourceType' => 2,
-                    'title' => $pathArray[$pathArrayCount - 1] . '/',
+                    'title' => end($pathArray) . '/',
                     'fullPath' => $value,
                     'children' => []
                 ]);
             } else {
                 array_push($data, [
                     'resourceType' => 1,
-                    'title' => $pathArray[$pathArrayCount - 1],
+                    'title' => end($pathArray),
                     'fullPath' => $value,
                 ]);
             }
@@ -962,7 +935,7 @@ class Svnrep extends Base
                     'expand' => true,
                     'loading' => false,
                     'resourceType' => 2,
-                    'title' => $this->payload['rep_name'] . '/',
+                    'title' => $repName . '/',
                     'fullPath' => '/',
                     'children' => $data
                 ]
@@ -974,6 +947,9 @@ class Svnrep extends Base
 
     /**
      * 获取某个仓库路径的所有权限列表
+     * 
+     * 管理员
+     * SVN用户
      */
     public function GetRepPathAllPri()
     {
@@ -981,6 +957,7 @@ class Svnrep extends Base
         $checkResult = funCheckForm($this->payload, [
             'path' => ['type' => 'string', 'notNull' => true],
             'rep_name' => ['type' => 'string', 'notNull' => false],
+            'svnn_user_pri_path_id' => ['type' => 'integer', 'required' => $this->userRoleId == 2]
         ]);
         if ($checkResult['status'] == 0) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
@@ -1007,6 +984,25 @@ class Svnrep extends Base
                 return message(200, 0, "错误码$result");
             }
         } else {
+            if ($this->userRoleId == 2) {
+                $filters = $this->database->select('svn_second_pri', [
+                    '[>]svn_user_pri_paths' => ['svnn_user_pri_path_id' => 'svnn_user_pri_path_id']
+                ], [
+                    'svn_second_pri.svn_object_type(objectType)',
+                    'svn_second_pri.svn_object_name(objectName)',
+                ], [
+                    'svn_user_pri_paths.svn_user_name' => $this->userName,
+                    'svn_user_pri_paths.svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+                ]);
+                foreach ($result as $key => $value) {
+                    if (!in_array([
+                        'objectType' => $value['objectType'],
+                        'objectName' => $value['objectName']
+                    ], $filters)) {
+                        unset($result[$key]);
+                    }
+                }
+            }
             return message(200, 1, '成功', $result);
         }
     }
@@ -1293,6 +1289,12 @@ class Svnrep extends Base
         $result = funShellExec($cmd);
 
         if ($result['code'] == 0) {
+            $this->database->update('svn_reps', [
+                'rep_uuid' => $this->GetRepUUID($this->payload['rep_name'])
+            ], [
+                'rep_name' => $this->payload['rep_name']
+            ]);
+
             return message();
         } else {
             return message(200, 0, $result['error']);
@@ -1793,6 +1795,8 @@ class Svnrep extends Base
      * 获取仓库下指定文件或者文件夹的最高修订版本
      * 
      * svnlook history
+     * 
+     * 是否有必要做错误捕获
      */
     private function GetRepFileRev($repName, $filePath)
     {
@@ -1809,6 +1813,8 @@ class Svnrep extends Base
      * 获取仓库下指定文件或者文件夹的作者
      * 
      * svnlook author
+     * 
+     * 是否有必要做错误捕获
      */
     private function GetRepFileAuthor($repName, $rev)
     {
@@ -1821,6 +1827,8 @@ class Svnrep extends Base
      * 获取仓库下指定文件或者文件夹的提交日期
      * 
      * svnlook date
+     * 
+     * 是否有必要做错误捕获
      */
     private function GetRepFileDate($repName, $rev)
     {
@@ -1833,6 +1841,8 @@ class Svnrep extends Base
      * 获取仓库下指定文件或者文件夹的提交日志
      * 
      * svnlook log
+     * 
+     * 是否有必要做错误捕获
      */
     private function GetRepFileLog($repName, $rev)
     {
@@ -1842,7 +1852,51 @@ class Svnrep extends Base
     }
 
     /**
-     * 使用svn list进行内容获取
+     * 以SVN用户身份获取 svn list 的结果
+     */
+    private function GetSvnList($path, $repName)
+    {
+        /**
+         * 获取svn检出地址
+         * 
+         * 目的为使用当前SVN用户的身份来进行被授权过的路径的内容浏览
+         */
+        $bindInfo = $this->Svn->GetSvnserveListen();
+        $checkoutHost = 'svn://' . $bindInfo['bindHost'];
+        if ($bindInfo['bindPort'] != '3690') {
+            $checkoutHost = 'svn://' . $bindInfo['bindHost'] . ':' . $bindInfo['bindPort'];
+        }
+
+        /**
+         * 获取SVN用户密码
+         * 
+         * 目的为使用该用户的权限进行操作 确保用户看到的就是所授权的
+         */
+        $svnUserPass = $this->SVNAdmin->GetUserInfo($this->passwdContent, $this->userName);
+        if (is_numeric($svnUserPass)) {
+            if ($svnUserPass == 621) {
+                return message(200, 0, '文件格式错误(不存在[users]标识)');
+            } else if ($svnUserPass == 710) {
+                return message(200, 0, '用户不存在');
+            } else {
+                return message(200, 0, "错误码$svnUserPass");
+            }
+        }
+
+        /**
+         * 使用svn list进行内容获取
+         */
+        $checkResult = $this->CheckSvnUserPathAutzh($checkoutHost, $repName, $path, $this->userName, $svnUserPass['userPass']);
+        if ($checkResult['status'] != 1) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
+        }
+        $result = $checkResult['data'];
+
+        return message(200, 1, '成功', $result);
+    }
+
+    /**
+     * svn list执行
      */
     private function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, $svnUserPass)
     {

@@ -11,9 +11,9 @@
         <Col span="11">
           <Scroll :height="550">
             <Tree
-              :data="treeRep"
-              :load-data="LoadingRepTree"
-              :render="RenderContent"
+              :data="dataTreeRep"
+              :load-data="ExpandRepTree"
+              :render="renderContent"
               @on-select-change="ChangeSelectTreeNode"
             ></Tree>
             <Spin size="large" fix v-if="loadingRepTree"></Spin>
@@ -23,10 +23,10 @@
           <Tooltip
             style="width: 100%"
             max-width="450"
-            :content="currentRepTreePriPath"
+            :content="currentRepPath"
             placement="bottom"
           >
-            <Input v-model="currentRepTreePriPath">
+            <Input v-model="currentRepPath">
               <span slot="prepend">当前路径:</span>
             </Input>
           </Tooltip>
@@ -164,11 +164,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    propCurrentRepTreePath: {
-      type: String,
-      default: "",
-    },
-    propCurrentRepTreePriPath: {
+    propCurrentRepPath: {
       type: String,
       default: "",
     },
@@ -184,19 +180,23 @@ export default {
     propChangeParentModalVisible: {
       type: Function,
     },
+    propSvnnUserPriPathId: {
+      type: Number,
+      default: -1,
+    },
   },
   data() {
     return {
       /**
        * 对话框
        */
-      //仓库权限
+      //仓库权限对话框
       modalRepPri: this.propModalRepPri,
       //SVN对象列表组件
       modalSvnObject: false,
 
       //仓库目录树
-      treeRep: [],
+      dataTreeRep: [],
 
       /**
        * 加载
@@ -209,21 +209,21 @@ export default {
       /**
        * 临时变量
        */
-      //点击目录树查看权限时的仓库路径
-      currentRepTreePriPath: this.propCurrentRepTreePriPath,
-      //展开目录树时选中的仓库路径
-      currentRepTreePath: this.propCurrentRepTreePath,
-      //临时选中的仓库名称
+      //当前仓库路径
+      currentRepPath: this.propCurrentRepPath,
+      //当前仓库名称
       currentRepName: this.propCurrentRepName,
+      //当前权限路径id
+      svnn_user_pri_path_id: this.propSvnnUserPriPathId,
       //仓库路径的用户权限列表 当前选中的用户以及下标
       currentRepPriUser: "",
-      currentRepPriUserIndex: -1,
+      currentRepPriUserIndex: this.propSvnnUserPriPathId,
 
       /**
        * 对话框标题
        */
       //配置仓库权限
-      titleModalRepPri: this.propTitleModalRepPri,
+      titleModalRepPri: "仓库权限",
 
       /**
        * 表格
@@ -353,34 +353,35 @@ export default {
   mounted() {},
   watch: {
     //监控有序
-    propCurrentRepTreePath: function (value) {
-      this.currentRepTreePath = value;
+    //仓库路径
+    propCurrentRepPath: function (value) {
+      this.currentRepPath = value;
     },
-    propCurrentRepTreePriPath: function (value) {
-      this.currentRepTreePriPath = value;
-    },
+    //仓库名称
     propCurrentRepName: function (value) {
       this.currentRepName = value;
     },
-    propTitleModalRepPri: function (value) {
-      this.titleModalRepPri = value;
+    //SVN用户权限路径id
+    propSvnnUserPriPathId: function (value) {
+      this.svnn_user_pri_path_id = value;
     },
+    //对话框状态
     propModalRepPri: function (value) {
-      // console.log("modalRepPri:" + value);
       var that = this;
       that.modalRepPri = value;
-
       if (value) {
+        //标题
+        that.titleModalRepPri = "仓库权限 - " + that.currentRepName;
         //显示加载动画
         that.loadingRepTree = true;
         //清空数据
-        that.treeRep = [];
+        that.dataTreeRep = [];
         //请求目录树
         that.GetRepTree().then(function (response) {
           that.loadingRepTree = false;
           var result = response.data;
           if (result.status == 1) {
-            that.treeRep = result.data;
+            that.dataTreeRep = result.data;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -418,7 +419,7 @@ export default {
     /**
      * 渲染目录树 给文件夹和文件设置对应的图标
      */
-    RenderContent(h, { root, node, data }) {
+    renderContent(h, { root, node, data }) {
       return h("span", [
         h("Icon", {
           props: {
@@ -441,7 +442,7 @@ export default {
       var that = this;
       var data = {
         rep_name: that.currentRepName,
-        path: that.currentRepTreePath,
+        path: that.currentRepPath,
       };
       return new Promise(function (resolve, reject) {
         that.$axios
@@ -460,10 +461,11 @@ export default {
      * 目录树展开触发
      * 异步加载目录下的内容
      */
-    LoadingRepTree(item, callback) {
+    ExpandRepTree(item, callback) {
       var that = this;
       var data = [];
-      that.currentRepTreePath = item.fullPath;
+      that.currentRepPath = item.fullPath;
+      that.GetRepPathAllPri();
       that.GetRepTree().then(function (response) {
         var result = response.data;
         if (result.status == 1) {
@@ -474,7 +476,7 @@ export default {
             } else {
               callback([]);
               //根目录下没有内容时 直接覆盖掉
-              that.treeRep = [
+              that.dataTreeRep = [
                 {
                   resourceType: 2,
                   title: that.currentRepName + "/",
@@ -496,7 +498,7 @@ export default {
      * 获取节点的权限
      */
     ChangeSelectTreeNode(selectArray, currentItem) {
-      this.currentRepTreePriPath = currentItem.fullPath;
+      this.currentRepPath = currentItem.fullPath;
       this.GetRepPathAllPri();
     },
     /**
@@ -513,7 +515,8 @@ export default {
       that.loadingRepPathAllPri = true;
       var data = {
         rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
+        path: that.currentRepPath,
+        svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=GetRepPathAllPri&t=web", data)
@@ -539,7 +542,7 @@ export default {
       var that = this;
       var data = {
         rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
+        path: that.currentRepPath,
         objectType: objectType,
         objectPri: "rw",
         objectName: objectName,
@@ -569,7 +572,7 @@ export default {
       var that = this;
       var data = {
         rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
+        path: that.currentRepPath,
         objectType: objectType,
         invert: invert,
         objectName: objectName,
@@ -598,7 +601,7 @@ export default {
       var that = this;
       var data = {
         rep_name: that.currentRepName,
-        path: that.currentRepTreePriPath,
+        path: that.currentRepPath,
         objectType: objectType,
         objectName: objectName,
       };

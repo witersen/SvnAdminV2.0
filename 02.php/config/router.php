@@ -34,6 +34,8 @@ return [
     'svn_user_routers' => [
         'Svnrep/GetSvnUserRepList',
         'Svnrep/GetUserRepCon',
+        'Svnrep/GetRepTree',
+        'Svnrep/GetRepPathAllPri',
 
         'Common/Logout',
 

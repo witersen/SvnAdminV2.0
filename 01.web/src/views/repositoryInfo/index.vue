@@ -166,7 +166,17 @@
           {{ pageSizeUserRep * (pageCurrentUserRep - 1) + index + 1 }}
         </template>
         <template slot-scope="{ row }" slot="second_pri">
-          <Button :disabled="!row.second_pri" type="info" size="small"
+          <Button
+            :disabled="!row.second_pri"
+            type="info"
+            size="small"
+            @click="
+              ModalRepPriUser(
+                row.rep_name,
+                row.svnn_user_pri_path_id,
+                row.pri_path
+              )
+            "
             >配置</Button
           >
         </template>
@@ -866,11 +876,10 @@
     <!-- 对话框-仓库权限配置 -->
     <ModalRepPri
       :propCurrentRepName="currentRepName"
-      :propCurrentRepTreePath="currentRepTreePath"
-      :propCurrentRepTreePriPath="currentRepTreePriPath"
-      :propTitleModalRepPri="titleModalRepPri"
+      :propCurrentRepPath="currentRepPath"
       :propModalRepPri="modalRepPri"
       :propChangeParentModalVisible="CloseModalRepPri"
+      :propSvnnUserPriPathId="svnn_user_pri_path_id"
     />
   </div>
 </template>
@@ -989,15 +998,15 @@ export default {
        */
       //临时选中的仓库名称
       currentRepName: "",
-      //点击目录树查看权限时的仓库路径
-      currentRepTreePriPath: "",
-      //展开目录树时选中的仓库路径
-      currentRepTreePath: "",
+      //当前仓库路径
+      currentRepPath: "",
       //临时选中的仓库名称
       currentRepName: "",
       //仓库路径的用户权限列表 当前选中的用户以及下标
       currentRepPriUser: "",
       currentRepPriUserIndex: -1,
+      //选中的id
+      svnn_user_pri_path_id: -1,
 
       //检出路径
       tempCheckout: "",
@@ -1044,8 +1053,6 @@ export default {
       titleModalEditRepHook: "",
       //钩子文件模板
       titleModalStudyRepHook: "",
-      //配置仓库权限
-      titleModalRepPri: "",
 
       /**
        * 表单
@@ -1607,7 +1614,7 @@ export default {
       //还原表格为空提示内容
       that.noDataTextRepCon = "暂无数据";
       //通过按钮点击浏览 初始化路径和仓库名称
-      that.currentRepTreePath = "/";
+      that.currentRepPath = "/";
       that.currentRepName = rep_name;
       //设置标题
       that.titleModalViewRep = "仓库内容 - " + rep_name;
@@ -1627,7 +1634,7 @@ export default {
       //还原表格为空提示内容
       that.noDataTextRepCon = "暂无数据";
       //通过按钮点击浏览 初始化路径和仓库名称
-      that.currentRepTreePath = pri_path;
+      that.currentRepPath = pri_path;
       that.currentRepName = rep_name;
       //设置标题
       that.titleModalViewRep = "仓库内容 - " + rep_name;
@@ -1649,7 +1656,7 @@ export default {
             that.checkInfo.prefix +
             "/" +
             that.currentRepName +
-            that.currentRepTreePath;
+            that.currentRepPath;
         }
       });
     },
@@ -1695,7 +1702,7 @@ export default {
       that.loadingRepCon = true;
       var data = {
         rep_name: that.currentRepName,
-        path: that.currentRepTreePath,
+        path: that.currentRepPath,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=GetRepCon&t=web", data)
@@ -1711,7 +1718,7 @@ export default {
               that.checkInfo.prefix +
               "/" +
               that.currentRepName +
-              that.currentRepTreePath;
+              that.currentRepPath;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -1730,7 +1737,7 @@ export default {
       that.loadingRepCon = true;
       var data = {
         rep_name: that.currentRepName,
-        path: that.currentRepTreePath,
+        path: that.currentRepPath,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=GetUserRepCon&t=web", data)
@@ -1746,7 +1753,7 @@ export default {
               that.checkInfo.prefix +
               "/" +
               that.currentRepName +
-              that.currentRepTreePath;
+              that.currentRepPath;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -1762,7 +1769,7 @@ export default {
      */
     ClickRowGetRepCon(row, index) {
       if (this.tableDataRepCon[index].resourceType == "2") {
-        this.currentRepTreePath = this.tableDataRepCon[index].fullPath;
+        this.currentRepPath = this.tableDataRepCon[index].fullPath;
         if (this.user_role_id == 1) {
           this.GetRepCon();
         } else if (this.user_role_id == 2) {
@@ -1774,7 +1781,7 @@ export default {
      * 点击面包屑获取仓库路径内容
      */
     ClickBreadGetRepCon(fullPath) {
-      this.currentRepTreePath = fullPath;
+      this.currentRepPath = fullPath;
       if (this.user_role_id == 1) {
         this.GetRepCon();
       } else if (this.user_role_id == 2) {
@@ -1899,11 +1906,21 @@ export default {
      */
     ModalRepPri(rep_name) {
       //通过按钮点击浏览 初始化路径和仓库名称
-      this.currentRepTreePath = "/";
-      this.currentRepTreePriPath = "/";
+      this.currentRepPath = "/";
       this.currentRepName = rep_name;
-      //设置标题
-      this.titleModalRepPri = "仓库权限 - " + rep_name;
+      //显示对话框
+      this.modalRepPri = true;
+    },
+
+    /**
+     * SVN用户配置仓库权限
+     */
+    ModalRepPriUser(rep_name, svnn_user_pri_path_id, pri_path) {
+      //通过按钮点击浏览 初始化路径和仓库名称
+      this.currentRepPath = pri_path;
+      this.currentRepName = rep_name;
+      //SVN用户权限路径id
+      this.svnn_user_pri_path_id = svnn_user_pri_path_id;
       //显示对话框
       this.modalRepPri = true;
     },

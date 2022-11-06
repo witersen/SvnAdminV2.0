@@ -294,9 +294,7 @@ class SVNAdmin
     {
         //处理路径结尾
         if ($repPath != '/') {
-            if (substr($repPath, -1) == '/') {
-                $repPath = rtrim($repPath, '/');
-            }
+            $repPath = rtrim($repPath, '/');
         }
 
         if ($objectType == '') {
@@ -450,9 +448,7 @@ class SVNAdmin
     {
         //处理路径结尾
         if ($repPath != '/') {
-            if (substr($repPath, -1) == '/') {
-                $repPath = rtrim($repPath, '/');
-            }
+            $repPath = rtrim($repPath, '/');
         }
 
         //$objectType 检查
@@ -514,9 +510,7 @@ class SVNAdmin
     {
         //处理路径结尾
         if ($repPath != '/') {
-            if (substr($repPath, -1) == '/') {
-                $repPath = rtrim($repPath, '/');
-            }
+            $repPath = rtrim($repPath, '/');
         }
 
         //$objectType 检查
@@ -611,9 +605,7 @@ class SVNAdmin
     {
         //处理路径结尾
         if ($repPath != '/') {
-            if (substr($repPath, -1) == '/') {
-                $repPath = rtrim($repPath, '/');
-            }
+            $repPath = rtrim($repPath, '/');
         }
 
         //$objectType 检查
@@ -666,9 +658,7 @@ class SVNAdmin
     {
         //处理路径结尾
         if ($repPath != '/') {
-            if (substr($repPath, -1) == '/') {
-                $repPath = rtrim($repPath, '/');
-            }
+            $repPath = rtrim($repPath, '/');
         }
 
         preg_match_all(sprintf($this->reg_2, preg_quote($repName) . ':' . preg_quote($repPath, '/')), $authzContent, $authzContentPreg);
@@ -694,9 +684,7 @@ class SVNAdmin
     {
         //处理路径结尾
         if ($repPath != '/') {
-            if (substr($repPath, -1) == '/') {
-                $repPath = rtrim($repPath, '/');
-            }
+            $repPath = rtrim($repPath, '/');
         }
 
         preg_match_all(sprintf($this->reg_2, preg_quote($repName) . ':' . preg_quote($repPath, '/')), $authzContent, $authzContentPreg);
