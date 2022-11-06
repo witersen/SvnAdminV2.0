@@ -46,6 +46,7 @@ class SVNAdmin
      * ├─ 740 仓库不存在
      * └─ 750 仓库路径不存在
      *    └─── 751 不存在该仓库路径
+     *    └─── 752 仓库路径需以/开始
      * 
      * 8xx
      * ├─ 800 目标对象已存在
@@ -288,10 +289,16 @@ class SVNAdmin
      * 注意 * 不支持反转
      *
      * 751      不存在该仓库路径
+     * 752      仓库路径需以/开始
      * 901      不支持的授权对象类型
      */
     public function GetRepPathPri($authzContent, $repName, $repPath, $objectType = '')
     {
+        //不以/开始
+        if (substr($repPath, 0, 1) != '/') {
+            return 752;
+        }
+
         //处理路径结尾
         if ($repPath != '/') {
             $repPath = rtrim($repPath, '/');
@@ -440,12 +447,18 @@ class SVNAdmin
      * @return string|int
      *
      * 751      不存在该仓库路径
+     * 752      仓库路径需以/开始
      * 901      不支持的授权对象类型
      * 801      仓库路径下已经存在该对象的权限记录
      * string   正常
      */
     public function AddRepPathPri($authzContent, $repName, $repPath, $objectType, $invert = false, $objectName, $privilege)
     {
+        //不以/开始
+        if (substr($repPath, 0, 1) != '/') {
+            return 752;
+        }
+
         //处理路径结尾
         if ($repPath != '/') {
             $repPath = rtrim($repPath, '/');
@@ -502,12 +515,18 @@ class SVNAdmin
      * @return string|int
      *
      * 751      不存在该仓库路径
+     * 752      仓库路径需以/开始
      * 901      不支持的授权对象类型
      * 701      仓库路径下不存在该对象的权限记录
      * string   正常
      */
     public function EditRepPathPri($authzContent, $repName, $repPath, $objectType, $invert = false, $objectName, $privilege)
     {
+        //不以/开始
+        if (substr($repPath, 0, 1) != '/') {
+            return 752;
+        }
+
         //处理路径结尾
         if ($repPath != '/') {
             $repPath = rtrim($repPath, '/');
@@ -597,12 +616,18 @@ class SVNAdmin
      * @return string|int
      *
      * 751      不存在该仓库路径
+     * 752      仓库路径需以/开始
      * 901      不支持的授权对象类型
      * 701      仓库路径下不存在该对象的权限记录
      * string   正常
      */
     public function DelRepPathPri($authzContent, $repName, $repPath, $objectType, $objectName)
     {
+        //不以/开始
+        if (substr($repPath, 0, 1) != '/') {
+            return 752;
+        }
+
         //处理路径结尾
         if ($repPath != '/') {
             $repPath = rtrim($repPath, '/');
@@ -652,10 +677,16 @@ class SVNAdmin
      * @return string|int
      *
      * 851      已存在该仓库路径
+     * 752      仓库路径需以/开始
      * string   正常
      */
     public function WriteRepPathToAuthz($authzContent, $repName, $repPath)
     {
+        //不以/开始
+        if (substr($repPath, 0, 1) != '/') {
+            return 752;
+        }
+
         //处理路径结尾
         if ($repPath != '/') {
             $repPath = rtrim($repPath, '/');
@@ -678,10 +709,16 @@ class SVNAdmin
      * @return string|int
      *
      * 751      不存在该仓库路径（已删除）
+     * 752      仓库路径需以/开始
      * string   正常
      */
     public function DelRepPathFromAuthz($authzContent, $repName, $repPath)
     {
+        //不以/开始
+        if (substr($repPath, 0, 1) != '/') {
+            return 752;
+        }
+
         //处理路径结尾
         if ($repPath != '/') {
             $repPath = rtrim($repPath, '/');

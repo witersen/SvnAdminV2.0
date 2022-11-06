@@ -30,7 +30,7 @@ function message2($message = ['code' => 200, 'status' => 1, 'message' => '成功
 function json1($code = 200, $status = 1, $message = '成功', $data = [])
 {
     header('Content-Type:application/json; charset=utf-8');
-    ob_end_clean();
+    // ob_end_clean();
     // http_response_code($code);
     exit(json_encode([
         'code' => $code,
@@ -43,7 +43,7 @@ function json1($code = 200, $status = 1, $message = '成功', $data = [])
 function json2($message = ['code' => 200, 'status' => 1, 'message' => '成功', 'data' => []])
 {
     header('Content-Type:application/json; charset=utf-8');
-    ob_end_clean();
+    // ob_end_clean();
     // http_response_code($code);
     exit(json_encode([
         'code' => $message['code'],

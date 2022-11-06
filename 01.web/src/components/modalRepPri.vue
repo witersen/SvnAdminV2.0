@@ -150,6 +150,9 @@
       :propChangeParentModalObject="CloseModalObject"
       :propSendParentObject="AddRepPathPri"
       :propSvnnUserPriPathId="svnn_user_pri_path_id"
+      :propShowSvnAllTab="showModalSvnObjectTab"
+      :propShowSvnAuthenticatedTab="showModalSvnObjectTab"
+      :propShowSvnAnonymousTab="showModalSvnObjectTab"
     />
   </div>
 </template>
@@ -196,8 +199,10 @@ export default {
       //SVN对象列表组件
       modalSvnObject: false,
 
-      //仓库目录树
-      dataTreeRep: [],
+      /**
+       * 组件
+       */
+      showModalSvnObjectTab: sessionStorage.user_role_id == 1 ? true : false,
 
       /**
        * 加载
@@ -226,6 +231,8 @@ export default {
       /**
        * 表格
        */
+      //仓库目录树
+      dataTreeRep: [],
       //某节点的权限信息
       tableDataRepPathAllPri: [],
       tableColumnRepPathAllPri: [
@@ -374,16 +381,31 @@ export default {
         that.loadingRepTree = true;
         //清空数据
         that.dataTreeRep = [];
-        //请求目录树
-        that.GetRepTree().then(function (response) {
-          that.loadingRepTree = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.dataTreeRep = result.data;
-          } else {
-            that.$Message.error({ content: result.message, duration: 2 });
-          }
-        });
+        if (sessionStorage.user_role_id == 1) {
+          //请求目录树
+          that.GetRepTree().then(function (response) {
+            that.loadingRepTree = false;
+            var result = response.data;
+            if (result.status == 1) {
+              that.dataTreeRep = result.data;
+            } else {
+              that.$Message.error({ content: result.message, duration: 2 });
+            }
+          });
+        } else if (sessionStorage.user_role_id == 2) {
+          //请求目录树
+          that.GetRepTree2(true).then(function (response) {
+            that.loadingRepTree = false;
+            var result = response.data;
+            if (result.status == 1) {
+              that.dataTreeRep = result.data;
+            } else {
+              that.$Message.error({ content: result.message, duration: 2 });
+            }
+          });
+        } else {
+          return;
+        }
         //获取仓库根路径的所有对象的权限列表
         that.GetRepPathAllPri();
       }
@@ -434,7 +456,7 @@ export default {
       ]);
     },
     /**
-     * 获取目录树
+     * 管理员获取目录树
      */
     GetRepTree() {
       var that = this;
@@ -456,6 +478,29 @@ export default {
       });
     },
     /**
+     * SVN用户获取目录树
+     */
+    GetRepTree2(first = false) {
+      var that = this;
+      var data = {
+        rep_name: that.currentRepName,
+        path: that.currentRepPath,
+        first: first,
+      };
+      return new Promise(function (resolve, reject) {
+        that.$axios
+          .post("/api.php?c=Svnrep&a=GetRepTree2&t=web", data)
+          .then(function (response) {
+            resolve(response);
+          })
+          .catch(function (error) {
+            console.log(error);
+            that.$Message.error("出错了 请联系管理员！");
+            reject(error);
+          });
+      });
+    },
+    /**
      * 目录树展开触发
      * 异步加载目录下的内容
      */
@@ -464,32 +509,63 @@ export default {
       var data = [];
       that.currentRepPath = item.fullPath;
       that.GetRepPathAllPri();
-      that.GetRepTree().then(function (response) {
-        var result = response.data;
-        if (result.status == 1) {
-          data = result.data;
-          if (data.length > 0) {
-            if (data[0].fullPath != "/") {
-              callback(data);
+      if (sessionStorage.user_role_id == 1) {
+        that.GetRepTree().then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            data = result.data;
+            if (data.length > 0) {
+              if (data[0].fullPath != "/") {
+                callback(data);
+              } else {
+                callback([]);
+                //根目录下没有内容时 直接覆盖掉
+                that.dataTreeRep = [
+                  {
+                    resourceType: 2,
+                    title: that.currentRepName + "/",
+                    fullPath: "/",
+                  },
+                ];
+              }
             } else {
               callback([]);
-              //根目录下没有内容时 直接覆盖掉
-              that.dataTreeRep = [
-                {
-                  resourceType: 2,
-                  title: that.currentRepName + "/",
-                  fullPath: "/",
-                },
-              ];
             }
           } else {
-            callback([]);
+            that.$Message.error({ content: result.message, duration: 2 });
+            callback(data);
           }
-        } else {
-          that.$Message.error({ content: result.message, duration: 2 });
-          callback(data);
-        }
-      });
+        });
+      } else if (sessionStorage.user_role_id == 2) {
+        that.GetRepTree2().then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            data = result.data;
+            if (data.length > 0) {
+              if (data[0].fullPath != "/") {
+                callback(data);
+              } else {
+                callback([]);
+                //根目录下没有内容时 直接覆盖掉
+                that.dataTreeRep = [
+                  {
+                    resourceType: 2,
+                    title: that.currentRepName + "/",
+                    fullPath: "/",
+                  },
+                ];
+              }
+            } else {
+              callback([]);
+            }
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+            callback(data);
+          }
+        });
+      } else {
+        return;
+      }
     },
     /**
      * 点击目录树节点触发

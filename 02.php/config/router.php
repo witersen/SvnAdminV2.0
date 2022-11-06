@@ -39,7 +39,7 @@ return [
          * 二次授权范围
          */
         //获取仓库树
-        'Svnrep/GetRepTree',
+        'Svnrep/GetRepTree2',
         //获取仓库路径的权限列表
         'Svnrep/GetRepPathAllPri',
         //获取用户列表

@@ -107,6 +107,17 @@ class Svnrep extends Base
     }
 
     /**
+     * 根据目录名称获取该目录下的目录树
+     * 
+     * SVN用户配置目录授权用
+     */
+    public function GetRepTree2()
+    {
+        $result = $this->ServiceSvnrep->GetRepTree2();
+        json2($result);
+    }
+
+    /**
      * 获取某个仓库路径的所有权限列表
      */
     public function GetRepPathAllPri()
