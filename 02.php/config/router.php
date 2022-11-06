@@ -34,8 +34,29 @@ return [
     'svn_user_routers' => [
         'Svnrep/GetSvnUserRepList',
         'Svnrep/GetUserRepCon',
+
+        /**
+         * 二次授权范围
+         */
+        //获取仓库树
         'Svnrep/GetRepTree',
+        //获取仓库路径的权限列表
         'Svnrep/GetRepPathAllPri',
+        //获取用户列表
+        'Svnuser/GetUserList',
+        //获取分组列表
+        'Svngroup/GetGroupList',
+        //获取分组成员
+        'Svngroup/GetGroupMember',
+        //获取别名列表
+        'Svnaliase/GetAliaseList',
+        //为某仓库路径下增加权限
+        'Svnrep/AddRepPathPri',
+        //修改某个仓库路径下的权限
+        'Svnrep/EditRepPathPri',
+        //修改某个仓库路径下的权限
+        'Svnrep/DelRepPathPri',
+
 
         'Common/Logout',
 

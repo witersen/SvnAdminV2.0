@@ -15,7 +15,8 @@
           >
           <Tooltip
             max-width="250"
-            content="手动刷新才可获取最新用户列表"
+            content="1、刷新才可获取最新用户列表 
+2、手动写入passwd文件的用户需要刷新才能登录系统"
             placement="bottom"
             :transfer="true"
           >
@@ -219,7 +220,7 @@ user3=passwd3"
         >
           <Tooltip
             max-width="250"
-            content="手动刷新才可获取最新权限列表"
+            content="刷新才可获取最新权限列表"
             placement="bottom"
             :transfer="true"
           >
@@ -497,6 +498,13 @@ export default {
         {
           title: "有权路径",
           slot: "svn_user_rep_list",
+          minWidth: 120,
+        },
+        {
+          title: "上次登录",
+          key: "svn_user_last_login",
+          tooltip: true,
+          sortable: "custom",
           minWidth: 120,
         },
         {

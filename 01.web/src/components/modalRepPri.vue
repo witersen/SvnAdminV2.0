@@ -149,6 +149,7 @@
       :propModalSvnObject="modalSvnObject"
       :propChangeParentModalObject="CloseModalObject"
       :propSendParentObject="AddRepPathPri"
+      :propSvnnUserPriPathId="svnn_user_pri_path_id"
     />
   </div>
 </template>
@@ -215,9 +216,6 @@ export default {
       currentRepName: this.propCurrentRepName,
       //当前权限路径id
       svnn_user_pri_path_id: this.propSvnnUserPriPathId,
-      //仓库路径的用户权限列表 当前选中的用户以及下标
-      currentRepPriUser: "",
-      currentRepPriUserIndex: this.propSvnnUserPriPathId,
 
       /**
        * 对话框标题
@@ -508,9 +506,6 @@ export default {
       var that = this;
       //清空上次表格数据
       that.tableDataRepPathAllPri = [];
-      //清空选中的用户数据
-      that.currentRepPriUser = "";
-      that.currentRepPriUserIndex = -1;
       //开始加载动画
       that.loadingRepPathAllPri = true;
       var data = {
@@ -546,6 +541,7 @@ export default {
         objectType: objectType,
         objectPri: "rw",
         objectName: objectName,
+        svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=AddRepPathPri&t=web", data)
@@ -577,6 +573,7 @@ export default {
         invert: invert,
         objectName: objectName,
         objectPri: objectPri,
+        svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=EditRepPathPri&t=web", data)
@@ -604,6 +601,7 @@ export default {
         path: that.currentRepPath,
         objectType: objectType,
         objectName: objectName,
+        svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=DelRepPathPri&t=web", data)

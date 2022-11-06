@@ -116,11 +116,38 @@ class Svnuser extends Base
      * 获取带有分页的SVN用户
      * 
      * 只包含用户名和启用状态
+     * 
+     * 管理员
+     * SVN用户
      */
     public function GetUserList()
     {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'sync' => ['type' => 'boolean'],
+            'page' => ['type' => 'boolean'],
+            'pageSize' => ['type' => 'integer', 'required' => isset($this->payload['page']) && $this->payload['page'] ? true : false],
+            'currentPage' => ['type' => 'integer', 'required' => isset($this->payload['page']) && $this->payload['page'] ? true : false],
+            'searchKeyword' => ['type' => 'string', 'notNull' => false],
+            'sortName' => ['type' => 'string', 'notNull' => true],
+            'sortType' => ['type' => 'string', 'notNull' => true],
+            'svnn_user_pri_path_id' => ['type' => 'integer', 'required' => $this->userRoleId == 2]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
+        //检查排序字段
+        if (!in_array($this->payload['sortName'], ['svn_user_id', 'svn_user_name', 'svn_user_status', 'svn_user_last_login'])) {
+            return message(2000, '不允许的排序字段');
+        }
+        if (!in_array($this->payload['sortType'], ['asc', 'desc', 'ASC', 'DESC'])) {
+            return message(2000, '不允许的排序类型');
+        }
+
         $sync = $this->payload['sync'];
         $page = $this->payload['page'];
+        $searchKeyword = trim($this->payload['searchKeyword']);
 
         //将SVN用户数据同步到数据库
         if ($sync) {
@@ -133,21 +160,15 @@ class Svnuser extends Base
         if ($page) {
             $pageSize = $this->payload['pageSize'];
             $currentPage = $this->payload['currentPage'];
-        }
-        $searchKeyword = trim($this->payload['searchKeyword']);
-
-        if ($page) {
-            //分页
             $begin = $pageSize * ($currentPage - 1);
-        }
 
-        if ($page) {
-            $list = $this->database->select('svn_users', [
+            $result = $this->database->select('svn_users', [
                 'svn_user_id',
                 'svn_user_name',
                 'svn_user_pass',
                 'svn_user_status [Int]',
-                'svn_user_note'
+                'svn_user_note',
+                'svn_user_last_login'
             ], [
                 'AND' => [
                     'OR' => [
@@ -161,12 +182,13 @@ class Svnuser extends Base
                 ]
             ]);
         } else {
-            $list = $this->database->select('svn_users', [
+            $result = $this->database->select('svn_users', [
                 'svn_user_id',
                 'svn_user_name',
                 'svn_user_pass',
                 'svn_user_status [Int]',
-                'svn_user_note'
+                'svn_user_note',
+                'svn_user_last_login'
             ], [
                 'AND' => [
                     'OR' => [
@@ -191,12 +213,33 @@ class Svnuser extends Base
             ],
         ]);
 
-        foreach ($list as $key => $value) {
-            $list[$key]['svn_user_status'] = $value['svn_user_status'] == 1 ? true : false;
+        //针对SVN用户可管理对象进行过滤
+        if ($this->userRoleId == 2) {
+            $filters = $this->database->select('svn_second_pri', [
+                '[>]svn_user_pri_paths' => ['svnn_user_pri_path_id' => 'svnn_user_pri_path_id']
+            ], [
+                'svn_second_pri.svn_object_type(objectType)',
+                'svn_second_pri.svn_object_name(objectName)',
+            ], [
+                'svn_user_pri_paths.svn_user_name' => $this->userName,
+                'svn_user_pri_paths.svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+            ]);
+            foreach ($result as $key => $value) {
+                if (!in_array([
+                    'objectType' => 'user',
+                    'objectName' => $value['svn_user_name']
+                ], $filters)) {
+                    unset($result[$key]);
+                }
+            }
+        }
+
+        foreach ($result as $key => $value) {
+            $result[$key]['svn_user_status'] = $value['svn_user_status'] == 1 ? true : false;
         }
 
         return message(200, 1, '成功', [
-            'data' => $list,
+            'data' => $result,
             'total' => $total
         ]);
     }

@@ -13,7 +13,7 @@
             <Col type="flex" justify="space-between" span="12">
               <Tooltip
                 max-width="250"
-                content="手动刷新才可获取最新用户列表"
+                content="刷新才可获取最新用户列表"
                 placement="bottom"
                 :transfer="true"
               >
@@ -72,7 +72,7 @@
             <Col type="flex" justify="space-between" span="12">
               <Tooltip
                 max-width="250"
-                content="手动刷新才可获取最新分组列表"
+                content="刷新才可获取最新分组列表"
                 placement="bottom"
                 :transfer="true"
               >
@@ -133,7 +133,7 @@
             <Col type="flex" justify="space-between" span="12">
               <!-- <Tooltip
                 max-width="250"
-                content="手动刷新才可获取最新别名列表"
+                content="刷新才可获取最新别名列表"
                 placement="bottom"
                 :transfer="true"
               >
@@ -141,7 +141,7 @@
                   icon="ios-sync"
                   type="warning"
                   ghost
-                  @click="GetAllAliases(true)"
+                  @click="GetAliaseList(true)"
                   >手动刷新</Button
                 >
               </Tooltip> -->
@@ -151,7 +151,7 @@
                 search
                 placeholder="通过别名搜索..."
                 v-model="searchKeywordAliase"
-                @on-change="GetAllAliases()"
+                @on-change="GetAliaseList()"
               />
             </Col>
           </Row>
@@ -352,6 +352,11 @@ export default {
     propSendParentObject: {
       type: Function,
     },
+    //SVN用户权限路径id
+    propSvnnUserPriPathId: {
+      type: Number,
+      default: -1,
+    },
     /**
      * tab显示
      */
@@ -472,6 +477,14 @@ export default {
       searchKeywordUser: "",
       //搜索分组的成员的列表
       searchKeywordGroupMember: "",
+
+      //SVN用户权限路径id
+      svnn_user_pri_path_id: this.propSvnnUserPriPathId,
+
+      /**
+       * 临时变量
+       */
+      currentSelectGroupName: "",
 
       /**
        * 对话框
@@ -663,6 +676,10 @@ export default {
     propShowSvnAnonymousTab: function (value) {
       this.showSvnAnonymousTab = value;
     },
+    //SVN用户权限路径id
+    propSvnnUserPriPathId: function (value) {
+      this.svnn_user_pri_path_id = value;
+    },
   },
   methods: {
     /**
@@ -693,7 +710,7 @@ export default {
           this.GetAllGroups();
           break;
         case "aliase":
-          this.GetAllAliases();
+          this.GetAliaseList();
           break;
         case "*":
           //xxx
@@ -723,6 +740,7 @@ export default {
         sortType: "asc",
         sync: sync,
         page: false,
+        svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
         .post("/api.php?c=Svnuser&a=GetUserList&t=web", data)
@@ -756,6 +774,7 @@ export default {
         sortType: "asc",
         sync: sync,
         page: false,
+        svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
         .post("/api.php?c=Svngroup&a=GetGroupList&t=web", data)
@@ -777,7 +796,7 @@ export default {
     /**
      * 获取所有的别名列表
      */
-    GetAllAliases(sync = false) {
+    GetAliaseList(sync = false) {
       var that = this;
       //清空上次数据
       that.tableDataAllAliases = [];
@@ -785,10 +804,11 @@ export default {
       that.loadingAllAliases = true;
       var data = {
         sync: sync,
-        searchKeywordAliase: that.searchKeywordAliase,
+        searchKeyword: that.searchKeywordAliase,
+        svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svnaliase&a=GetAllAliaseList&t=web", data)
+        .post("/api.php?c=Svnaliase&a=GetAliaseList&t=web", data)
         .then(function (response) {
           that.loadingAllAliases = false;
           var result = response.data;
@@ -828,6 +848,7 @@ export default {
       var data = {
         searchKeyword: that.searchKeywordGroupMember,
         svn_group_name: that.currentSelectGroupName,
+        svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
         .post("/api.php?c=Svngroup&a=GetGroupMember&t=web", data)

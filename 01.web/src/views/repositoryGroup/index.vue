@@ -15,7 +15,7 @@
           >
           <Tooltip
             max-width="250"
-            content="手动刷新才可获取最新分组列表"
+            content="刷新才可获取最新分组列表"
             placement="bottom"
             :transfer="true"
           >

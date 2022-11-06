@@ -97,12 +97,6 @@ class Common extends Base
                 return message(200, 0, '账号密码错误');
             }
         } else if ($this->payload['user_role'] == 2) {
-            //进行用户数据同步
-            $syncResult = $this->Svnuser->SyncUserToDb();
-            if ($syncResult['status'] != 1) {
-                return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
-            }
-
             $result = $this->database->get('svn_users', [
                 'svn_user_id',
                 'svn_user_name',
@@ -118,6 +112,13 @@ class Common extends Base
             if ($result['svn_user_status'] == 0) {
                 return message(200, 0, '用户已过期');
             }
+
+            //更新登录时间
+            $this->database->update('svn_users', [
+                'svn_user_last_login' => date('Y-m-d H:i:s')
+            ], [
+                'svn_user_name' => $this->payload['user_name']
+            ]);
         }
 
         //日志

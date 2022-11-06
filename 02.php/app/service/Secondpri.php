@@ -108,18 +108,14 @@ class Secondpri extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
-        if (!in_array($this->payload['objectType'], [
-            'user',
-            'group',
-            'aliase'
-        ])) {
+        if (!in_array($this->payload['objectType'], ['user', 'group', 'aliase'])) {
             return message(200, 0, '不允许的对象类型');
         }
 
         $result = $this->database->get('svn_second_pri', 'svn_second_pri_id', [
-            'svnn_user_pri_path_id' => 2,
-            'svn_object_type' => 'user',
-            'svn_object_name' => 'user1'
+            'svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id'],
+            'svn_object_type' => $this->payload['objectType'],
+            'svn_object_name' => $this->payload['objectName']
         ]);
 
         if (!empty($result)) {

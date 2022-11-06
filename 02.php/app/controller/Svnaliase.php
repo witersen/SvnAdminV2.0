@@ -30,9 +30,9 @@ class Svnaliase extends Base
     /**
      * 获取全部的SVN别名
      */
-    public function GetAllAliaseList()
+    public function GetAliaseList()
     {
-        $result = $this->ServiceSvnaliase->GetAllAliaseList();
+        $result = $this->ServiceSvnaliase->GetAliaseList();
         json2($result);
     }
 }

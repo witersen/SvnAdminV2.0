@@ -27,7 +27,7 @@
           >
           <Tooltip
             max-width="250"
-            content="手动刷新才可获取最新仓库列表"
+            content="刷新才可获取最新仓库列表"
             placement="bottom"
             :transfer="true"
           >
@@ -42,7 +42,7 @@
           </Tooltip>
           <Tooltip
             max-width="250"
-            content="手动刷新才可获取最新权限列表"
+            content="刷新才可获取最新权限列表"
             placement="bottom"
             :transfer="true"
           >
@@ -1000,11 +1000,6 @@ export default {
       currentRepName: "",
       //当前仓库路径
       currentRepPath: "",
-      //临时选中的仓库名称
-      currentRepName: "",
-      //仓库路径的用户权限列表 当前选中的用户以及下标
-      currentRepPriUser: "",
-      currentRepPriUserIndex: -1,
       //选中的id
       svnn_user_pri_path_id: -1,
 

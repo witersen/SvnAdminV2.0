@@ -956,7 +956,7 @@ class Svnrep extends Base
         //检查表单
         $checkResult = funCheckForm($this->payload, [
             'path' => ['type' => 'string', 'notNull' => true],
-            'rep_name' => ['type' => 'string', 'notNull' => false],
+            'rep_name' => ['type' => 'string', 'notNull' => true],
             'svnn_user_pri_path_id' => ['type' => 'integer', 'required' => $this->userRoleId == 2]
         ]);
         if ($checkResult['status'] == 0) {
@@ -984,6 +984,7 @@ class Svnrep extends Base
                 return message(200, 0, "错误码$result");
             }
         } else {
+            //针对SVN用户可管理对象进行过滤
             if ($this->userRoleId == 2) {
                 $filters = $this->database->select('svn_second_pri', [
                     '[>]svn_user_pri_paths' => ['svnn_user_pri_path_id' => 'svnn_user_pri_path_id']
@@ -1014,11 +1015,56 @@ class Svnrep extends Base
      */
     public function AddRepPathPri()
     {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'path' => ['type' => 'string', 'notNull' => true],
+            'rep_name' => ['type' => 'string', 'notNull' => true],
+            'objectType' => ['type' => 'string', 'notNull' => true],
+            'objectPri' => ['type' => 'string', 'notNull' => true],
+            'objectName' => ['type' => 'string', 'notNull' => true],
+            'svnn_user_pri_path_id' => ['type' => 'integer', 'required' => $this->userRoleId == 2]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
         $repName = $this->payload['rep_name'];
         $path = $this->payload['path'];
         $objectType = $this->payload['objectType'];
         $objectPri = $this->payload['objectPri'];
         $objectName = $this->payload['objectName'];
+
+        //检查仓库是否存在
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $repName)) {
+            return message(200, 0, '仓库不存在');
+        }
+
+        //针对SVN用户可管理对象进行过滤
+        if ($this->userRoleId == 2) {
+            $filters = $this->database->select('svn_second_pri', [
+                '[>]svn_user_pri_paths' => ['svnn_user_pri_path_id' => 'svnn_user_pri_path_id']
+            ], [
+                'svn_second_pri.svn_object_type(objectType)',
+                'svn_second_pri.svn_object_name(objectName)',
+            ], [
+                'svn_user_pri_paths.svn_user_name' => $this->userName,
+                'svn_user_pri_paths.svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+            ]);
+            if (!in_array([
+                'objectType' => $objectType,
+                'objectName' => $objectName
+            ], $filters)) {
+                return message(200, 0, '无权限的操作对象');
+            }
+
+            //不可操作自身
+            if ($objectType == 'user' && $objectName == $this->userName) {
+                return message(200, 0, '不可操作自身');
+            }
+
+            //校验路径是否有权 todo
+        }
 
         /**
          * 处理权限
@@ -1045,9 +1091,9 @@ class Svnrep extends Base
                     }
                 }
             } else if ($result == 801) {
-                return message(200, 0, "对象已有授权记录");
+                return message(200, 0, '对象已有授权记录');
             } else if ($result == 901) {
-                return message(200, 0, "不支持的授权对象类型");
+                return message(200, 0, '不支持的授权对象类型');
             } else {
                 return message(200, 0, "错误码$result");
             }
@@ -1065,12 +1111,58 @@ class Svnrep extends Base
      */
     public function EditRepPathPri()
     {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'path' => ['type' => 'string', 'notNull' => true],
+            'rep_name' => ['type' => 'string', 'notNull' => true],
+            'objectType' => ['type' => 'string', 'notNull' => true],
+            'objectPri' => ['type' => 'string', 'notNull' => true],
+            'objectName' => ['type' => 'string', 'notNull' => true],
+            'invert' => ['type' => 'boolean'],
+            'svnn_user_pri_path_id' => ['type' => 'integer', 'required' => $this->userRoleId == 2]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
         $repName = $this->payload['rep_name'];
         $path = $this->payload['path'];
         $objectType = $this->payload['objectType'];
         $invert = $this->payload['invert'];
         $objectName = $this->payload['objectName'];
         $objectPri = $this->payload['objectPri'];
+
+        //检查仓库是否存在
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $repName)) {
+            return message(200, 0, '仓库不存在');
+        }
+
+        //针对SVN用户可管理对象进行过滤
+        if ($this->userRoleId == 2) {
+            $filters = $this->database->select('svn_second_pri', [
+                '[>]svn_user_pri_paths' => ['svnn_user_pri_path_id' => 'svnn_user_pri_path_id']
+            ], [
+                'svn_second_pri.svn_object_type(objectType)',
+                'svn_second_pri.svn_object_name(objectName)',
+            ], [
+                'svn_user_pri_paths.svn_user_name' => $this->userName,
+                'svn_user_pri_paths.svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+            ]);
+            if (!in_array([
+                'objectType' => $objectType,
+                'objectName' => $objectName
+            ], $filters)) {
+                return message(200, 0, '无权限的操作对象');
+            }
+
+            //不可操作自身
+            if ($objectType == 'user' && $objectName == $this->userName) {
+                return message(200, 0, '不可操作自身');
+            }
+
+            //校验路径是否有权 todo
+        }
 
         /**
          * 处理权限
@@ -1103,10 +1195,54 @@ class Svnrep extends Base
      */
     public function DelRepPathPri()
     {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'path' => ['type' => 'string', 'notNull' => true],
+            'rep_name' => ['type' => 'string', 'notNull' => true],
+            'objectType' => ['type' => 'string', 'notNull' => true],
+            'objectName' => ['type' => 'string', 'notNull' => true],
+            'svnn_user_pri_path_id' => ['type' => 'integer', 'required' => $this->userRoleId == 2]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
         $repName = $this->payload['rep_name'];
         $path = $this->payload['path'];
         $objectType = $this->payload['objectType'];
         $objectName = $this->payload['objectName'];
+
+        //检查仓库是否存在
+        clearstatcache();
+        if (!is_dir($this->configSvn['rep_base_path'] . $repName)) {
+            return message(200, 0, '仓库不存在');
+        }
+
+        //针对SVN用户可管理对象进行过滤
+        if ($this->userRoleId == 2) {
+            $filters = $this->database->select('svn_second_pri', [
+                '[>]svn_user_pri_paths' => ['svnn_user_pri_path_id' => 'svnn_user_pri_path_id']
+            ], [
+                'svn_second_pri.svn_object_type(objectType)',
+                'svn_second_pri.svn_object_name(objectName)',
+            ], [
+                'svn_user_pri_paths.svn_user_name' => $this->userName,
+                'svn_user_pri_paths.svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+            ]);
+            if (!in_array([
+                'objectType' => $objectType,
+                'objectName' => $objectName
+            ], $filters)) {
+                return message(200, 0, '无权限的操作对象');
+            }
+
+            //不可操作自身
+            if ($objectType == 'user' && $objectName == $this->userName) {
+                return message(200, 0, '不可操作自身');
+            }
+
+            //校验路径是否有权 todo
+        }
 
         $result = $this->SVNAdmin->DelRepPathPri($this->authzContent, $repName, $path, $objectType, $objectName);
 
