@@ -22,7 +22,7 @@
             type="primary"
             ghost
             @click="ModalCreateRep"
-            v-if="user_role_id == 1"
+            v-if="user_role_id == 1 || user_role_id == 3"
             >新建仓库</Button
           >
           <Tooltip
@@ -36,7 +36,7 @@
               type="warning"
               ghost
               @click="GetRepList(true)"
-              v-if="user_role_id == 1"
+              v-if="user_role_id == 1 || user_role_id == 3"
               >同步列表</Button
             >
           </Tooltip>
@@ -70,7 +70,7 @@
               type="error"
               ghost
               @click="ValidateAuthz"
-              v-if="user_role_id == 1"
+              v-if="user_role_id == 1 || user_role_id == 3"
               >authz检测</Button
             >
           </Tooltip>
@@ -82,7 +82,7 @@
             placeholder="通过SVN仓库名、备注搜索..."
             @on-search="GetRepList()"
             v-model="searchKeywordRep"
-            v-if="user_role_id == 1"
+            v-if="user_role_id == 1 || user_role_id == 3"
           />
           <Input
             search
@@ -96,7 +96,7 @@
       </Row>
       <!-- 管理人员仓库列表 -->
       <Table
-        v-if="user_role_id == 1"
+        v-if="user_role_id == 1 || user_role_id == 3"
         @on-sort-change="SortChangeRep"
         border
         :loading="loadingRep"
@@ -190,7 +190,11 @@
         </template>
       </Table>
       <!-- 管理人员SVN仓库分页 -->
-      <Card :bordered="false" :dis-hover="true" v-if="user_role_id == 1">
+      <Card
+        :bordered="false"
+        :dis-hover="true"
+        v-if="user_role_id == 1 || user_role_id == 3"
+      >
         <Page
           v-if="totalRep != 0"
           :total="totalRep"
@@ -1359,7 +1363,7 @@ export default {
   created() {},
   mounted() {
     this.GetStatus();
-    if (this.user_role_id == 1) {
+    if (this.user_role_id == 1 || this.user_role_id == 3) {
       this.GetRepList();
     } else if (this.user_role_id == 2) {
       this.GetSvnUserRepList();
@@ -1765,7 +1769,7 @@ export default {
     ClickRowGetRepCon(row, index) {
       if (this.tableDataRepCon[index].resourceType == "2") {
         this.currentRepPath = this.tableDataRepCon[index].fullPath;
-        if (this.user_role_id == 1) {
+        if (this.user_role_id == 1 || this.user_role_id == 3) {
           this.GetRepCon();
         } else if (this.user_role_id == 2) {
           this.GetUserRepCon();
@@ -1777,7 +1781,7 @@ export default {
      */
     ClickBreadGetRepCon(fullPath) {
       this.currentRepPath = fullPath;
-      if (this.user_role_id == 1) {
+      if (this.user_role_id == 1 || this.user_role_id == 3) {
         this.GetRepCon();
       } else if (this.user_role_id == 2) {
         this.GetUserRepCon();

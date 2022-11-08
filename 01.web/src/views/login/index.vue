@@ -38,6 +38,7 @@
             <FormItem>
               <Select v-model="formUserLogin.user_role" :transfer="true">
                 <Option value="1">管理人员</Option>
+                <Option value="3">子管理员</Option>
                 <Option value="2">SVN用户</Option>
               </Select>
             </FormItem>
@@ -126,9 +127,11 @@ export default {
     if (sessionStorage.token) {
       that.$Message.success("已有登录信息 自动跳转中...");
       setTimeout(function () {
-        if (sessionStorage.user_role_id == 1) {
+        if (
+          sessionStorage.user_role_id == 1 ||
+          sessionStorage.user_role_id == 3
+        ) {
           //管理员跳转到首页
-          sessionStorage.setItem("sync", "yes");
           that.$router.push({ name: "index" });
         } else if (sessionStorage.user_role_id == 2) {
           //用户跳转到仓库页
@@ -228,7 +231,7 @@ export default {
 
             that.$Message.success(result.message);
 
-            if (result.data.user_role_id == 1) {
+            if (result.data.user_role_id == 1||result.data.user_role_id == 3) {
               //管理员跳转到首页
               that.$router.push({ name: "index" });
             } else if (result.data.user_role_id == 2) {

@@ -37,6 +37,35 @@
                 </Row>
               </FormItem>
             </Form>
+            <Form :label-width="100" v-if="user_role_id == 3">
+              <FormItem label="子管理员账户">
+                <Row>
+                  <Col span="12">
+                    <Input
+                      v-model="formEditAdminUserName.displayUserName"
+                      readonly
+                    ></Input>
+                  </Col>
+                  <Col span="6">
+                    <Button type="success" @click="ModalEditAdminUserName"
+                      >修改</Button
+                    ></Col
+                  >
+                </Row>
+              </FormItem>
+              <FormItem label="子管理员密码">
+                <Row>
+                  <Col span="12">
+                    <Input type="password" value="******" readonly></Input>
+                  </Col>
+                  <Col span="6">
+                    <Button type="success" @click="ModalEditAdminUserPass"
+                      >修改</Button
+                    ></Col
+                  >
+                </Row>
+              </FormItem>
+            </Form>
             <Form
               :model="formEditSvnUserPass"
               :label-width="100"
@@ -79,7 +108,11 @@
         </TabPane>
       </Tabs>
     </Card>
-    <Modal v-model="modalEditAdminUserName" :draggable="true" title="修改管理员账号">
+    <Modal
+      v-model="modalEditAdminUserName"
+      :draggable="true"
+      title="修改管理员账号"
+    >
       <Form :model="formEditAdminUserName" :label-width="80">
         <FormItem label="新账号">
           <Input v-model="formEditAdminUserName.userName"></Input>
@@ -102,7 +135,11 @@
         >
       </div>
     </Modal>
-    <Modal v-model="modalEditAdminUserPass" :draggable="true" title="修改管理员密码">
+    <Modal
+      v-model="modalEditAdminUserPass"
+      :draggable="true"
+      title="修改管理员密码"
+    >
       <Form :model="formEditAdminUserPass" :label-width="80">
         <FormItem label="新密码">
           <Input v-model="formEditAdminUserPass.password"></Input>
@@ -192,7 +229,7 @@ export default {
             that.LogOut();
           } else {
             that.loadingEditAdminUserName = false;
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -225,7 +262,7 @@ export default {
             that.LogOut();
           } else {
             that.loadingEditAdminUserPass = false;
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -255,7 +292,7 @@ export default {
             that.$Message.success(result.message);
             that.LogOut();
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -280,7 +317,7 @@ export default {
             that.$Message.success(result.message);
             that.$router.push({ name: "login" });
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {

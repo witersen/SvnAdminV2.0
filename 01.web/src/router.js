@@ -25,7 +25,7 @@ const routers = [
                     title: '信息统计',
                     icon: "ios-stats",
                     requireAuth: true,
-                    user_role_id: ['1'],
+                    user_role_id: ['1', '3'],
                     group: {
                         name: "仓库",
                         num: 1
@@ -40,7 +40,7 @@ const routers = [
                     title: 'SVN仓库',
                     icon: 'logo-buffer',
                     requireAuth: true,
-                    user_role_id: ['1', '2'],
+                    user_role_id: ['1', '2', '3'],
                     group: {
                         name: "",
                         num: 1
@@ -55,7 +55,7 @@ const routers = [
                     title: 'SVN用户',
                     icon: 'md-person',
                     requireAuth: true,
-                    user_role_id: ['1'],
+                    user_role_id: ['1', '3'],
                     group: {
                         name: "",
                         num: 1
@@ -70,7 +70,7 @@ const routers = [
                     title: 'SVN分组',
                     icon: 'md-people',
                     requireAuth: true,
-                    user_role_id: ['1'],
+                    user_role_id: ['1', '3'],
                     group: {
                         name: "",
                         num: 1
@@ -85,7 +85,7 @@ const routers = [
                     title: '系统日志',
                     icon: 'md-bug',
                     requireAuth: true,
-                    user_role_id: ['1'],
+                    user_role_id: ['1', '3'],
                     group: {
                         name: "运维",
                         num: 2
@@ -100,7 +100,7 @@ const routers = [
                     title: '任务计划',
                     icon: 'ios-alarm',
                     requireAuth: true,
-                    user_role_id: ['1'],
+                    user_role_id: ['1', '3'],
                     group: {
                         name: "",
                         num: 2
@@ -115,7 +115,7 @@ const routers = [
                     title: '个人中心',
                     icon: 'md-cube',
                     requireAuth: true,
-                    user_role_id: ['1', '2'],
+                    user_role_id: ['1', '2', '3'],
                     group: {
                         name: "高级",
                         num: 3
@@ -146,7 +146,7 @@ const routers = [
                     title: '系统配置',
                     icon: 'md-settings',
                     requireAuth: true,
-                    user_role_id: ['1'],
+                    user_role_id: ['1', '3'],
                     group: {
                         name: "",
                         num: 3

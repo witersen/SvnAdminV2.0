@@ -93,7 +93,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="请注意，如果您的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。如果绑定失败，建议配置使用自定义主机名代替检出地址。"
+                      content="请注意，此值默认为 0.0.0.0 ，是 svnserve 服务器的实际的默认的绑定地址。如果无特殊原因无需修改此默认值。如果你要更换为公网IP地址，且你的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。"
                     >
                       <Button
                         type="warning"
@@ -117,13 +117,19 @@
                   </Col>
                   <Col span="1"> </Col>
                   <Col span="6">
-                    <Button
-                      type="warning"
-                      @click="EditManageHost"
-                      :disabled="disabledEditManageHost"
-                      :loading="loadingEditManageHost"
-                      >修改</Button
+                    <Tooltip
+                      :transfer="true"
+                      max-width="350"
+                      content="请注意，此值不影响 svnserve 服务器的正常运行，只是一个管理员自定义的主机地址字符串。如果将下方的检出地址切换为自定义主机，用户进行仓库浏览的时候，复制的检出地址将会以此值为前缀"
                     >
+                      <Button
+                        type="warning"
+                        @click="EditManageHost"
+                        :disabled="disabledEditManageHost"
+                        :loading="loadingEditManageHost"
+                        >修改</Button
+                      >
+                    </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
@@ -518,7 +524,11 @@
         </TabPane>
       </Tabs>
     </Card>
-    <Modal v-model="modalSofawareUpdateGet" :draggable="true" title="最新版本信息">
+    <Modal
+      v-model="modalSofawareUpdateGet"
+      :draggable="true"
+      title="最新版本信息"
+    >
       <Scroll>
         <Form ref="formUpdate" :model="formUpdate" :label-width="90">
           <FormItem label="最新版本">

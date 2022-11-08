@@ -46,7 +46,8 @@ class Subadmin extends Base
             // 'subadmin_email',
             'subadmin_status [Int]',
             'subadmin_note',
-            'create_time'
+            'subadmin_create_time',
+            'subadmin_last_login'
         ], [
             'AND' => [
                 'OR' => [
@@ -116,7 +117,8 @@ class Subadmin extends Base
             'subadmin_password' => md5($this->payload['subadmin_password']),
             'subadmin_status' => 1,
             'subadmin_note' => $this->payload['subadmin_note'],
-            'create_time' => date('Y-m-d H:i:s')
+            'subadmin_create_time' => date('Y-m-d H:i:s'),
+            'subadmin_last_login' => ''
         ]);
 
         //日志

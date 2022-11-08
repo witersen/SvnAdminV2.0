@@ -39,6 +39,20 @@ class Common extends Base
      */
     public function Login()
     {
+        $checkResult = funCheckForm($this->payload, [
+            'user_name' => ['type' => 'string', 'notNull' => true],
+            'user_pass' => ['type' => 'string', 'notNull' => true],
+            'user_role' => ['type' => 'string', 'notNull' => true],
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
+        $userName = $this->payload['user_name'];
+        $userPass = $this->payload['user_pass'];
+        $userRole = $this->payload['user_role'];
+        $userRoleName = $userRole == 1 ? '管理员' : ($userRole == 2 ? 'SVN用户' : ($userRole == 3 ? '子管理员' : '未知'));
+
         //清理过期token
         $this->CleanBlack();
 
@@ -74,40 +88,31 @@ class Common extends Base
             }
         }
 
-        $checkResult = funCheckForm($this->payload, [
-            'user_name' => ['type' => 'string', 'notNull' => true],
-            'user_pass' => ['type' => 'string', 'notNull' => true],
-            'user_role' => ['type' => 'string', 'notNull' => true],
-        ]);
-        if ($checkResult['status'] == 0) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
-        }
-
-        if ($this->payload['user_role'] == 1) {
+        if ($userRole == 1) {
             $result = $this->database->get('admin_users', [
                 'admin_user_id',
                 'admin_user_name',
                 'admin_user_phone',
                 'admin_user_email'
             ], [
-                'admin_user_name' => $this->payload['user_name'],
-                'admin_user_password' => $this->payload['user_pass']
+                'admin_user_name' => $userName,
+                'admin_user_password' => $userPass
             ]);
-            if ($result == null) {
-                return message(200, 0, '账号密码错误');
+            if (empty($result)) {
+                return message(200, 0, '账号或密码错误');
             }
-        } else if ($this->payload['user_role'] == 2) {
+        } else if ($userRole == 2) {
             $result = $this->database->get('svn_users', [
                 'svn_user_id',
                 'svn_user_name',
                 'svn_user_pass',
                 'svn_user_status'
             ], [
-                'svn_user_name' => $this->payload['user_name'],
-                'svn_user_pass' => $this->payload['user_pass']
+                'svn_user_name' => $userName,
+                'svn_user_pass' => $userPass
             ]);
-            if ($result == null) {
-                return message(200, 0, '登陆失败');
+            if (empty($result)) {
+                return message(200, 0, '账号或密码错误');
             }
             if ($result['svn_user_status'] == 0) {
                 return message(200, 0, '用户已过期');
@@ -117,25 +122,48 @@ class Common extends Base
             $this->database->update('svn_users', [
                 'svn_user_last_login' => date('Y-m-d H:i:s')
             ], [
-                'svn_user_name' => $this->payload['user_name']
+                'svn_user_name' => $userName
+            ]);
+        } else if ($userRole == 3) {
+            $result = $this->database->get('subadmin', [
+                'subadmin_id',
+                'subadmin_name',
+                'subadmin_password',
+                'subadmin_status'
+            ], [
+                'subadmin_name' => $userName,
+                'subadmin_password' => md5($userPass)
+            ]);
+            if (empty($result)) {
+                return message(200, 0, '账号或密码错误');
+            }
+            if ($result['subadmin_status'] == 0) {
+                return message(200, 0, '用户已过期');
+            }
+
+            //更新登录时间
+            $this->database->update('subadmin', [
+                'subadmin_last_login' => date('Y-m-d H:i:s')
+            ], [
+                'subadmin_name' => $userName
             ]);
         }
 
         //日志
         $this->Logs->InsertLog(
             '用户登录',
-            sprintf("账号:%s IP地址:%s", $this->payload['user_name'], $_SERVER["REMOTE_ADDR"]),
-            $this->payload['user_name']
+            sprintf("账号:%s IP地址:%s", $userName, $_SERVER["REMOTE_ADDR"]),
+            $userName
         );
 
         //邮件
-        $this->Mail->SendMail('Common/Login', '用户登录成功通知', '账号：' . $this->payload['user_name'] . ' ' . 'IP地址：' . $_SERVER["REMOTE_ADDR"] . ' ' . '时间：' . date('Y-m-d H:i:s'));
+        $this->Mail->SendMail('Common/Login', '用户登录成功通知', '账号：' . $userName . ' ' . 'IP地址：' . $_SERVER["REMOTE_ADDR"] . ' ' . '时间：' . date('Y-m-d H:i:s'));
 
         return message(200, 1, '登陆成功', [
-            'token' => $this->CreateToken($this->payload['user_role'], $this->payload['user_name']),
-            'user_name' => $this->payload['user_name'],
-            'user_role_name' => $this->payload['user_role'] == 1 ? '管理人员' : 'SVN用户',
-            'user_role_id' => $this->payload['user_role']
+            'token' => $this->CreateToken($userRole, $userName),
+            'user_name' => $userName,
+            'user_role_name' => $userRoleName,
+            'user_role_id' => $userRole
         ]);
     }
 

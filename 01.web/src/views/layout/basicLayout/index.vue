@@ -239,7 +239,7 @@ export default {
           if (result.status == 1) {
             if (result.data != "") {
               that.hasUpdate = true;
-              //有新版本 
+              //有新版本
               //0 未检测 1 有新版本 2 无新版本
               sessionStorage.setItem("hasUpdate", 1);
             } else {
@@ -268,7 +268,7 @@ export default {
     //设置导航选中状态
     that.SetActiveName();
     //管理员或者子管理员登录才可自动检测更新
-    if (sessionStorage.user_role_id == 1) {
+    if (sessionStorage.user_role_id == 1 || sessionStorage.user_role_id == 3) {
       //未检测过才检测更新
       if (sessionStorage.hasUpdate == 0) {
         that.CheckUpdate();

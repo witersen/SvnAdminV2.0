@@ -65,6 +65,9 @@
             @on-blur="UpdSubadminNote(index, row.subadmin_id)"
           />
         </template>
+        <template slot-scope="{ row }" slot="subadmin_pri">
+          <Button type="info" size="small">配置</Button>
+        </template>
         <template slot-scope="{ row, index }" slot="action">
           <Button
             type="warning"
@@ -255,8 +258,18 @@ export default {
           minWidth: 120,
         },
         {
+          title: "上次登录",
+          key: "subadmin_last_login",
+          minWidth: 120,
+        },
+        {
           title: "创建时间",
-          key: "create_time",
+          key: "subadmin_create_time",
+          minWidth: 120,
+        },
+        {
+          title: "系统权限",
+          slot: "subadmin_pri",
           minWidth: 120,
         },
         {
