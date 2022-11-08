@@ -35,7 +35,7 @@ rpm -Uvh https://mirrors.aliyun.com/remi/enterprise/remi-release-7.rpm
 yum-config-manager --enable remi-php74
 
 # 安装php及相关扩展
-yum install -y php php-common php-cli php-fpm php-json php-mysqlnd php-mysql php-pdo php-process php-json php-gd php-bcmath
+yum install -y php php-common php-cli php-fpm php-mysqlnd php-mysql php-pdo php-process php-json php-gd php-bcmath
 ```
 
 - 安装web服务器
@@ -144,6 +144,39 @@ php install.php
 ### 3、在ubutntu18安装示例
 
 - 步骤同1（注意需要以root用户执行 server/install.php 和 server/svnadmind.php ）
+
+- 步骤简要
+
+  - ```
+    sudo apt-get install -y apache2
+    sudo apt-get install -y php
+    sudo apt-get install -y php-cli
+    sudo apt-get install -y php-fpm
+    
+    sudo a2enmod proxy_fcgi setenvif
+    sudo systemctl restart apache2
+    sudo a2enconf php7.2-fpm
+    
+    sudo apt-get install -y php-json
+    
+    sudo apt-get install -y php7.2-mysql
+    sudo apt-get install -y php-mysql
+    
+    sudo apt-get install -y sqlite3
+    
+    sudo apt-get install -y php7.2-sqlite
+    
+    sudo apt-get install -y php-gd
+    
+    sudo systemctl restart apache2
+    
+    
+    sudo apt-get install -y subversion subversion-tools
+    
+    sudo server/install.php （选项2）
+    
+    sudo server/svnadmind.php console（调试模式，没问题后按照文档切换为正式模式）
+    ```
 
 ### 4、在Rocky安装示例
 
