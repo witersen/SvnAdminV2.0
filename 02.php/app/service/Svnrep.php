@@ -1122,6 +1122,29 @@ class Svnrep extends Base
             return message(200, 0, '仓库不存在');
         }
 
+        if ($this->userRoleId == 2) {
+            $pri = $this->database->get('svn_user_pri_paths', [
+                'pri_path',
+                'rep_name'
+            ], [
+                'svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+            ]);
+
+            //校验1 路径长度校验
+            if (strlen($this->payload['path']) < strlen($pri['pri_path'])) {
+                return message(200, 0, '无路径管理权限');
+            }
+            if (substr($this->payload['path'], 0, strlen($pri['pri_path'])) != $pri['pri_path']) {
+                return message(200, 0, '无路径管理权限');
+            }
+
+            //校验2 路径有权校验
+            $pri = $this->GetSvnList($this->payload['path'], $pri['rep_name']);
+            if ($pri['status'] != 1) {
+                return message($pri['code'], $pri['status'], $pri['message']);
+            }
+        }
+
         $result = $this->SVNAdmin->GetRepPathPri($this->authzContent, $this->payload['rep_name'], $this->payload['path']);
         if (is_numeric($result)) {
             if ($result == 751) {
@@ -1131,7 +1154,7 @@ class Svnrep extends Base
                     return message(200, 0, '该仓库没有被写入配置文件！请刷新仓库列表以同步');
                 } else {
                     //正常 无记录
-                    return message(200, 1, '成功', []);
+                    return message();
                 }
             } else if ($result == 752) {
                 return message(200, 0, '仓库路径需以/开始');
@@ -1151,6 +1174,9 @@ class Svnrep extends Base
                     'svn_user_pri_paths.svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
                 ]);
                 foreach ($result as $key => $value) {
+                    if ($value['objectType'] == 'user' && $value['objectName'] == $this->userName) {
+                        continue;
+                    }
                     if (!in_array([
                         'objectType' => $value['objectType'],
                         'objectName' => $value['objectName']
@@ -1195,8 +1221,35 @@ class Svnrep extends Base
             return message(200, 0, '仓库不存在');
         }
 
+        if ($this->userRoleId == 2) {
+            $pri = $this->database->get('svn_user_pri_paths', [
+                'pri_path',
+                'rep_name'
+            ], [
+                'svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+            ]);
+
+            //校验1 路径长度校验
+            if (strlen($this->payload['path']) < strlen($pri['pri_path'])) {
+                return message(200, 0, '无路径管理权限');
+            }
+            if (substr($this->payload['path'], 0, strlen($pri['pri_path'])) != $pri['pri_path']) {
+                return message(200, 0, '无路径管理权限');
+            }
+
+            //校验2 路径有权校验
+            $pri = $this->GetSvnList($this->payload['path'], $pri['rep_name']);
+            if ($pri['status'] != 1) {
+                return message($pri['code'], $pri['status'], $pri['message']);
+            }
+        }
+
         //针对SVN用户可管理对象进行过滤
         if ($this->userRoleId == 2) {
+            if ($objectType == 'user' && $objectName == $this->userName) {
+                return message(200, 0, '不可操作自身');
+            }
+
             $filters = $this->database->select('svn_second_pri', [
                 '[>]svn_user_pri_paths' => ['svnn_user_pri_path_id' => 'svnn_user_pri_path_id']
             ], [
@@ -1212,13 +1265,6 @@ class Svnrep extends Base
             ], $filters)) {
                 return message(200, 0, '无权限的操作对象');
             }
-
-            //不可操作自身
-            if ($objectType == 'user' && $objectName == $this->userName) {
-                return message(200, 0, '不可操作自身');
-            }
-
-            //校验路径是否有权 todo
         }
 
         /**
@@ -1295,8 +1341,35 @@ class Svnrep extends Base
             return message(200, 0, '仓库不存在');
         }
 
+        if ($this->userRoleId == 2) {
+            $pri = $this->database->get('svn_user_pri_paths', [
+                'pri_path',
+                'rep_name'
+            ], [
+                'svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+            ]);
+
+            //校验1 路径长度校验
+            if (strlen($this->payload['path']) < strlen($pri['pri_path'])) {
+                return message(200, 0, '无路径管理权限');
+            }
+            if (substr($this->payload['path'], 0, strlen($pri['pri_path'])) != $pri['pri_path']) {
+                return message(200, 0, '无路径管理权限');
+            }
+
+            //校验2 路径有权校验
+            $pri = $this->GetSvnList($this->payload['path'], $pri['rep_name']);
+            if ($pri['status'] != 1) {
+                return message($pri['code'], $pri['status'], $pri['message']);
+            }
+        }
+
         //针对SVN用户可管理对象进行过滤
         if ($this->userRoleId == 2) {
+            if ($objectType == 'user' && $objectName == $this->userName) {
+                return message(200, 0, '不可操作自身');
+            }
+
             $filters = $this->database->select('svn_second_pri', [
                 '[>]svn_user_pri_paths' => ['svnn_user_pri_path_id' => 'svnn_user_pri_path_id']
             ], [
@@ -1312,13 +1385,6 @@ class Svnrep extends Base
             ], $filters)) {
                 return message(200, 0, '无权限的操作对象');
             }
-
-            //不可操作自身
-            if ($objectType == 'user' && $objectName == $this->userName) {
-                return message(200, 0, '不可操作自身');
-            }
-
-            //校验路径是否有权 todo
         }
 
         /**
@@ -1377,8 +1443,35 @@ class Svnrep extends Base
             return message(200, 0, '仓库不存在');
         }
 
+        if ($this->userRoleId == 2) {
+            $pri = $this->database->get('svn_user_pri_paths', [
+                'pri_path',
+                'rep_name'
+            ], [
+                'svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+            ]);
+
+            //校验1 路径长度校验
+            if (strlen($this->payload['path']) < strlen($pri['pri_path'])) {
+                return message(200, 0, '无路径管理权限');
+            }
+            if (substr($this->payload['path'], 0, strlen($pri['pri_path'])) != $pri['pri_path']) {
+                return message(200, 0, '无路径管理权限');
+            }
+
+            //校验2 路径有权校验
+            $pri = $this->GetSvnList($this->payload['path'], $pri['rep_name']);
+            if ($pri['status'] != 1) {
+                return message($pri['code'], $pri['status'], $pri['message']);
+            }
+        }
+
         //针对SVN用户可管理对象进行过滤
         if ($this->userRoleId == 2) {
+            if ($objectType == 'user' && $objectName == $this->userName) {
+                return message(200, 0, '不可操作自身');
+            }
+
             $filters = $this->database->select('svn_second_pri', [
                 '[>]svn_user_pri_paths' => ['svnn_user_pri_path_id' => 'svnn_user_pri_path_id']
             ], [
@@ -1394,13 +1487,6 @@ class Svnrep extends Base
             ], $filters)) {
                 return message(200, 0, '无权限的操作对象');
             }
-
-            //不可操作自身
-            if ($objectType == 'user' && $objectName == $this->userName) {
-                return message(200, 0, '不可操作自身');
-            }
-
-            //校验路径是否有权 todo
         }
 
         $result = $this->SVNAdmin->DelRepPathPri($this->authzContent, $repName, $path, $objectType, $objectName);

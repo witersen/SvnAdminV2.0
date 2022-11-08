@@ -112,6 +112,17 @@ class Secondpri extends Base
             return message(200, 0, '不允许的对象类型');
         }
 
+        $userName = $this->database->get('svn_user_pri_paths', 'svn_user_name', [
+            'svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
+        ]);
+        if (empty($userName)) {
+            return message(200, 0, '权限路径记录不存在');
+        }
+
+        if ($this->payload['objectType'] == 'user' && $this->payload['objectName'] == $userName) {
+            return message(200, 0, '可管理对象不能包括本身');
+        }
+
         $result = $this->database->get('svn_second_pri', 'svn_second_pri_id', [
             'svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id'],
             'svn_object_type' => $this->payload['objectType'],
