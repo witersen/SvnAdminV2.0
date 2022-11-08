@@ -27,7 +27,7 @@
           >
           <Tooltip
             max-width="250"
-            content="刷新才可获取最新仓库列表"
+            content="同步才可获取最新仓库列表"
             placement="bottom"
             :transfer="true"
           >
@@ -37,12 +37,12 @@
               ghost
               @click="GetRepList(true)"
               v-if="user_role_id == 1"
-              >手动刷新</Button
+              >同步列表</Button
             >
           </Tooltip>
           <Tooltip
             max-width="250"
-            content="刷新才可获取最新权限列表"
+            content="同步才可获取最新权限列表"
             placement="bottom"
             :transfer="true"
           >
@@ -52,7 +52,7 @@
               ghost
               @click="GetSvnUserRepList(true)"
               v-if="user_role_id == 2"
-              >手动刷新</Button
+              >同步列表</Button
             >
           </Tooltip>
           <Tooltip

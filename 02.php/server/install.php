@@ -679,7 +679,7 @@ CON;
         echo '提醒！不建议将数据存储主目录移动到 root 目录下，因为这会导致读取权限出现问题（除非将 root 目录设置 777 ，但是也不是好主意）' . PHP_EOL;
 
         //对输入的路径规范化，如果末尾没有带有 / 则自动补全
-        if (substr($newHomePath, strlen($newHomePath) - 1) != '/') {
+        if (substr($newHomePath, -1) != '/') {
             $newHomePath .= '/';
         }
 

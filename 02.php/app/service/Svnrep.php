@@ -606,42 +606,22 @@ class Svnrep extends Base
             return message(200, 0, '仓库不存在');
         }
 
-        $path = $this->payload['path'];
+        $repPath = $this->payload['path'];
         $repName = $this->payload['rep_name'];
 
-        $result = $this->GetSvnList($path, $repName);
+        $result = $this->GetSvnList($repPath, $repName);
         if ($result['status'] != 1) {
             return message($result['code'], $result['status'], $result['message']);
         }
+        $result = trim($result['data']);
 
-        $result = $result['data'];
+        $resultArray = empty($result) ? [] : explode("\n", $result);
 
-        /**
-         * 判断结果是否为空
-         * 判断其他的意外情况
-         */
-        if ($result == '') {
-            $resultArray = [];
-        } else {
-            $resultArray = explode("\n", $result);
+        $isFile = $this->IsDirOrFile($repName, $repPath);
+        if ($isFile['status'] != 1) {
+            return message($isFile['code'], $isFile['status'], $isFile['message']);
         }
-
-        /**
-         * 判断该条权限是否为文件授权而不是目录授权
-         * 
-         * 因为从authz文件返回的授权信息无论是文件还是路径都没有/ 因此需要在该用户有权限的情况下从svn list结果区分
-         * 如果结果为一条信息 + 不以/结尾 + 结果名称和请求信息相同，则判断为文件授权 需要另外处理
-         */
-        $isSingleFilePri = false;
-        if ($result != "") {
-            if (count($resultArray) == 1) {
-                if (substr($result, -1) != '/') {
-                    $tempArray = explode('/', $path);
-                    //确定为单文件授权
-                    $isSingleFilePri = ($result == end($tempArray)) ? true : false;
-                }
-            }
-        }
+        $isFile = $isFile['data'];
 
         /**
          * 获取版本号等文件详细信息
@@ -651,7 +631,7 @@ class Svnrep extends Base
         $data = [];
         foreach ($resultArray as $key => $value) {
             //补全路径
-            $value = $isSingleFilePri ? $path : rtrim($path, '/') . '/' . $value;
+            $value = $isFile ? $repPath : rtrim($repPath, '/') . '/' . $value;
 
             //获取文件或者文件夹最年轻的版本号
             $lastRev  = $this->GetRepFileRev($repName, $value);
@@ -698,11 +678,11 @@ class Svnrep extends Base
         /**
          * 处理面包屑
          */
-        if ($path == '/') {
+        if ($repPath == '/') {
             $breadPathArray = ['/'];
             $breadNameArray = [$repName];
         } else {
-            $pathArray = explode('/', $path);
+            $pathArray = explode('/', $repPath);
             //将全路径处理为带有/的数组
             $tempArray = [];
             array_push($tempArray, '/');
@@ -724,7 +704,7 @@ class Svnrep extends Base
         }
 
         //针对单文件授权情况进行处理
-        if ($isSingleFilePri) {
+        if ($isFile) {
             unset($breadPathArray[count($breadPathArray) - 1]);
             // unset($breadNameArray[count($breadNameArray) - 1]);
         }
@@ -758,15 +738,15 @@ class Svnrep extends Base
         $path = $this->payload['path'];
 
         //获取全路径的一层目录树
-        $cmdSvnlookTree = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $path);
-        $result = funShellExec($cmdSvnlookTree);
+        $cmd = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $path);
+        $result = funShellExec($cmd);
         if ($result['code'] != 0) {
-            return ['code' => 200, 'status' => 0, 'message' => $result['error'], 'data' => []];
+            return message(200, 0, $result['error']);
         }
-        $result = $result['result'];
-        $resultArray = explode("\n", trim($result));
-        unset($resultArray[0]);
-        $resultArray = array_values($resultArray);
+
+        $resultArray = empty(trim($result['result'])) ? [] : explode("\n", trim($result['result']));
+
+        array_shift($resultArray);
 
         $data = [];
         foreach ($resultArray as $key => $value) {
@@ -879,11 +859,10 @@ class Svnrep extends Base
         if ($result['code'] != 0) {
             return message(200, 0, $result['error']);
         }
-        $result = $result['result'];
 
-        $resultArray = explode("\n", trim($result));
-        unset($resultArray[0]);
-        $resultArray = array_values($resultArray);
+        $resultArray = empty(trim($result['result'])) ? [] : explode("\n", trim($result['result']));
+
+        array_shift($resultArray);
 
         $data = [];
         foreach ($resultArray as $value) {
@@ -943,7 +922,7 @@ class Svnrep extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
-        $path = $this->payload['path'];
+        $repPath = $this->payload['path'];
         $repName = $this->payload['rep_name'];
         $first = $this->payload['first'];
 
@@ -953,44 +932,25 @@ class Svnrep extends Base
             return message(200, 0, '仓库不存在');
         }
 
-        if (!$first && substr($path, -1) != '/') {
+        if (!$first && substr($repPath, -1) != '/') {
             return message(200, 0, '请求错误-文件无子树');
         }
 
-        $result = $this->GetSvnList($path, $repName);
+        $result = $this->GetSvnList($repPath, $repName);
         if ($result['status'] != 1) {
             return message($result['code'], $result['status'], $result['message']);
         }
-        $result = $result['data'];
 
-        /**
-         * 判断结果是否为空
-         * 判断其他的意外情况
-         */
-        if ($result == '') {
-            $resultArray = [];
-        } else {
-            $resultArray = explode("\n", $result);
-        }
+        $resultArray = empty(trim($result['data'])) ? [] : explode("\n", trim($result['data']));
 
-        /**
-         * 判断该条权限是否为文件授权而不是目录授权
-         * 
-         * 因为从authz文件返回的授权信息无论是文件还是路径都没有/ 因此需要在该用户有权限的情况下从svn list结果区分
-         * 如果结果为一条信息 + 不以/结尾 + 结果名称和请求信息相同，则判断为文件授权 需要另外处理
-         */
-        $isSingleFilePri = false;
-        if ($result != "") {
-            if (count($resultArray) == 1) {
-                if (substr($result, -1) != '/') {
-                    $tempArray = explode('/', $path);
-                    //确定为单文件授权
-                    $isSingleFilePri = ($result == end($tempArray)) ? true : false;
-                }
-            }
+        $isFile = $this->IsDirOrFile($repName, $repPath);
+        if ($isFile['status'] != 1) {
+            return message($isFile['code'], $isFile['status'], $isFile['message']);
         }
-        if ($path != '/' && !$isSingleFilePri) {
-            $path = $path . '/';
+        $isFile = $isFile['data'];
+
+        if ($repPath != '/' && !$isFile) {
+            $repPath = $repPath . '/';
         }
 
         $data = [];
@@ -999,18 +959,18 @@ class Svnrep extends Base
             $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
             if (substr($value, -1) == '/') {
                 array_push($data, [
-                    'expand' => false,
+                    'expand' => $first && $repPath == '/' ? false : true,
                     'loading' => false,
                     'resourceType' => 2,
                     'title' => end($pathArray) . '/',
-                    'fullPath' => rtrim($path, '/') . '/' . $value,
+                    'fullPath' => rtrim($repPath, '/') . '/' . $value,
                     'children' => []
                 ]);
             } else {
                 array_push($data, [
                     'resourceType' => 1,
                     'title' => end($pathArray),
-                    'fullPath' => rtrim($path, '/') . '/' . $value,
+                    'fullPath' => rtrim($repPath, '/') . '/' . $value,
                 ]);
             }
         }
@@ -1018,9 +978,9 @@ class Svnrep extends Base
         //按照文件夹在前、文件在后的顺序进行字典排序
         array_multisort(array_column($data, 'resourceType'), SORT_DESC, $data);
 
-        //如果是首次
+        //首次请求
         if ($first) {
-            if ($path == '/') {
+            if ($repPath == '/') {
                 $result = [
                     [
                         'expand' => true,
@@ -1031,8 +991,8 @@ class Svnrep extends Base
                         'children' => $data
                     ]
                 ];
-            } else if (substr($path, -1) == '/') {
-                $pathArray = explode('/', $path);
+            } else if (substr($repPath, -1) == '/') {
+                $pathArray = explode('/', $repPath);
                 $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
                 $result = [
                     [
@@ -1045,7 +1005,7 @@ class Svnrep extends Base
                     ]
                 ];
             } else {
-                $pathArray = explode('/', $path);
+                $pathArray = explode('/', $repPath);
                 $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
                 $last = end($pathArray);
                 array_pop($pathArray);
@@ -1073,7 +1033,7 @@ class Svnrep extends Base
     {
         if (empty($pathArray)) {
             if (is_array($last)) {
-                return $last;
+                return empty($last) ? [] : $last;
             } else {
                 return [
                     'resourceType' => 1,
@@ -1087,16 +1047,58 @@ class Svnrep extends Base
         array_push($pathHistoryArray, $pathArray[0]);
         array_shift($pathArray);
 
+
+        $recursion = $this->GetRepTreeChildren($pathArray, $pathHistoryArray, $last);
+        if (empty($recursion)) {
+            $children = [];
+        } else if (array_key_exists('expand', $recursion)) {
+            $children = [$recursion];
+        } else if (array_key_exists('resourceType', $recursion)) {
+            $children = [$recursion];
+        } else {
+            $children = $recursion;
+        }
+
         $data = [
-            'expand' => false,
+            'expand' => true,
             'loading' => false,
             'resourceType' => 2,
             'title' => $current . '/',
             'fullPath' => '/' . implode('/', $pathHistoryArray) . '/',
-            'children' => empty($pathArray) ? [] : [$this->GetRepTreeChildren($pathArray, $pathHistoryArray, $last)]
+            'children' => $children
         ];
 
         return $data;
+    }
+
+    /**
+     * 判断从authz获取的权限路径是文件还是目录
+     */
+    private function IsDirOrFile($repName, $repPath)
+    {
+        $cmd = sprintf("'%s' tree  '%s' --full-paths --non-recursive '%s'", $this->configBin['svnlook'], $this->configSvn['rep_base_path'] . $repName, $repPath);
+        $result = funShellExec($cmd);
+        if ($result['code'] != 0) {
+            return message(200, 0, $result['error']);
+        }
+        $result = trim($result['result']);
+
+        $resultArray = empty($result) ? [] : explode("\n", $result);
+
+        $resultArray = array_values(array_filter($resultArray, 'funArrayValueFilter'));
+
+        /**
+         * 1、结果只有一条
+         * 2、结尾无/
+         */
+        $isFile = false;
+        if (count($resultArray) == 1) {
+            if (substr($result, -1) != '/') {
+                $isFile = true;
+            }
+        }
+
+        return message(200, 1, '成功', $isFile);
     }
 
     /**
@@ -2149,7 +2151,7 @@ class Svnrep extends Base
     /**
      * 以SVN用户身份获取 svn list 的结果
      */
-    private function GetSvnList($path, $repName)
+    private function GetSvnList($repPath, $repName)
     {
         /**
          * 获取svn检出地址
@@ -2181,7 +2183,7 @@ class Svnrep extends Base
         /**
          * 使用svn list进行内容获取
          */
-        $checkResult = $this->CheckSvnUserPathAutzh($checkoutHost, $repName, $path, $this->userName, $svnUserPass['userPass']);
+        $checkResult = $this->CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $this->userName, $svnUserPass['userPass']);
         if ($checkResult['status'] != 1) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
         }

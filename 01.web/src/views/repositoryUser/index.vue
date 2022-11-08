@@ -13,10 +13,13 @@
           <Button icon="md-add" type="primary" ghost @click="ModalCreateUser"
             >新建SVN用户</Button
           >
+          <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
+            >用户迁入</Button
+          >
           <Tooltip
             max-width="250"
-            content="1、刷新才可获取最新用户列表 
-2、手动写入passwd文件的用户需要刷新才能登录系统"
+            content="1、同步才可获取最新用户列表 
+2、手动写入passwd文件的用户需要同步才能登录系统"
             placement="bottom"
             :transfer="true"
           >
@@ -25,12 +28,9 @@
               type="warning"
               ghost
               @click="GetUserList(true)"
-              >手动刷新</Button
+              >同步列表</Button
             >
           </Tooltip>
-          <!-- <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
-            >自动识别</Button
-          > -->
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
           <Input
@@ -151,7 +151,7 @@
         >
       </div>
     </Modal>
-    <Modal v-model="modalScanPasswd" :draggable="true" title="自动识别">
+    <Modal v-model="modalScanPasswd" :draggable="true" title="步骤一：用户识别">
       <Input
         v-model="tempPasswdContent"
         placeholder="请粘贴 passwd 文件内容
@@ -220,7 +220,7 @@ user3=passwd3"
         >
           <Tooltip
             max-width="250"
-            content="刷新才可获取最新权限列表"
+            content="同步才可获取最新权限列表"
             placement="bottom"
             :transfer="true"
           >
@@ -229,7 +229,7 @@ user3=passwd3"
               type="warning"
               ghost
               @click="GetSvnUserRepList2(true)"
-              >手动刷新</Button
+              >同步列表</Button
             >
           </Tooltip>
         </Col>

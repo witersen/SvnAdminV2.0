@@ -13,9 +13,12 @@
           <Button icon="md-add" type="primary" ghost @click="ModalCreateGroup"
             >新建SVN分组</Button
           >
+          <Button icon="ios-sync" type="primary" ghost @click="ModalScanGroup"
+            >分组迁入</Button
+          >
           <Tooltip
             max-width="250"
-            content="刷新才可获取最新分组列表"
+            content="同步才可获取最新分组列表"
             placement="bottom"
             :transfer="true"
           >
@@ -24,7 +27,7 @@
               type="warning"
               ghost
               @click="GetGroupList(true)"
-              >手动刷新</Button
+              >同步列表</Button
             >
           </Tooltip>
         </Col>
@@ -224,6 +227,32 @@
         >
       </div>
     </Modal>
+    <!-- 对话框-识别分组信息 -->
+    <Modal v-model="modalScanGroup" :draggable="true" title="步骤一：分组识别">
+      <Input
+        v-model="tempAuthzContent"
+        placeholder="请粘贴 authz 文件内容
+
+示例：  
+
+[groups]
+group1=user1,user2,@group2
+group2=user3
+group3=user4,&aliase1"
+        :rows="15"
+        show-word-limit
+        type="textarea"
+      />
+      <div slot="footer">
+        <Button
+          type="primary"
+          ghost
+          @click="ScanGroup"
+          :loading="loadingScanGroup"
+          >识别</Button
+        >
+      </div>
+    </Modal>
     <!-- SVN对象列表组件 -->
     <ModalSvnObject
       :propModalSvnObject="modalSvnObject"
@@ -277,11 +306,15 @@ export default {
       loadingEditGroupName: false,
       //分组的成员列表
       loadingGetGroupMember: true,
+      //识别分组
+      loadingScanGroup: false,
 
       /**
        * 临时变量
        */
       currentSelectGroupName: "",
+      //用于识别的authz文件内容
+      tempAuthzContent: "",
 
       /**
        * 标题
@@ -300,6 +333,8 @@ export default {
       modalGetGroupMember: false,
       //对象列表弹出框
       modalSvnObject: false,
+      //分组识别框
+      modalScanGroup: false,
 
       /**
        * 表单
@@ -518,6 +553,35 @@ export default {
         })
         .catch(function (error) {
           that.loadingCreateGroup = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 识别 authz 文件
+     */
+    ModalScanGroup() {
+      this.modalScanGroup = true;
+    },
+    ScanGroup() {
+      var that = this;
+      that.loadingScanGroup = true;
+      var data = {
+        passwdContent: that.tempPasswdContent,
+      };
+      that.$axios
+        .post("/api.php?c=Svnuser&a=ScanPasswd&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.loadingScanGroup = false;
+            that.$Message.success(result.message);
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingScanGroup = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });

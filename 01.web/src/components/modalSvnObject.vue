@@ -13,7 +13,7 @@
             <Col type="flex" justify="space-between" span="12">
               <Tooltip
                 max-width="250"
-                content="刷新才可获取最新用户列表"
+                content="同步才可获取最新用户列表"
                 placement="bottom"
                 :transfer="true"
               >
@@ -22,7 +22,7 @@
                   type="warning"
                   ghost
                   @click="GetAllUsers(true)"
-                  >手动刷新</Button
+                  >同步列表</Button
                 >
               </Tooltip>
             </Col>
@@ -72,7 +72,7 @@
             <Col type="flex" justify="space-between" span="12">
               <Tooltip
                 max-width="250"
-                content="刷新才可获取最新分组列表"
+                content="同步才可获取最新分组列表"
                 placement="bottom"
                 :transfer="true"
               >
@@ -81,7 +81,7 @@
                   type="warning"
                   ghost
                   @click="GetAllGroups(true)"
-                  >手动刷新</Button
+                  >同步列表</Button
                 >
               </Tooltip>
             </Col>
@@ -133,7 +133,7 @@
             <Col type="flex" justify="space-between" span="12">
               <!-- <Tooltip
                 max-width="250"
-                content="刷新才可获取最新别名列表"
+                content="同步才可获取最新别名列表"
                 placement="bottom"
                 :transfer="true"
               >
@@ -142,7 +142,7 @@
                   type="warning"
                   ghost
                   @click="GetAliaseList(true)"
-                  >手动刷新</Button
+                  >同步列表</Button
                 >
               </Tooltip> -->
             </Col>
@@ -274,7 +274,7 @@
       </Tabs>
       <Alert show-icon>授权的对象权限默认为读写</Alert>
       <!-- <Alert show-icon
-        >如果对象信息用户等不是最新，需要回到对应的导航下刷新</Alert
+        >如果对象信息用户等不是最新，需要回到对应的导航下同步</Alert
       > -->
       <div slot="footer">
         <Button type="primary" ghost @click="CloseModalObject">取消</Button>
