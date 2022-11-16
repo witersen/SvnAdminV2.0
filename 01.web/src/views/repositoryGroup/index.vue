@@ -273,6 +273,12 @@ export default {
   data() {
     return {
       /**
+       * 权限函数
+       */
+      priFunctions: JSON.parse(sessionStorage.functions),
+      userRoleId: sessionStorage.user_role_id,
+
+      /**
        * 分页数据
        */
       //分组

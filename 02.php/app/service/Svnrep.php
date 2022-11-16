@@ -2187,25 +2187,27 @@ class Svnrep extends Base
      */
     private function GetSimpleRepList()
     {
-        funShellExec('chmod 777 -R ' . $this->configSvn['home_path']);
-
-        $repArray = [];
-        $file_arr = scandir($this->configSvn['rep_base_path']);
-        foreach ($file_arr as $file_item) {
-            clearstatcache();
-            if ($file_item != '.' && $file_item != '..') {
-                if (is_dir($this->configSvn['rep_base_path'] .  $file_item)) {
-                    $file_arr2 = scandir($this->configSvn['rep_base_path'] .  $file_item);
-                    foreach ($file_arr2 as $file_item2) {
-                        if (($file_item2 == 'conf' || $file_item2 == 'db' || $file_item2 == 'hooks' || $file_item2 == 'locks')) {
-                            array_push($repArray, $file_item);
-                            break;
-                        }
-                    }
-                }
-            }
+        $result = funShellExec(sprintf("tree -L 2 --noreport -d -i -f '%s'", $this->configSvn['rep_base_path']));
+        if ($result['code'] != 0) {
+            return [];
         }
-        return $repArray;
+
+        $result = explode("\n", trim($result['result']));
+
+        $db = array_values(array_filter($result, 'funArrayValueFilterDb'));
+        $hooks = array_values(array_filter($result, 'funArrayValueFilterHooks'));
+        $locks = array_values(array_filter($result, 'funArrayValueFilterLocks'));
+        $conf = array_values(array_filter($result, 'funArrayValueFilterConf'));
+
+        $result = array_intersect_key($db, $hooks, $locks, $conf);
+
+        $offset = strlen($this->configSvn['rep_base_path']);
+        $lenDb = strlen('/db');
+        foreach ($result as $key => $rep) {
+            $result[$key] = substr($rep, $offset, strlen($rep) - $offset - $lenDb);
+        }
+
+        return $result;
     }
 
     /**

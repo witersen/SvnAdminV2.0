@@ -24,6 +24,38 @@ function funArrayValueFilter($value)
 }
 
 /**
+ * 过滤 /db
+ */
+function funArrayValueFilterDb($value)
+{
+    return substr($value, -3) == '/db';
+}
+
+/**
+ * 过滤 /hooks
+ */
+function funArrayValueFilterHooks($value)
+{
+    return substr($value, -6) == '/hooks';
+}
+
+/**
+ * 过滤 /locks
+ */
+function funArrayValueFilterLocks($value)
+{
+    return substr($value, -6) == '/locks';
+}
+
+/**
+ * 过滤 /conf
+ */
+function funArrayValueFilterConf($value)
+{
+    return substr($value, -5) == '/conf';
+}
+
+/**
  * 对数据每项键值进行去除 #disabled# 操作
  */
 function funArrayValueEnabled(&$value, $key)
