@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:09:40
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -43,9 +43,9 @@ class Crond extends Base
      *
      * @return array
      */
-    public function GetCrondList()
+    public function GetCrontabList()
     {
-        $result = $this->ServiceCrond->GetCrondList();
+        $result = $this->ServiceCrond->GetCrontabList();
         json2($result);
     }
 
@@ -54,9 +54,9 @@ class Crond extends Base
      *
      * @return array
      */
-    public function CreateCrond()
+    public function CreateCrontab()
     {
-        $result = $this->ServiceCrond->CreateCrond();
+        $result = $this->ServiceCrond->CreateCrontab();
         json2($result);
     }
 
@@ -65,9 +65,9 @@ class Crond extends Base
      *
      * @return array
      */
-    public function UpdCrond()
+    public function UpdCrontab()
     {
-        $result = $this->ServiceCrond->UpdCrond();
+        $result = $this->ServiceCrond->UpdCrontab();
         json2($result);
     }
 
@@ -76,9 +76,9 @@ class Crond extends Base
      *
      * @return array
      */
-    public function UpdCrondStatus()
+    public function UpdCrontabStatus()
     {
-        $result = $this->ServiceCrond->UpdCrondStatus();
+        $result = $this->ServiceCrond->UpdCrontabStatus();
         json2($result);
     }
 
@@ -87,9 +87,9 @@ class Crond extends Base
      *
      * @return array
      */
-    public function DelCrond()
+    public function DelCrontab()
     {
-        $result = $this->ServiceCrond->DelCrond();
+        $result = $this->ServiceCrond->DelCrontab();
         json2($result);
     }
 
@@ -98,9 +98,9 @@ class Crond extends Base
      *
      * @return array
      */
-    public function GetCrondLog()
+    public function GetCrontabLog()
     {
-        $result = $this->ServiceCrond->GetCrondLog();
+        $result = $this->ServiceCrond->GetCrontabLog();
         json2($result);
     }
 
@@ -109,9 +109,9 @@ class Crond extends Base
      *
      * @return array
      */
-    public function TriggerCrond()
+    public function TriggerCrontab()
     {
-        $result = $this->ServiceCrond->TriggerCrond();
+        $result = $this->ServiceCrond->TriggerCrontab();
         json2($result);
     }
 

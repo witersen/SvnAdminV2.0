@@ -16,12 +16,13 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.25.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-polyfill": "^6.26.0",
     "file-saver": "^2.0.5",
     "view-design": "^4.7.0",
     "vue": "^2.5.16",
     "vue-clipboard2": "^0.3.3",
-    "vue-router": "^2.8.1",
+    "vue-router": "^3.5.2",
     "web-streams-polyfill": "^3.2.1",
     "xlsx": "^0.18.5"
   },

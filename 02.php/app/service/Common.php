@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 00:01:12
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -22,7 +22,7 @@ class Common extends Base
     private $Svnuser;
     private $Logs;
     private $Mail;
-    private $Safe;
+    private $Setting;
 
     function __construct($parm = [])
     {
@@ -31,7 +31,7 @@ class Common extends Base
         $this->Svnuser = new Svnuser();
         $this->Logs = new Logs();
         $this->Mail = new Mail();
-        $this->Safe = new Safe();
+        $this->Setting = new Setting();
     }
 
     /**
@@ -56,7 +56,7 @@ class Common extends Base
         //清理过期token
         $this->CleanBlack();
 
-        $verifyOptionResult = $this->Safe->GetVerifyOption();
+        $verifyOptionResult = $this->Setting->GetVerifyOption();
 
         if ($verifyOptionResult['status'] != 1) {
             return message(200, 0, $verifyOptionResult['message']);
@@ -65,29 +65,28 @@ class Common extends Base
         $verifyOption = $verifyOptionResult['data'];
 
         if ($verifyOption['enable'] == true) {
-            $codeResult = $this->database->get('verification_code', [
-                'end_time'
-            ], [
+            $endTime = $this->database->get('verification_code', 'end_time', [
                 'uuid' => $this->payload['uuid'],
                 'code' => $this->payload['code'],
             ]);
-            if ($codeResult == null) {
+            if (empty($endTime)) {
                 //每个 uuid 仅可使用一次 防止爆破
                 $this->database->update('verification_code', [
                     'end_time' => 0
                 ], [
                     'uuid' => $this->payload['uuid']
                 ]);
-                return message(200, 0, '验证码错误', $codeResult);
+                return message(200, 0, '验证码错误', $endTime);
             }
-            if ($codeResult['end_time'] == 0) {
+            if ($endTime == 0) {
                 return message(200, 0, '验证码仅可用一次');
             }
-            if ($codeResult['end_time'] < time()) {
+            if ($endTime < time()) {
                 return message(200, 0, '验证码过期');
             }
         }
 
+        $token = '';
         if ($userRole == 1) {
             $result = $this->database->get('admin_users', [
                 'admin_user_id',
@@ -101,6 +100,13 @@ class Common extends Base
             if (empty($result)) {
                 return message(200, 0, '账号或密码错误');
             }
+
+            //更新token
+            $this->database->update('admin_users', [
+                'admin_user_token' => $token = $this->CreateToken($userRole, $userName)
+            ], [
+                'admin_user_name' => $userName
+            ]);
         } else if ($userRole == 2) {
             $result = $this->database->get('svn_users', [
                 'svn_user_id',
@@ -121,6 +127,13 @@ class Common extends Base
             //更新登录时间
             $this->database->update('svn_users', [
                 'svn_user_last_login' => date('Y-m-d H:i:s')
+            ], [
+                'svn_user_name' => $userName
+            ]);
+
+            //更新token
+            $this->database->update('svn_users', [
+                'svn_user_token' => $token = $this->CreateToken($userRole, $userName)
             ], [
                 'svn_user_name' => $userName
             ]);
@@ -147,6 +160,13 @@ class Common extends Base
             ], [
                 'subadmin_name' => $userName
             ]);
+
+            //更新token
+            $this->database->update('subadmin', [
+                'subadmin_token' => $token = $this->CreateToken($userRole, $userName)
+            ], [
+                'subadmin_name' => $userName
+            ]);
         }
 
         //日志
@@ -159,11 +179,14 @@ class Common extends Base
         //邮件
         $this->Mail->SendMail('Common/Login', '用户登录成功通知', '账号：' . $userName . ' ' . 'IP地址：' . $_SERVER["REMOTE_ADDR"] . ' ' . '时间：' . date('Y-m-d H:i:s'));
 
+        $info = $this->GetDynamicRouting($userRole);
         return message(200, 1, '登陆成功', [
-            'token' => $this->CreateToken($userRole, $userName),
+            'token' => $token,
             'user_name' => $userName,
             'user_role_name' => $userRoleName,
-            'user_role_id' => $userRole
+            'user_role_id' => $userRole,
+            'route' => $info['route'],
+            'functions' => $info['functions'],
         ]);
     }
 
@@ -199,6 +222,26 @@ class Common extends Base
      */
     public function Logout()
     {
+        if ($this->userRoleId == 1) {
+            $this->database->update('admin_users', [
+                'admin_user_token' => ''
+            ], [
+                'admin_user_name' => $this->userName
+            ]);
+        } else if ($this->userRoleId == 2) {
+            $this->database->update('svn_users', [
+                'svn_user_token' => ''
+            ], [
+                'svn_user_name' => $this->userName
+            ]);
+        } else if ($this->userRoleId == 3) {
+            $this->database->update('subadmin', [
+                'subadmin_token' => ''
+            ], [
+                'subadmin_name' => $this->userName
+            ]);
+        }
+
         //加入本token
         $this->AddBlack();
 
@@ -256,13 +299,11 @@ class Common extends Base
         ]);
 
         //从数据库查询验证数据被正常写入
-        $result = $this->database->get('verification_code', [
-            'code_id'
-        ], [
+        $codeId = $this->database->get('verification_code', 'code_id', [
             'uuid' => $uuid
         ]);
 
-        if ($result == null) {
+        if (empty($codeId)) {
             return message(200, 0, '无法写入数据库，如果为 SQLite，请为数据库文件及上级目录授权');
         }
 

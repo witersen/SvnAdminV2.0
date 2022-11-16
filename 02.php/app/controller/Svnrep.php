@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-08-28 18:07:43
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -29,6 +29,38 @@ class Svnrep extends Base
         parent::__construct($parm);
 
         $this->ServiceSvnrep = new ServiceSvnrep($parm);
+    }
+
+    /**
+     * 检测 authz 是否有效
+     *
+     * @return array
+     */
+    public function CheckAuthz()
+    {
+        $result = $this->ServiceSvnrep->CheckAuthz();
+        json2($result);
+    }
+
+    /**
+     * 获取Subversion的检出地址前缀
+     * 
+     * 先从Subversion配置文件获取绑定端口和主机
+     * 然后与listen.json配置文件中的端口和主机进行对比和同步
+     */
+    public function GetCheckout()
+    {
+        $result = $this->ServiceSvnrep->GetCheckout();
+        json2($result);
+    }
+
+    /**
+     * 获取Subversion运行状态 用于页头提醒
+     */
+    public function GetSvnserveStatus()
+    {
+        $result = $this->ServiceSvnrep->GetSvnserveStatus();
+        json2($result);
     }
 
     /**
@@ -71,9 +103,9 @@ class Svnrep extends Base
     /**
      * 修改仓库的备注信息
      */
-    public function EditRepNote()
+    public function UpdRepNote()
     {
-        $result = $this->ServiceSvnrep->EditRepNote();
+        $result = $this->ServiceSvnrep->UpdRepNote();
         json2($result);
     }
 
@@ -118,7 +150,7 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取某个仓库路径的所有权限列表
+     * 获取某个仓库路径下的权限
      */
     public function GetRepPathAllPri()
     {
@@ -127,27 +159,27 @@ class Svnrep extends Base
     }
 
     /**
-     * 为某仓库路径下增加权限
+     * 增加某个仓库路径下的权限
      *
      * @return array
      */
-    public function AddRepPathPri()
+    public function CreateRepPathPri()
     {
-        $result = $this->ServiceSvnrep->AddRepPathPri();
+        $result = $this->ServiceSvnrep->CreateRepPathPri();
         json2($result);
     }
 
     /**
      * 修改某个仓库路径下的权限
      */
-    public function EditRepPathPri()
+    public function UpdRepPathPri()
     {
-        $result = $this->ServiceSvnrep->EditRepPathPri();
+        $result = $this->ServiceSvnrep->UpdRepPathPri();
         json2($result);
     }
 
     /**
-     * 删除某个仓库下的权限
+     * 删除某个仓库路径下的权限
      */
     public function DelRepPathPri()
     {
@@ -158,9 +190,9 @@ class Svnrep extends Base
     /**
      * 修改仓库名称
      */
-    public function EditRepName()
+    public function UpdRepName()
     {
-        $result = $this->ServiceSvnrep->EditRepName();
+        $result = $this->ServiceSvnrep->UpdRepName();
         json2($result);
     }
 
@@ -203,9 +235,9 @@ class Svnrep extends Base
     /**
      * 立即备份当前仓库
      */
-    public function RepDump()
+    public function SvnadminDump()
     {
-        $result = $this->ServiceSvnrep->RepDump();
+        $result = $this->ServiceSvnrep->SvnadminDump();
         json2($result);
     }
 
@@ -247,9 +279,9 @@ class Svnrep extends Base
     /**
      * 从本地备份文件导入仓库
      */
-    public function ImportRep()
+    public function SvnadminLoad()
     {
-        $result = $this->ServiceSvnrep->ImportRep();
+        $result = $this->ServiceSvnrep->SvnadminLoad();
         json2($result);
     }
 
@@ -274,9 +306,9 @@ class Svnrep extends Base
     /**
      * 修改仓库的钩子内容（针对单个钩子）
      */
-    public function EditRepHook()
+    public function UpdRepHook()
     {
-        $result = $this->ServiceSvnrep->EditRepHook();
+        $result = $this->ServiceSvnrep->UpdRepHook();
         json2($result);
     }
 

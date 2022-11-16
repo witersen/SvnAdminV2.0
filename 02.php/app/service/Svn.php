@@ -1,106 +1,21 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:29:48
+ * 
  * @Description: QQ:1801168257
  */
 
 namespace app\service;
 
-use Config;
+// use Config;
 
 class Svn extends Base
 {
     function __construct($parm = [])
     {
         parent::__construct($parm);
-    }
-
-    /**
-     * 获取Subversion运行状态 用于页头提醒
-     */
-    public function GetStatus()
-    {
-        if ($this->GetSvnserveStatus()) {
-            return message();
-        } else {
-            return message(200, 0, 'svnserve服务未在运行，出于安全原因，SVN用户将无法使用系统的仓库在线内容浏览功能，其它功能不受影响');
-        }
-    }
-
-    /**
-     * 获取 svnserve 的运行状态
-     *
-     * @return bool
-     */
-    private function GetSvnserveStatus()
-    {
-        funShellExec(sprintf("chmod 777 '%s'", $this->configSvn['svnserve_pid_file']));
-
-        clearstatcache();
-        
-        if (!file_exists($this->configSvn['svnserve_pid_file'])) {
-            return false;
-        } else {
-            $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
-            if (is_dir("/proc/$pid")) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    /**
-     * 获取Subversion的检出地址前缀
-     * 
-     * 先从Subversion配置文件获取绑定端口和主机
-     * 然后与listen.json配置文件中的端口和主机进行对比和同步
-     */
-    public function GetCheckout()
-    {
-        $result = $this->GetSvnserveListen();
-        $checkoutHost = $result[$result['enable']];
-        if ($result['bindPort'] != 3690) {
-            $checkoutHost .= ':' . $result['bindPort'];
-        }
-        return message(200, 1, '成功', [
-            'protocal' => 'svn://',
-            'prefix' => $checkoutHost
-        ]);
-    }
-
-    /**
-     * 获取Subversion的详细信息
-     */
-    public function GetDetail()
-    {
-        //获取绑定主机、端口等信息
-        $bindInfo = $this->GetSvnserveListen();
-
-        //获取Subversion版本
-        $version = '-';
-        $result = funShellExec(sprintf("'%s' --version", $this->configBin['svnserve']));
-        if ($result['code'] == 0) {
-            preg_match_all($this->configReg['REG_SUBVERSION_VERSION'], $result['result'], $versionInfoPreg);
-            if (array_key_exists(0, $versionInfoPreg[0])) {
-                $version = trim($versionInfoPreg[1][0]);
-            } else {
-                $version = '--';
-            }
-        }
-
-        return message(200, 1, '成功', [
-            'version' => $version,
-            'status' => $this->GetSvnserveStatus(),
-            'bindPort' => (int)$bindInfo['bindPort'],
-            'bindHost' => $bindInfo['bindHost'],
-            'manageHost' => $bindInfo['manageHost'],
-            'enable' => $bindInfo['enable'],
-            'svnserveLog' => $this->configSvn['svnserve_log_file']
-        ]);
     }
 
     /**
@@ -147,7 +62,7 @@ class Svn extends Base
             "enable" => "manageHost"
         ];
 
-        if ($svnserve_listen == null) {
+        if (empty($svnserve_listen)) {
             //插入
             $this->database->insert('options', [
                 'option_name' => 'svnserve_listen',
@@ -174,236 +89,5 @@ class Svn extends Base
         }
 
         return $insert;
-    }
-
-    /**
-     * 安装SVN
-     */
-    public function Install()
-    {
-    }
-
-    /**
-     * 卸载SVN
-     */
-    public function UnInstall()
-    {
-    }
-
-    /**
-     * 启动SVN
-     */
-    public function Start()
-    {
-        $result = $this->GetSvnserveListen();
-
-        $cmdStart = sprintf(
-            "'%s' --daemon --pid-file '%s' -r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s",
-            $this->configBin['svnserve'],
-            $this->configSvn['svnserve_pid_file'],
-            $this->configSvn['rep_base_path'],
-            $this->configSvn['svn_conf_file'],
-            $this->configSvn['svnserve_log_file'],
-            $result['bindPort'],
-            $result['bindHost']
-        );
-
-        $result = funShellExec($cmdStart);
-
-        if ($result['code'] == 0) {
-            return message();
-        } else {
-            return message(200, 0, $result['error']);
-        }
-    }
-
-    /**
-     * 停止SVN
-     */
-    public function Stop()
-    {
-        if (!file_exists($this->configSvn['svnserve_pid_file'])) {
-            return message(200, 0, 'pid文件不存在');
-        }
-
-        $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
-
-        $result = funShellExec(sprintf("kill -9 '%s'", $pid));
-
-        if ($result['code'] == 0) {
-            return message();
-        } else {
-            return message(200, 0, $result['error']);
-        }
-    }
-
-    /**
-     * 修改svnserve的绑定端口
-     */
-    public function EditPort()
-    {
-        //port不能为空
-
-        //获取现在的端口与要修改的端口对比检查是否相同
-        $result = $this->GetSvnserveListen();
-
-        if ($this->payload['bindPort'] == $result['bindPort']) {
-            return message(200, 0, '无需更换，端口相同');
-        }
-
-        //停止svnserve
-        $this->Stop();
-
-        //重新构建配置文件内容
-        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->configSvn['rep_base_path'], $this->configSvn['svn_conf_file'], $this->configSvn['svnserve_log_file'], $this->payload['bindPort'], $result['bindHost']);
-
-        //写入配置文件
-        funFilePutContents($this->configSvn['svnserve_env_file'], $config);
-
-        //启动svnserve
-        $resultStart = $this->Start();
-        if ($resultStart['status'] != 1) {
-            return $resultStart;
-        }
-
-        return message();
-    }
-
-    /**
-     * 修改svnserve的绑定主机
-     */
-    public function EditHost()
-    {
-        //host不能为空
-        //不能带前缀如http或者https
-
-        //获取现在的绑定主机与要修改的主机对比检查是否相同
-        $result = $this->GetSvnserveListen();
-
-        if ($this->payload['bindHost'] == $result['bindHost']) {
-            return message(200, 0, '无需更换，地址相同');
-        }
-
-        //停止svnserve
-        $this->Stop();
-
-        //重新构建配置文件内容
-        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->configSvn['rep_base_path'], $this->configSvn['svn_conf_file'], $this->configSvn['svnserve_log_file'], $result['bindPort'], $this->payload['bindHost']);
-
-        //写入配置文件
-        funFilePutContents($this->configSvn['svnserve_env_file'], $config);
-
-        //启动svnserve
-        $resultStart = $this->Start();
-        if ($resultStart['status'] != 1) {
-            return $resultStart;
-        }
-
-        return message();
-    }
-
-    /**
-     * 修改管理系统主机名
-     */
-    public function EditManageHost()
-    {
-        //不能为空
-        //不能带前缀如http或者https
-
-        $result = $this->GetSvnserveListen();
-
-        if ($this->payload['manageHost'] == $result['manageHost']) {
-            return message(200, 0, '无需更换，地址相同');
-        }
-
-        //更新
-        $result['manageHost'] = $this->payload['manageHost'];
-        $this->database->update('options', [
-            'option_value' => serialize($result),
-        ], [
-            'option_name' => 'svnserve_listen',
-        ]);
-
-        return message();
-    }
-
-    /**
-     * 修改检出地址
-     */
-    public function EditEnable()
-    {
-        $result = $this->GetSvnserveListen();
-
-        //enable的值可为 manageHost、bindHost
-
-        //更新
-        $result['enable'] = $this->payload['enable'];
-        $this->database->update('options', [
-            'option_value' => serialize($result),
-        ], [
-            'option_name' => 'svnserve_listen',
-        ]);
-
-        return message();
-    }
-
-    /**
-     * 获取配置文件列表
-     */
-    public function GetConfig()
-    {
-        return message(200, 1, '成功', [
-            [
-                'key' => '主目录',
-                'value' => $this->configSvn['home_path']
-            ],
-            [
-                'key' => '仓库父目录',
-                'value' => $this->configSvn['rep_base_path']
-            ],
-            [
-                'key' => '仓库配置文件',
-                'value' => $this->configSvn['svn_conf_file']
-            ],
-            [
-                'key' => '仓库权限文件',
-                'value' => $this->configSvn['svn_authz_file']
-            ],
-            [
-                'key' => '用户账号文件',
-                'value' => $this->configSvn['svn_passwd_file']
-            ],
-            [
-                'key' => '备份目录',
-                'value' => $this->configSvn['backup_base_path']
-            ],
-            [
-                'key' => 'svnserve环境变量文件',
-                'value' => $this->configSvn['svnserve_env_file']
-            ],
-        ]);
-    }
-
-    /**
-     * 检测 authz 是否有效
-     *
-     * @return array
-     */
-    public function ValidateAuthz()
-    {
-        if (!array_key_exists('svnauthz-validate', $this->configBin)) {
-            return message(200, 0, '需要在 config/bin.php 文件中配置 svnauthz-validate 的路径');
-        }
-
-        if ($this->configBin['svnauthz-validate'] == '') {
-            return message(200, 0, '未在 config/bin.php 文件中配置 svnauthz-validate 路径');
-        }
-
-        $result = funShellExec(sprintf("'%s' '%s'", '/usr/bin/svn-tools/svnauthz-validate', $this->configSvn['svn_authz_file'], $this->configBin['svnauthz-validate']));
-        if ($result['code'] != 0) {
-            return message(200, 2, '检测到异常', $result['error']);
-        } else {
-            return message(200, 1, 'authz文件配置无误');
-        }
     }
 }

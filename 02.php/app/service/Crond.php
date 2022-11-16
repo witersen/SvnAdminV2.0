@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-06 21:37:57
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -41,7 +41,7 @@ class Crond extends Base
      *
      * @return array
      */
-    public function GetCrondList()
+    public function GetCrontabList()
     {
         $pageSize = $this->payload['pageSize'];
         $currentPage = $this->payload['currentPage'];
@@ -130,7 +130,7 @@ class Crond extends Base
      *
      * @return array
      */
-    public function CreateCrond()
+    public function CreateCrontab()
     {
         //todo 检查crond服务有无开启
 
@@ -262,7 +262,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
      *
      * @return array
      */
-    public function UpdCrond()
+    public function UpdCrontab()
     {
         if (!isset($this->payload['cycle'])) {
             return message(200, 0, '参数[cycle]不存在');
@@ -349,7 +349,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
      *
      * @return void
      */
-    public function UpdCrondStatus()
+    public function UpdCrontabStatus()
     {
         if (!isset($this->payload['crond_id'])) {
             return message(200, 0, '参数不完整');
@@ -411,7 +411,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
      *
      * @return array
      */
-    public function DelCrond()
+    public function DelCrontab()
     {
         if (!isset($this->payload['crond_id'])) {
             return message(200, 0, '参数不完整');
@@ -474,7 +474,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
      *
      * @return void
      */
-    public function TriggerCrond()
+    public function TriggerCrontab()
     {
         if (!isset($this->payload['crond_id'])) {
             return message(200, 0, '参数不完整');
@@ -511,7 +511,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
      *
      * @return void
      */
-    public function GetCrondLog()
+    public function GetCrontabLog()
     {
         if (!isset($this->payload['crond_id'])) {
             return message(200, 0, '参数不完整');
@@ -579,12 +579,12 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
             ],
         ];
 
-        foreach ($software as $value) {
-            $result = funShellExec($value['shell']);
-            if ($result['code'] != 0) {
-                return message(200, 0, $value['desc'] . ': ' . $result['error']);
-            }
-        }
+        // foreach ($software as $value) {
+        //     $result = funShellExec($value['shell']);
+        //     if ($result['code'] != 0) {
+        //         return message(200, 0, $value['desc'] . ': ' . $result['error']);
+        //     }
+        // }
 
         foreach ($serviceStart as $value) {
             $result = funShellExec($value['shell']);

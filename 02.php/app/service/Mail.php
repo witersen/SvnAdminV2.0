@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-12 13:46:22
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -203,7 +203,7 @@ class Mail extends Base
     /**
      * 修改邮件配置信息
      */
-    public function UpdMail()
+    public function UpdMailInfo()
     {
         $this->database->update('options', [
             'option_value' => serialize([
@@ -228,7 +228,7 @@ class Mail extends Base
     /**
      * 发送测试邮件
      */
-    public function TestMail()
+    public function SendMailTest()
     {
         $checkResult = funCheckForm($this->payload, [
             'host' => ['type' => 'string', 'notNull' => true],
@@ -455,7 +455,7 @@ class Mail extends Base
     /**
      * 修改推送选项
      */
-    function UpdPush()
+    function UpdPushInfo()
     {
         $this->database->update('options', [
             'option_value' => serialize($this->payload['listPush'])

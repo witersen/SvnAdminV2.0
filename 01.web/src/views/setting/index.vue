@@ -45,14 +45,14 @@
                       :loading="loadingSvnserveStart"
                       type="success"
                       v-if="!formSvn.status"
-                      @click="Start"
+                      @click="StartSvnserve"
                       >启动</Button
                     >
                     <Button
                       :loading="loadingSvnserveStop"
                       type="warning"
                       v-if="formSvn.status"
-                      @click="Stop"
+                      @click="StopSvnserve"
                       >停止</Button
                     >
                   </Col>
@@ -71,7 +71,7 @@
                   <Col span="6">
                     <Button
                       type="warning"
-                      @click="EditPort"
+                      @click="UpdSvnservePort"
                       :disabled="disabledEditPort"
                       :loading="loadingEditPort"
                       >修改</Button
@@ -97,7 +97,7 @@
                     >
                       <Button
                         type="warning"
-                        @click="EditHost"
+                        @click="UpdSvnserveHost"
                         :disabled="disabledEditHost"
                         :loading="loadingEditHost"
                         >修改</Button
@@ -124,7 +124,7 @@
                     >
                       <Button
                         type="warning"
-                        @click="EditManageHost"
+                        @click="UpdManageHost"
                         :disabled="disabledEditManageHost"
                         :loading="loadingEditManageHost"
                         >修改</Button
@@ -138,7 +138,7 @@
                   <Col span="12">
                     <RadioGroup
                       v-model="formSvn.enable"
-                      @on-change="EditEnable"
+                      @on-change="UpdCheckoutHost"
                     >
                       <Radio label="bindHost">绑定主机</Radio>
                       <Radio label="manageHost">自定义主机</Radio>
@@ -339,7 +339,7 @@
                     >
                       <Button
                         type="success"
-                        @click="TestMail"
+                        @click="SendMailTest"
                         :loading="loadingSendTest"
                         >发送</Button
                       >
@@ -366,7 +366,7 @@
               <FormItem>
                 <Button
                   type="primary"
-                  @click="UpdMail"
+                  @click="UpdMailInfo"
                   :loading="loadingEditEmail"
                   >保存</Button
                 >
@@ -401,7 +401,7 @@
                 <Button
                   type="primary"
                   :loading="loadingEditPush"
-                  @click="UpdPush"
+                  @click="UpdPushInfo"
                   >保存</Button
                 >
               </FormItem>
@@ -429,7 +429,7 @@
                 <Button
                   type="primary"
                   :loading="loadingEditSafe"
-                  @click="UpdSafeConfig"
+                  @click="UpdSafeInfo"
                   >保存</Button
                 >
               </FormItem>
@@ -771,10 +771,10 @@ export default {
     } else {
       this.currentAdvanceTab = sessionStorage.currentAdvanceTab;
     }
-    this.GetDetail();
-    this.GetConfig();
+    this.GetSvnserveInfo();
+    this.GetDirInfo();
     this.GetMailInfo();
-    this.GetPushInfo();
+    this.GetMailPushInfo();
     this.GetSafeInfo();
   },
   methods: {
@@ -788,11 +788,11 @@ export default {
     /**
      * 获取subversion的详细信息
      */
-    GetDetail() {
+    GetSvnserveInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Svn&a=GetDetail&t=web", data)
+        .post("/api.php?c=Setting&a=GetSvnserveInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -851,7 +851,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Mail&a=GetMailInfo&t=web", data)
+        .post("/api.php?c=Setting&a=GetMailInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -881,7 +881,7 @@ export default {
     /**
      * 修改邮件配置信息
      */
-    UpdMail() {
+    UpdMailInfo() {
       var that = this;
       that.loadingEditEmail = true;
       var data = {
@@ -898,7 +898,7 @@ export default {
         timeout: that.formMailSmtp.timeout,
       };
       that.$axios
-        .post("/api.php?c=Mail&a=UpdMail&t=web", data)
+        .post("/api.php?c=Setting&a=UpdMailInfo&t=web", data)
         .then(function (response) {
           that.loadingEditEmail = false;
           var result = response.data;
@@ -918,7 +918,7 @@ export default {
     /**
      * 发送测试邮件
      */
-    TestMail() {
+    SendMailTest() {
       var that = this;
       that.loadingSendTest = true;
       var data = {
@@ -934,7 +934,7 @@ export default {
         timeout: that.formMailSmtp.timeout,
       };
       that.$axios
-        .post("/api.php?c=Mail&a=TestMail&t=web", data)
+        .post("/api.php?c=Setting&a=SendMailTest&t=web", data)
         .then(function (response) {
           that.loadingSendTest = false;
           var result = response.data;
@@ -953,11 +953,11 @@ export default {
     /**
      * 获取配置文件信息
      */
-    GetConfig() {
+    GetDirInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Svn&a=GetConfig&t=web", data)
+        .post("/api.php?c=Setting&a=GetDirInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -974,11 +974,11 @@ export default {
     /**
      * 获取消息推送配置
      */
-    GetPushInfo() {
+    GetMailPushInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Mail&a=GetPushInfo&t=web", data)
+        .post("/api.php?c=Setting&a=GetMailPushInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -999,7 +999,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Safe&a=GetSafeInfo&t=web", data)
+        .post("/api.php?c=Setting&a=GetSafeInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1051,20 +1051,20 @@ export default {
     /**
      * 修改信息
      */
-    UpdPush() {
+    UpdPushInfo() {
       var that = this;
       that.loadingEditPush = true;
       var data = {
         listPush: that.listPush,
       };
       that.$axios
-        .post("/api.php?c=Mail&a=UpdPush&t=web", data)
+        .post("/api.php?c=Setting&a=UpdPushInfo&t=web", data)
         .then(function (response) {
           that.loadingEditPush = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetPushInfo();
+            that.GetMailPushInfo();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -1078,14 +1078,14 @@ export default {
     /**
      * 保存安全配置选项
      */
-    UpdSafeConfig() {
+    UpdSafeInfo() {
       var that = this;
       that.loadingEditSafe = true;
       var data = {
         listSafe: that.listSafe,
       };
       that.$axios
-        .post("/api.php?c=Safe&a=UpdSafeConfig&t=web", data)
+        .post("/api.php?c=Setting&a=UpdSafeInfo&t=web", data)
         .then(function (response) {
           that.loadingEditSafe = false;
           var result = response.data;
@@ -1103,17 +1103,9 @@ export default {
         });
     },
     /**
-     * 安装SVN
-     */
-    Install() {},
-    /**
-     * 卸载SVN
-     */
-    UnInstall() {},
-    /**
      * 启动SVN
      */
-    Start() {
+    StartSvnserve() {
       var that = this;
       that.$Modal.confirm({
         title: "以daomen方式启动svnserve服务",
@@ -1122,13 +1114,13 @@ export default {
           that.loadingSvnserveStart = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Svn&a=Start&t=web", data)
+            .post("/api.php?c=Setting&a=StartSvnserve&t=web", data)
             .then(function (response) {
               that.loadingSvnserveStart = false;
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetDetail();
+                that.GetSvnserveInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -1144,7 +1136,7 @@ export default {
     /**
      * 停止SVN
      */
-    Stop() {
+    StopSvnserve() {
       var that = this;
       that.$Modal.confirm({
         title: "停止svnserve服务",
@@ -1153,13 +1145,13 @@ export default {
           that.loadingSvnserveStop = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Svn&a=Stop&t=web", data)
+            .post("/api.php?c=Setting&a=StopSvnserve&t=web", data)
             .then(function (response) {
               that.loadingSvnserveStop = false;
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetDetail();
+                that.GetSvnserveInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -1173,9 +1165,9 @@ export default {
       });
     },
     /**
-     * 修改svnserve的绑定端口
+     * 修改 svnserve 的绑定端口
      */
-    EditPort() {
+    UpdSvnservePort() {
       var that = this;
       that.$Modal.confirm({
         title: "更换svnserve服务绑定端口",
@@ -1187,15 +1179,15 @@ export default {
             bindPort: that.tempBindPort,
           };
           that.$axios
-            .post("/api.php?c=Svn&a=EditPort&t=web", data)
+            .post("/api.php?c=Setting&a=UpdSvnservePort&t=web", data)
             .then(function (response) {
               that.loadingEditPort = false;
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetDetail();
+                that.GetSvnserveInfo();
               } else {
-                that.GetDetail();
+                that.GetSvnserveInfo();
                 that.$Message.error({ content: result.message, duration: 2 });
               }
             })
@@ -1208,9 +1200,9 @@ export default {
       });
     },
     /**
-     * 修改svnserve的绑定主机
+     * 修改 svnserve 的绑定主机
      */
-    EditHost() {
+    UpdSvnserveHost() {
       var that = this;
       that.$Modal.confirm({
         title: "更换svnserve服务绑定主机",
@@ -1222,15 +1214,15 @@ export default {
             bindHost: that.tempBindHost,
           };
           that.$axios
-            .post("/api.php?c=Svn&a=EditHost&t=web", data)
+            .post("/api.php?c=Setting&a=UpdSvnserveHost&t=web", data)
             .then(function (response) {
               that.loadingEditHost = false;
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetDetail();
+                that.GetSvnserveInfo();
               } else {
-                that.GetDetail();
+                that.GetSvnserveInfo();
                 that.$Message.error({ content: result.message, duration: 2 });
               }
             })
@@ -1245,7 +1237,7 @@ export default {
     /**
      * 修改管理系统主机名
      */
-    EditManageHost() {
+    UpdManageHost() {
       var that = this;
       that.$Modal.confirm({
         title: "更换管理系统主机名",
@@ -1257,15 +1249,15 @@ export default {
             manageHost: that.tempManageHost,
           };
           that.$axios
-            .post("/api.php?c=Svn&a=EditManageHost&t=web", data)
+            .post("/api.php?c=Setting&a=UpdManageHost&t=web", data)
             .then(function (response) {
               that.loadingEditManageHost = false;
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetDetail();
+                that.GetSvnserveInfo();
               } else {
-                that.GetDetail();
+                that.GetSvnserveInfo();
                 that.$Message.error({ content: result.message, duration: 2 });
               }
             })
@@ -1280,20 +1272,20 @@ export default {
     /**
      * 修改检出地址
      */
-    EditEnable(value) {
+    UpdCheckoutHost(value) {
       var that = this;
       var data = {
         enable: value,
       };
       that.$axios
-        .post("/api.php?c=Svn&a=EditEnable&t=web", data)
+        .post("/api.php?c=Setting&a=UpdCheckoutHost&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetDetail();
+            that.GetSvnserveInfo();
           } else {
-            that.GetDetail();
+            that.GetSvnserveInfo();
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
@@ -1308,7 +1300,7 @@ export default {
       that.loadingCheckUpdate = true;
       var data = {};
       that.$axios
-        .post("/api.php?c=Update&a=CheckUpdate&t=web", data)
+        .post("/api.php?c=Setting&a=CheckUpdate&t=web", data)
         .then(function (response) {
           that.loadingCheckUpdate = false;
           var result = response.data;

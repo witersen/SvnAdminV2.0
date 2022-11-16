@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:04:33
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -39,9 +39,9 @@ class Svngroup extends Base
     /**
      * 编辑分组备注信息
      */
-    public function EditGroupNote()
+    public function UpdGroupNote()
     {
-        $result = $this->ServiceSvngroup->EditGroupNote();
+        $result = $this->ServiceSvngroup->UpdGroupNote();
         json2($result);
     }
 
@@ -66,9 +66,9 @@ class Svngroup extends Base
     /**
      * 修改SVN分组的名称
      */
-    public function EditGroupName()
+    public function UpdGroupName()
     {
-        $result = $this->ServiceSvngroup->EditGroupName();
+        $result = $this->ServiceSvngroup->UpdGroupName();
         json2($result);
     }
 

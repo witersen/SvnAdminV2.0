@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-05-06 18:41:32
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-08-28 13:15:21
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -82,11 +82,11 @@ class Base
          */
         !in_array($parm['type'], array_keys($configRouters['public'])) ? json1(401, 0, '无效的接口类型') : '';
 
-        /**
-         * 3、检查白名单路由
-         */
+
         if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], $configRouters['public'][$parm['type']])) {
             /**
+             * 3、检查白名单路由
+             * 
              * 如果请求不在对应类型的白名单中 则需要进行token校验
              */
 
@@ -110,34 +110,62 @@ class Base
 
             //校验是否过期
             time() > $arr[3] ? json1(401, 0, '登陆过期') : '';
-        }
 
-        /**
-         * 5、检查特定角色权限路由
-         */
-        if (empty($parm['token'])) {
-            $userRoleId = 0;
-        } else {
-            $array = explode($configSign['signSeparator'], $parm['token']);
-            $userRoleId = $array[0];
-        }
-        if ($userRoleId == 2) {
-            if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], array_merge($configRouters['svn_user_routers'], $configRouters['public'][$parm['type']]))) {
-                json1(401, 0, '无权限');
+            /**
+             * 5、检查特定角色权限路由
+             */
+            try {
+                $database = new Medoo($configDatabase);
+            } catch (\Exception $e) {
+                json1(200, 0, $e->getMessage());
             }
-        }
+            $info = explode($configSign['signSeparator'], $parm['token']);
+            $userRoleId = $info[0];
+            $userName = $info[1];
+            if ($userRoleId == 2) {
+                if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], array_merge($configRouters['svn_user_routers'], $configRouters['public'][$parm['type']]))) {
+                    json1(403, 0, '权限未分配');
+                }
+            } else if ($userRoleId == 3) {
+                $subadminFunctions = $database->get('subadmin', 'subadmin_functions', [
+                    'subadmin_name' => $userName
+                ]);
+                $subadminFunctions = json_decode($subadminFunctions, true);
+                if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], $subadminFunctions)) {
+                    json1(401, 0, '无权限');
+                }
+            }
 
-        /**
-         * 7、检查token是否已注销
-         */
-        if (array_key_exists('database_file', $configDatabase)) {
-            $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
-        }
-        try {
-            $black = (new Medoo($configDatabase))->get('black_token', ['token_id'], ['token' => $parm['token']]);
+            /**
+             * 7、检查是否被顶掉
+             */
+            if (array_key_exists('database_file', $configDatabase)) {
+                $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
+            }
+
+            if ($userRoleId == 1) {
+                $status = $database->get('admin_users', 'admin_user_id', [
+                    'admin_user_name' => $userName,
+                    'admin_user_token' => $parm['token']
+                ]);
+            } else if ($userRoleId == 2) {
+                $status = $database->get('svn_users', 'svn_user_id', [
+                    'svn_user_name' => $userName,
+                    'svn_user_token' => $parm['token']
+                ]);
+            } else if ($userRoleId == 3) {
+                $status = $database->get('subadmin', 'subadmin_id', [
+                    'subadmin_name' => $userName,
+                    'subadmin_token' => $parm['token']
+                ]);
+            }
+            empty($status) ? json1(401, 0, '当前账户在其它设备登录') : '';
+
+            /**
+             * 8、检查token是否已注销
+             */
+            $black = $database->get('black_token', 'token_id', ['token' => $parm['token']]);
             !empty($black) ? json1(401, 0, 'token已注销') : '';
-        } catch (\Exception $e) {
-            json1(200, 0, $e->getMessage());
         }
     }
 }

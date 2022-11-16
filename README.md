@@ -13,7 +13,7 @@
   - 本程序提供 docker 镜像，基于 centos7.9.2009 构建
 
   - 操作系统（手动安装）：CentOS7（推荐）、CentOS8、Rocky、Ubuntu（Windows及其它Linux发行版正在测试兼容中）
-  - PHP版本：5.5 <= PHP < 8.0
+  - PHP版本：PHP 5.5+ 推荐 PHP 7.0 +
   - 数据库：SQLite、MySQL
   - Subversion：1.8+
 - 问题协助或功能建议加Q群：633108141
@@ -219,7 +219,7 @@ php install.php
       docker cp svnadmintemp:/home/svnadmin ./
       
       #停止并删除临时容器
-      dockeer stop svnadmintemp && docker rm svnadmintemp
+      docker stop svnadmintemp && docker rm svnadmintemp
       
       #启动正式容器
       docker run -d \

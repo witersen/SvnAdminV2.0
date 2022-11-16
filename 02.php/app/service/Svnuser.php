@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-08-28 11:39:36
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -168,7 +168,8 @@ class Svnuser extends Base
                 'svn_user_pass',
                 'svn_user_status [Int]',
                 'svn_user_note',
-                'svn_user_last_login'
+                'svn_user_last_login',
+                'svn_user_token'
             ], [
                 'AND' => [
                     'OR' => [
@@ -188,7 +189,8 @@ class Svnuser extends Base
                 'svn_user_pass',
                 'svn_user_status [Int]',
                 'svn_user_note',
-                'svn_user_last_login'
+                'svn_user_last_login',
+                'svn_user_token'
             ], [
                 'AND' => [
                     'OR' => [
@@ -234,8 +236,11 @@ class Svnuser extends Base
             }
         }
 
+        $time = time();
         foreach ($result as $key => $value) {
             $result[$key]['svn_user_status'] = $value['svn_user_status'] == 1 ? true : false;
+            $result[$key]['online'] = empty($value['svn_user_token']) ? false : (explode($this->configSign['signSeparator'], $value['svn_user_token'])[3] > $time);
+            unset($result[$key]['svn_user_token']);
         }
 
         return message(200, 1, '成功', [
@@ -298,7 +303,7 @@ class Svnuser extends Base
     /**
      * 修改SVN用户的备注信息
      */
-    public function EditUserNote()
+    public function UpdUserNote()
     {
         $this->database->update('svn_users', [
             'svn_user_note' => $this->payload['svn_user_note']
@@ -364,7 +369,7 @@ class Svnuser extends Base
     /**
      * 修改SVN用户的密码
      */
-    public function EditUserPass()
+    public function UpdUserPass()
     {
         //检查用户是否已存在
         $result = $this->SVNAdmin->UpdUserPass($this->passwdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass'], !$this->payload['svn_user_status']);

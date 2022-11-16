@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-20 16:29:41
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -138,4 +138,11 @@ class Personal extends Base
 
         return message(200, 1, '修改密码成功');
     }
+
+    /**
+     * 子管理员修改自己的密码
+     *
+     * @return void
+     */
+    public function UpdSubadminUserPass(){}
 }

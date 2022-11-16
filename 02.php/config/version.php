@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:06
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 20:04:23
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -16,5 +16,5 @@ return [
         'lowest' => '5.5.0',
         'highest' => ''
     ],
-    'version' => '2.3.3.1'
+    'version' => '2.3.5'
 ];

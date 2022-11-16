@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:09:40
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -18,7 +18,7 @@ class Subadmin extends Base
      *
      * @var object
      */
-    private $ServiceSuadmin;
+    private $ServiceSubadmin;
 
     function __construct($parm)
     {
@@ -90,6 +90,24 @@ class Subadmin extends Base
     public function UpdSubadminNote()
     {
         $result = $this->ServiceSubadmin->UpdSubadminNote();
+        json2($result);
+    }
+
+    /**
+     * 获取某个子管理员的权限树
+     */
+    public function GetSubadminTree()
+    {
+        $result = $this->ServiceSubadmin->GetSubadminTree();
+        json2($result);
+    }
+
+    /**
+     * 修改某个子管理员的权限树
+     */
+    public function UpdSubadminTree()
+    {
+        $result = $this->ServiceSubadmin->UpdSubadminTree();
         json2($result);
     }
 }

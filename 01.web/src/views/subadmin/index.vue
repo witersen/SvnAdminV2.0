@@ -66,7 +66,23 @@
           />
         </template>
         <template slot-scope="{ row }" slot="subadmin_pri">
-          <Button type="info" size="small">配置</Button>
+          <Tooltip
+            max-width="250"
+            content="当前版本暂时不支持权限树配置"
+            placement="bottom"
+            :transfer="true"
+          >
+            <Button
+              type="info"
+              size="small"
+              @click="ModalPriTree(row.subadmin_id)"
+              >配置</Button
+            >
+          </Tooltip>
+        </template>
+        <template slot-scope="{ row }" slot="online">
+          <Tag color="success" v-if="row.online == true">在线</Tag>
+          <Tag v-else>离线</Tag>
         </template>
         <template slot-scope="{ row, index }" slot="action">
           <Button
@@ -80,7 +96,7 @@
           <Button
             type="error"
             size="small"
-            @click="DelSubadmin(index, row.subadmin_id)"
+            @click="DelSubadmin(index, row.subadmin_id, row.subadmin_name)"
             >删除</Button
           >
         </template>
@@ -98,6 +114,7 @@
         />
       </Card>
     </Card>
+    <!-- 对话框-新建子管理员 -->
     <Modal v-model="modalCreateSubadmin" :draggable="true" title="新建子管理员">
       <Form :model="formCreateSubadmin" :label-width="80">
         <FormItem label="用户名">
@@ -128,6 +145,7 @@
         >
       </div>
     </Modal>
+    <!-- 对话框-重置子管理员密码 -->
     <Modal
       v-model="modalEditUserPass"
       :draggable="true"
@@ -155,6 +173,29 @@
         <Button type="primary" ghost @click="modalEditUserPass = false"
           >取消</Button
         >
+      </div>
+    </Modal>
+    <!-- 对话框-子管理员权限配置 -->
+    <Modal v-model="modalPriTree" title="子管理员权限配置">
+      <Form :model="formCreateSubadmin" :label-width="80">
+        <FormItem label="权限树">
+          <!-- <Scroll :height="550"> -->
+          <Scroll>
+            <Tree :data="dataPriTree" show-checkbox></Tree>
+            <Spin size="large" fix v-if="loadingPriTree"></Spin>
+          </Scroll>
+        </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            @click="UpdSubadminTree"
+            :loading="loadingUpdSubadminTree"
+            >确定</Button
+          >
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalPriTree = false">取消</Button>
       </div>
     </Modal>
   </div>
@@ -192,12 +233,18 @@ export default {
       loadingCreateSubadmin: false,
       //重置子管理员密码
       loadingUpdSubadminPass: false,
+      //加载子管理员已配置权限
+      loadingPriTree: false,
+      //修改子管理员权限树
+      loadingUpdSubadminTree: false,
 
       /**
        * 临时变量
        */
       //输入的 passwd 文件内容
       tempPasswdContent: "",
+      //当前选中子管理员id
+      currentSubadminId: -1,
 
       /**
        * 对话框
@@ -208,6 +255,8 @@ export default {
       modalEditUserPass: false,
       //识别 passwd 文件
       modalScanPasswd: false,
+      //加载子管理员已配置权限
+      modalPriTree: false,
       /**
        * 表单
        */
@@ -260,12 +309,17 @@ export default {
         {
           title: "上次登录",
           key: "subadmin_last_login",
-          minWidth: 120,
+          minWidth: 130,
+        },
+        {
+          title: "在线状态",
+          slot: "online",
+          minWidth: 80,
         },
         {
           title: "创建时间",
           key: "subadmin_create_time",
-          minWidth: 120,
+          minWidth: 130,
         },
         {
           title: "系统权限",
@@ -279,6 +333,8 @@ export default {
         },
       ],
       tableDataSubadmin: [],
+      //子管理员权限信息
+      dataPriTree: [],
     };
   },
   computed: {},
@@ -591,6 +647,69 @@ export default {
             });
         },
       });
+    },
+    /**
+     * 配置子管理员的权限树
+     */
+    ModalPriTree(subadmin_id) {
+      this.modalPriTree = true;
+      this.currentSubadminId = subadmin_id;
+      this.GetSubadminTree();
+    },
+    /**
+     * 获取子管理员的权限树
+     */
+    GetSubadminTree() {
+      var that = this;
+      that.loadingPriTree = true;
+      that.dataPriTree = [];
+      var data = {
+        subadmin_id: that.currentSubadminId,
+      };
+      that.$axios
+        .post("/api.php?c=Subadmin&a=GetSubadminTree&t=web", data)
+        .then(function (response) {
+          that.loadingPriTree = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.dataPriTree = result.data;
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingPriTree = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 修改子管理员的权限树
+     */
+    UpdSubadminTree() {
+      var that = this;
+      that.loadingUpdSubadminTree = true;
+      var data = {
+        subadmin_id: that.currentSubadminId,
+        subadmin_tree: that.dataPriTree,
+      };
+      that.$axios
+        .post("/api.php?c=Subadmin&a=UpdSubadminTree&t=web", data)
+        .then(function (response) {
+          that.loadingUpdSubadminTree = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.modalPriTree = false;
+            that.$Message.success(result.message);
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingUpdSubadminTree = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
     },
   },
 };

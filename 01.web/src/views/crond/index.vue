@@ -5,6 +5,7 @@
       <Alert v-if="tempCrondError != ''" type="error" show-icon>{{
         tempCrondError
       }}</Alert>
+      <Alert v-else show-icon>请确保依赖的 crond atd 服务安装并正常运行</Alert>
       <Row style="margin-bottom: 15px">
         <Col
           type="flex"
@@ -14,15 +15,15 @@
           :md="19"
           :lg="18"
         >
-          <Tooltip
+          <!-- <Tooltip
             :transfer="true"
             max-width="350"
             content="此功能需要系统中安装 crontab 和 at 服务"
+          > -->
+          <Button icon="md-add" type="primary" ghost @click="ModalAddCrond"
+            >添加任务计划</Button
           >
-            <Button icon="md-add" type="primary" ghost @click="ModalAddCrond"
-              >添加任务计划</Button
-            >
-          </Tooltip>
+          <!-- </Tooltip> -->
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
           <Input
@@ -31,7 +32,7 @@
             enter-button
             placeholder="通过任务名称和描述搜索..."
             style="width: 100%"
-            @on-search="GetCrondList"
+            @on-search="GetCrontabList"
         /></Col>
       </Row>
       <Table
@@ -46,7 +47,7 @@
           <Switch
             v-model="row.status"
             false-color="#ff4949"
-            @on-change="(value) => UpdCrondStatus(value, row.crond_id)"
+            @on-change="(value) => UpdCrontabStatus(value, row.crond_id)"
           >
             <Icon type="md-checkmark" slot="open"></Icon>
             <Icon type="md-close" slot="close"></Icon>
@@ -91,7 +92,7 @@
           <Button type="warning" size="small" @click="ModalUpdCrond(index)"
             >编辑</Button
           >
-          <Button type="error" size="small" @click="DelCrond(row.crond_id)"
+          <Button type="error" size="small" @click="DelCrontab(row.crond_id)"
             >删除</Button
           >
           <Tooltip
@@ -103,7 +104,7 @@
             <Button
               type="error"
               size="small"
-              @click="TriggerCrond(row.crond_id)"
+              @click="TriggerCrontab(row.crond_id)"
               >执行</Button
             >
           </Tooltip>
@@ -265,14 +266,14 @@
           <Button
             v-if="statusCrond == 'add'"
             type="primary"
-            @click="CreateCrond()"
+            @click="CreateCrontab()"
             :loading="loadingAddCrond"
             >确定</Button
           >
           <Button
             v-else
             type="primary"
-            @click="UpdCrond"
+            @click="UpdCrontab"
             :loading="loadingUpdCrond"
             >确定</Button
           >
@@ -584,7 +585,7 @@ export default {
   created() {},
   mounted() {
     this.GetCronStatus();
-    this.GetCrondList();
+    this.GetCrontabList();
     this.GetRepList();
   },
   methods: {
@@ -594,7 +595,7 @@ export default {
     CrondPageSizeChange(value) {
       //设置每页条数
       this.pageSizeCrond = value;
-      this.GetCrondList();
+      this.GetCrontabList();
     },
     /**
      * 页码改变
@@ -602,7 +603,7 @@ export default {
     CrondPageChange(value) {
       //设置当前页数
       this.pageCurrentCrond = value;
-      this.GetCrondList();
+      this.GetCrontabList();
     },
     /**
      * 排序
@@ -612,24 +613,24 @@ export default {
       if (value.order == "desc" || value.order == "asc") {
         this.sortTypeGetCrondList = value.order;
       }
-      this.GetCrondList();
+      this.GetCrontabList();
     },
     /**
      * 启用或禁用用户
      */
-    UpdCrondStatus(status, crond_id) {
+    UpdCrontabStatus(status, crond_id) {
       var that = this;
       var data = {
         crond_id: crond_id,
         status: status,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=UpdCrondStatus&t=web", data)
+        .post("/api.php?c=Crond&a=UpdCrontabStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetCrondList();
+            that.GetCrontabList();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -663,7 +664,7 @@ export default {
     /**
      * 获取任务计划列表
      */
-    GetCrondList() {
+    GetCrontabList() {
       var that = this;
       that.loadingGetCrondList = true;
       that.tableDataCrond = [];
@@ -676,7 +677,7 @@ export default {
         sortType: that.sortTypeGetCrondList,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=GetCrondList&t=web", data)
+        .post("/api.php?c=Crond&a=GetCrontabList&t=web", data)
         .then(function (response) {
           that.loadingGetCrondList = false;
           var result = response.data;
@@ -753,21 +754,21 @@ export default {
     /**
      * 设置任务计划
      */
-    CreateCrond() {
+    CreateCrontab() {
       var that = this;
       that.loadingAddCrond = true;
       var data = {
         cycle: that.cycle,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=CreateCrond&t=web", data)
+        .post("/api.php?c=Crond&a=CreateCrontab&t=web", data)
         .then(function (response) {
           that.loadingAddCrond = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
             that.modalCrond = false;
-            that.GetCrondList();
+            that.GetCrontabList();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -783,9 +784,9 @@ export default {
      */
     ModalViewCrondLog(crond_id) {
       this.modalViewCrondLog = true;
-      this.GetCrondLog(crond_id);
+      this.GetCrontabLog(crond_id);
     },
-    GetCrondLog(crond_id) {
+    GetCrontabLog(crond_id) {
       var that = this;
       that.tempCrondLogCon = "";
       that.laodingGetLog = true;
@@ -793,7 +794,7 @@ export default {
         crond_id: crond_id,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=GetCrondLog&t=web", data)
+        .post("/api.php?c=Crond&a=GetCrontabLog&t=web", data)
         .then(function (response) {
           that.laodingGetLog = false;
           var result = response.data;
@@ -819,21 +820,21 @@ export default {
       this.titleModalCrond = "编辑计划任务";
       this.modalCrond = true;
     },
-    UpdCrond() {
+    UpdCrontab() {
       var that = this;
       that.loadingUpdCrond = true;
       var data = {
         cycle: that.cycle,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=UpdCrond&t=web", data)
+        .post("/api.php?c=Crond&a=UpdCrontab&t=web", data)
         .then(function (response) {
           that.loadingUpdCrond = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
             that.modalCrond = false;
-            that.GetCrondList();
+            that.GetCrontabList();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -847,7 +848,7 @@ export default {
     /**
      * 删除任务计划
      */
-    DelCrond(crond_id) {
+    DelCrontab(crond_id) {
       var that = this;
       that.$Modal.confirm({
         title: "删除任务计划",
@@ -857,12 +858,12 @@ export default {
             crond_id: crond_id,
           };
           that.$axios
-            .post("/api.php?c=Crond&a=DelCrond&t=web", data)
+            .post("/api.php?c=Crond&a=DelCrontab&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetCrondList();
+                that.GetCrontabList();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -877,7 +878,7 @@ export default {
     /**
      * 现在执行任务计划
      */
-    TriggerCrond(crond_id) {
+    TriggerCrontab(crond_id) {
       var that = this;
       that.$Modal.confirm({
         title: "执行任务计划",
@@ -888,12 +889,12 @@ export default {
             crond_id: crond_id,
           };
           that.$axios
-            .post("/api.php?c=Crond&a=TriggerCrond&t=web", data)
+            .post("/api.php?c=Crond&a=TriggerCrontab&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetCrondList();
+                that.GetCrontabList();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }

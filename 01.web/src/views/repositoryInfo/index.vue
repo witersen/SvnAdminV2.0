@@ -69,7 +69,7 @@
               icon="ios-hammer-outline"
               type="error"
               ghost
-              @click="ValidateAuthz"
+              @click="CheckAuthz"
               v-if="user_role_id == 1 || user_role_id == 3"
               >authz检测</Button
             >
@@ -111,7 +111,7 @@
           <Input
             :border="false"
             v-model="tableDataRep[index].rep_note"
-            @on-blur="EditRepNote(index, row.rep_name)"
+            @on-blur="UpdRepNote(index, row.rep_name)"
           />
         </template>
         <template slot-scope="{ row }" slot="repScan">
@@ -329,7 +329,7 @@
           <Button
             type="primary"
             ghost
-            @click="RepDump"
+            @click="SvnadminDump"
             :loading="loadingRepDump"
             >备份(dump)</Button
           >
@@ -647,10 +647,7 @@
         placeholder="具体介绍和语法可看钩子介绍"
       />
       <div slot="footer">
-        <Button
-          type="primary"
-          @click="EditRepHook"
-          :loading="loadingEditRepHook"
+        <Button type="primary" @click="UpdRepHook" :loading="loadingEditRepHook"
           >应用</Button
         >
       </div>
@@ -787,7 +784,7 @@
               <Button
                 type="primary"
                 :loading="loadingImportBackup"
-                @click="ImportRep"
+                @click="SvnadminLoad"
                 ghost
                 >导入</Button
               >
@@ -832,7 +829,7 @@
           <Button
             type="primary"
             :loading="loadingEditRepName"
-            @click="EditRepName"
+            @click="UpdRepName"
             >确定</Button
           >
         </FormItem>
@@ -890,7 +887,7 @@
 
 <script>
 //SVN对象列表组件
-import ModalRepPri from "../../components/modalRepPri.vue";
+import ModalRepPri from "@/components/modalRepPri.vue";
 
 export default {
   data() {
@@ -1362,7 +1359,7 @@ export default {
   computed: {},
   created() {},
   mounted() {
-    this.GetStatus();
+    this.GetSvnserveStatus();
     if (this.user_role_id == 1 || this.user_role_id == 3) {
       this.GetRepList();
     } else if (this.user_role_id == 2) {
@@ -1380,17 +1377,20 @@ export default {
     /**
      * 获取svnserve运行状态
      */
-    GetStatus() {
+    GetSvnserveStatus() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Svn&a=GetStatus&t=web", data)
+        .post("/api.php?c=Svnrep&a=GetSvnserveStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
+            if (!result.data) {
+              that.formStatusSubversion.status = result.data;
+              that.formStatusSubversion.info = result.message;
+            }
           } else {
-            that.formStatusSubversion.status = false;
-            that.formStatusSubversion.info = result.message;
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -1402,11 +1402,11 @@ export default {
     /**
      * 检测 authz 文件状态
      */
-    ValidateAuthz() {
+    CheckAuthz() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Svn&a=ValidateAuthz&t=web", data)
+        .post("/api.php?c=Svnrep&a=CheckAuthz&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1583,14 +1583,14 @@ export default {
     /**
      * 编辑仓库备注信息
      */
-    EditRepNote(index, rep_name) {
+    UpdRepNote(index, rep_name) {
       var that = this;
       var data = {
         rep_name: rep_name,
         rep_note: that.tableDataRep[index].rep_note,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=EditRepNote&t=web", data)
+        .post("/api.php?c=Svnrep&a=UpdRepNote&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1675,7 +1675,7 @@ export default {
       var data = {};
       return new Promise(function (resolve, reject) {
         that.$axios
-          .post("/api.php?c=Svn&a=GetCheckout&t=web", data)
+          .post("/api.php?c=Svnrep&a=GetCheckout&t=web", data)
           .then(function (response) {
             var result = response.data;
             if (result.status == 1) {
@@ -1840,14 +1840,14 @@ export default {
           that.$Message.error("出错了 请联系管理员！");
         });
     },
-    RepDump() {
+    SvnadminDump() {
       var that = this;
       that.loadingRepDump = true;
       var data = {
         rep_name: that.currentRepName,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=RepDump&t=web", data)
+        .post("/api.php?c=Svnrep&a=SvnadminDump&t=web", data)
         .then(function (response) {
           that.loadingRepDump = false;
           var result = response.data;
@@ -2054,7 +2054,7 @@ export default {
       // 展示输入框
       this.modalRecommendHook = true;
     },
-    EditRepHook() {
+    UpdRepHook() {
       var that = this;
       that.loadingEditRepHook = true;
       var data = {
@@ -2063,7 +2063,7 @@ export default {
         content: that.tempSelectRepHookCon,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=EditRepHook&t=web", data)
+        .post("/api.php?c=Svnrep&a=UpdRepHook&t=web", data)
         .then(function (response) {
           that.loadingEditRepHook = false;
           var result = response.data;
@@ -2232,7 +2232,7 @@ export default {
       //当前选中的文件
       this.formUploadBackup.fileName = currentRow.fileName;
     },
-    ImportRep() {
+    SvnadminLoad() {
       var that = this;
       if (that.formUploadBackup.fileName == "") {
         that.$Message.error("请先选择文件");
@@ -2244,7 +2244,7 @@ export default {
         fileName: that.formUploadBackup.fileName,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=ImportRep&t=web", data)
+        .post("/api.php?c=Svnrep&a=SvnadminLoad&t=web", data)
         .then(function (response) {
           that.loadingImportBackup = false;
           var result = response.data;
@@ -2276,7 +2276,7 @@ export default {
       //显示对话框
       this.modalEditRepName = true;
     },
-    EditRepName() {
+    UpdRepName() {
       var that = this;
       that.loadingEditRepName = true;
       var data = {
@@ -2284,7 +2284,7 @@ export default {
         new_rep_name: that.formRepEdit.new_rep_name,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=EditRepName&t=web", data)
+        .post("/api.php?c=Svnrep&a=UpdRepName&t=web", data)
         .then(function (response) {
           that.loadingEditRepName = false;
           var result = response.data;

@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-06 21:37:57
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -47,7 +47,8 @@ class Subadmin extends Base
             'subadmin_status [Int]',
             'subadmin_note',
             'subadmin_create_time',
-            'subadmin_last_login'
+            'subadmin_last_login',
+            'subadmin_token'
         ], [
             'AND' => [
                 'OR' => [
@@ -76,8 +77,11 @@ class Subadmin extends Base
             ],
         ]);
 
+        $time = time();
         foreach ($list as $key => $value) {
             $list[$key]['subadmin_status'] = $value['subadmin_status'] == 1 ? true : false;
+            $list[$key]['online'] = empty($value['subadmin_token']) ? false : (explode($this->configSign['signSeparator'], $value['subadmin_token'])[3] > $time);
+            unset($list[$key]['subadmin_token']);
         }
 
         return message(200, 1, '成功', [
@@ -111,14 +115,26 @@ class Subadmin extends Base
             return message(200, 0, '用户已存在');
         }
 
+        $functions = [];
+        foreach ($this->subadminTree as $node) {
+            $tempFunctions = [];
+            if ($node['checked']) {
+                $tempFunctions = $node['necessary_functions'];
+            }
+            $tempFunctions = array_merge($tempFunctions, $this->GetPriFunctions($node['children']));
+            $functions = array_merge($functions, $tempFunctions);
+        }
+
         //写入数据库
         $this->database->insert('subadmin', [
             'subadmin_name' => $this->payload['subadmin_name'],
             'subadmin_password' => md5($this->payload['subadmin_password']),
             'subadmin_status' => 1,
             'subadmin_note' => $this->payload['subadmin_note'],
+            'subadmin_last_login' => '',
             'subadmin_create_time' => date('Y-m-d H:i:s'),
-            'subadmin_last_login' => ''
+            'subadmin_tree' => json_encode($this->subadminTree),
+            'subadmin_functions' => json_encode($functions)
         ]);
 
         //日志
@@ -272,6 +288,71 @@ class Subadmin extends Base
             sprintf("用户名:%s", $subadminName),
             $this->userName
         );
+
+        return message();
+    }
+
+    /**
+     * 获取某个子管理员的权限树
+     */
+    public function GetSubadminTree()
+    {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'subadmin_id' => ['type' => 'integer', 'notNull' => true],
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
+        $subadminTree = $this->database->get('subadmin', 'subadmin_tree', [
+            'subadmin_id' => $this->payload['subadmin_id']
+        ]);
+
+        $subadminTree = json_decode($subadminTree, true);
+
+        if (empty($subadminTree)) {
+            $subadminTree = $this->subadminTree;
+            $this->database->update('subadmin', [
+                'subadmin_tree' => json_encode($this->subadminTree)
+            ], [
+                'subadmin_id' => $this->payload['subadmin_id']
+            ]);
+        }
+
+        return message(200, 1, '成功', $subadminTree);
+    }
+
+    /**
+     * 修改某个子管理员的权限树
+     */
+    public function UpdSubadminTree()
+    {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'subadmin_id' => ['type' => 'integer', 'notNull' => true],
+            'subadmin_tree' => ['type' => 'array', 'notNull' => true],
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
+        $functions = [];
+        foreach ($this->payload['subadmin_tree'] as $node) {
+            $tempFunctions = [];
+            if ($node['checked']) {
+                $tempFunctions = $node['necessary_functions'];
+            }
+            $tempFunctions = array_merge($tempFunctions, $this->GetPriFunctions($node['children']));
+            $functions = array_merge($functions, $tempFunctions);
+        }
+
+        $this->database->update('subadmin', [
+            'subadmin_tree' => json_encode($this->payload['subadmin_tree']),
+            'subadmin_functions' => json_encode($functions)
+        ], [
+            'subadmin_id' => $this->payload['subadmin_id']
+        ]);
 
         return message();
     }

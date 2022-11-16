@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 14:08:17
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -59,9 +59,9 @@ class Svnuser extends Base
     /**
      * 修改SVN用户的备注信息
      */
-    public function EditUserNote()
+    public function UpdUserNote()
     {
-        $result = $this->ServiceSvnuser->EditUserNote();
+        $result = $this->ServiceSvnuser->UpdUserNote();
         json2($result);
     }
 
@@ -77,9 +77,9 @@ class Svnuser extends Base
     /**
      * 修改SVN用户的密码
      */
-    public function EditUserPass()
+    public function UpdUserPass()
     {
-        $result = $this->ServiceSvnuser->EditUserPass();
+        $result = $this->ServiceSvnuser->UpdUserPass();
         json2($result);
     }
 

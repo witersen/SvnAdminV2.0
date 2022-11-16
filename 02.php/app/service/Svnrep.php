@@ -1,15 +1,18 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-08-28 18:12:08
+ * 
  * @Description: QQ:1801168257
  */
 
 namespace app\service;
 
 // use Config;
+
+use app\service\Svn as ServiceSvn;
+use app\service\Logs as ServiceLogs;
 
 class Svnrep extends Base
 {
@@ -18,16 +21,113 @@ class Svnrep extends Base
      *
      * @var object
      */
-    // private $Svngroup;
-    private $Logs;
+    private $ServiceSvn;
+    private $ServiceLogs;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
-        // $this->Svngroup = new Svngroup();
-        $this->Svn = new Svn();
-        $this->Logs = new Logs();
+        $this->ServiceSvn = new ServiceSvn();
+        $this->ServiceLogs = new ServiceLogs();
+    }
+
+    /**
+     * 检测 authz 是否有效
+     *
+     * @return array
+     */
+    public function CheckAuthz()
+    {
+        if (!array_key_exists('svnauthz-validate', $this->configBin)) {
+            return message(200, 0, '需要在 config/bin.php 文件中配置 svnauthz-validate 的路径');
+        }
+
+        if ($this->configBin['svnauthz-validate'] == '') {
+            return message(200, 0, '未在 config/bin.php 文件中配置 svnauthz-validate 路径');
+        }
+
+        $result = funShellExec(sprintf("'%s' '%s'", '/usr/bin/svn-tools/svnauthz-validate', $this->configSvn['svn_authz_file'], $this->configBin['svnauthz-validate']));
+        if ($result['code'] != 0) {
+            return message(200, 2, '检测到异常', $result['error']);
+        } else {
+            return message(200, 1, 'authz文件配置无误');
+        }
+    }
+
+    /**
+     * 获取Subversion的详细信息
+     */
+    public function GetSvnserveInfo()
+    {
+        //获取绑定主机、端口等信息
+        $bindInfo = $this->ServiceSvn->GetSvnserveListen();
+
+        //获取Subversion版本
+        $version = '-';
+        $result = funShellExec(sprintf("'%s' --version", $this->configBin['svnserve']));
+        if ($result['code'] == 0) {
+            preg_match_all($this->configReg['REG_SUBVERSION_VERSION'], $result['result'], $versionInfoPreg);
+            if (array_key_exists(0, $versionInfoPreg[0])) {
+                $version = trim($versionInfoPreg[1][0]);
+            } else {
+                $version = '--';
+            }
+        }
+
+        return message(200, 1, '成功', [
+            'version' => $version,
+            'status' => $this->GetSvnserveStatus()['data'],
+            'bindPort' => (int)$bindInfo['bindPort'],
+            'bindHost' => $bindInfo['bindHost'],
+            'manageHost' => $bindInfo['manageHost'],
+            'enable' => $bindInfo['enable'],
+            'svnserveLog' => $this->configSvn['svnserve_log_file']
+        ]);
+    }
+
+    /**
+     * 获取 svnserve 的运行状态
+     */
+    public function GetSvnserveStatus()
+    {
+        funShellExec(sprintf("chmod 777 '%s'", $this->configSvn['svnserve_pid_file']));
+
+        clearstatcache();
+
+        $statusRun = true;
+
+        if (!file_exists($this->configSvn['svnserve_pid_file'])) {
+            $statusRun = false;
+        } else {
+            $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
+            if (is_dir("/proc/$pid")) {
+                $statusRun = true;
+            } else {
+                $statusRun = false;
+            }
+        }
+
+        return message(200, 1, $statusRun ? '服务正常' : 'svnserve服务未在运行，出于安全原因，SVN用户将无法使用系统的仓库在线内容浏览功能，其它功能不受影响', $statusRun);
+    }
+
+    /**
+     * 获取Subversion的检出地址前缀
+     * 
+     * 先从Subversion配置文件获取绑定端口和主机
+     * 然后与listen.json配置文件中的端口和主机进行对比和同步
+     */
+    public function GetCheckout()
+    {
+        $result = $this->ServiceSvn->GetSvnserveListen();
+        $checkoutHost = $result[$result['enable']];
+        if ($result['bindPort'] != 3690) {
+            $checkoutHost .= ':' . $result['bindPort'];
+        }
+        return message(200, 1, '成功', [
+            'protocal' => 'svn://',
+            'prefix' => $checkoutHost
+        ]);
     }
 
     /**
@@ -103,7 +203,7 @@ class Svnrep extends Base
         ]);
 
         //日志
-        $this->Logs->InsertLog(
+        $this->ServiceLogs->InsertLog(
             '创建仓库',
             sprintf("仓库名:%s", $repName),
             $this->userName
@@ -575,7 +675,7 @@ class Svnrep extends Base
     /**
      * 修改仓库的备注信息
      */
-    public function EditRepNote()
+    public function UpdRepNote()
     {
         $this->database->update('svn_reps', [
             'rep_note' => $this->payload['rep_note']
@@ -1194,7 +1294,7 @@ class Svnrep extends Base
      *
      * @return array
      */
-    public function AddRepPathPri()
+    public function CreateRepPathPri()
     {
         //检查表单
         $checkResult = funCheckForm($this->payload, [
@@ -1312,7 +1412,7 @@ class Svnrep extends Base
     /**
      * 修改某个仓库路径下的权限
      */
-    public function EditRepPathPri()
+    public function UpdRepPathPri()
     {
         //检查表单
         $checkResult = funCheckForm($this->payload, [
@@ -1515,7 +1615,7 @@ class Svnrep extends Base
     /**
      * 修改仓库名称
      */
-    public function EditRepName()
+    public function UpdRepName()
     {
         //检查新仓库名是否合法
         $checkResult = $this->checkService->CheckRepName($this->payload['new_rep_name']);
@@ -1563,7 +1663,7 @@ class Svnrep extends Base
         funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //日志
-        $this->Logs->InsertLog(
+        $this->ServiceLogs->InsertLog(
             '修改仓库名称',
             sprintf("原仓库名:%s 新仓库名:%s", $this->payload['old_rep_name'], $this->payload['new_rep_name']),
             $this->userName
@@ -1601,7 +1701,7 @@ class Svnrep extends Base
         }
 
         //日志
-        $this->Logs->InsertLog(
+        $this->ServiceLogs->InsertLog(
             '删除仓库',
             sprintf("仓库名:%s", $this->payload['rep_name']),
             $this->userName
@@ -1702,7 +1802,7 @@ class Svnrep extends Base
     /**
      * 立即备份当前仓库
      */
-    public function RepDump()
+    public function SvnadminDump()
     {
         //检查仓库是否存在
         clearstatcache();
@@ -1849,7 +1949,7 @@ class Svnrep extends Base
     /**
      * 从本地备份文件导入仓库
      */
-    public function ImportRep()
+    public function SvnadminLoad()
     {
         //检查备份文件是否存在
         if (!file_exists($this->configSvn['backup_base_path'] .  $this->payload['fileName'])) {
@@ -1997,7 +2097,7 @@ class Svnrep extends Base
     /**
      * 修改仓库的某个钩子内容
      */
-    public function EditRepHook()
+    public function UpdRepHook()
     {
         $hooksPath = $this->configSvn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
 
@@ -2244,7 +2344,7 @@ class Svnrep extends Base
          * 
          * 目的为使用当前SVN用户的身份来进行被授权过的路径的内容浏览
          */
-        $bindInfo = $this->Svn->GetSvnserveListen();
+        $bindInfo = $this->ServiceSvn->GetSvnserveListen();
         $checkoutHost = 'svn://' . $bindInfo['bindHost'];
         if ($bindInfo['bindPort'] != '3690') {
             $checkoutHost = 'svn://' . $bindInfo['bindHost'] . ':' . $bindInfo['bindPort'];

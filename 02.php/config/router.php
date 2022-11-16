@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-26 00:24:31
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-05-07 01:31:13
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -22,7 +22,7 @@ return [
         'web' => [
             'Common/Login',
             'Common/GetVerifyCode',
-            'Safe/GetVerifyOption',
+            'Setting/GetVerifyOption',
             'Svnrep/DownloadRepBackup'
         ],
         'mini' => []
@@ -51,17 +51,17 @@ return [
         //获取别名列表
         'Svnaliase/GetAliaseList',
         //为某仓库路径下增加权限
-        'Svnrep/AddRepPathPri',
+        'Svnrep/CreateRepPathPri',
         //修改某个仓库路径下的权限
-        'Svnrep/EditRepPathPri',
+        'Svnrep/UpdRepPathPri',
         //修改某个仓库路径下的权限
         'Svnrep/DelRepPathPri',
 
 
         'Common/Logout',
 
-        'Svn/GetCheckout',
-        'Svn/GetStatus',
+        'Svnrep/GetCheckout',
+        'Svnrep/GetSvnserveStatus',
 
         'Personal/EditSvnUserPass',
     ],

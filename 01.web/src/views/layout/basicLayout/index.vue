@@ -27,7 +27,7 @@
         "
       >
         <img
-          src="../../../assets/images/logo.png"
+          :src="require('@/assets/images/logo.png')"
           style="line-height: 64px; position: absolute; top: 12px; left: 1%"
         />
         <!-- 实时任务 -->
@@ -77,7 +77,9 @@
             min-height: calc(100vh - 64px);
             position: fixed;
             z-index: 99;
-            height: 100%;
+            height: 0;
+            background: #ffffff;
+            overflow-y: auto;
           "
         >
           <Menu
@@ -99,7 +101,7 @@
               >
                 <Badge
                   :dot="hasUpdate"
-                  :count="itemItem.name == 'advance' && hasUpdate ? 1 : 0"
+                  :count="itemItem.name == 'setting' && hasUpdate ? 1 : 0"
                   :offset="[0, -10]"
                 >
                   <Icon :type="itemItem.meta.icon" />
@@ -178,51 +180,54 @@ export default {
     //是否有效
     //动态生成侧边导航
     CreateNav() {
-      var that = this;
-      //过滤出母版组件的子页面
-      var result = that.$router.options.routes.filter(
-        (item) => item.name == "manage"
+      //母版组件的子页面
+      var result = JSON.parse(sessionStorage.route).children;
+
+      //过滤出导航分组
+      var arrGroupNav = this.UniqueObjectArray(
+        result.map((item) => item.meta.group).filter((item) => item.name != "")
       );
-      // that.navList = result[0].children;
-      result = result[0].children;
 
-      //标题分组
-      var groupTitleArray = result
-        .map((item) => item.meta.group)
-        .filter((item) => item.name != "");
-
-      //需要展示的导航
+      //过滤掉不需要展示的导航
       result = result.filter((item) => item.meta.group.num > 0);
-
-      //这里进行基于角色的过滤
-      result = result.filter(
-        (item) =>
-          item.meta.user_role_id.indexOf(sessionStorage.user_role_id) != -1
-      );
 
       //转换为两层结构
       var navList = [];
-      for (var i = 0; i < groupTitleArray.length; i++) {
-        var groupItemArray = [];
+      for (var i = 0; i < arrGroupNav.length; i++) {
+        var itemGroupNav = [];
         for (var j = 0; j < result.length; j++) {
-          if (result[j].meta.group.num == groupTitleArray[i].num) {
-            groupItemArray.push(result[j]);
+          if (result[j].meta.group.num == arrGroupNav[i].num) {
+            itemGroupNav.push(result[j]);
           }
         }
-        if (groupItemArray.length == 0) {
+        if (itemGroupNav.length == 0) {
           continue;
         }
         navList.push({
-          title: groupTitleArray[i].name,
-          value: groupItemArray,
+          title: arrGroupNav[i].name,
+          value: itemGroupNav,
         });
       }
-      that.navList = navList;
+      this.navList = navList;
+    },
+    //对象数组去重
+    UniqueObjectArray(objectArray) {
+      var objectArray = JSON.parse(JSON.stringify(objectArray));
+      const res = new Map();
+      var result = objectArray.filter(
+        (a) => !res.has(a.name) && res.set(a.name, 1)
+        // &&
+        // !res.has(a.num) &&
+        // res.set(a.num, 1)
+      );
+      for (var i = 0; i < result.length; i++) {
+        result[i].num = Math.abs(result[i].num);
+      }
+      return result;
     },
     //动态成面包屑
     SetBreadcrumb() {
-      var that = this;
-      that.breadcrumb = that.$route.matched;
+      this.breadcrumb = this.$route.matched;
     },
     //路由变化后自动设置导航选中状态
     SetActiveName() {
@@ -233,7 +238,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Update&a=CheckUpdate&t=web", data)
+        .post("/api.php?c=Setting&a=CheckUpdate&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -278,8 +283,8 @@ export default {
   watch: {
     //监听路由变化
     $route() {
-      //设置面包屑
       this.SetBreadcrumb();
+      this.SetActiveName();
     },
   },
 };

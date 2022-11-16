@@ -220,7 +220,7 @@ export default {
         //引入Export2Excel
         const {
           export_json_to_excel,
-        } = require("../../libs/export/Export2Excel");
+        } = require("@/libs/export/Export2Excel");
 
         //这个是表头名称 可以是iveiw表格中表头属性的title的数组
         const tHeader = ["序号", "操作人", "日志类型", "详细信息", "操作时间"];

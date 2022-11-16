@@ -148,7 +148,7 @@
     <ModalSvnObject
       :propModalSvnObject="modalSvnObject"
       :propChangeParentModalObject="CloseModalObject"
-      :propSendParentObject="AddRepPathPri"
+      :propSendParentObject="CreateRepPathPri"
       :propSvnnUserPriPathId="svnn_user_pri_path_id"
       :propShowSvnAllTab="showModalSvnObjectTab"
       :propShowSvnAuthenticatedTab="showModalSvnObjectTab"
@@ -202,7 +202,10 @@ export default {
       /**
        * 组件
        */
-      showModalSvnObjectTab: sessionStorage.user_role_id == 1 ? true : false,
+      showModalSvnObjectTab:
+        sessionStorage.user_role_id == 1 || sessionStorage.user_role_id == 3
+          ? true
+          : false,
 
       /**
        * 加载
@@ -381,7 +384,10 @@ export default {
         that.loadingRepTree = true;
         //清空数据
         that.dataTreeRep = [];
-        if (sessionStorage.user_role_id == 1) {
+        if (
+          sessionStorage.user_role_id == 1 ||
+          sessionStorage.user_role_id == 3
+        ) {
           //请求目录树
           that.GetRepTree().then(function (response) {
             that.loadingRepTree = false;
@@ -509,7 +515,10 @@ export default {
       var data = [];
       that.currentRepPath = item.fullPath;
       that.GetRepPathAllPri();
-      if (sessionStorage.user_role_id == 1) {
+      if (
+        sessionStorage.user_role_id == 1 ||
+        sessionStorage.user_role_id == 3
+      ) {
         that.GetRepTree().then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -609,7 +618,7 @@ export default {
     /**
      * 为某仓库路径下增加权限
      */
-    AddRepPathPri(objectType, objectName) {
+    CreateRepPathPri(objectType, objectName) {
       var that = this;
       var data = {
         rep_name: that.currentRepName,
@@ -620,7 +629,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=AddRepPathPri&t=web", data)
+        .post("/api.php?c=Svnrep&a=CreateRepPathPri&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -652,7 +661,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=EditRepPathPri&t=web", data)
+        .post("/api.php?c=Svnrep&a=UpdRepPathPri&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

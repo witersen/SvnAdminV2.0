@@ -30,25 +30,34 @@ const RouterConfig = {
 };
 const router = new VueRouter(RouterConfig);
 
+//由于使用动态路由 登录后立即 router.push 没有指定的路由会抛出错误但不影响运行 此配置能捕获错误抛出
+const originalPush = VueRouter.prototype.push;
+VueRouter.prototype.push = function push(location, onResolve, onReject) {
+    if (onResolve || onReject) return originalPush.call(this, location, onResolve, onReject)
+    return originalPush.call(this, location).catch(err => err)
+}
+
 //路由拦截器 beforeEach
+let noRouter = true
 router.beforeEach((to, from, next) => {
     ViewUI.LoadingBar.start();
     Util.title(to.meta.title);
     //页面跳转逻辑
     if (sessionStorage.token) {
-        if (to.path == '/login') {
-            //交给login页面处理
-            next();
+        if (noRouter && sessionStorage.route) {
+            var accessRouteses = JSON.parse(sessionStorage.route);
+            accessRouteses.children = routerChildren(accessRouteses.children);
+            accessRouteses.component = routerCom(accessRouteses.component);
+            router.addRoute(accessRouteses);
+            noRouter = false;
+            next({
+                //保证路由添加完了再进入页面 可以理解为重进一次
+                ...to,
+                // 重进一次 不保留重复历史
+                replace: true,
+            });
         }
-        if (to.matched.some(m => m.meta.requireAuth)) {
-            if (to.meta.user_role_id.includes(sessionStorage.user_role_id)) {
-                next();
-            } else {
-                next({ path: '/login' });
-            }
-        } else {
-            next();
-        }
+        next();
     } else {
         if (to.path == '/login') {
             next();
@@ -91,6 +100,22 @@ axios.interceptors.response.use(function (response) {
 }, function (error) {
     return Promise.reject(error);
 });
+
+//对子路由的component解析
+function routerChildren(children) {
+    children.forEach(v => {
+        v.component = routerCom(v.component);
+        if (v.children != undefined) {
+            v.children = routerChildren(v.children)
+        }
+    })
+    return children
+}
+
+//对路由的component解析
+function routerCom(path) {
+    return (resolve) => require([`@/views/${path}`], resolve);
+}
 
 new Vue({
     el: '#app',

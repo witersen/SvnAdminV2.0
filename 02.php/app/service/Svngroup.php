@@ -1,9 +1,9 @@
 <?php
 /*
  * @Author: witersen
- * @Date: 2022-04-24 23:37:05
+ * 
  * @LastEditors: witersen
- * @LastEditTime: 2022-08-29 00:42:13
+ * 
  * @Description: QQ:1801168257
  */
 
@@ -243,7 +243,7 @@ class Svngroup extends Base
     /**
      * 编辑分组备注信息
      */
-    public function EditGroupNote()
+    public function UpdGroupNote()
     {
         $this->database->update('svn_groups', [
             'svn_group_note' => $this->payload['svn_group_note']
@@ -339,7 +339,7 @@ class Svngroup extends Base
     /**
      * 修改SVN分组的名称
      */
-    public function EditGroupName()
+    public function UpdGroupName()
     {
         //新分组名称是否合法
         $checkResult = $this->checkService->CheckRepGroup($this->payload['groupNameNew']);

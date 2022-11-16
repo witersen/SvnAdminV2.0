@@ -76,7 +76,7 @@
           <Input
             :border="false"
             v-model="tableDataUser[index].svn_user_note"
-            @on-blur="EditUserNote(index, row.svn_user_name)"
+            @on-blur="UpdUserNote(index, row.svn_user_name)"
           />
         </template>
         <template slot-scope="{ row }" slot="svn_user_rep_list">
@@ -86,6 +86,10 @@
             @click="ModalSvnUserPriPath(row.svn_user_name)"
             >查看</Button
           >
+        </template>
+        <template slot-scope="{ row }" slot="online">
+          <Tag color="success" v-if="row.online == true">在线</Tag>
+          <Tag v-else>离线</Tag>
         </template>
         <template slot-scope="{ row, index }" slot="action">
           <Button
@@ -181,7 +185,7 @@ user3=passwd3"
       v-model="modalEditUserPass"
       :draggable="true"
       :title="titleEditUser"
-      @on-ok="EditUserPass"
+      @on-ok="UpdUserPass"
     >
       <Form :model="formEditUser" :label-width="80">
         <FormItem label="新密码">
@@ -190,7 +194,7 @@ user3=passwd3"
         <FormItem>
           <Button
             type="primary"
-            @click="EditUserPass"
+            @click="UpdUserPass"
             :loading="loadingEditUserPass"
             >确定</Button
           >
@@ -361,7 +365,7 @@ user3=passwd3"
 
 <script>
 //SVN对象列表组件
-import ModalSvnObject from "../../components/modalSvnObject.vue";
+import ModalSvnObject from "@/components/modalSvnObject.vue";
 
 export default {
   data() {
@@ -505,7 +509,12 @@ export default {
           key: "svn_user_last_login",
           tooltip: true,
           sortable: "custom",
-          minWidth: 120,
+          minWidth: 130,
+        },
+        {
+          title: "在线状态",
+          slot: "online",
+          minWidth: 80,
         },
         {
           title: "其它",
@@ -556,7 +565,7 @@ export default {
               },
               [
                 h("span", [
-                  h("span", "二次授权"),
+                  h("span", "二次授权状态"),
                   h("Icon", {
                     props: {
                       type: "ios-help-circle-outline",
@@ -727,14 +736,14 @@ export default {
     /**
      * 编辑用户备注信息
      */
-    EditUserNote(index, svn_user_name) {
+    UpdUserNote(index, svn_user_name) {
       var that = this;
       var data = {
         svn_user_name: svn_user_name,
         svn_user_note: that.tableDataUser[index].svn_user_note,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=EditUserNote&t=web", data)
+        .post("/api.php?c=Svnuser&a=UpdUserNote&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -835,7 +844,7 @@ export default {
       //显示对话框
       this.modalEditUserPass = true;
     },
-    EditUserPass() {
+    UpdUserPass() {
       var that = this;
       that.loadingEditUserPass = true;
       var data = {
@@ -845,7 +854,7 @@ export default {
           that.tableDataUser[that.formEditUser.index].svn_user_status,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=EditUserPass&t=web", data)
+        .post("/api.php?c=Svnuser&a=UpdUserPass&t=web", data)
         .then(function (response) {
           that.loadingEditUserPass = false;
           var result = response.data;

@@ -56,7 +56,7 @@
           <Input
             :border="false"
             v-model="tableGroupData[index].svn_group_note"
-            @on-blur="EditGroupNote(index, row.svn_group_name)"
+            @on-blur="UpdGroupNote(index, row.svn_group_name)"
           />
         </template>
         <template slot-scope="{ row }" slot="action">
@@ -132,7 +132,7 @@
       v-model="modalEditGroupName"
       :draggable="true"
       :title="titleEditGroupName"
-      @on-ok="EditGroupName"
+      @on-ok="UpdGroupName"
     >
       <Form :model="formEditGroupName" :label-width="80">
         <FormItem label="分组名">
@@ -146,7 +146,7 @@
         <FormItem>
           <Button
             type="primary"
-            @click="EditGroupName"
+            @click="UpdGroupName"
             :loading="loadingEditGroupName"
             >确定</Button
           >
@@ -267,7 +267,7 @@ group3=user4,&aliase1"
 
 <script>
 //SVN对象列表组件
-import ModalSvnObject from "../../components/modalSvnObject.vue";
+import ModalSvnObject from "@/components/modalSvnObject.vue";
 
 export default {
   data() {
@@ -504,14 +504,14 @@ export default {
     /**
      * 编辑分组备注信息
      */
-    EditGroupNote(index, svn_group_name) {
+    UpdGroupNote(index, svn_group_name) {
       var that = this;
       var data = {
         svn_group_name: svn_group_name,
         svn_group_note: that.tableGroupData[index].svn_group_note,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=EditGroupNote&t=web", data)
+        .post("/api.php?c=Svngroup&a=UpdGroupNote&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -599,7 +599,7 @@ export default {
       //对话框
       this.modalEditGroupName = true;
     },
-    EditGroupName() {
+    UpdGroupName() {
       var that = this;
       that.loadingEditGroupName = true;
       var data = {
@@ -607,7 +607,7 @@ export default {
         groupNameNew: that.formEditGroupName.groupNameNew,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=EditGroupName&t=web", data)
+        .post("/api.php?c=Svngroup&a=UpdGroupName&t=web", data)
         .then(function (response) {
           that.loadingEditGroupName = false;
           var result = response.data;
