@@ -43,7 +43,7 @@
         <!-- 分割线 -->
         <Divider type="vertical" />
         <!-- 当前登录用户 -->
-        <Dropdown :transfer="true" trigger="click" @on-click="LogOut">
+        <Dropdown :transfer="true" trigger="click" @on-click="Logout">
           <a href="javascript:void(0)" style="margin-left: 8px; color: #fff">
             {{ currentUsername }}
             <Icon type="md-arrow-dropdown" />
@@ -149,7 +149,7 @@ export default {
   },
   methods: {
     //退出登录
-    LogOut() {
+    Logout() {
       var that = this;
       var data = {};
       that.$axios

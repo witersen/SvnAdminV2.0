@@ -13,12 +13,13 @@
                 <Row>
                   <Col span="12">
                     <Input
-                      v-model="formEditAdminUserName.displayUserName"
+                      v-model="formUpdAdminUserName.displayUserName"
                       readonly
                     ></Input>
                   </Col>
+                  <Col span="1"> </Col>
                   <Col span="6">
-                    <Button type="success" @click="ModalEditAdminUserName"
+                    <Button type="success" @click="ModalUpdAdminUserName"
                       >修改</Button
                     ></Col
                   >
@@ -29,8 +30,9 @@
                   <Col span="12">
                     <Input type="password" value="******" readonly></Input>
                   </Col>
+                  <Col span="1"> </Col>
                   <Col span="6">
-                    <Button type="success" @click="ModalEditAdminUserPass"
+                    <Button type="success" @click="ModalUpdAdminUserPass"
                       >修改</Button
                     ></Col
                   >
@@ -42,15 +44,12 @@
                 <Row>
                   <Col span="12">
                     <Input
-                      v-model="formEditAdminUserName.displayUserName"
+                      v-model="formUpdAdminUserName.displayUserName"
                       readonly
                     ></Input>
                   </Col>
-                  <Col span="6">
-                    <Button type="success" @click="ModalEditAdminUserName"
-                      >修改</Button
-                    ></Col
-                  >
+                  <Col span="1"> </Col>
+                  <Col span="6"> </Col>
                 </Row>
               </FormItem>
               <FormItem label="子管理员密码">
@@ -58,8 +57,9 @@
                   <Col span="12">
                     <Input type="password" value="******" readonly></Input>
                   </Col>
+                  <Col span="1"> </Col>
                   <Col span="6">
-                    <Button type="success" @click="ModalEditAdminUserPass"
+                    <Button type="success" @click="ModalUpdSubadminPass"
                       >修改</Button
                     ></Col
                   >
@@ -67,39 +67,39 @@
               </FormItem>
             </Form>
             <Form
-              :model="formEditSvnUserPass"
+              :model="formUpdSvnUserPass"
               :label-width="100"
               v-if="user_role_id == 2"
             >
               <FormItem label="用户名">
-                <Input readonly v-model="formEditSvnUserPass.userName"></Input>
+                <Input readonly v-model="formUpdSvnUserPass.userName"></Input>
               </FormItem>
               <FormItem label="旧密码">
                 <Input
                   type="password"
                   password
-                  v-model="formEditSvnUserPass.oldPassword"
+                  v-model="formUpdSvnUserPass.oldPassword"
                 ></Input>
               </FormItem>
               <FormItem label="新密码">
                 <Input
                   type="password"
                   password
-                  v-model="formEditSvnUserPass.newPassword"
+                  v-model="formUpdSvnUserPass.newPassword"
                 ></Input>
               </FormItem>
               <FormItem label="确认新密码">
                 <Input
                   type="password"
                   password
-                  v-model="formEditSvnUserPass.confirm"
+                  v-model="formUpdSvnUserPass.confirm"
                 ></Input>
               </FormItem>
               <FormItem>
                 <Button
                   type="primary"
-                  :loading="loadingEditSvnUserPass"
-                  @click="EditSvnUserPass"
+                  :loading="loadingUpdSvnUserPass"
+                  @click="UpdSvnUserPass"
                   >确认修改</Button
                 >
               </FormItem>
@@ -109,55 +109,98 @@
       </Tabs>
     </Card>
     <Modal
-      v-model="modalEditAdminUserName"
+      v-model="modalUpdAdminUserName"
       :draggable="true"
       title="修改管理员账号"
     >
-      <Form :model="formEditAdminUserName" :label-width="80">
+      <Form :model="formUpdAdminUserName" :label-width="80">
         <FormItem label="新账号">
-          <Input v-model="formEditAdminUserName.userName"></Input>
+          <Input v-model="formUpdAdminUserName.userName"></Input>
         </FormItem>
         <FormItem label="确认">
-          <Input v-model="formEditAdminUserName.confirm"></Input>
+          <Input v-model="formUpdAdminUserName.confirm"></Input>
         </FormItem>
         <FormItem>
           <Button
             type="primary"
-            :loading="loadingEditAdminUserName"
-            @click="EditAdminUserName"
+            :loading="loadingUpdAdminUserName"
+            @click="UpdAdminUserName"
             >确定</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalEditAdminUserName = false"
+        <Button type="primary" ghost @click="modalUpdAdminUserName = false"
           >取消</Button
         >
       </div>
     </Modal>
     <Modal
-      v-model="modalEditAdminUserPass"
+      v-model="modalUpdAdminUserPass"
       :draggable="true"
       title="修改管理员密码"
     >
-      <Form :model="formEditAdminUserPass" :label-width="80">
+      <Form :model="formUpdAdminUserPass" :label-width="80">
         <FormItem label="新密码">
-          <Input v-model="formEditAdminUserPass.password"></Input>
+          <Input
+            v-model="formUpdAdminUserPass.password"
+            type="password"
+            password
+          ></Input>
         </FormItem>
         <FormItem label="确认">
-          <Input v-model="formEditAdminUserPass.confirm"></Input>
+          <Input
+            v-model="formUpdAdminUserPass.confirm"
+            type="password"
+            password
+          ></Input>
         </FormItem>
         <FormItem>
           <Button
             type="primary"
-            :loading="loadingEditAdminUserPass"
-            @click="EditAdminUserPass"
+            :loading="loadingUpdAdminUserPass"
+            @click="UpdAdminUserPass"
             >确定</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalEditAdminUserPass = false"
+        <Button type="primary" ghost @click="modalUpdAdminUserPass = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
+    <Modal
+      v-model="modalUpdSubadminPass"
+      :draggable="true"
+      title="修改子管理员密码"
+    >
+      <Form :model="formUpdSubadminPass" :label-width="80">
+        <FormItem label="新密码">
+          <Input
+            v-model="formUpdSubadminPass.password"
+            type="password"
+            password
+          ></Input>
+        </FormItem>
+        <FormItem label="确认">
+          <Input
+            v-model="formUpdSubadminPass.confirm"
+            type="password"
+            password
+          ></Input>
+        </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            :loading="loadingUpdSubadminPass"
+            @click="UpdSubadminPass"
+            >确定</Button
+          >
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalUpdSubadminPass = false"
           >取消</Button
         >
       </div>
@@ -173,30 +216,36 @@ export default {
       /**
        * 对话框
        */
-      modalEditAdminUserName: false,
-      modalEditAdminUserPass: false,
+      modalUpdAdminUserName: false,
+      modalUpdAdminUserPass: false,
+      modalUpdSubadminPass: false,
       /**
        * 加载
        */
-      loadingEditAdminUserName: false,
-      loadingEditAdminUserPass: false,
-      loadingEditSvnUserPass: false,
+      loadingUpdAdminUserName: false,
+      loadingUpdAdminUserPass: false,
+      loadingUpdSvnUserPass: false,
+      loadingUpdSubadminPass: false,
       /**
        * 表单
        */
-      formEditAdminUserName: {
+      formUpdAdminUserName: {
         displayUserName: sessionStorage.user_name,
         userName: "",
         confirm: "",
       },
-      formEditAdminUserPass: {
+      formUpdAdminUserPass: {
         password: "",
         confirm: "",
       },
-      formEditSvnUserPass: {
+      formUpdSvnUserPass: {
         userName: sessionStorage.user_name,
         oldPassword: "",
         newPassword: "",
+        confirm: "",
+      },
+      formUpdSubadminPass: {
+        password: "",
         confirm: "",
       },
     };
@@ -208,32 +257,31 @@ export default {
     /**
      * 管理人员修改账号
      */
-    ModalEditAdminUserName() {
-      this.modalEditAdminUserName = true;
+    ModalUpdAdminUserName() {
+      this.modalUpdAdminUserName = true;
     },
-    EditAdminUserName() {
+    UpdAdminUserName() {
       var that = this;
-      that.loadingEditAdminUserName = true;
+      that.loadingUpdAdminUserName = true;
       var data = {
-        userName: that.formEditAdminUserName.userName,
-        confirm: that.formEditAdminUserName.confirm,
+        userName: that.formUpdAdminUserName.userName,
+        confirm: that.formUpdAdminUserName.confirm,
       };
       that.$axios
         .post("/api.php?c=Personal&a=EditAdminUserName&t=web", data)
         .then(function (response) {
           var result = response.data;
+          that.loadingUpdAdminUserName = false;
           if (result.status == 1) {
-            that.loadingEditAdminUserName = false;
-            that.modalEditAdminUserName = false;
+            that.modalUpdAdminUserName = false;
             that.$Message.success(result.message);
-            that.LogOut();
+            that.Logout();
           } else {
-            that.loadingEditAdminUserName = false;
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
-          that.loadingEditAdminUserName = false;
+          that.loadingUpdAdminUserName = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -241,32 +289,63 @@ export default {
     /**
      * 管理人员修改密码
      */
-    ModalEditAdminUserPass() {
-      this.modalEditAdminUserPass = true;
+    ModalUpdAdminUserPass() {
+      this.modalUpdAdminUserPass = true;
     },
-    EditAdminUserPass() {
+    UpdAdminUserPass() {
       var that = this;
-      that.loadingEditAdminUserPass = true;
+      that.loadingUpdAdminUserPass = true;
       var data = {
-        password: that.formEditAdminUserPass.password,
-        confirm: that.formEditAdminUserPass.confirm,
+        password: that.formUpdAdminUserPass.password,
+        confirm: that.formUpdAdminUserPass.confirm,
       };
       that.$axios
         .post("/api.php?c=Personal&a=EditAdminUserPass&t=web", data)
         .then(function (response) {
           var result = response.data;
+          that.loadingUpdAdminUserPass = false;
           if (result.status == 1) {
-            that.loadingEditAdminUserPass = false;
-            that.modalEditAdminUserPass = false;
+            that.modalUpdAdminUserPass = false;
             that.$Message.success(result.message);
-            that.LogOut();
+            that.Logout();
           } else {
-            that.loadingEditAdminUserPass = false;
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
-          that.loadingEditAdminUserPass = false;
+          that.loadingUpdAdminUserPass = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 子管理员修改密码
+     */
+    ModalUpdSubadminPass() {
+      this.modalUpdSubadminPass = true;
+    },
+    UpdSubadminPass() {
+      var that = this;
+      that.loadingUpdSubadminPass = true;
+      var data = {
+        password: that.formUpdSubadminPass.password,
+        confirm: that.formUpdSubadminPass.confirm,
+      };
+      that.$axios
+        .post("/api.php?c=Personal&a=UpdSubadminUserPass&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          that.loadingUpdSubadminPass = false;
+          if (result.status == 1) {
+            that.modalUpdSubadminPass = false;
+            that.$Message.success(result.message);
+            that.Logout();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingUpdSubadminPass = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -274,29 +353,29 @@ export default {
     /**
      * SVN用户修改自己的密码
      */
-    EditSvnUserPass() {
+    UpdSvnUserPass() {
       var that = this;
-      that.loadingEditSvnUserPass = true;
+      that.loadingUpdSvnUserPass = true;
       var data = {
         userName: sessionStorage.user_name,
-        oldPassword: that.formEditSvnUserPass.oldPassword,
-        newPassword: that.formEditSvnUserPass.newPassword,
-        confirm: that.formEditSvnUserPass.confirm,
+        oldPassword: that.formUpdSvnUserPass.oldPassword,
+        newPassword: that.formUpdSvnUserPass.newPassword,
+        confirm: that.formUpdSvnUserPass.confirm,
       };
       that.$axios
         .post("/api.php?c=Personal&a=EditSvnUserPass&t=web", data)
         .then(function (response) {
-          that.loadingEditSvnUserPass = false;
+          that.loadingUpdSvnUserPass = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.LogOut();
+            that.Logout();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
-          that.loadingEditSvnUserPass = false;
+          that.loadingUpdSvnUserPass = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -304,8 +383,7 @@ export default {
     /**
      * 退出登录
      */
-    //退出登录
-    LogOut() {
+    Logout() {
       var that = this;
       var data = {};
       that.$axios

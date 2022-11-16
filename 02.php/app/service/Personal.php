@@ -141,8 +141,26 @@ class Personal extends Base
 
     /**
      * 子管理员修改自己的密码
-     *
-     * @return void
      */
-    public function UpdSubadminUserPass(){}
+    public function UpdSubadminUserPass()
+    {
+        if ($this->payload['password'] != $this->payload['confirm']) {
+            return message(200, 0, '输入不一致');
+        }
+
+        if (trim($this->payload['password']) == '') {
+            return message(200, 0, '密码不合法');
+        }
+
+        $this->database->update('subadmin', [
+            'subadmin_password' => md5($this->payload['password'])
+        ], [
+            'subadmin_name' => $this->userName
+        ]);
+
+        //邮件
+        $this->Mail->SendMail('Personal/UpdSubadminUserPass', '子管理员修改密码通知', '账号：' . $this->userName . ' '  . '时间：' . date('Y-m-d H:i:s'));
+
+        return message(200, 1, '修改密码成功');
+    }
 }

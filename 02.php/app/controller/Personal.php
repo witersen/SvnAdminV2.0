@@ -53,4 +53,13 @@ class Personal extends Base
         $result = $this->ServicePersonal->EditSvnUserPass();
         json2($result);
     }
+
+    /**
+     * 子管理员修改自己的密码
+     */
+    public function UpdSubadminUserPass()
+    {
+        $result = $this->ServicePersonal->UpdSubadminUserPass();
+        json2($result);
+    }
 }
