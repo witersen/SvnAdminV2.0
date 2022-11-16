@@ -566,3 +566,11 @@ chmod 777 -R /home/svnadmin
 - SVN用户可自己修改密码 无需联系管理人员了
 
   ![](./00.static/01.demo/29.jpg)
+
+
+
+
+
+- 感谢各位使用者的鼓励，捐赠最代表的是认可，作者会继续动力更新的！
+
+  <img src="./00.static/wechat.png" style="zoom: 33%;" />
