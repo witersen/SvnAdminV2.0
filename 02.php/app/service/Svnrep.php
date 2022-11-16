@@ -68,6 +68,9 @@ class Svnrep extends Base
         $result = funShellExec(sprintf("'%s' --version", $this->configBin['svnserve']));
         if ($result['code'] == 0) {
             preg_match_all($this->configReg['REG_SUBVERSION_VERSION'], $result['result'], $versionInfoPreg);
+            if (preg_last_error() != 0) {
+                $version = 'PREG_ERROR';
+            }
             if (array_key_exists(0, $versionInfoPreg[0])) {
                 $version = trim($versionInfoPreg[1][0]);
             } else {

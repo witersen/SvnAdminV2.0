@@ -26,6 +26,8 @@ class SVNAdmin
      * 
      * 0 未知错误
      * 
+     * num PCRE正则抛出错误(具体数值由 preg_last_error() 返回)
+     * 
      * 6xx
      * ├─ 600 参数内容或格式错误
      * │  └─── 601 $objectName不能为空
@@ -377,6 +379,9 @@ class SVNAdmin
         }
 
         preg_match_all(sprintf($this->reg_2, preg_quote($repName) . ':' . preg_quote($repPath, '/')), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -386,6 +391,9 @@ class SVNAdmin
                     $result = [];
                     foreach ($regArray as $reg) {
                         preg_match_all($reg['reg'], $authzContentPreg[1][0], $resultPreg);
+                        if (preg_last_error() != 0) {
+                            return preg_last_error();
+                        }
                         foreach ($resultPreg[0] as $key => $value) {
                             $result[] = [
                                 'objectType' => $reg['type'],
@@ -404,7 +412,13 @@ class SVNAdmin
                     }
 
                     preg_match_all($regArray['noInvert'], $authzContentPreg[1][0], $resultPreg1);
+                    if (preg_last_error() != 0) {
+                        return preg_last_error();
+                    }
                     preg_match_all($regArray['hasInvert'], $authzContentPreg[1][0], $resultPreg2);
+                    if (preg_last_error() != 0) {
+                        return preg_last_error();
+                    }
                     $result = [];
                     foreach ($resultPreg1[0] as $key => $value) {
                         array_push($result, [
@@ -476,6 +490,9 @@ class SVNAdmin
         }
 
         preg_match_all(sprintf($this->reg_2, preg_quote($repName) . ':' . preg_quote($repPath, '/')), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -487,7 +504,13 @@ class SVNAdmin
                 }
 
                 preg_match_all($regArray['quote_hasInvert'], $authzContentPreg[1][0], $resultPreg1);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 preg_match_all($regArray['quote_noInvert'], $authzContentPreg[1][0], $resultPreg2);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
 
                 //如果反转或者非反转有一个匹配则提示已存在并返回
                 if (array_key_exists(0, $resultPreg1[0]) || array_key_exists(0, $resultPreg2[0])) {
@@ -544,6 +567,9 @@ class SVNAdmin
         }
 
         preg_match_all(sprintf($this->reg_2, preg_quote($repName) . ':' . preg_quote($repPath, '/')), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -555,7 +581,13 @@ class SVNAdmin
                 }
 
                 preg_match_all($regArray['quote_hasInvert'], $authzContentPreg[1][0], $resultPreg1);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 preg_match_all($regArray['quote_noInvert'], $authzContentPreg[1][0], $resultPreg2);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
 
                 //如果反转或者非反转都不存在则返回无该条路径记录提示
                 if (!array_key_exists(0, $resultPreg1[0]) && !array_key_exists(0, $resultPreg2[0])) {
@@ -639,6 +671,9 @@ class SVNAdmin
         }
 
         preg_match_all(sprintf($this->reg_2, preg_quote($repName) . ':' . preg_quote($repPath, '/')), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -650,7 +685,13 @@ class SVNAdmin
                 }
 
                 preg_match_all($regArray['quote_hasInvert'], $authzContentPreg[1][0], $resultPreg1);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 preg_match_all($regArray['quote_noInvert'], $authzContentPreg[1][0], $resultPreg2);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
 
                 //如果反转或者非反转都不存在则返回无该条路径记录提示
                 if (!array_key_exists(0, $resultPreg1[0]) && !array_key_exists(0, $resultPreg2[0])) {
@@ -693,6 +734,9 @@ class SVNAdmin
         }
 
         preg_match_all(sprintf($this->reg_2, preg_quote($repName) . ':' . preg_quote($repPath, '/')), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             return 851;
         } else {
@@ -725,6 +769,9 @@ class SVNAdmin
         }
 
         preg_match_all(sprintf($this->reg_2, preg_quote($repName) . ':' . preg_quote($repPath, '/')), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             return str_replace($authzContentPreg[0][0], '', $authzContent);
         } else {
@@ -745,6 +792,9 @@ class SVNAdmin
     public function DelRepFromAuthz($authzContent, $repName)
     {
         preg_match_all(sprintf($this->reg_2, preg_quote($repName) . ':' . '.*'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             foreach ($authzContentPreg[0] as $key => $value) {
                 $authzContent = str_replace($value, '', $authzContent);
@@ -766,6 +816,9 @@ class SVNAdmin
     public function GetRepListFromAuthz($authzContent)
     {
         preg_match_all(sprintf($this->reg_2, '(.*?)' . ':' . '.*?'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         return array_values(array_unique($authzContentPreg[1]));
     }
 
@@ -785,6 +838,9 @@ class SVNAdmin
     public function UpdRepFromAuthz($authzContent, $oldRepName, $newRepName)
     {
         preg_match_all(sprintf($this->reg_2, preg_quote($oldRepName) . ':' . '(.*?)'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[1])) {
             foreach ($authzContentPreg[0] as $key => $value) {
                 $authzContent = str_replace($value, '[' . $newRepName . ':' . $authzContentPreg[1][$key] . ']' . $authzContentPreg[2][$key], $authzContent);
@@ -815,8 +871,14 @@ class SVNAdmin
     {
         $groupName = trim($groupName);
         preg_match_all(sprintf($this->reg_2, 'groups'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             preg_match_all(sprintf($this->reg_5, preg_quote($groupName)), $authzContentPreg[1][0], $resultPreg);
+            if (preg_last_error() != 0) {
+                return preg_last_error();
+            }
             if (array_key_exists(0, $resultPreg[0])) {
                 return 820;
             } else {
@@ -857,8 +919,14 @@ class SVNAdmin
 
         //从 [groups] 节中删除
         preg_match_all(sprintf($this->reg_2, 'groups'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.]+'), $authzContentPreg[1][0], $resultPreg);
+            if (preg_last_error() != 0) {
+                return preg_last_error();
+            }
             $groupContent = "";
             foreach ($resultPreg[1] as $key => $groupStr) {
                 if ($objectType == 'group') {
@@ -926,14 +994,23 @@ class SVNAdmin
         //从 [aliases] 节中修改别名
         if ($objectType == 'aliase') {
             preg_match_all(sprintf($this->reg_2, 'aliases'), $authzContent, $authzContentPreg1);
+            if (preg_last_error() != 0) {
+                return preg_last_error();
+            }
             if (array_key_exists(0, $authzContentPreg1[0])) {
                 //要修改的新别名已经存在
                 preg_match_all(sprintf($this->reg_5, substr(preg_quote($newObjectName), 1)), $authzContentPreg1[1][0], $resultPreg1);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (array_key_exists(0, $resultPreg1[0])) {
                     return 831;
                 }
                 //继续处理
                 preg_match_all(sprintf($this->reg_5, substr(preg_quote($oldObjectName), 1)), $authzContentPreg1[1][0], $resultPreg1);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (array_key_exists(0, $resultPreg1[0])) {
                     $authzContent = preg_replace(sprintf($this->reg_2, 'aliases'), "[aliases]\n" . trim(preg_replace(sprintf($this->reg_5, substr(preg_quote($oldObjectName), 1)), substr($newObjectName, 1) . '=' . $resultPreg1[2][0], $authzContentPreg1[1][0])) . "\n", $authzContent);
                 } else {
@@ -947,8 +1024,14 @@ class SVNAdmin
 
         //从 [groups] 节中从左值修改分组，从右值修改分组、别名、用户
         preg_match_all(sprintf($this->reg_2, 'groups'), $authzContent, $authzContentPreg2);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg2[0])) {
             preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.]+'), $authzContentPreg2[1][0], $resultPreg2);
+            if (preg_last_error() != 0) {
+                return preg_last_error();
+            }
             if ($objectType == 'group') {
                 //要修改的新分组已经存在
                 if (in_array(substr($newObjectName, 1), $resultPreg2[1])) {
@@ -997,6 +1080,9 @@ class SVNAdmin
     public function GetGroupInfo($authzContent, $groupName = '')
     {
         preg_match_all(sprintf($this->reg_2, 'groups'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
@@ -1004,6 +1090,9 @@ class SVNAdmin
             } else {
                 $list = [];
                 preg_match_all(sprintf($this->reg_5, $groupName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($groupName)), $authzContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (empty($resultPreg[0])) {
                     return $groupName == '' ? [] : 720;
                 }
@@ -1068,12 +1157,18 @@ class SVNAdmin
     {
         $objectName = trim($objectName);
         preg_match_all(sprintf($this->reg_2, 'groups'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return [];
             } else {
                 preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.]+'), $authzContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
 
                 if ($objectType == 'user') {
                     //无操作
@@ -1239,12 +1334,18 @@ class SVNAdmin
             return 802;
         }
         preg_match_all(sprintf($this->reg_2, 'groups'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[0])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return 720;
             } else {
                 preg_match_all(sprintf($this->reg_5, preg_quote($groupName)), $authzContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (array_key_exists(0, $resultPreg[0])) {
                     foreach ($resultPreg[1] as $key => $groupStr) {
                         $userGroupStr = trim($resultPreg[2][$key]);
@@ -1306,6 +1407,9 @@ class SVNAdmin
     public function GetGroupHasPri($authzContent, $groupName)
     {
         preg_match_all(sprintf($this->reg_7, "(@" . preg_quote($groupName) . ")"), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
 
         $result = [];
         foreach ($authzContentPreg[5] as $key => $value) {
@@ -1406,6 +1510,9 @@ class SVNAdmin
         }
 
         preg_match_all(sprintf($this->reg_7, '(' . implode('|', $pregArray) . ')'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
 
         //两个满足条件在同一个路径下的问题 会被一个条件匹配到 而且不会重复 所以无需去重
 
@@ -1444,12 +1551,18 @@ class SVNAdmin
         $userName = trim($userName);
         $userPass = trim($userPass);
         preg_match_all(sprintf($this->reg_2, 'users'), $passwdContent, $passwdContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return preg_replace(sprintf($this->reg_2, 'users'), trim($passwdContentPreg[0][0]) . "\n$userName=$userPass\n", $passwdContent);
             } else {
                 preg_match_all(sprintf($this->reg_5, '(' . $this->reg_1 . ')*[A-Za-z0-9-_.]+'), $passwdContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 array_walk($resultPreg[1], [$this, 'ArrayValueEnable']);
                 if (in_array($userName, $resultPreg[1])) {
                     return 810;
@@ -1482,6 +1595,9 @@ class SVNAdmin
         $oldUserName = $isDisabledUser ? ($this->reg_1 . preg_quote($oldUserName)) : preg_quote($oldUserName);
         $newUserName = $isDisabledUser ? ($this->reg_1 . $newUserName) : $newUserName;
         preg_match_all(sprintf($this->reg_2, 'users'), $passwdContent, $passwdContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
@@ -1489,12 +1605,18 @@ class SVNAdmin
             } else {
                 //检查目标用户是否已经存在
                 preg_match_all(sprintf($this->reg_5, '(' . $this->reg_1 . ')*[A-Za-z0-9-_.]+'), $passwdContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 array_walk($resultPreg[1], [$this, 'ArrayValueEnable']);
                 if (in_array($newUserName, $resultPreg[1])) {
                     return 811;
                 }
                 //继续处理
                 preg_match_all(sprintf($this->reg_5, $oldUserName), $passwdContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (array_key_exists(0, $resultPreg[0])) {
                     return preg_replace(sprintf($this->reg_2, 'users'), "[users]\n" . trim(preg_replace(sprintf($this->reg_5, $oldUserName), $newUserName . '=' . $resultPreg[2][0], $passwdContentPreg[1][0])) . "\n", $passwdContent);
                 } else {
@@ -1523,12 +1645,18 @@ class SVNAdmin
         $userName = trim($userName);
         $userName = $isDisabledUser ? ($this->reg_1 . preg_quote($userName)) : preg_quote($userName);
         preg_match_all(sprintf($this->reg_2, 'users'), $passwdContent, $passwdContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return 710;
             } else {
                 preg_match_all(sprintf($this->reg_5, $userName), $passwdContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (array_key_exists(0, $resultPreg[0])) {
                     return preg_replace(sprintf($this->reg_2, 'users'), "[users]\n" . trim(preg_replace(sprintf($this->reg_5, $userName), '', $passwdContentPreg[1][0])) . "\n", $passwdContent);
                 } else {
@@ -1555,12 +1683,18 @@ class SVNAdmin
     public function GetUserInfo($passwdContent, $userName = '')
     {
         preg_match_all(sprintf($this->reg_2, 'users'), $passwdContent, $passwdContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return $userName == '' ? [] : 710;
             } else {
                 preg_match_all(sprintf($this->reg_5, "($this->reg_1)*" . ($userName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($userName))), $passwdContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (empty($resultPreg[0])) {
                     return $userName == '' ? [] : 710;
                 }
@@ -1603,12 +1737,18 @@ class SVNAdmin
         $userName = trim($userName);
         $userName = $isDisabledUser ? ($this->reg_1 . $userName) : $userName;
         preg_match_all(sprintf($this->reg_2, 'users'), $passwdContent, $passwdContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
                 return 710;
             } else {
                 preg_match_all(sprintf($this->reg_5, preg_quote($userName)), $passwdContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (array_key_exists(0, $resultPreg[0])) {
                     return preg_replace(sprintf($this->reg_2, 'users'), "[users]\n" . trim(preg_replace(sprintf($this->reg_5, preg_quote($userName)), "$userName=$userPass", $passwdContentPreg[1][0])) . "\n", $passwdContent);
                 } else {
@@ -1636,6 +1776,9 @@ class SVNAdmin
     {
         $userName = trim($userName);
         preg_match_all(sprintf($this->reg_2, 'users'), $passwdContent, $passwdContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $passwdContentPreg[1])) {
             $temp1 = trim($passwdContentPreg[1][0]);
             if (empty($temp1)) {
@@ -1643,6 +1786,9 @@ class SVNAdmin
             } else {
                 $preg = $disable ? $userName : ($this->reg_1 . $userName);
                 preg_match_all(sprintf($this->reg_5, preg_quote($preg)), $passwdContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (array_key_exists(0, $resultPreg[0])) {
                     $replace = ($disable ? $this->reg_1 : '') . $userName . '=' . $resultPreg[2][0];
                     return preg_replace(sprintf($this->reg_2, 'users'), "[users]\n" . trim(preg_replace(sprintf($this->reg_5, preg_quote($preg)), $replace, $passwdContentPreg[1][0])) . "\n", $passwdContent);
@@ -1709,12 +1855,18 @@ class SVNAdmin
     public function GetAliaseInfo($authzContent, $aliaseName = '')
     {
         preg_match_all(sprintf($this->reg_2, 'aliases'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
         if (array_key_exists(0, $authzContentPreg[1])) {
             $temp1 = trim($authzContentPreg[1][0]);
             if (empty($temp1)) {
                 return $aliaseName == '' ? [] : 730;
             } else {
                 preg_match_all(sprintf($this->reg_5, ($aliaseName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($aliaseName))), $authzContentPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
                 if (empty($resultPreg[0])) {
                     return 730;
                 }
