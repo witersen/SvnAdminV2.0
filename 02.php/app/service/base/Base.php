@@ -687,7 +687,9 @@ class Base
             'checked' => false,
             'disabled' => false,
             'router_name' => 'repositoryGroup',
-            'necessary_functions' => [],
+            'necessary_functions' => [
+                'Svngroup/GetGroupList'
+            ],
             'children' => [
                 [
                     'title' => '新建SVN分组',
@@ -941,7 +943,9 @@ class Base
             'disabled' => true,
             'router_name' => 'personal',
             'necessary_functions' => [
-                'Personal/UpdSubadminUserPass'
+                'Personal/UpdSubadminUserPass',
+                'Setting/CheckUpdate',
+                'Common/Logout'
             ],
             'children' => []
         ],
@@ -1251,25 +1255,41 @@ class Base
             $subadminTree = json_decode($subadminTree, true);
             if (empty($subadminTree)) {
                 $subadminTree = $this->subadminTree;
+
                 $this->database->update('subadmin', [
-                    'subadmin_tree' => json_encode($this->subadminTree)
+                    'subadmin_tree' => json_encode($this->subadminTree),
+                ], [
+                    'subadmin_name' => $this->userName
+                ]);
+
+                $this->database->update('subadmin', [
+                    'subadmin_functions' => json_encode($this->GetDynamicRouting(3)['functions'])
                 ], [
                     'subadmin_name' => $this->userName
                 ]);
             }
             foreach ($subadminTree as $node) {
-                $tempFunctions = [];
+                $temp1 = [];
+                //父节点完全勾选
                 if ($node['checked']) {
-                    $tempFunctions = $node['necessary_functions'];
+                    $temp1 = array_merge($temp1, $node['necessary_functions']);
+                    $temp1 = array_merge($temp1, $this->GetPriFunctions($node['children']));
+                } else {
+                    //父节点未勾选但是子节点部分勾选
+                    $temp2 = $this->GetPriFunctions($node['children']);
+                    if (!empty($temp2)) {
+                        $temp1 = array_merge($temp1, $node['necessary_functions']);
+                        $temp1 = array_merge($temp1, $temp2);
+                    }
                 }
-                $tempFunctions = array_merge($tempFunctions, $this->GetPriFunctions($node['children']));
-                if (empty($tempFunctions)) {
+
+                if (empty($temp1)) {
                     if (($index = array_search($node['router_name'], $routerNames)) !== false) {
                         unset($route['children'][$index]);
                     }
                     continue;
                 }
-                $functions = array_merge($functions, $tempFunctions);
+                $functions = array_merge($functions, $temp1);
             }
         }
 
@@ -1290,6 +1310,8 @@ class Base
 
     /**
      * 获取有权函数
+     * 
+     * 子节点有值则合并父节点的值
      */
     public function GetPriFunctions($tree)
     {
@@ -1299,9 +1321,17 @@ class Base
 
         $functions = [];
         foreach ($tree as $node) {
+            //父节点完全勾选
             if ($node['checked']) {
                 $functions = array_merge($functions, $node['necessary_functions']);
                 $functions = array_merge($functions, $this->GetPriFunctions($node['children']));
+            } else {
+                //父节点未勾选但是子节点部分勾选
+                $temp = $this->GetPriFunctions($node['children']);
+                if (!empty($temp)) {
+                    $functions = array_merge($functions, $node['necessary_functions']);
+                    $functions = array_merge($functions, $temp);
+                }
             }
         }
 

@@ -124,7 +124,7 @@ class Base
             $userName = $info[1];
             if ($userRoleId == 2) {
                 if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], array_merge($configRouters['svn_user_routers'], $configRouters['public'][$parm['type']]))) {
-                    json1(403, 0, '权限未分配');
+                    json1(401, 0, '无权限');
                 }
             } else if ($userRoleId == 3) {
                 $subadminFunctions = $database->get('subadmin', 'subadmin_functions', [
@@ -132,7 +132,7 @@ class Base
                 ]);
                 $subadminFunctions = json_decode($subadminFunctions, true);
                 if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], $subadminFunctions)) {
-                    json1(401, 0, '无权限');
+                    json1(403, 0, '权限未分配');
                 }
             }
 
