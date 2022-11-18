@@ -2104,10 +2104,7 @@ class Svnrep extends Base
     {
         $hooksPath = $this->configSvn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
 
-        //使用echo写入文件 当出现不规则的不成对的 ' " 等会出问题 当然也会包括其他问题
         funFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
-
-        funShellExec('chmod 777 -R ' . $this->configSvn['home_path']);
 
         return message();
     }

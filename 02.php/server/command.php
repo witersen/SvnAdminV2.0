@@ -320,7 +320,7 @@ class Command
 
         $shellFile = tempnam('/tmp', 'svnadmin_');
         file_put_contents($shellFile, $this->crond['shell']);
-        shell_exec("chmod 777 $shellFile");
+        shell_exec(sprintf("chmod 777 '%s'", $shellFile));
 
         passthru($shellFile . " 2>$stderrFile", $this->code);
 

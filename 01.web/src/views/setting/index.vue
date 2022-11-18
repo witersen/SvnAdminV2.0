@@ -472,7 +472,202 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane :label="labelUpd" name="7">
+        <TabPane label="用户来源" name="7">
+          <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Form :label-width="120" label-position="left">
+              <FormItem label="SVN用户来源">
+                <Row>
+                  <Col span="12">
+                    <Select
+                      v-model="formDataSource.user_source"
+                      style="width: 200px"
+                    >
+                      <Option value="passwd">passwd文件</Option>
+                      <Option value="ldap">ldap</Option>
+                    </Select>
+                  </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="SVN分组来源">
+                <Row>
+                  <Col span="12">
+                    <Select
+                      v-model="formDataSource.group_source"
+                      style="width: 200px"
+                    >
+                      <Option value="authz">authz文件</Option>
+                      <Option value="ldap">ldap</Option>
+                    </Select>
+                  </Col>
+                </Row>
+              </FormItem>
+              <!-- LDAP 服务器 -->
+              <span
+                v-if="
+                  formDataSource.user_source == 'ldap' ||
+                  formDataSource.group_source == 'ldap'
+                "
+              >
+                <Divider>LDAP 服务器</Divider>
+                <FormItem label="LDAP 主机地址">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.ldap_host"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="LDAP 端口">
+                  <Row>
+                    <Col span="12">
+                      <InputNumber
+                        :min="1"
+                        v-model="formDataSource.ldap_port"
+                      ></InputNumber>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="LDAP 协议版本">
+                  <Row>
+                    <Col span="12">
+                      <InputNumber
+                        :min="2"
+                        :max="3"
+                        v-model="formDataSource.ldap_version"
+                      ></InputNumber>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Bind DN">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.ldap_bind_dn"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Bind password">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.ldap_bind_password"
+                        type="password"
+                        password
+                      ></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Button
+                        type="success"
+                        @click="LdapTest('connection')"
+                        :loading="loadingLdapTestConnection"
+                        >验证</Button
+                      >
+                    </Col>
+                  </Row>
+                </FormItem>
+              </span>
+              <!-- LDAP 用户 -->
+              <span v-if="formDataSource.user_source == 'ldap'">
+                <Divider>LDAP 用户</Divider>
+                <FormItem label="Base DN">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.user_base_dn"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Search filter">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.user_search_filter"
+                      ></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Attributes">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.user_attributes"></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Button
+                        type="success"
+                        @click="LdapTest('user')"
+                        :loading="loadingLdapTestUser"
+                        >验证</Button
+                      >
+                    </Col>
+                  </Row>
+                </FormItem>
+              </span>
+              <!-- LDAP 分组 -->
+              <span v-if="formDataSource.group_source == 'ldap'">
+                <Divider>LDAP 分组</Divider>
+                <FormItem label="Base DN">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.group_base_dn"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Search filter">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.group_search_filter"
+                      ></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Attributes">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.group_attributes"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Groups to user attribute">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.groups_to_user_attribute"
+                      ></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Groups to user attribute value">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.groups_to_user_attribute_value"
+                      ></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Button
+                        type="success"
+                        @click="LdapTest('group')"
+                        :loading="loadingLdapTestGroup"
+                        >验证</Button
+                      >
+                    </Col>
+                  </Row>
+                </FormItem>
+              </span>
+              <!-- 保存 -->
+              <FormItem>
+                <Button
+                  type="primary"
+                  @click="UpdLdapInfo"
+                  :loading="loadingUpdLdapInfo"
+                  >保存</Button
+                >
+              </FormItem>
+            </Form>
+          </Card>
+        </TabPane>
+        <TabPane :label="labelUpd" name="8">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">
@@ -524,6 +719,7 @@
         </TabPane>
       </Tabs>
     </Card>
+    <!-- 对话框-更新信息 -->
     <Modal
       v-model="modalSofawareUpdateGet"
       :draggable="true"
@@ -599,6 +795,7 @@
         </Form>
       </Scroll>
     </Modal>
+    <!-- 对话框-添加收件人邮箱 -->
     <Modal
       v-model="modalAddToEmail"
       :draggable="true"
@@ -610,6 +807,25 @@
           <Input type="text" v-model="tempToEmail"> </Input>
         </FormItem>
       </Form>
+    </Modal>
+    <!-- 对话框-ldap用户/分组过滤结果 -->
+    <Modal
+      v-model="modalLdapUsersGroups"
+      :draggable="true"
+      :title="titleLdapUsersGroups"
+    >
+      <Input
+        v-model="tempLdapUsersGroups"
+        readonly
+        :rows="15"
+        show-word-limit
+        type="textarea"
+      />
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalLdapUsersGroups = false"
+          >取消</Button
+        >
+      </div>
     </Modal>
   </div>
 </template>
@@ -644,6 +860,8 @@ export default {
       tempTestEmail: "",
       //添加收件人邮箱
       tempToEmail: "",
+      //ldap用户/分组过滤结果
+      tempLdapUsersGroups: "",
 
       /**
        * 控制修改状态
@@ -651,6 +869,11 @@ export default {
       disabledEditPort: true,
       disabledEditHost: true,
       disabledEditManageHost: true,
+
+      /**
+       * 标题
+       */
+      titleLdapUsersGroups: "",
 
       /**
        * tab
@@ -691,6 +914,12 @@ export default {
       loadingEditSafe: false,
       //检测更新
       loadingCheckUpdate: false,
+      //测试连接ldap服务器
+      loadingLdapTestConnection: false,
+      loadingLdapTestUser: false,
+      loadingLdapTestGroup: false,
+      //更新ldap配置
+      loadingUpdLdapInfo: false,
 
       /**
        * subversion信息
@@ -719,6 +948,8 @@ export default {
        */
       modalSofawareUpdateGet: false,
       modalAddToEmail: false,
+      //ldap用户/分组过滤结果
+      modalLdapUsersGroups: false,
 
       /**
        * 表单
@@ -761,6 +992,31 @@ export default {
           download: [],
         },
       },
+      //用户来源
+      formDataSource: {
+        //数据源
+        user_source: "",
+        group_source: "",
+
+        //ldap服务器
+        ldap_host: "",
+        ldap_port: 389,
+        ldap_version: 3,
+        ldap_bind_dn: "",
+        ldap_bind_password: "",
+
+        //用户相关
+        user_base_dn: "",
+        user_search_filter: "",
+        user_attributes: "",
+
+        //分组相关
+        group_base_dn: "",
+        group_search_filter: "",
+        group_attributes: "",
+        groups_to_user_attribute: "",
+        groups_to_user_attribute_value: "",
+      },
     };
   },
   computed: {},
@@ -776,6 +1032,7 @@ export default {
     this.GetMailInfo();
     this.GetMailPushInfo();
     this.GetSafeInfo();
+    this.GetLdapInfo();
   },
   methods: {
     /**
@@ -1294,7 +1551,9 @@ export default {
           that.$Message.error("出错了 请联系管理员！");
         });
     },
-    //检测更新
+    /**
+     * 检测更新
+     */
     CheckUpdate() {
       var that = this;
       that.loadingCheckUpdate = true;
@@ -1318,6 +1577,111 @@ export default {
         .catch(function (error) {
           that.loadingCheckUpdate = false;
           console.log(error);
+        });
+    },
+    /**
+     * 测试连接ldap服务器
+     */
+    LdapTest(type) {
+      var that = this;
+      if (type == "connection") {
+        that.loadingLdapTestConnection = true;
+      } else if (type == "user") {
+        that.loadingLdapTestUser = true;
+      } else if (type == "group") {
+        that.loadingLdapTestGroup = true;
+      }
+      var data = {
+        type: type,
+        data_source: that.formDataSource,
+      };
+      that.$axios
+        .post("/api.php?c=Setting&a=LdapTest&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (type == "connection") {
+            that.loadingLdapTestConnection = false;
+          } else if (type == "user") {
+            that.loadingLdapTestUser = false;
+          } else if (type == "group") {
+            that.loadingLdapTestGroup = false;
+          }
+          if (result.status == 1) {
+            if (type == "connection") {
+              that.$Message.success(result.message);
+            } else if (type == "user") {
+              that.titleLdapUsersGroups =
+                "过滤到 " + result.data.count + " 个ldap用户(逗号分隔)";
+              that.tempLdapUsersGroups = result.data.users;
+              that.modalLdapUsersGroups = true;
+            } else if (type == "group") {
+              that.titleLdapUsersGroups =
+                "过滤到 " + result.data.count + " 个ldap分组(逗号分隔)";
+              that.tempLdapUsersGroups = result.data.groups;
+              that.modalLdapUsersGroups = true;
+            }
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          if (type == "connection") {
+            that.loadingLdapTestConnection = false;
+          } else if (type == "user") {
+            that.loadingLdapTestUser = false;
+          } else if (type == "group") {
+            that.loadingLdapTestGroup = false;
+          }
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 保存ldap配置信息
+     */
+    UpdLdapInfo() {
+      var that = this;
+      that.loadingUpdLdapInfo = true;
+      var data = {
+        data_source: that.formDataSource,
+      };
+      that.$axios
+        .post("/api.php?c=Setting&a=UpdLdapInfo&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          that.loadingUpdLdapInfo = false;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetLdapInfo();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingUpdLdapInfo = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 获取ldap配置信息
+     */
+    GetLdapInfo() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Setting&a=GetLdapInfo&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.formDataSource = result.data;
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
         });
     },
   },

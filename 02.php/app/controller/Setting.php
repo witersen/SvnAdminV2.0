@@ -12,6 +12,7 @@ namespace app\controller;
 use app\service\Setting as ServiceSetting;
 use app\service\Mail as ServiceMail;
 use app\service\Svnrep as ServiceSvnrep;
+use app\service\Ldap as ServiceLdap;
 
 class Setting extends Base
 {
@@ -31,6 +32,7 @@ class Setting extends Base
         $this->ServiceSetting = new ServiceSetting($parm);
         $this->ServiceMail = new ServiceMail($parm);
         $this->ServiceSvnrep = new ServiceSvnrep($parm);
+        $this->ServiceLdap = new ServiceLdap($parm);
     }
 
     /**
@@ -189,6 +191,39 @@ class Setting extends Base
     public function GetVerifyOption()
     {
         $result = $this->ServiceSetting->GetVerifyOption();
+        json2($result);
+    }
+
+    /**
+     * 测试连接ldap服务器
+     *
+     * @return array
+     */
+    public function LdapTest()
+    {
+        $result = $this->ServiceLdap->LdapTest();
+        json2($result);
+    }
+
+    /**
+     * 保存ldap配置信息
+     *
+     * @return void
+     */
+    public function UpdLdapInfo()
+    {
+        $result = $this->ServiceLdap->UpdLdapInfo();
+        json2($result);
+    }
+
+    /**
+     * 获取ldap配置信息
+     *
+     * @return void
+     */
+    public function GetLdapInfo()
+    {
+        $result = $this->ServiceLdap->GetLdapInfo();
         json2($result);
     }
 }

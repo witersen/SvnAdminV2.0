@@ -558,7 +558,7 @@ CON;
         }
 
         //配置SQLite数据库文件的父目录权限配置为777 解决无法写入且不报错的问题
-        shell_exec('chmod 777 ' . $this->configSvn['home_path']);
+        shell_exec(sprintf("chmod 777 '%s'", $this->configSvn['home_path']));
 
         echo '===============================================' . PHP_EOL;
 
@@ -567,7 +567,7 @@ CON;
          */
         echo '配置主目录权限' . PHP_EOL;
 
-        shell_exec(sprintf("chmod 777 -R '%s'", $this->configSvn['home_path']));
+        shell_exec(sprintf("chmod 777 '%s'", $this->configSvn['home_path']));
 
         echo '===============================================' . PHP_EOL;
 
@@ -735,7 +735,7 @@ CON;
         //为新目录授权
         echo '为新目录授权' . PHP_EOL;
 
-        shell_exec('chmod 777 -R ' . $newConfigSvn['home_path']);
+        shell_exec(sprintf("chmod 777 '%s'", $newConfigSvn['home_path']));
 
         echo '===============================================' . PHP_EOL;
 
