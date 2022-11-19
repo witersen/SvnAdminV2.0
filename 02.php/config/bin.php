@@ -17,5 +17,6 @@ return [
     'svnrdump' => '/usr/bin/svnrdump',
     'svndumpfilter' => '/usr/bin/svndumpfilter',
     'svnmucc' => '/usr/bin/svnmucc',
-    'svnauthz-validate' => '/usr/bin/svn-tools/svnauthz-validate'
+    'svnauthz-validate' => '/usr/bin/svn-tools/svnauthz-validate',
+    'saslauthd'=>'/usr/sbin/saslauthd'
 ];

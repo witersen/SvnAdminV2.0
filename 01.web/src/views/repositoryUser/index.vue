@@ -1,6 +1,9 @@
 <template>
   <div>
     <Card :bordered="false" :dis-hover="true">
+      <!-- <Alert show-icon
+        >SVN用户账户登录本系统 后登录的账号将会顶掉之前登录的账号</Alert
+      > -->
       <Row style="margin-bottom: 15px">
         <Col
           type="flex"
@@ -721,9 +724,9 @@ export default {
         .post("/api.php?c=Svnuser&a=UpdUserStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
+          that.GetUserList();
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetUserList();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }

@@ -23,6 +23,10 @@ $templete_base_path = $home_path . 'templete/';
 
 $templete_init_struct = $templete_base_path . 'initStruct/';
 
+$sasl_base_path = $home_path . 'sasl/';
+
+$ldap_base_path = $sasl_base_path . 'ldap/';
+
 return [
     /**
      * SVNAdmin软件配置信息的主目录
@@ -106,4 +110,14 @@ return [
      * 默认使用的仓库模板
      */
     'templete_init_struct_01' => $templete_init_struct . '01/',
+
+    /**
+     * ldap服务器配置文件
+     */
+    'ldap_config_file' => $ldap_base_path . 'saslauthd.conf',
+
+    /**
+     * saslauthd服务pid文件
+     */
+    'saslauthd_pid_file' => $sasl_base_path . 'saslauthd.pid',
 ];

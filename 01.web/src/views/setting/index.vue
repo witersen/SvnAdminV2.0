@@ -45,14 +45,14 @@
                       :loading="loadingSvnserveStart"
                       type="success"
                       v-if="!formSvn.status"
-                      @click="StartSvnserve"
+                      @click="UpdSvnserveStatusSart"
                       >启动</Button
                     >
                     <Button
                       :loading="loadingSvnserveStop"
                       type="warning"
                       v-if="formSvn.status"
-                      @click="StopSvnserve"
+                      @click="UpdSvnserveStatusStop"
                       >停止</Button
                     >
                   </Col>
@@ -150,7 +150,69 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="路径信息" name="2">
+        <TabPane label="saslauthd" name="2">
+          <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Alert>如果不使用LDAP认证 可关闭此服务以节约资源 </Alert>
+            <Form :label-width="100" label-position="left">
+              <FormItem label="当前版本">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formSasl.version }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6"> </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="支持信息">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formSasl.mechanisms }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6"> </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="运行状态">
+                <Row>
+                  <Col span="12">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="300"
+                      content="运行状态通过pid文件和pid数值进行判断-如有误判请检查saslauthd程序的启动方式"
+                    >
+                      <span style="color: #f90" v-if="!formSasl.status"
+                        >未启动</span
+                      >
+                      <span style="color: #19be6b" v-if="formSasl.status"
+                        >运行中</span
+                      >
+                    </Tooltip>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Button
+                      :loading="loadingUpdSaslStatusStart"
+                      type="success"
+                      v-if="!formSasl.status"
+                      @click="UpdSaslStatusStart"
+                      >启动</Button
+                    >
+                    <Button
+                      :loading="loadingUpdSaslStatusStop"
+                      type="warning"
+                      v-if="formSasl.status"
+                      @click="UpdSaslStatusStop"
+                      >停止</Button
+                    >
+                  </Col>
+                </Row>
+              </FormItem>
+            </Form>
+          </Card>
+        </TabPane>
+        <TabPane label="路径信息" name="3">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert
               >可在命令行模式下执行 server/insta.php 进行目录更换操作
@@ -170,7 +232,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="邮件服务" name="3">
+        <TabPane label="邮件服务" name="4">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="120" label-position="left">
               <FormItem label="SMTP主机">
@@ -374,7 +436,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="消息推送" name="4">
+        <TabPane label="消息推送" name="5">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Alert
               >由于邮件发送没有使用异步任务<br /><br />
@@ -408,7 +470,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="安全配置" name="5">
+        <TabPane label="安全配置" name="6">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem
@@ -436,7 +498,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="自助检测" name="6" v-if="false">
+        <TabPane label="自助检测" name="7" v-if="false">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert
               >不经意的配置可能会导致 authz 配置文件失效<br /><br />
@@ -472,7 +534,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="用户来源" name="7">
+        <TabPane label="用户来源" name="8">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="120" label-position="left">
               <FormItem label="SVN用户来源">
@@ -481,11 +543,13 @@
                     <Select
                       v-model="formDataSource.user_source"
                       style="width: 200px"
+                      @on-change="ChangeUserSource"
                     >
                       <Option value="passwd">passwd文件</Option>
                       <Option value="ldap">ldap</Option>
                     </Select>
                   </Col>
+                  <Col span="6"> </Col>
                 </Row>
               </FormItem>
               <FormItem label="SVN分组来源">
@@ -496,8 +560,26 @@
                       style="width: 200px"
                     >
                       <Option value="authz">authz文件</Option>
-                      <Option value="ldap">ldap</Option>
+                      <Option
+                        value="ldap"
+                        :disabled="formDataSource.user_source == 'passwd'"
+                        >ldap</Option
+                      >
                     </Select>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      v-if="
+                        formDataSource.user_source == 'ldap' ||
+                        formDataSource.group_source == 'ldap'
+                      "
+                      :transfer="true"
+                      max-width="250"
+                      content="如果要设置SVN分组来源为LDAP  必须要先设置SVN用户来源为LDAP"
+                    >
+                      <Button type="info">说明</Button>
+                    </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
@@ -632,6 +714,7 @@
                     <Col span="12">
                       <Input
                         v-model="formDataSource.groups_to_user_attribute"
+                        disabled
                       ></Input>
                     </Col>
                   </Row>
@@ -641,6 +724,7 @@
                     <Col span="12">
                       <Input
                         v-model="formDataSource.groups_to_user_attribute_value"
+                        disabled
                       ></Input>
                     </Col>
                     <Col span="1"> </Col>
@@ -667,7 +751,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane :label="labelUpd" name="8">
+        <TabPane :label="labelUpd" name="9">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">
@@ -920,6 +1004,9 @@ export default {
       loadingLdapTestGroup: false,
       //更新ldap配置
       loadingUpdLdapInfo: false,
+      //sasl
+      loadingUpdSaslStatusStart: false,
+      loadingUpdSaslStatusStop: false,
 
       /**
        * subversion信息
@@ -1017,6 +1104,12 @@ export default {
         groups_to_user_attribute: "",
         groups_to_user_attribute_value: "",
       },
+      //sasl
+      formSasl: {
+        version: "",
+        mechanisms: "",
+        status: false,
+      },
     };
   },
   computed: {},
@@ -1033,6 +1126,7 @@ export default {
     this.GetMailPushInfo();
     this.GetSafeInfo();
     this.GetLdapInfo();
+    this.GetSaslInfo();
   },
   methods: {
     /**
@@ -1362,7 +1456,7 @@ export default {
     /**
      * 启动SVN
      */
-    StartSvnserve() {
+    UpdSvnserveStatusSart() {
       var that = this;
       that.$Modal.confirm({
         title: "以daomen方式启动svnserve服务",
@@ -1371,7 +1465,7 @@ export default {
           that.loadingSvnserveStart = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Setting&a=StartSvnserve&t=web", data)
+            .post("/api.php?c=Setting&a=UpdSvnserveStatusSart&t=web", data)
             .then(function (response) {
               that.loadingSvnserveStart = false;
               var result = response.data;
@@ -1393,7 +1487,7 @@ export default {
     /**
      * 停止SVN
      */
-    StopSvnserve() {
+    UpdSvnserveStatusStop() {
       var that = this;
       that.$Modal.confirm({
         title: "停止svnserve服务",
@@ -1402,7 +1496,7 @@ export default {
           that.loadingSvnserveStop = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Setting&a=StopSvnserve&t=web", data)
+            .post("/api.php?c=Setting&a=UpdSvnserveStatusStop&t=web", data)
             .then(function (response) {
               that.loadingSvnserveStop = false;
               var result = response.data;
@@ -1641,27 +1735,34 @@ export default {
      */
     UpdLdapInfo() {
       var that = this;
-      that.loadingUpdLdapInfo = true;
-      var data = {
-        data_source: that.formDataSource,
-      };
-      that.$axios
-        .post("/api.php?c=Setting&a=UpdLdapInfo&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          that.loadingUpdLdapInfo = false;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetLdapInfo();
-          } else {
-            that.$Message.error({ content: result.message, duration: 2 });
-          }
-        })
-        .catch(function (error) {
-          that.loadingUpdLdapInfo = false;
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
+      that.$Modal.confirm({
+        title: "保存ldap配置信息",
+        content:
+          "请阅读以下后做出确认:<br/>1、此操作会将数据库中的SVN用户信息清空并使用ldap用户代替。<br/>2、此操作不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会清空本系统中的authz文件中的分组信息，并使用ldap分组代替。",
+        onOk: () => {
+          that.loadingUpdLdapInfo = true;
+          var data = {
+            data_source: that.formDataSource,
+          };
+          that.$axios
+            .post("/api.php?c=Setting&a=UpdLdapInfo&t=web", data)
+            .then(function (response) {
+              var result = response.data;
+              that.loadingUpdLdapInfo = false;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetLdapInfo();
+              } else {
+                that.$Message.error({ content: result.message, duration: 2 });
+              }
+            })
+            .catch(function (error) {
+              that.loadingUpdLdapInfo = false;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        },
+      });
     },
     /**
      * 获取ldap配置信息
@@ -1683,6 +1784,97 @@ export default {
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
+    },
+    /**
+     * SVN用户来源下拉切换
+     */
+    ChangeUserSource(value) {
+      if (value == "passwd") {
+        this.formDataSource.group_source = "authz";
+      }
+    },
+    /**
+     * 获取当前的 sasl 信息
+     */
+    GetSaslInfo() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Setting&a=GetSaslInfo&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.formSasl = result.data;
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 启动sasl
+     */
+    UpdSaslStatusStart() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "以daomen方式启动saslauthd服务",
+        content: "确定要启动saslauthd服务吗吗？",
+        onOk: () => {
+          that.loadingUpdSaslStatusStart = true;
+          var data = {};
+          that.$axios
+            .post("/api.php?c=Setting&a=UpdSaslStatusStart&t=web", data)
+            .then(function (response) {
+              that.loadingUpdSaslStatusStart = false;
+              var result = response.data;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetSaslInfo();
+              } else {
+                that.$Message.error({ content: result.message, duration: 2 });
+              }
+            })
+            .catch(function (error) {
+              that.loadingUpdSaslStatusStart = false;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        },
+      });
+    },
+    /**
+     * 停止sasl
+     */
+    UpdSaslStatusStop() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "停止saslauthd服务",
+        content: "确定要停止saslauthd服务吗？",
+        onOk: () => {
+          that.loadingUpdSaslStatusStop = true;
+          var data = {};
+          that.$axios
+            .post("/api.php?c=Setting&a=UpdSaslStatusStop&t=web", data)
+            .then(function (response) {
+              that.loadingUpdSaslStatusStop = false;
+              var result = response.data;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetSaslInfo();
+              } else {
+                that.$Message.error({ content: result.message, duration: 2 });
+              }
+            })
+            .catch(function (error) {
+              that.loadingUpdSaslStatusStop = false;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        },
+      });
     },
   },
 };

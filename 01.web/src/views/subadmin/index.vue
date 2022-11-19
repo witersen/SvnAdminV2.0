@@ -1,6 +1,9 @@
 <template>
   <div>
     <Card :bordered="false" :dis-hover="true">
+      <!-- <Alert show-icon
+        >子管理员账户登录本系统 后登录的账号将会顶掉之前登录的账号</Alert
+      > -->
       <Row style="margin-bottom: 15px">
         <Col
           type="flex"
@@ -66,19 +69,12 @@
           />
         </template>
         <template slot-scope="{ row }" slot="subadmin_pri">
-          <Tooltip
-            max-width="250"
-            content="当前版本暂时不支持权限树配置"
-            placement="bottom"
-            :transfer="true"
+          <Button
+            type="info"
+            size="small"
+            @click="ModalPriTree(row.subadmin_id)"
+            >配置</Button
           >
-            <Button
-              type="info"
-              size="small"
-              @click="ModalPriTree(row.subadmin_id)"
-              >配置</Button
-            >
-          </Tooltip>
         </template>
         <template slot-scope="{ row }" slot="online">
           <Tag color="success" v-if="row.online == true">在线</Tag>
@@ -413,9 +409,9 @@ export default {
         .post("/api.php?c=Subadmin&a=UpdSubadminStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
+          that.GetSubadminList();
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetSubadminList();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }

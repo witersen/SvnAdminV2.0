@@ -13,6 +13,8 @@ use app\service\Setting as ServiceSetting;
 use app\service\Mail as ServiceMail;
 use app\service\Svnrep as ServiceSvnrep;
 use app\service\Ldap as ServiceLdap;
+use app\service\Sasl as ServiceSasl;
+use app\service\Svn as ServiceSvn;
 
 class Setting extends Base
 {
@@ -24,6 +26,9 @@ class Setting extends Base
     private $ServiceSetting;
     private $ServiceMail;
     private $ServiceSvnrep;
+    private $ServiceLdap;
+    private $ServiceSasl;
+    private $ServiceSvn;
 
     function __construct($parm)
     {
@@ -33,6 +38,8 @@ class Setting extends Base
         $this->ServiceMail = new ServiceMail($parm);
         $this->ServiceSvnrep = new ServiceSvnrep($parm);
         $this->ServiceLdap = new ServiceLdap($parm);
+        $this->ServiceSasl = new ServiceSasl($parm);
+        $this->ServiceSvn = new ServiceSvn($parm);
     }
 
     /**
@@ -47,18 +54,18 @@ class Setting extends Base
     /**
      * 启动SVN
      */
-    public function StartSvnserve()
+    public function UpdSvnserveStatusSart()
     {
-        $result = $this->ServiceSetting->StartSvnserve();
+        $result = $this->ServiceSvn->UpdSvnserveStatusSart();
         json2($result);
     }
 
     /**
      * 停止SVN
      */
-    public function StopSvnserve()
+    public function UpdSvnserveStatusStop()
     {
-        $result = $this->ServiceSetting->StopSvnserve();
+        $result = $this->ServiceSvn->UpdSvnserveStatusStop();
         json2($result);
     }
 
@@ -224,6 +231,39 @@ class Setting extends Base
     public function GetLdapInfo()
     {
         $result = $this->ServiceLdap->GetLdapInfo();
+        json2($result);
+    }
+
+    /**
+     * 获取当前的 sasl 信息
+     *
+     * @return void
+     */
+    public function GetSaslInfo()
+    {
+        $result = $this->ServiceSasl->GetSaslInfo();
+        json2($result);
+    }
+
+    /**
+     * 开启 saslauthd 服务
+     *
+     * @return void
+     */
+    public function UpdSaslStatusStart()
+    {
+        $result = $this->ServiceSasl->UpdSaslStatusStart();
+        json2($result);
+    }
+
+    /**
+     * 关闭 saslauthd 服务
+     *
+     * @return void
+     */
+    public function UpdSaslStatusStop()
+    {
+        $result = $this->ServiceSasl->UpdSaslStatusStop();
         json2($result);
     }
 }

@@ -31,53 +31,6 @@ class Setting extends Base
     }
 
     /**
-     * 启动 svnserve
-     */
-    public function StartSvnserve()
-    {
-        $result = $this->ServiceSvn->GetSvnserveListen();
-
-        $cmdStart = sprintf(
-            "'%s' --daemon --pid-file '%s' -r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s",
-            $this->configBin['svnserve'],
-            $this->configSvn['svnserve_pid_file'],
-            $this->configSvn['rep_base_path'],
-            $this->configSvn['svn_conf_file'],
-            $this->configSvn['svnserve_log_file'],
-            $result['bindPort'],
-            $result['bindHost']
-        );
-
-        $result = funShellExec($cmdStart);
-
-        if ($result['code'] == 0) {
-            return message();
-        } else {
-            return message(200, 0, $result['error']);
-        }
-    }
-
-    /**
-     * 停止 svnserve
-     */
-    public function StopSvnserve()
-    {
-        if (!file_exists($this->configSvn['svnserve_pid_file'])) {
-            return message(200, 0, 'pid文件不存在');
-        }
-
-        $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
-
-        $result = funShellExec(sprintf("kill -9 '%s'", $pid));
-
-        if ($result['code'] == 0) {
-            return message();
-        } else {
-            return message(200, 0, $result['error']);
-        }
-    }
-
-    /**
      * 修改 svnserve 的绑定端口
      */
     public function UpdSvnservePort()
@@ -92,7 +45,7 @@ class Setting extends Base
         }
 
         //停止svnserve
-        $this->StopSvnserve();
+        $this->ServiceSvn->UpdSvnserveStatusStop();
 
         //重新构建配置文件内容
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->configSvn['rep_base_path'], $this->configSvn['svn_conf_file'], $this->configSvn['svnserve_log_file'], $this->payload['bindPort'], $result['bindHost']);
@@ -101,7 +54,7 @@ class Setting extends Base
         funFilePutContents($this->configSvn['svnserve_env_file'], $config);
 
         //启动svnserve
-        $resultStart = $this->StartSvnserve();
+        $resultStart = $this->ServiceSvn->UpdSvnserveStatusSart();
         if ($resultStart['status'] != 1) {
             return $resultStart;
         }
@@ -125,7 +78,7 @@ class Setting extends Base
         }
 
         //停止svnserve
-        $this->StopSvnserve();
+        $this->ServiceSvn->UpdSvnserveStatusStop();
 
         //重新构建配置文件内容
         $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->configSvn['rep_base_path'], $this->configSvn['svn_conf_file'], $this->configSvn['svnserve_log_file'], $result['bindPort'], $this->payload['bindHost']);
@@ -134,7 +87,7 @@ class Setting extends Base
         funFilePutContents($this->configSvn['svnserve_env_file'], $config);
 
         //启动svnserve
-        $resultStart = $this->StartSvnserve();
+        $resultStart = $this->ServiceSvn->UpdSvnserveStatusSart();
         if ($resultStart['status'] != 1) {
             return $resultStart;
         }

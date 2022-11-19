@@ -964,8 +964,8 @@ class Base
                     'disabled' => true,
                     'necessary_functions' => [
                         'Setting/GetSvnserveInfo',
-                        'Setting/StopSvnserve',
-                        'Setting/StartSvnserve',
+                        'Setting/UpdSvnserveStatusStop',
+                        'Setting/UpdSvnserveStatusSart',
                         'Setting/UpdSvnservePort',
                         'Setting/UpdSvnserveHost',
                         'Setting/UpdManageHost',

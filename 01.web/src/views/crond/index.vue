@@ -616,7 +616,7 @@ export default {
       this.GetCrontabList();
     },
     /**
-     * 启用或禁用用户
+     * 启用或禁用任务计划
      */
     UpdCrontabStatus(status, crond_id) {
       var that = this;
@@ -628,9 +628,9 @@ export default {
         .post("/api.php?c=Crond&a=UpdCrontabStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
+          that.GetCrontabList();
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetCrontabList();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }

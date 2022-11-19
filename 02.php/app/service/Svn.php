@@ -90,4 +90,51 @@ class Svn extends Base
 
         return $insert;
     }
+
+    /**
+     * 启动 svnserve
+     */
+    public function UpdSvnserveStatusSart()
+    {
+        $result = $this->GetSvnserveListen();
+
+        $cmdStart = sprintf(
+            "'%s' --daemon --pid-file '%s' -r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s",
+            $this->configBin['svnserve'],
+            $this->configSvn['svnserve_pid_file'],
+            $this->configSvn['rep_base_path'],
+            $this->configSvn['svn_conf_file'],
+            $this->configSvn['svnserve_log_file'],
+            $result['bindPort'],
+            $result['bindHost']
+        );
+
+        $result = funShellExec($cmdStart);
+
+        if ($result['code'] == 0) {
+            return message();
+        } else {
+            return message(200, 0, $result['error']);
+        }
+    }
+
+    /**
+     * 停止 svnserve
+     */
+    public function UpdSvnserveStatusStop()
+    {
+        if (!file_exists($this->configSvn['svnserve_pid_file'])) {
+            return message(200, 0, 'pid文件不存在');
+        }
+
+        $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
+
+        $result = funShellExec(sprintf("kill -9 '%s'", $pid));
+
+        if ($result['code'] == 0) {
+            return message();
+        } else {
+            return message(200, 0, $result['error']);
+        }
+    }
 }

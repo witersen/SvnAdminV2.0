@@ -1140,6 +1140,25 @@ class SVNAdmin
     }
 
     /**
+     * 清空[groups]下的内容
+     *
+     * @param string $authzContent
+     * @return string|int
+     */
+    public function ClearGroupSection($authzContent)
+    {
+        preg_match_all(sprintf($this->reg_2, 'groups'), $authzContent, $authzContentPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
+        if (array_key_exists(0, $authzContentPreg[0])) {
+            return preg_replace(sprintf($this->reg_2, 'groups'), "[groups]\n", $authzContent);
+        } else {
+            return 612;
+        }
+    }
+
+    /**
      * 获取指定对象所在的分组列表 只包括直接包含关系
      * 非递归获取
      *

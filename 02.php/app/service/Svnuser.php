@@ -9,6 +9,9 @@
 
 namespace app\service;
 
+use app\service\Logs as ServiceLogs;
+use app\service\Ldap as ServiceLdap;
+
 class Svnuser extends Base
 {
     /**
@@ -16,13 +19,15 @@ class Svnuser extends Base
      *
      * @var object
      */
-    private $Logs;
+    private $ServiceLogs;
+    private $ServiceLdap;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
-        $this->Logs = new Logs();
+        $this->ServiceLogs = new ServiceLogs();
+        $this->ServiceLdap = new ServiceLdap();
     }
 
     /**
@@ -30,82 +35,148 @@ class Svnuser extends Base
      */
     public function SyncUserToDb()
     {
-        /**
-         * 删除数据表重复插入的项
-         */
-        $dbUserList = $this->database->select('svn_users', [
-            'svn_user_id',
-            'svn_user_name',
-            'svn_user_pass',
-            'svn_user_status',
-            'svn_user_note'
-        ], [
-            'GROUP' => [
-                'svn_user_name'
-            ]
-        ]);
-        $dbUserListAll = $this->database->select('svn_users', [
-            'svn_user_id',
-            'svn_user_name',
-        ]);
+        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
 
-        $duplicates = array_diff(array_column($dbUserListAll, 'svn_user_id'), array_column($dbUserList, 'svn_user_id'));
-        foreach ($duplicates as $value) {
-            $this->database->delete('svn_users', [
-                'svn_user_id' => $value,
-            ]);
-        }
-
-        /**
-         * 数据对比增删改
-         */
-        $old = array_column($dbUserList, 'svn_user_name');
-        $oldCombin = array_combine($old, $dbUserList);
-        $svnUserList =  $this->SVNAdmin->GetUserInfo($this->passwdContent);
-        if (is_numeric($svnUserList)) {
-            if ($svnUserList == 621) {
-                return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($svnUserList == 710) {
-                return message(200, 0, '用户不存在');
-            } else {
-                return message(200, 0, "错误码$svnUserList");
+        if ($dataSource['user_source'] == 'ldap') {
+            $ldapUsers = $this->ServiceLdap->GetLdapUsers();
+            if ($ldapUsers['status'] != 1) {
+                return message($ldapUsers['code'], $ldapUsers['status'], $ldapUsers['message'], $ldapUsers['data']);
             }
-        }
-        $new = array_column($svnUserList, 'userName');
-        $newCombin = array_combine($new, $svnUserList);
 
-        //删除
-        $delete = array_diff($old, $new);
-        foreach ($delete as $value) {
-            $this->database->delete('svn_users', [
-                'svn_user_name' => $value,
+            $ldapUsers = $ldapUsers['data'];
+
+            //过滤空白用户
+            $ldapUsers = array_values(array_filter($ldapUsers, 'funArrayValueFilter'));
+
+            /**
+             * 删除数据表重复插入的项
+             */
+            $dbUserList = $this->database->select('svn_users', [
+                'svn_user_id',
+                'svn_user_name',
+                'svn_user_pass',
+                'svn_user_status',
+                'svn_user_note'
+            ], [
+                'GROUP' => [
+                    'svn_user_name'
+                ]
             ]);
-        }
-
-        //新增
-        $create = array_diff($new, $old);
-        foreach ($create as $value) {
-            $this->database->insert('svn_users', [
-                'svn_user_name' => $value,
-                'svn_user_pass' => $newCombin[$value]['userPass'],
-                'svn_user_status' => $newCombin[$value]['disabled'] == 1 ? 0 : 1,
-                'svn_user_note' => ''
+            $dbUserListAll = $this->database->select('svn_users', [
+                'svn_user_id',
+                'svn_user_name',
             ]);
-        }
 
-        //更新
-        $update = array_intersect($old, $new);
-        foreach ($update as $value) {
-            if (
-                $oldCombin[$value]['svn_user_pass'] != $newCombin[$value]['userPass'] ||
-                $oldCombin[$value]['svn_user_status'] != ($newCombin[$value]['disabled'] == 1 ? 0 : 1)
-            ) {
-                $this->database->update('svn_users', [
+            $duplicates = array_diff(array_column($dbUserListAll, 'svn_user_id'), array_column($dbUserList, 'svn_user_id'));
+            foreach ($duplicates as $value) {
+                $this->database->delete('svn_users', [
+                    'svn_user_id' => $value,
+                ]);
+            }
+
+            /**
+             * 数据对比增删改
+             */
+            $old = array_column($dbUserList, 'svn_user_name');
+            $oldCombin = array_combine($old, $dbUserList);
+            $new = $ldapUsers;
+
+            //删除
+            $delete = array_diff($old, $new);
+            foreach ($delete as $value) {
+                $this->database->delete('svn_users', [
+                    'svn_user_name' => $value,
+                ]);
+            }
+
+            //新增
+            $create = array_diff($new, $old);
+            foreach ($create as $value) {
+                $this->database->insert('svn_users', [
+                    'svn_user_name' => $value,
+                    'svn_user_pass' => '',
+                    'svn_user_status' => 1,
+                    'svn_user_note' => ''
+                ]);
+            }
+        } else {
+            /**
+             * 删除数据表重复插入的项
+             */
+            $dbUserList = $this->database->select('svn_users', [
+                'svn_user_id',
+                'svn_user_name',
+                'svn_user_pass',
+                'svn_user_status',
+                'svn_user_note'
+            ], [
+                'GROUP' => [
+                    'svn_user_name'
+                ]
+            ]);
+            $dbUserListAll = $this->database->select('svn_users', [
+                'svn_user_id',
+                'svn_user_name',
+            ]);
+
+            $duplicates = array_diff(array_column($dbUserListAll, 'svn_user_id'), array_column($dbUserList, 'svn_user_id'));
+            foreach ($duplicates as $value) {
+                $this->database->delete('svn_users', [
+                    'svn_user_id' => $value,
+                ]);
+            }
+
+            /**
+             * 数据对比增删改
+             */
+            $old = array_column($dbUserList, 'svn_user_name');
+            $oldCombin = array_combine($old, $dbUserList);
+            $svnUserList =  $this->SVNAdmin->GetUserInfo($this->passwdContent);
+            if (is_numeric($svnUserList)) {
+                if ($svnUserList == 621) {
+                    return message(200, 0, '文件格式错误(不存在[users]标识)');
+                } else if ($svnUserList == 710) {
+                    return message(200, 0, '用户不存在');
+                } else {
+                    return message(200, 0, "错误码$svnUserList");
+                }
+            }
+            $new = array_column($svnUserList, 'userName');
+            $newCombin = array_combine($new, $svnUserList);
+
+            //删除
+            $delete = array_diff($old, $new);
+            foreach ($delete as $value) {
+                $this->database->delete('svn_users', [
+                    'svn_user_name' => $value,
+                ]);
+            }
+
+            //新增
+            $create = array_diff($new, $old);
+            foreach ($create as $value) {
+                $this->database->insert('svn_users', [
+                    'svn_user_name' => $value,
                     'svn_user_pass' => $newCombin[$value]['userPass'],
                     'svn_user_status' => $newCombin[$value]['disabled'] == 1 ? 0 : 1,
-                ], [
-                    'svn_user_name' => $value
+                    'svn_user_note' => ''
                 ]);
+            }
+
+            //更新
+            $update = array_intersect($old, $new);
+            foreach ($update as $value) {
+                if (
+                    $oldCombin[$value]['svn_user_pass'] != $newCombin[$value]['userPass'] ||
+                    $oldCombin[$value]['svn_user_status'] != ($newCombin[$value]['disabled'] == 1 ? 0 : 1)
+                ) {
+                    $this->database->update('svn_users', [
+                        'svn_user_pass' => $newCombin[$value]['userPass'],
+                        'svn_user_status' => $newCombin[$value]['disabled'] == 1 ? 0 : 1,
+                    ], [
+                        'svn_user_name' => $value
+                    ]);
+                }
             }
         }
 
@@ -254,6 +325,11 @@ class Svnuser extends Base
      */
     public function ScanPasswd()
     {
+        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        if ($dataSource['user_source'] == 'ldap') {
+            return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
+        }
+
         if ($this->payload['passwdContent'] == '') {
             return message(200, 0, '内容不能为空');
         }
@@ -277,6 +353,11 @@ class Svnuser extends Base
      */
     public function UpdUserStatus()
     {
+        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        if ($dataSource['user_source'] == 'ldap') {
+            return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
+        }
+
         //status true 启用用户 false 禁用用户
         $result = $this->SVNAdmin->UpdUserStatus($this->passwdContent, $this->payload['svn_user_name'], !$this->payload['status']);
         if (is_numeric($result)) {
@@ -319,6 +400,11 @@ class Svnuser extends Base
      */
     public function CreateUser()
     {
+        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        if ($dataSource['user_source'] == 'ldap') {
+            return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
+        }
+
         //检查用户名是否合法
         $checkResult = $this->checkService->CheckRepUser($this->payload['svn_user_name']);
         if ($checkResult['status'] != 1) {
@@ -357,7 +443,7 @@ class Svnuser extends Base
         ]);
 
         //日志
-        $this->Logs->InsertLog(
+        $this->ServiceLogs->InsertLog(
             '创建用户',
             sprintf("用户名:%s", $this->payload['svn_user_name']),
             $this->userName
@@ -371,6 +457,11 @@ class Svnuser extends Base
      */
     public function UpdUserPass()
     {
+        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        if ($dataSource['user_source'] == 'ldap') {
+            return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
+        }
+
         //检查用户是否已存在
         $result = $this->SVNAdmin->UpdUserPass($this->passwdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass'], !$this->payload['svn_user_status']);
         if (is_numeric($result)) {
@@ -406,6 +497,11 @@ class Svnuser extends Base
      */
     public function DelUser()
     {
+        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        if ($dataSource['user_source'] == 'ldap') {
+            return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
+        }
+
         //从passwd文件中全局删除
         $resultPasswd = $this->SVNAdmin->DelUserFromPasswd($this->passwdContent, $this->payload['svn_user_name'], !$this->payload['svn_user_status']);
         if (is_numeric($resultPasswd)) {
@@ -440,7 +536,7 @@ class Svnuser extends Base
         funFilePutContents($this->configSvn['svn_passwd_file'], $resultPasswd);
 
         //日志
-        $this->Logs->InsertLog(
+        $this->ServiceLogs->InsertLog(
             '删除用户',
             sprintf("用户名:%s", $this->payload['svn_user_name']),
             $this->userName

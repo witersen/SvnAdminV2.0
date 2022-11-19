@@ -166,6 +166,10 @@ class Base
              */
             $black = $database->get('black_token', 'token_id', ['token' => $parm['token']]);
             !empty($black) ? json1(401, 0, 'token已注销') : '';
+
+            /**
+             * 9、检查关键文件是否可读写
+             */
         }
     }
 }
