@@ -63,16 +63,16 @@ class Usersource extends Base
 
         if ($this->payload['data_source']['user_source'] == 'ldap') {
             //判断saslauthd服务有无开启
-            if (!file_exists($this->configSvn['saslauthd_pid_file'])) {
-                return message(200, 0, sprintf('请先启动saslauthd服务-PID文件[%s]不存在或不可读', $this->configSvn['saslauthd_pid_file']));
-            }
-            $pid = file_get_contents($this->configSvn['saslauthd_pid_file']);
-            if (empty($pid)) {
-                return message(200, 0, sprintf('请先启动saslauthd服务-PID文件[%s]内容为空', $this->configSvn['saslauthd_pid_file']));
-            }
-            if (!is_dir("/proc/$pid")) {
-                return message(200, 0, sprintf('请先启动saslauthd服务-PID为[%s]的进程不存在', $pid));
-            }
+            // if (!file_exists($this->configSvn['saslauthd_pid_file'])) {
+            //     return message(200, 0, sprintf('请先启动saslauthd服务-PID文件[%s]不存在或不可读', $this->configSvn['saslauthd_pid_file']));
+            // }
+            // $pid = file_get_contents($this->configSvn['saslauthd_pid_file']);
+            // if (empty($pid)) {
+            //     return message(200, 0, sprintf('请先启动saslauthd服务-PID文件[%s]内容为空', $this->configSvn['saslauthd_pid_file']));
+            // }
+            // if (!is_dir("/proc/$pid")) {
+            //     return message(200, 0, sprintf('请先启动saslauthd服务-PID为[%s]的进程不存在', $pid));
+            // }
 
             $this->database->delete('svn_users', [
                 'svn_user_id[>]' => 0
@@ -111,7 +111,7 @@ class Usersource extends Base
 
             $dataSource = $this->payload['data_source'];
 
-            $ldap_servers = rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'];
+            $ldap_servers = rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/';
             $ldap_bind_dn = $dataSource['ldap_bind_dn'];
             $ldap_bind_pw = $dataSource['ldap_bind_password'];
             $ldap_search_base = $dataSource['user_base_dn'];

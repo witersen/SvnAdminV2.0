@@ -29,7 +29,7 @@ class Ldap extends Base
 
         // $this->ServiceSasl = new ServiceSasl();
         // $this->ServiceSvn = new ServiceSvn();
-        $this->ServiceUsersource = new ServiceUsersource();
+        $this->ServiceUsersource = new ServiceUsersource($parm);
     }
 
     /**
@@ -197,9 +197,9 @@ class Ldap extends Base
      *
      * @return void
      */
-    private function LdapConnection()
+    public function LdapUserLogin($username, $password)
     {
-        $dataSource = [];
+        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
 
         $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
         if (!$connection) {
@@ -208,10 +208,12 @@ class Ldap extends Base
 
         ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, $dataSource['ldap_version']);
 
-        $result = @ldap_bind($connection, $dataSource['ldap_bind_dn'], $dataSource['ldap_bind_password']);
+        $result = @ldap_bind($connection, sprintf('%s=%s,%s', $dataSource['user_attributes'], $username, $dataSource['user_base_dn']), $password);
         if (!$result) {
             return false;
         }
+
+        return true;
     }
 
     /**

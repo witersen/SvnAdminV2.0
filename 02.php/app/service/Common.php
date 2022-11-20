@@ -11,6 +11,8 @@ namespace app\service;
 
 use Config;
 use Verifycode;
+use app\service\Ldap as ServiceLdap;
+use app\service\Usersource as ServiceUsersource;
 
 class Common extends Base
 {
@@ -23,15 +25,18 @@ class Common extends Base
     private $Logs;
     private $Mail;
     private $Setting;
+    private $ServiceLdap;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
-        $this->Svnuser = new Svnuser();
-        $this->Logs = new Logs();
-        $this->Mail = new Mail();
-        $this->Setting = new Setting();
+        $this->Svnuser = new Svnuser($parm);
+        $this->Logs = new Logs($parm);
+        $this->Mail = new Mail($parm);
+        $this->Setting = new Setting($parm);
+        $this->ServiceLdap = new ServiceLdap($parm);
+        $this->ServiceUsersource = new ServiceUsersource($parm);
     }
 
     /**
@@ -108,20 +113,38 @@ class Common extends Base
                 'admin_user_name' => $userName
             ]);
         } else if ($userRole == 2) {
-            $result = $this->database->get('svn_users', [
-                'svn_user_id',
-                'svn_user_name',
-                'svn_user_pass',
-                'svn_user_status'
-            ], [
-                'svn_user_name' => $userName,
-                'svn_user_pass' => $userPass
-            ]);
-            if (empty($result)) {
-                return message(200, 0, '账号或密码错误');
-            }
-            if ($result['svn_user_status'] == 0) {
-                return message(200, 0, '用户已过期');
+            $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+            if ($dataSource['user_source'] == 'ldap') {
+                $result = $this->database->get('svn_users', 'svn_user_id', [
+                    'svn_user_name' => $userName,
+                ]);
+                if (empty($result)) {
+                    return message(200, 0, 'ldap账户错误或信息未同步本系统');
+                }
+
+                if (!$this->ServiceLdap->LdapUserLogin($userName, $userPass)) {
+                    return message(200, 0, 'ldap账户认证失败');
+                }
+
+                if (strstr($userName, '|')) {
+                    return message(200, 0, 'ldap账户认证成功-用户名不符合本系统要求');
+                }
+            } else {
+                $result = $this->database->get('svn_users', [
+                    'svn_user_id',
+                    'svn_user_name',
+                    'svn_user_pass',
+                    'svn_user_status'
+                ], [
+                    'svn_user_name' => $userName,
+                    'svn_user_pass' => $userPass
+                ]);
+                if (empty($result)) {
+                    return message(200, 0, '账号或密码错误');
+                }
+                if ($result['svn_user_status'] == 0) {
+                    return message(200, 0, '用户已过期');
+                }
             }
 
             //更新登录时间
