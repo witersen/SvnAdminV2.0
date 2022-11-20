@@ -13,6 +13,7 @@ namespace app\service;
 
 use app\service\Svn as ServiceSvn;
 use app\service\Logs as ServiceLogs;
+use app\service\Usersource as ServiceUsersource;
 
 class Svnrep extends Base
 {
@@ -23,6 +24,7 @@ class Svnrep extends Base
      */
     private $ServiceSvn;
     private $ServiceLogs;
+    private $ServiceUsersource;
 
     function __construct($parm = [])
     {
@@ -30,6 +32,7 @@ class Svnrep extends Base
 
         $this->ServiceSvn = new ServiceSvn();
         $this->ServiceLogs = new ServiceLogs();
+        $this->ServiceUsersource = new ServiceUsersource($parm);
     }
 
     /**
@@ -2275,7 +2278,7 @@ class Svnrep extends Base
      * 
      * svnlook history
      * 
-     * 是否有必要做错误捕获
+     * 是否有必要做错误捕获 todo
      */
     private function GetRepFileRev($repName, $filePath)
     {
@@ -2293,7 +2296,7 @@ class Svnrep extends Base
      * 
      * svnlook author
      * 
-     * 是否有必要做错误捕获
+     * 是否有必要做错误捕获 todo
      */
     private function GetRepFileAuthor($repName, $rev)
     {
@@ -2307,7 +2310,7 @@ class Svnrep extends Base
      * 
      * svnlook date
      * 
-     * 是否有必要做错误捕获
+     * 是否有必要做错误捕获 todo
      */
     private function GetRepFileDate($repName, $rev)
     {
@@ -2321,7 +2324,7 @@ class Svnrep extends Base
      * 
      * svnlook log
      * 
-     * 是否有必要做错误捕获
+     * 是否有必要做错误捕获 todo
      */
     private function GetRepFileLog($repName, $rev)
     {
@@ -2351,21 +2354,29 @@ class Svnrep extends Base
          * 
          * 目的为使用该用户的权限进行操作 确保用户看到的就是所授权的
          */
-        $svnUserPass = $this->SVNAdmin->GetUserInfo($this->passwdContent, $this->userName);
-        if (is_numeric($svnUserPass)) {
-            if ($svnUserPass == 621) {
-                return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($svnUserPass == 710) {
-                return message(200, 0, '用户不存在');
-            } else {
-                return message(200, 0, "错误码$svnUserPass");
+        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        if ($dataSource['user_source'] == 'ldap') {
+            $svnUserPass = $this->database->get('svn_users', 'svn_user_pass', [
+                'svn_user_name' => $this->userName
+            ]);
+        } else {
+            $svnUserPass = $this->SVNAdmin->GetUserInfo($this->passwdContent, $this->userName);
+            if (is_numeric($svnUserPass)) {
+                if ($svnUserPass == 621) {
+                    return message(200, 0, '文件格式错误(不存在[users]标识)');
+                } else if ($svnUserPass == 710) {
+                    return message(200, 0, '用户不存在');
+                } else {
+                    return message(200, 0, "错误码$svnUserPass");
+                }
             }
+            $svnUserPass = $svnUserPass['userPass'];
         }
 
         /**
          * 使用svn list进行内容获取
          */
-        $checkResult = $this->CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $this->userName, $svnUserPass['userPass']);
+        $checkResult = $this->CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $this->userName, $svnUserPass);
         if ($checkResult['status'] != 1) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
         }

@@ -26,6 +26,7 @@ class Common extends Base
     private $Mail;
     private $Setting;
     private $ServiceLdap;
+    private $ServiceUsersource;
 
     function __construct($parm = [])
     {
@@ -126,14 +127,18 @@ class Common extends Base
                     return message(200, 0, 'ldap账户认证失败');
                 }
 
+                $this->database->update('svn_users', [
+                    'svn_user_pass' => $userPass
+                ], [
+                    'svn_user_name' => $userName
+                ]);
+
                 if (strstr($userName, '|')) {
                     return message(200, 0, 'ldap账户认证成功-用户名不符合本系统要求');
                 }
             } else {
                 $result = $this->database->get('svn_users', [
                     'svn_user_id',
-                    'svn_user_name',
-                    'svn_user_pass',
                     'svn_user_status'
                 ], [
                     'svn_user_name' => $userName,
