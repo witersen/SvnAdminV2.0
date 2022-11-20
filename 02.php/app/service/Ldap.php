@@ -10,6 +10,7 @@
 namespace app\service;
 
 use app\service\Sasl as ServiceSasl;
+use app\service\Svn as ServiceSvn;
 
 class Ldap extends Base
 {
@@ -19,12 +20,14 @@ class Ldap extends Base
      * @var object
      */
     private $ServiceSasl;
+    private $ServiceSvn;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
         $this->ServiceSasl = new ServiceSasl();
+        $this->ServiceSvn = new ServiceSvn();
     }
 
     /**
@@ -161,6 +164,20 @@ class Ldap extends Base
         }
 
         if ($this->payload['data_source']['user_source'] == 'ldap') {
+            /**
+             * 判断saslauthd服务有无开启
+             */
+            if (!file_exists($this->configSvn['saslauthd_pid_file'])) {
+                return message(200, 0, sprintf('请先启动saslauthd服务-PID文件[%s]不存在或不可读', $this->configSvn['saslauthd_pid_file']));
+            }
+            $pid = file_get_contents($this->configSvn['saslauthd_pid_file']);
+            if (empty($pid)) {
+                return message(200, 0, sprintf('请先启动saslauthd服务-PID文件[%s]内容为空', $this->configSvn['saslauthd_pid_file']));
+            }
+            if (!is_dir("/proc/$pid")) {
+                return message(200, 0, sprintf('请先启动saslauthd服务-PID为[%s]的进程不存在', $pid));
+            }
+
             $this->database->delete('svn_users', [
                 'svn_user_id[>]' => 0
             ]);
@@ -182,10 +199,32 @@ class Ldap extends Base
                 $this->authzContent = $result;
             }
 
-            $result = $this->ServiceSasl->UpdSvnSaslStart();
+            //开启use-sasl
+            $result = $this->ServiceSvn->UpdSvnSaslStart();
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
+        } else {
+            //关闭use-sasl
+            $result = $this->ServiceSvn->UpdSvnSaslStop();
+            if ($result['status'] != 1) {
+                return message($result['code'], $result['status'], $result['message'], $result['data']);
+            }
+        }
+
+        sleep(1);
+
+        /**
+         * 重启svnserve
+         */
+        $result = $this->ServiceSvn->UpdSvnserveStatusStop();
+        if ($result['status'] != 1) {
+            return message($result['code'], $result['status'], $result['message'], $result['data']);
+        }
+        sleep(1);
+        $result = $this->ServiceSvn->UpdSvnserveStatusSart();
+        if ($result['status'] != 1) {
+            return message($result['code'], $result['status'], $result['message'], $result['data']);
         }
 
         return message();

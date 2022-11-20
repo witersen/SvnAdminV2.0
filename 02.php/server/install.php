@@ -447,7 +447,7 @@ CON;
         is_dir($this->configSvn['templete_base_path']) ? '' : mkdir($this->configSvn['templete_base_path'], 0700, true);
 
         //创建仓库结构模板目录
-        // is_dir($this->configSvn['templete_init_struct']) ? '' : mkdir($this->configSvn['templete_init_struct'], 0700, true);
+        // is_dir($this->configSvn['templete_init_path']) ? '' : mkdir($this->configSvn['templete_init_path'], 0700, true);
         shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/initStruct', $this->configSvn['templete_base_path']));
 
         echo '===============================================' . PHP_EOL;
@@ -556,18 +556,6 @@ CON;
         } else {
             copy($templete_path . '/database/sqlite/svnadmin.db', $this->configSvn['home_path'] . 'svnadmin.db');
         }
-
-        //配置SQLite数据库文件的父目录权限配置为777 解决无法写入且不报错的问题
-        shell_exec(sprintf("chmod 777 '%s'", $this->configSvn['home_path']));
-
-        echo '===============================================' . PHP_EOL;
-
-        /**
-         * 7、主目录授权
-         */
-        echo '配置主目录权限' . PHP_EOL;
-
-        shell_exec(sprintf("chmod 777 '%s'", $this->configSvn['home_path']));
 
         echo '===============================================' . PHP_EOL;
 
@@ -729,13 +717,6 @@ CON;
         echo '开始移动主目录' . PHP_EOL;
 
         passthru(sprintf("mv %s* %s", $oldConfigSvn['home_path'], $newConfigSvn['home_path']));
-
-        echo '===============================================' . PHP_EOL;
-
-        //为新目录授权
-        echo '为新目录授权' . PHP_EOL;
-
-        shell_exec(sprintf("chmod 777 '%s'", $newConfigSvn['home_path']));
 
         echo '===============================================' . PHP_EOL;
 

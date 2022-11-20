@@ -217,7 +217,6 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         );
 
         file_put_contents($nameCrond, $conCrond);
-        // funShellExec(sprintf("chmod 777 '%s' && chmod 777 '%s'", $nameCrond, $nameCrondLog));
         funShellExec(sprintf("chmod 777 '%s'", $nameCrond));
 
         //crontab -l 获取原有的任务计划列表

@@ -9,11 +9,22 @@
 
 namespace app\service;
 
+use app\service\Svnaliase as ServiceSvnaliase;
+
 class Statistics extends Base
 {
+    /**
+     * 服务层对象
+     *
+     * @var object
+     */
+    private $ServiceSvnaliase;
+
     function __construct($parm = [])
     {
         parent::__construct($parm);
+
+        $this->ServiceSvnaliase = new ServiceSvnaliase($parm);
     }
 
     /**
@@ -28,32 +39,13 @@ class Statistics extends Base
         /**
          * ----------负载计算开始----------
          */
-        if (is_readable('/proc/loadavg')) {
-            $laodavg = file_get_contents('/proc/loadavg');
-        } else {
-            $laodavg = funShellExec("cat /proc/loadavg | awk '{print $1,$2,$3}'")['result'];
-        }
-        $laodavgArray = explode(' ', $laodavg);
-
-        //获取CPU15分钟前到现在的负载平均值
-        $cpuLoad15Min = (float)trim($laodavgArray[2]);
-
-        //获取CPU5分钟前到现在的负载平均值
-        $cpuLoad5Min = (float)trim($laodavgArray[1]);
-
-        //获取CPU1分钟前到现在的负载平均值
-        $cpuLoad1Min = (float)trim($laodavgArray[0]);
+        $laodavgArray = sys_getloadavg();
 
         //获取cpu总核数
-        if (is_readable('/proc/cpuinfo')) {
-            $cpuCount = substr_count(file_get_contents('/proc/cpuinfo'), 'model name');
-        } else {
-            $cpuCount  = funShellExec('grep -c "model name" /proc/cpuinfo')['result'];
-            $cpuCount = (int)trim($cpuCount);
-        }
+        $cpuCount = substr_count(file_get_contents('/proc/cpuinfo'), 'model name');
 
         //一分钟的平均负载 / （cpu总核数 * 2），超过100则为100 不超100为真实值取整
-        $percent = round($cpuLoad1Min / ($cpuCount * 2) * 100, 1);
+        $percent = round($laodavgArray[0] / ($cpuCount * 2) * 100, 1);
         if ($percent > 100) {
             $percent = 100;
         }
@@ -62,9 +54,9 @@ class Statistics extends Base
          * ----------负载计算结束----------
          */
         $data['load'] = [
-            'cpuLoad15Min' => $cpuLoad15Min,
-            'cpuLoad5Min' => $cpuLoad5Min,
-            'cpuLoad1Min' => $cpuLoad1Min,
+            'cpuLoad15Min' => $laodavgArray[2],
+            'cpuLoad5Min' => $laodavgArray[1],
+            'cpuLoad1Min' => $laodavgArray[0],
             'percent' => $percent,
             'color' => funGetColor($percent)['color'],
             'title' => funGetColor($percent)['title']
@@ -94,51 +86,29 @@ class Statistics extends Base
 
         //cpu型号
         $cpuModelArray = [];
-        if (is_readable('/proc/cpuinfo')) {
-            $cpuModelName = explode("\n", file_get_contents('/proc/cpuinfo'));
-            foreach ($cpuModelName as $value) {
-                if (strstr($value, 'model name')) {
-                    $tempArray = explode(':', $value);
-                    in_array(trim($tempArray[1]), $cpuModelArray) ? '' : array_push($cpuModelArray, trim($tempArray[1]));
-                }
-            }
-        } else {
-            $cpuModelName = funShellExec("cat /proc/cpuinfo | grep 'model name' | uniq")['result'];
-            $explodeArray = explode("\n", trim($cpuModelName));
-            foreach ($explodeArray as $value) {
-                if (trim($value) != '') {
-                    $tempArray = explode(':', $value);
-                    array_push($cpuModelArray, trim($tempArray[1]));
-                }
+        $cpuModelName = explode("\n", file_get_contents('/proc/cpuinfo'));
+        foreach ($cpuModelName as $value) {
+            if (strstr($value, 'model name')) {
+                $tempArray = explode(':', $value);
+                in_array(trim($tempArray[1]), $cpuModelArray) ? '' : array_push($cpuModelArray, trim($tempArray[1]));
             }
         }
 
         $cpuPhysical = 0;
         $cpuPhysicalCore = 0;
         $cpuProcessor = 0;
-        if (is_readable('/proc/cpuinfo')) {
-            $cpuInfo = explode("\n", file_get_contents('/proc/cpuinfo'));
-            $cpuPhysicalArray = [];
-            foreach ($cpuInfo as $value) {
-                if (strstr($value, 'physical id')) {
-                    in_array($value, $cpuPhysicalArray) ? '' : array_push($cpuPhysicalArray, $value);
-                } else if (strstr($value, 'cpu cores')) {
-                    $cpuPhysicalCore++;
-                } else if (strstr($value, 'processor')) {
-                    $cpuProcessor++;
-                }
+        $cpuInfo = explode("\n", file_get_contents('/proc/cpuinfo'));
+        $cpuPhysicalArray = [];
+        foreach ($cpuInfo as $value) {
+            if (strstr($value, 'physical id')) {
+                in_array($value, $cpuPhysicalArray) ? '' : array_push($cpuPhysicalArray, $value);
+            } else if (strstr($value, 'cpu cores')) {
+                $cpuPhysicalCore++;
+            } else if (strstr($value, 'processor')) {
+                $cpuProcessor++;
             }
-            $cpuPhysical = count($cpuPhysicalArray);
-        } else {
-            //物理cpu个数
-            $cpuPhysical = (int)trim(funShellExec("cat /proc/cpuinfo | grep 'physical id' | sort -u | wc -l")['result']);
-
-            //每个物理cpu的物理核心数
-            $cpuPhysicalCore = (int)trim(funShellExec("cat /proc/cpuinfo | grep 'cpu cores' | wc -l")['result']);
-
-            //逻辑核心总数（线程总数）
-            $cpuProcessor = (int)trim(funShellExec("cat /proc/cpuinfo | grep 'processor' | wc -l")['result']);
         }
+        $cpuPhysical = count($cpuPhysicalArray);
 
         //总物理核心数 = 物理cpu个数 * 每个物理cpu的物理核心数（每个物理cpu的物理核心数都一样吗？）
         $cpuCore = $cpuPhysical * $cpuPhysicalCore;
@@ -159,11 +129,7 @@ class Statistics extends Base
         /**
          * ----------内存计算开始----------
          */
-        if (is_readable('/proc/meminfo')) {
-            $meminfo = file_get_contents('/proc/meminfo');
-        } else {
-            $meminfo = funShellExec('cat /proc/meminfo')['result'];
-        }
+        $meminfo = file_get_contents('/proc/meminfo');
 
         preg_match_all('/^([a-zA-Z()_0-9]+)\s*\:\s*([\d\.]+)\s*([a-zA-z]*)$/m', $meminfo, $meminfos);
 
@@ -240,25 +206,45 @@ class Statistics extends Base
     {
         //操作系统类型和版本
         if (file_exists('/etc/redhat-release')) {
-            $os = funShellExec("cat /etc/redhat-release");
-            $os = $os['result'];
-            // $os = file_get_contents('/etc/redhat-release');
+            $os = file_get_contents('/etc/redhat-release');
         } else if (file_exists('/etc/lsb-release')) {
-            $os = funShellExec("cat /etc/lsb-release");
-            $os = $os['result'];
-            // $os = file_get_contents('/etc/lsb-release');
+            $os = file_get_contents('/etc/lsb-release');
         } else {
             $os = 'Linux';
         }
 
+        $aliaseCount = $this->SVNAdmin->GetAliaseInfo($this->authzContent);
+        if (is_numeric($aliaseCount)) {
+            $aliaseCount = -1;
+        }
+
+        $backupCount = 0;
+        $files = scandir($this->configSvn['backup_base_path']);
+        foreach ($files as $file) {
+            if ($file != '.' && $file != '..') {
+                if (!is_dir($this->configSvn['backup_base_path'] . '/' . $file)) {
+                    $backupCount++;
+                }
+            }
+        }
+
+
         return message(200, 1, '成功', [
             'os' => trim($os),
-            'repSize' => funFormatSize($this->database->sum('svn_reps', 'rep_size')),
+
             'repCount' => $this->database->count('svn_reps'),
-            'repUser' => $this->database->count('svn_users'),
-            'repGroup' => $this->database->count('svn_groups'),
+            'repSize' => funFormatSize($this->database->sum('svn_reps', 'rep_size')),
+
+            'backupCount' => $backupCount,
+            'backupSize' => funFormatSize(funGetDirSizeDu($this->configSvn['backup_base_path'])),
+
             'logCount' => $this->database->count('logs', ['log_id[>]' => 0]),
-            'backupSize' => funFormatSize(funGetDirSizeDu($this->configSvn['backup_base_path']))
+
+            'adminCount' => $this->database->count('admin_users'),
+            'subadminCount' => $this->database->count('subadmin'),
+            'userCount' => $this->database->count('svn_users'),
+            'groupCount' => $this->database->count('svn_groups'),
+            'aliaseCount' => count($aliaseCount),
         ]);
     }
 }

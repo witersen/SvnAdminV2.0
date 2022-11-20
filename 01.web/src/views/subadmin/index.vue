@@ -310,12 +310,12 @@ export default {
         {
           title: "在线状态",
           slot: "online",
-          minWidth: 80,
+          minWidth: 90,
         },
         {
           title: "创建时间",
           key: "subadmin_create_time",
-          minWidth: 130,
+          minWidth: 150,
         },
         {
           title: "系统权限",

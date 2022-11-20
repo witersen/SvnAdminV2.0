@@ -488,7 +488,7 @@ export default {
         {
           title: "密码",
           slot: "svn_user_pass",
-          minWidth: 120,
+          minWidth: 145,
         },
         {
           title: "启用状态",
@@ -512,12 +512,12 @@ export default {
           key: "svn_user_last_login",
           tooltip: true,
           sortable: "custom",
-          minWidth: 130,
+          minWidth: 150,
         },
         {
           title: "在线状态",
           slot: "online",
-          minWidth: 80,
+          minWidth: 90,
         },
         {
           title: "其它",

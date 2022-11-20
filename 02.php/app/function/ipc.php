@@ -45,8 +45,6 @@ function funShellExec($shell)
  */
 function funFilePutContents($filename, $data)
 {
-    funShellExec(sprintf("chmod 777 '%s'", $filename));
-
     file_put_contents($filename, $data);
 }
 

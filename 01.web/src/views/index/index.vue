@@ -128,12 +128,28 @@
         统计
       </p>
       <div>
-        <Row :gutter="16">
+        <Row :gutter="16" style="margin-bottom: 10px">
+          <Col span="4">
+            <Card :dis-hover="true">
+              <div style="text-align: center">
+                <p>SVN仓库</p>
+                <h2 style="color: #28bcfe">{{ systemBrif.repCount }}</h2>
+              </div>
+            </Card>
+          </Col>
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
                 <p>仓库占用</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.repSize }}</h2>
+              </div>
+            </Card>
+          </Col>
+          <Col span="4">
+            <Card :dis-hover="true">
+              <div style="text-align: center">
+                <p>仓库备份</p>
+                <h2 style="color: #28bcfe">{{ systemBrif.backupCount }}</h2>
               </div>
             </Card>
           </Col>
@@ -148,8 +164,26 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>SVN仓库</p>
-                <h2 style="color: #28bcfe">{{ systemBrif.repCount }}</h2>
+                <p>运行日志</p>
+                <h2 style="color: #28bcfe">{{ systemBrif.logCount }}</h2>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+        <Row :gutter="16">
+          <Col span="4">
+            <Card :dis-hover="true">
+              <div style="text-align: center">
+                <p>管理员</p>
+                <h2 style="color: #28bcfe">{{ systemBrif.adminCount }}</h2>
+              </div>
+            </Card>
+          </Col>
+          <Col span="4">
+            <Card :dis-hover="true">
+              <div style="text-align: center">
+                <p>子管理员</p>
+                <h2 style="color: #28bcfe">{{ systemBrif.subadminCount }}</h2>
               </div>
             </Card>
           </Col>
@@ -157,7 +191,7 @@
             <Card :dis-hover="true">
               <div style="text-align: center">
                 <p>SVN用户</p>
-                <h2 style="color: #28bcfe">{{ systemBrif.repUser }}</h2>
+                <h2 style="color: #28bcfe">{{ systemBrif.userCount }}</h2>
               </div>
             </Card>
           </Col>
@@ -165,15 +199,15 @@
             <Card :dis-hover="true">
               <div style="text-align: center">
                 <p>SVN分组</p>
-                <h2 style="color: #28bcfe">{{ systemBrif.repGroup }}</h2>
+                <h2 style="color: #28bcfe">{{ systemBrif.groupCount }}</h2>
               </div>
             </Card>
           </Col>
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>运行日志/条</p>
-                <h2 style="color: #28bcfe">{{ systemBrif.logCount }}</h2>
+                <p>SVN别名</p>
+                <h2 style="color: #28bcfe">{{ systemBrif.aliaseCount }}</h2>
               </div>
             </Card>
           </Col>
@@ -231,12 +265,20 @@ export default {
        */
       systemBrif: {
         os: "",
-        repSize: 0,
+
         repCount: 0,
-        repUser: 0,
-        repGroup: 0,
-        logCount: 0,
+        repSize: 0,
+
+        backupCount: 0,
         backupSize: 0,
+
+        logCount: 0,
+
+        adminCount: 0,
+        subadminCount: 0,
+        userCount: 0,
+        groupCount: 0,
+        aliaseCount: 0,
       },
     };
   },
@@ -275,7 +317,7 @@ export default {
             // that.$Message.success(result.message);
             that.diskList = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -297,7 +339,7 @@ export default {
             // that.$Message.success(result.message);
             that.statusInfo = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -319,7 +361,7 @@ export default {
             // that.$Message.success(result.message);
             that.systemBrif = result.data;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {

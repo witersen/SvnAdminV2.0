@@ -124,17 +124,117 @@ class Svn extends Base
     public function UpdSvnserveStatusStop()
     {
         if (!file_exists($this->configSvn['svnserve_pid_file'])) {
-            return message(200, 0, 'pid文件不存在');
+            return message();
         }
 
         $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
-
-        $result = funShellExec(sprintf("kill -9 '%s'", $pid));
-
-        if ($result['code'] == 0) {
+        if (empty($pid)) {
             return message();
-        } else {
+        }
+
+        if (!is_dir("/proc/$pid")) {
+            return message();
+        }
+
+        $result = funShellExec(sprintf("kill -15 '%s'", $pid));
+
+        if ($result['code'] != 0) {
             return message(200, 0, $result['error']);
+        }
+
+        if (is_dir("/proc/$pid")) {
+            return message(200, 0, '服务停止失败');
+        }
+
+        return message();
+    }
+
+    /**
+     * 开启 svn 使用 sasl 的选项
+     *
+     * @return void
+     */
+    public function UpdSvnSaslStart()
+    {
+        $con = file_get_contents($this->configSvn['svn_conf_file']);
+
+        $result = $this->UpdUsesaslStatus($con, 'true');
+        if (is_numeric($result)) {
+            return message(200, 0, 'svn开启use-sasl失败');
+        }
+        if ($result == $con) {
+            return message();
+        }
+        $result = file_put_contents($this->configSvn['svn_conf_file'], $result);
+        if (!$result) {
+            return message(200, 0, sprintf('文件[%s]写入失败', $this->configSvn['svn_conf_file']));
+        }
+
+        return message();
+    }
+
+    /**
+     * 关闭 svn 使用 sasl 的选项
+     *
+     * @return void
+     */
+    public function UpdSvnSaslStop()
+    {
+        $con = file_get_contents($this->configSvn['svn_conf_file']);
+
+        $result = $this->UpdUsesaslStatus($con, 'false');
+        if (is_numeric($result)) {
+            return message(200, 0, 'svn开启use-sasl失败');
+        }
+        if ($result == $con) {
+            return message();
+        }
+        $result = file_put_contents($this->configSvn['svn_conf_file'], $result);
+        if (!$result) {
+            return message(200, 0, sprintf('文件[%s]写入失败', $this->configSvn['svn_conf_file']));
+        }
+
+        return message();
+    }
+
+    /**
+     * 修改 svnserve.conf 文件的 use-sasl 值
+     *
+     * @param string $con
+     * @param string $status
+     * @return string|integer
+     */
+    private function UpdUsesaslStatus($con, $status)
+    {
+        $status = ($status === true || $status === 'true') ? 'true' : 'false';
+        preg_match_all("/^[ \t]*\[sasl\](((?!\n[ \t]*\[)[\s\S])*)/m", $con, $conPreg);
+        if (preg_last_error() != 0) {
+            return preg_last_error();
+        }
+        if (array_key_exists(0, $conPreg[0])) {
+            $temp1 = trim($conPreg[1][0]);
+            if (empty($temp1)) {
+                return preg_replace("/^[ \t]*\[sasl\](((?!\n[ \t]*\[)[\s\S])*)/m", "[sasl]\nuse-sasl = $status\n", $con);
+            } else {
+                preg_match_all("/^[ \t]*(use-sasl)[ \t]*=[ \t]*(.*)[ \t]*$/m", $conPreg[1][0], $resultPreg);
+                if (preg_last_error() != 0) {
+                    return preg_last_error();
+                }
+                if (array_key_exists(0, $resultPreg[0])) {
+                    foreach ($resultPreg[1] as $key => $valueStr) {
+                        $value = trim($resultPreg[2][$key]);
+                        if ($value === $status) {
+                            return $con;
+                        } else {
+                            return preg_replace("/^[ \t]*\[sasl\](((?!\n[ \t]*\[)[\s\S])*)/m", "[sasl]\n" . trim(preg_replace("/^[ \t]*(use-sasl)[ \t]*=[ \t]*(.*)[ \t]*$/m", "use-sasl = $status", $conPreg[1][0])) . "\n", $con);
+                        }
+                    }
+                } else {
+                    return preg_replace("/^[ \t]*\[sasl\](((?!\n[ \t]*\[)[\s\S])*)/m", trim($conPreg[0][0]) . "\nuse-sasl = $status\n", $con);
+                }
+            }
+        } else {
+            return trim($con) . "\n[sasl]\nuse-sasl = $status\n";
         }
     }
 }

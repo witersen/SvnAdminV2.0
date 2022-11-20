@@ -90,25 +90,18 @@ class Base
              * 如果请求不在对应类型的白名单中 则需要进行token校验
              */
 
-            //判断是否为空
             empty($parm['token']) ? json1(401, 0, 'token为空') : '';
 
-            //校验token格式
             substr_count($parm['token'], $configSign['signSeparator']) != 4 ? json1(401, 0, 'token格式错误') : '';
-
             $arr = explode($configSign['signSeparator'], $parm['token']);
-
-            //校验token格式
             foreach ($arr as $value) {
                 trim($value) == '' ? json1(401, 0, 'token格式错误') : '';
             }
 
-            //检验token内容
             $part1 =  hash_hmac('md5', $arr[0] . $configSign['signSeparator'] . $arr[1] . $configSign['signSeparator'] . $arr[2] . $configSign['signSeparator'] . $arr[3], $configSign['signature']);
             $part2 = $arr[4];
             $part1 != $part2 ? json1(401, 0, 'token校验失败') : '';
 
-            //校验是否过期
             time() > $arr[3] ? json1(401, 0, '登陆过期') : '';
 
             /**
@@ -166,10 +159,28 @@ class Base
              */
             $black = $database->get('black_token', 'token_id', ['token' => $parm['token']]);
             !empty($black) ? json1(401, 0, 'token已注销') : '';
+        }
 
-            /**
-             * 9、检查关键文件是否可读写
-             */
+        /**
+         * 9、检查关键目录/文件是否可读写
+         */
+        if ($parm['controller_prefix'] . '/' . $parm['action'] == 'Common/Login') {
+            foreach ($configSvn as $key => $value) {
+                if (is_array($value)) {
+                    continue;
+                }
+                if (substr($key, -5) == '_path') {
+                    if (!is_writable($value)) {
+                        json1(200, 0, sprintf('目录[%s]不存在或不可写', $value));
+                    }
+                } else if (substr($key, -9) == '_pid_file') {
+                    continue;
+                } else if (substr($key, -5) == '_file') {
+                    if (!is_writable($value)) {
+                        json1(200, 0, sprintf('文件[%s]不存在或不可写', $value));
+                    }
+                }
+            }
         }
     }
 }

@@ -11,57 +11,43 @@
  * 如果要修改安装路径 ，可通过执行 server/install.php 来实现
  */
 
-$home_path = '/home/svnadmin/';
-
-$rep_base_path = $home_path . 'rep/';
-
-$backup_base_path = $home_path . 'backup/';
-
-$log_base_path = $home_path . 'logs/';
-
-$templete_base_path = $home_path . 'templete/';
-
-$templete_init_struct = $templete_base_path . 'initStruct/';
-
-$sasl_base_path = $home_path . 'sasl/';
-
-$ldap_base_path = $sasl_base_path . 'ldap/';
+$home = '/home/svnadmin/';
 
 return [
     /**
      * SVNAdmin软件配置信息的主目录
      */
-    'home_path' => $home_path,
+    'home_path' => $home,
 
     /**
      * SVN仓库父目录
      */
-    'rep_base_path' => $rep_base_path,
+    'rep_base_path' => $home . 'rep/',
 
     /**
      * svnserve环境变量文件
      */
-    'svnserve_env_file' => $home_path . 'svnserve',
+    'svnserve_env_file' => $home . 'svnserve',
 
     /**
      * SVN仓库权限配置文件
      */
-    'svn_conf_file' => $home_path . 'svnserve.conf',
+    'svn_conf_file' => $home . 'svnserve.conf',
 
     /**
      * authz文件
      */
-    'svn_authz_file' => $home_path . 'authz',
+    'svn_authz_file' => $home . 'authz',
 
     /**
      * passwd文件
      */
-    'svn_passwd_file' => $home_path . 'passwd',
+    'svn_passwd_file' => $home . 'passwd',
 
     /**
      * svnserve pid文件
      */
-    'svnserve_pid_file' => $home_path . 'svnserve.pid',
+    'svnserve_pid_file' => $home . 'svnserve.pid',
 
     /**
      * svnserve 自启动文件
@@ -74,50 +60,50 @@ return [
     /**
      * 推荐钩子目录
      */
-    'recommend_hook_path' => $home_path . 'hooks/',
+    'recommend_hook_path' => $home . 'hooks/',
 
     /**
      * 备份目录
      */
-    'backup_base_path' => $backup_base_path,
+    'backup_base_path' => $home . 'backup/',
 
     /**
      * 任务计划目录
      */
-    'crond_base_path' => $home_path . 'crond/',
+    'crond_base_path' => $home . 'crond/',
 
     /**
      * 日志目录
      */
-    'log_base_path' => $log_base_path,
+    'log_base_path' => $home . 'logs/',
 
     /**
      * svnserve 运行日志文件
      */
-    'svnserve_log_file' => $log_base_path . 'svnserve.log',
+    'svnserve_log_file' => $home . 'logs/svnserve.log',
 
     /**
      * 模板文件目录
      */
-    'templete_base_path' => $templete_base_path,
+    'templete_base_path' => $home . 'templete/',
 
     /**
      * 初始化仓库结构模板目录
      */
-    'templete_init_struct' => $templete_init_struct,
+    'templete_init_path' => $home . 'templete/initStruct/',
 
     /**
      * 默认使用的仓库模板
      */
-    'templete_init_struct_01' => $templete_init_struct . '01/',
+    'templete_init_01_path' => $home . 'templete/initStruct/01/',
 
     /**
      * ldap服务器配置文件
      */
-    'ldap_config_file' => $ldap_base_path . 'saslauthd.conf',
+    'ldap_config_file' => $home . 'sasl/ldap/saslauthd.conf',
 
     /**
      * saslauthd服务pid文件
      */
-    'saslauthd_pid_file' => $sasl_base_path . 'saslauthd.pid',
+    'saslauthd_pid_file' => $home . 'sasl/saslauthd.pid',
 ];
