@@ -29,7 +29,7 @@ function funShellExec($shell)
 
     $socket = @socket_create(AF_UNIX, SOCK_STREAM, 0) or exit('创建套接字失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
 
-    $server = socket_connect($socket, $configDaemon['ipc_file'], 0);
+    $server = socket_connect($socket, IPC_SVNADMIN, 0);
 
     socket_write($socket, $request, strlen($request));
 
@@ -56,11 +56,9 @@ function funFilePutContents($filename, $data)
  */
 function funDetectState()
 {
-    $configDaemon = Config::get('daemon');
-
     $sock = @socket_create(AF_UNIX, SOCK_STREAM, 0);
 
-    @socket_connect($sock, $configDaemon['ipc_file'], 0);
+    @socket_connect($sock, IPC_SVNADMIN, 0);
 
     socket_set_nonblock($sock);
 

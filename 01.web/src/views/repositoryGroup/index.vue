@@ -13,9 +13,9 @@
           <Button icon="md-add" type="primary" ghost @click="ModalCreateGroup"
             >新建SVN分组</Button
           >
-          <Button icon="ios-sync" type="primary" ghost @click="ModalScanGroup"
+          <!-- <Button icon="ios-sync" type="primary" ghost @click="ModalScanGroup"
             >分组迁入</Button
-          >
+          > -->
           <Tooltip
             max-width="250"
             content="同步才可获取最新分组列表"

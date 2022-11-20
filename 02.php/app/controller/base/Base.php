@@ -107,6 +107,9 @@ class Base
             /**
              * 5、检查特定角色权限路由
              */
+            if (array_key_exists('database_file', $configDatabase)) {
+                $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
+            }
             try {
                 $database = new Medoo($configDatabase);
             } catch (\Exception $e) {

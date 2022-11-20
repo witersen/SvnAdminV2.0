@@ -207,7 +207,7 @@ class Common extends Base
         //邮件
         $this->Mail->SendMail('Common/Login', '用户登录成功通知', '账号：' . $userName . ' ' . 'IP地址：' . $_SERVER["REMOTE_ADDR"] . ' ' . '时间：' . date('Y-m-d H:i:s'));
 
-        $info = $this->GetDynamicRouting($userRole);
+        $info = $this->GetDynamicRouting($userName, $userRole);
         return message(200, 1, '登陆成功', [
             'token' => $token,
             'user_name' => $userName,

@@ -16,9 +16,9 @@
           <Button icon="md-add" type="primary" ghost @click="ModalCreateUser"
             >新建SVN用户</Button
           >
-          <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
+          <!-- <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
             >用户迁入</Button
-          >
+          > -->
           <Tooltip
             max-width="250"
             content="1、同步才可获取最新用户列表 

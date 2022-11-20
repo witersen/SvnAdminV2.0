@@ -553,7 +553,7 @@ class Base
                             'checked' => false,
                             'disabled' => false,
                             'necessary_functions' => [
-                                'Svnuser/GetSvnUserRepList2',
+                                'Svnrep/GetSvnUserRepList2',
                             ],
                             'children' => []
                         ],
@@ -876,7 +876,7 @@ class Base
                     'disabled' => false,
                     'router_name' => 'Crond',
                     'necessary_functions' => [
-                        'Crond/UpdCrondStatus',
+                        'Crond/UpdCrontabStatus',
                     ],
                     'children' => []
                 ],
@@ -906,7 +906,7 @@ class Base
                             'disabled' => false,
                             'router_name' => 'Crond',
                             'necessary_functions' => [
-                                'Crond/GetCrontabLog',
+                                'Crond/UpdCrontab',
                             ],
                             'children' => []
                         ],
@@ -974,6 +974,18 @@ class Base
                     'children' => []
                 ],
                 [
+                    'title' => 'saslauthd',
+                    'expand' => false,
+                    'checked' => false,
+                    'disabled' => true,
+                    'necessary_functions' => [
+                        'Setting/GetSaslInfo',
+                        'Setting/UpdSaslStatusStart',
+                        'Setting/UpdSaslStatusStop',
+                    ],
+                    'children' => []
+                ],
+                [
                     'title' => '路径信息',
                     'expand' => false,
                     'checked' => false,
@@ -989,6 +1001,8 @@ class Base
                     'checked' => false,
                     'disabled' => true,
                     'necessary_functions' => [
+                        'Setting/GetMailInfo',
+                        'Setting/GetMailPushInfo',
                         'Setting/SendMailTest',
                         'Setting/UpdMailInfo'
                     ],
@@ -1000,6 +1014,7 @@ class Base
                     'checked' => false,
                     'disabled' => true,
                     'necessary_functions' => [
+                        'Setting/GetMailPushInfo',
                         'Setting/UpdPushInfo'
                     ],
                     'children' => []
@@ -1010,7 +1025,20 @@ class Base
                     'checked' => false,
                     'disabled' => true,
                     'necessary_functions' => [
+                        'Setting/GetSafeInfo',
                         'Setting/UpdSafeInfo'
+                    ],
+                    'children' => []
+                ],
+                [
+                    'title' => '用户来源',
+                    'expand' => false,
+                    'checked' => false,
+                    'disabled' => true,
+                    'necessary_functions' => [
+                        'Setting/GetUsersourceInfo',
+                        'Setting/UpdUsersourceInfo',
+                        'Setting/LdapTest',
                     ],
                     'children' => []
                 ],
@@ -1026,6 +1054,170 @@ class Base
                 ],
             ]
         ],
+    ];
+
+    /**
+     * 所有角色路由
+     *
+     * @var array
+     */
+    public $route = [
+        'name' => 'manage',
+        'path' => '/',
+        'redirect' => [
+            'name' => 'login'
+        ],
+        'meta' => [
+            'title' => 'SVNAdmin',
+            'requireAuth' => false,
+        ],
+        'component' => 'layout/basicLayout/index.vue',
+        'children' => [
+            [
+                'name' => 'index',
+                'path' => '/index',
+                'meta' => [
+                    'title' => '信息统计',
+                    'icon' => 'ios-stats',
+                    'requireAuth' => true,
+                    'user_role_id' => [1, 3],
+                    'group' => [
+                        'name' => '仓库',
+                        'num' => 1
+                    ],
+                    'id' => 1001
+                ],
+                'component' => 'index/index.vue'
+            ],
+            [
+                'name' => 'repositoryInfo',
+                'path' => '/repositoryInfo',
+                'meta' => [
+                    'title' => 'SVN仓库',
+                    'icon' => 'logo-buffer',
+                    'requireAuth' => true,
+                    'user_role_id' => [1, 2, 3],
+                    'group' => [
+                        'name' => '仓库',
+                        'num' => 1
+                    ],
+                    'id' => 1002
+                ],
+                'component' => 'repositoryInfo/index.vue'
+            ],
+            [
+                'name' => 'repositoryUser',
+                'path' => '/repositoryUser',
+                'meta' => [
+                    'title' => 'SVN用户',
+                    'icon' => 'md-person',
+                    'requireAuth' => true,
+                    'user_role_id' => [1, 3],
+                    'group' => [
+                        'name' => '仓库',
+                        'num' => 1
+                    ],
+                    'id' => 1003
+                ],
+                'component' => 'repositoryUser/index.vue'
+            ],
+            [
+                'name' => 'repositoryGroup',
+                'path' => '/repositoryGroup',
+                'meta' => [
+                    'title' => 'SVN分组',
+                    'icon' => 'md-people',
+                    'requireAuth' => true,
+                    'user_role_id' => [1, 3],
+                    'group' => [
+                        'name' => '仓库',
+                        'num' => 1
+                    ],
+                    'id' => 1004
+                ],
+                'component' => 'repositoryGroup/index.vue'
+            ],
+            [
+                'name' => 'logs',
+                'path' => '/logs',
+                'meta' => [
+                    'title' => '系统日志',
+                    'icon' => 'md-bug',
+                    'requireAuth' => true,
+                    'user_role_id' => [1, 3],
+                    'group' => [
+                        'name' => '运维',
+                        'num' => 2
+                    ],
+                    'id' => 1005
+                ],
+                'component' => 'logs/index.vue'
+            ],
+            [
+                'name' => 'crond',
+                'path' => '/crond',
+                'meta' => [
+                    'title' => '任务计划',
+                    'icon' => 'ios-alarm',
+                    'requireAuth' => true,
+                    'user_role_id' => [1, 3],
+                    'group' => [
+                        'name' => '运维',
+                        'num' => 2
+                    ],
+                    'id' => 1006
+                ],
+                'component' => 'crond/index.vue'
+            ],
+            [
+                'name' => 'personal',
+                'path' => '/personal',
+                'meta' => [
+                    'title' => '个人中心',
+                    'icon' => 'md-cube',
+                    'requireAuth' => true,
+                    'user_role_id' => [1, 2, 3],
+                    'group' => [
+                        'name' => '高级',
+                        'num' => 3
+                    ],
+                    'id' => 1007
+                ],
+                'component' => 'personal/index.vue'
+            ],
+            [
+                'name' => 'subadmin',
+                'path' => '/subadmin',
+                'meta' => [
+                    'title' => '子管理员',
+                    'icon' => 'md-hand',
+                    'requireAuth' => true,
+                    'user_role_id' => [1],
+                    'group' => [
+                        'name' => '高级',
+                        'num' => 3
+                    ],
+                    'id' => 1008
+                ],
+                'component' => 'subadmin/index.vue'
+            ],
+            [
+                'name' => 'setting',
+                'path' => '/setting',
+                'meta' => [
+                    'title' => '系统配置',
+                    'icon' => 'md-settings',
+                    'requireAuth' => true,
+                    'user_role_id' => [1, 3],
+                    'group' => [
+                        'name' => '高级',
+                        'num' => 3
+                    ],
+                    'id' => 1009
+                ],
+                'component' => 'setting/index.vue'
+            ],
+        ]
     ];
 
     function __construct($parm)
@@ -1084,190 +1276,20 @@ class Base
     /**
      * 获取动态路由
      */
-    public function GetDynamicRouting($userRole)
+    public function GetDynamicRouting($userName, $userRole)
     {
-        $route = [
-            'name' => 'manage',
-            'path' => '/',
-            'redirect' => [
-                'name' => 'login'
-            ],
-            'meta' => [
-                'title' => 'SVNAdmin',
-                'requireAuth' => false,
-            ],
-            'component' => 'layout/basicLayout/index.vue',
-            'children' => [
-                [
-                    'name' => 'index',
-                    'path' => '/index',
-                    'meta' => [
-                        'title' => '信息统计',
-                        'icon' => 'ios-stats',
-                        'requireAuth' => true,
-                        'user_role_id' => [1, 3],
-                        'group' => [
-                            'name' => '仓库',
-                            'num' => 1
-                        ],
-                        'id' => 1001
-                    ],
-                    'component' => 'index/index.vue'
-                ],
-                [
-                    'name' => 'repositoryInfo',
-                    'path' => '/repositoryInfo',
-                    'meta' => [
-                        'title' => 'SVN仓库',
-                        'icon' => 'logo-buffer',
-                        'requireAuth' => true,
-                        'user_role_id' => [1, 2, 3],
-                        'group' => [
-                            'name' => '仓库',
-                            'num' => 1
-                        ],
-                        'id' => 1002
-                    ],
-                    'component' => 'repositoryInfo/index.vue'
-                ],
-                [
-                    'name' => 'repositoryUser',
-                    'path' => '/repositoryUser',
-                    'meta' => [
-                        'title' => 'SVN用户',
-                        'icon' => 'md-person',
-                        'requireAuth' => true,
-                        'user_role_id' => [1, 3],
-                        'group' => [
-                            'name' => '仓库',
-                            'num' => 1
-                        ],
-                        'id' => 1003
-                    ],
-                    'component' => 'repositoryUser/index.vue'
-                ],
-                [
-                    'name' => 'repositoryGroup',
-                    'path' => '/repositoryGroup',
-                    'meta' => [
-                        'title' => 'SVN分组',
-                        'icon' => 'md-people',
-                        'requireAuth' => true,
-                        'user_role_id' => [1, 3],
-                        'group' => [
-                            'name' => '仓库',
-                            'num' => 1
-                        ],
-                        'id' => 1004
-                    ],
-                    'component' => 'repositoryGroup/index.vue'
-                ],
-                [
-                    'name' => 'logs',
-                    'path' => '/logs',
-                    'meta' => [
-                        'title' => '系统日志',
-                        'icon' => 'md-bug',
-                        'requireAuth' => true,
-                        'user_role_id' => [1, 3],
-                        'group' => [
-                            'name' => '运维',
-                            'num' => 2
-                        ],
-                        'id' => 1005
-                    ],
-                    'component' => 'logs/index.vue'
-                ],
-                [
-                    'name' => 'crond',
-                    'path' => '/crond',
-                    'meta' => [
-                        'title' => '任务计划',
-                        'icon' => 'ios-alarm',
-                        'requireAuth' => true,
-                        'user_role_id' => [1, 3],
-                        'group' => [
-                            'name' => '运维',
-                            'num' => 2
-                        ],
-                        'id' => 1006
-                    ],
-                    'component' => 'crond/index.vue'
-                ],
-                [
-                    'name' => 'personal',
-                    'path' => '/personal',
-                    'meta' => [
-                        'title' => '个人中心',
-                        'icon' => 'md-cube',
-                        'requireAuth' => true,
-                        'user_role_id' => [1, 2, 3],
-                        'group' => [
-                            'name' => '高级',
-                            'num' => 3
-                        ],
-                        'id' => 1007
-                    ],
-                    'component' => 'personal/index.vue'
-                ],
-                [
-                    'name' => 'subadmin',
-                    'path' => '/subadmin',
-                    'meta' => [
-                        'title' => '子管理员',
-                        'icon' => 'md-hand',
-                        'requireAuth' => true,
-                        'user_role_id' => [1],
-                        'group' => [
-                            'name' => '高级',
-                            'num' => 3
-                        ],
-                        'id' => 1008
-                    ],
-                    'component' => 'subadmin/index.vue'
-                ],
-                [
-                    'name' => 'setting',
-                    'path' => '/setting',
-                    'meta' => [
-                        'title' => '系统配置',
-                        'icon' => 'md-settings',
-                        'requireAuth' => true,
-                        'user_role_id' => [1, 3],
-                        'group' => [
-                            'name' => '高级',
-                            'num' => 3
-                        ],
-                        'id' => 1009
-                    ],
-                    'component' => 'setting/index.vue'
-                ],
-            ]
-        ];
+        $route = $this->route;
 
         $functions = [];
+
+        //根据权限树过滤路由(子管理员)
         if ($userRole == 3) {
-            //子管理员根据权限树过滤路由
             $routerNames = array_column($route['children'], 'name');
             $subadminTree = $this->database->get('subadmin', 'subadmin_tree', [
-                'subadmin_name' => $this->userName
+                'subadmin_name' => $userName,
             ]);
             $subadminTree = json_decode($subadminTree, true);
-            if (empty($subadminTree)) {
-                $subadminTree = $this->subadminTree;
-
-                $this->database->update('subadmin', [
-                    'subadmin_tree' => json_encode($this->subadminTree),
-                ], [
-                    'subadmin_name' => $this->userName
-                ]);
-
-                $this->database->update('subadmin', [
-                    'subadmin_functions' => json_encode($this->GetDynamicRouting(3)['functions'])
-                ], [
-                    'subadmin_name' => $this->userName
-                ]);
-            }
+            $subadminTree = empty($subadminTree) ? [] : $subadminTree;
             foreach ($subadminTree as $node) {
                 $temp1 = [];
                 //父节点完全勾选
@@ -1301,6 +1323,10 @@ class Base
         }
 
         $route['children'] = array_values($route['children']);
+
+        if ($userRole == 1) {
+            $functions = $this->GetPriFunctions($this->subadminTree);
+        }
 
         return [
             'route' => $route,

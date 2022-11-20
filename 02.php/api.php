@@ -19,7 +19,13 @@ error_reporting(E_ALL);
 
 set_time_limit(0);
 
+ini_set('pcre.backtrack_limit', -1);
+
+ini_set('pcre.recursion_limit', -1);
+
 define('BASE_PATH', __DIR__);
+
+define('IPC_SVNADMIN', BASE_PATH . '/server/svnadmind.socket');
 
 date_default_timezone_set('PRC');
 

@@ -115,16 +115,6 @@ class Subadmin extends Base
             return message(200, 0, '用户已存在');
         }
 
-        $functions = [];
-        foreach ($this->subadminTree as $node) {
-            $tempFunctions = [];
-            if ($node['checked']) {
-                $tempFunctions = $node['necessary_functions'];
-            }
-            $tempFunctions = array_merge($tempFunctions, $this->GetPriFunctions($node['children']));
-            $functions = array_merge($functions, $tempFunctions);
-        }
-
         //写入数据库
         $this->database->insert('subadmin', [
             'subadmin_name' => $this->payload['subadmin_name'],
@@ -133,13 +123,8 @@ class Subadmin extends Base
             'subadmin_note' => $this->payload['subadmin_note'],
             'subadmin_last_login' => '',
             'subadmin_create_time' => date('Y-m-d H:i:s'),
-            'subadmin_tree' => json_encode($this->subadminTree)
-        ]);
-
-        $this->database->update('subadmin', [
-            'subadmin_functions' => json_encode($this->GetDynamicRouting(3)['functions'])
-        ], [
-            'subadmin_name' => $this->payload['subadmin_name']
+            'subadmin_tree' => json_encode($this->subadminTree),
+            'subadmin_functions' => json_encode($this->GetPriFunctions($this->subadminTree))
         ]);
 
         //日志
@@ -344,12 +329,7 @@ class Subadmin extends Base
 
         $this->database->update('subadmin', [
             'subadmin_tree' => json_encode($this->payload['subadmin_tree']),
-        ], [
-            'subadmin_id' => $this->payload['subadmin_id']
-        ]);
-
-        $this->database->update('subadmin', [
-            'subadmin_functions' => json_encode($this->GetDynamicRouting(3)['functions'])
+            'subadmin_functions' => json_encode($this->GetPriFunctions($this->payload['subadmin_tree']))
         ], [
             'subadmin_id' => $this->payload['subadmin_id']
         ]);

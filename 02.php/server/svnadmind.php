@@ -14,12 +14,15 @@ if (!preg_match('/cli/i', php_sapi_name())) {
     exit('require php-cli mode' . PHP_EOL);
 }
 
-ini_set('display_errors', '1');
+/**
+ * 开启错误信息 如需要调试 可取消注释
+ */
+// ini_set('display_errors', '1');
+// error_reporting(E_ALL);
 
-error_reporting(E_ALL);
-
-//与web入口文件保持一致
 define('BASE_PATH', __DIR__ . '/..');
+
+define('IPC_SVNADMIN', BASE_PATH . '/server/svnadmind.socket');
 
 require_once BASE_PATH . '/app/util/Config.php';
 
@@ -49,35 +52,21 @@ class Daemon
      */
     private function InitSocket()
     {
-        if (file_exists($this->configDaemon['ipc_file'])) {
-            unlink($this->configDaemon['ipc_file']);
+        if (file_exists(IPC_SVNADMIN)) {
+            unlink(IPC_SVNADMIN);
         }
 
         //创建套接字
         $socket = @socket_create(AF_UNIX, SOCK_STREAM, 0) or die(sprintf('创建套接字失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
 
         //绑定地址和端口
-        @socket_bind($socket, $this->configDaemon['ipc_file'], 0) or die(sprintf('绑定失败[%s][%s]%s', socket_strerror(socket_last_error()), $this->configDaemon['ipc_file'], PHP_EOL));
+        @socket_bind($socket, IPC_SVNADMIN, 0) or die(sprintf('绑定失败[%s][%s]%s', socket_strerror(socket_last_error()), IPC_SVNADMIN, PHP_EOL));
 
         //监听 设置并发队列的最大长度
         @socket_listen($socket, $this->configDaemon['socket_listen_backlog']) or die(sprintf('监听失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
 
         //使其它用户可用
-        shell_exec('chmod 777 ' . $this->configDaemon['ipc_file']);
-
-        //创建任务进程 用于处理任务
-        // $pid = pcntl_fork();
-        // if ($pid == -1) {
-        //     die(sprintf('pcntl_fork失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
-        // } else if ($pid == 0) {
-        //     while (true) {
-        //         //处理任务
-        //         sleep(1);
-        //         date_default_timezone_set('PRC');
-        //         file_put_contents('task.log', date('Y-m-d H:i:s')."\n", FILE_APPEND);
-        //     }
-        //     exit();
-        // }
+        shell_exec('chmod 777 ' . IPC_SVNADMIN);
 
         while (true) {
             //非阻塞式回收僵尸进程

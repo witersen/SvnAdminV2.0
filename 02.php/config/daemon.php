@@ -12,16 +12,14 @@
  */
 
 return [
-
     /**
-     * 通信文件
+     * socket_read 和 socket_write 的最大传输字节(B)
+     * 
+     * 默认值 500 KB
+     * 
+     * 1MB = 1024KB = 1024*1024B
      */
-    'ipc_file' => '/tmp/svnadmind.socket',
-
-    /**
-     * socket_read 和 socket_write 的最大传输字节
-     */
-    'socket_data_length' => 81920,
+    'socket_data_length' => 500 * 1024,
 
     /**
      * socket 处理并发的最大队列长度
