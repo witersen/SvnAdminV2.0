@@ -743,7 +743,7 @@
               <FormItem>
                 <Button
                   type="primary"
-                  @click="UpdLdapInfo"
+                  @click="UpdUsersourceInfo"
                   :loading="loadingUpdLdapInfo"
                   >保存</Button
                 >
@@ -1125,7 +1125,7 @@ export default {
     this.GetMailInfo();
     this.GetMailPushInfo();
     this.GetSafeInfo();
-    this.GetLdapInfo();
+    this.GetUsersourceInfo();
     this.GetSaslInfo();
   },
   methods: {
@@ -1731,27 +1731,27 @@ export default {
         });
     },
     /**
-     * 保存ldap配置信息
+     * 保存用户来源配置信息
      */
-    UpdLdapInfo() {
+    UpdUsersourceInfo() {
       var that = this;
       that.$Modal.confirm({
-        title: "保存ldap配置信息",
+        title: "警告",
         content:
-          "请阅读以下后做出确认:<br/>1、此操作会将数据库中的SVN用户信息清空并使用ldap用户代替。<br/>2、此操作不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会清空本系统中的authz文件中的分组信息，并使用ldap分组代替。",
+          "如果为切换到ldap服务器，请仔细阅读以下内容后做出选择:<br/>1、此操作会将数据库中的SVN用户信息清空。后续手动同步时会自动将ldap用户写入数据库。<br/>2、接入ldap不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会清空本系统中的authz文件中的分组信息。后续手动同步时会自动将ldap分组写入数据库和authz文件。",
         onOk: () => {
           that.loadingUpdLdapInfo = true;
           var data = {
             data_source: that.formDataSource,
           };
           that.$axios
-            .post("/api.php?c=Setting&a=UpdLdapInfo&t=web", data)
+            .post("/api.php?c=Setting&a=UpdUsersourceInfo&t=web", data)
             .then(function (response) {
               var result = response.data;
               that.loadingUpdLdapInfo = false;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetLdapInfo();
+                that.GetUsersourceInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -1765,13 +1765,13 @@ export default {
       });
     },
     /**
-     * 获取ldap配置信息
+     * 获取用户来源配置信息
      */
-    GetLdapInfo() {
+    GetUsersourceInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetLdapInfo&t=web", data)
+        .post("/api.php?c=Setting&a=GetUsersourceInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

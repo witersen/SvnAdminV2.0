@@ -11,6 +11,7 @@ namespace app\service;
 
 use app\service\Logs as ServiceLogs;
 use app\service\Ldap as ServiceLdap;
+use app\service\Usersource as ServiceUsersource;
 
 class Svnuser extends Base
 {
@@ -21,6 +22,7 @@ class Svnuser extends Base
      */
     private $ServiceLogs;
     private $ServiceLdap;
+    private $ServiceUsersource;
 
     function __construct($parm = [])
     {
@@ -28,6 +30,7 @@ class Svnuser extends Base
 
         $this->ServiceLogs = new ServiceLogs();
         $this->ServiceLdap = new ServiceLdap();
+        $this->ServiceUsersource = new ServiceUsersource();
     }
 
     /**
@@ -35,7 +38,7 @@ class Svnuser extends Base
      */
     public function SyncUserToDb()
     {
-        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
 
         if ($dataSource['user_source'] == 'ldap') {
             $ldapUsers = $this->ServiceLdap->GetLdapUsers();
@@ -325,7 +328,7 @@ class Svnuser extends Base
      */
     public function ScanPasswd()
     {
-        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
@@ -353,7 +356,7 @@ class Svnuser extends Base
      */
     public function UpdUserStatus()
     {
-        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
@@ -400,7 +403,7 @@ class Svnuser extends Base
      */
     public function CreateUser()
     {
-        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
@@ -457,7 +460,7 @@ class Svnuser extends Base
      */
     public function UpdUserPass()
     {
-        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
@@ -497,7 +500,7 @@ class Svnuser extends Base
      */
     public function DelUser()
     {
-        $dataSource = $this->ServiceLdap->GetLdapInfo()['data'];
+        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }

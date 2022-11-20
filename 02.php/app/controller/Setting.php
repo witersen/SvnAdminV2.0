@@ -15,6 +15,7 @@ use app\service\Svnrep as ServiceSvnrep;
 use app\service\Ldap as ServiceLdap;
 use app\service\Sasl as ServiceSasl;
 use app\service\Svn as ServiceSvn;
+use app\service\Usersource as ServiceUsersource;
 
 class Setting extends Base
 {
@@ -29,6 +30,7 @@ class Setting extends Base
     private $ServiceLdap;
     private $ServiceSasl;
     private $ServiceSvn;
+    private $ServiceUsersource;
 
     function __construct($parm)
     {
@@ -40,6 +42,7 @@ class Setting extends Base
         $this->ServiceLdap = new ServiceLdap($parm);
         $this->ServiceSasl = new ServiceSasl($parm);
         $this->ServiceSvn = new ServiceSvn($parm);
+        $this->ServiceUsersource = new ServiceUsersource($parm);
     }
 
     /**
@@ -213,24 +216,24 @@ class Setting extends Base
     }
 
     /**
-     * 保存ldap配置信息
+     * 保存用户来源配置信息
      *
      * @return void
      */
-    public function UpdLdapInfo()
+    public function UpdUsersourceInfo()
     {
-        $result = $this->ServiceLdap->UpdLdapInfo();
+        $result = $this->ServiceUsersource->UpdUsersourceInfo();
         json2($result);
     }
 
     /**
-     * 获取ldap配置信息
+     * 获取用户来源配置信息
      *
      * @return void
      */
-    public function GetLdapInfo()
+    public function GetUsersourceInfo()
     {
-        $result = $this->ServiceLdap->GetLdapInfo();
+        $result = $this->ServiceUsersource->GetUsersourceInfo();
         json2($result);
     }
 
