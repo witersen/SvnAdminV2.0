@@ -32,7 +32,11 @@ admin/admin
 2.3.4版本新用户可直接安装使用
 2.3.4测试后一段时间无问题后正式发布安装包+升级包+docker版本
 
-【安装包】
+【docker镜像】
+docker pull harbor.witersen.com:9443/personal/svnadmin:2.3.4
+docker run -d --name svnadmin -p 8085:80 -p 3695:3690 --privileged harbor.witersen.com:9443/personal/svnadmin:2.3.4
+
+【手动安装包】
 https://update.witersen.com/svnadmin/2.3.4.zip
 
 【新增】
