@@ -213,7 +213,7 @@ class Command
 
             print_r(sprintf('仓库[%s]开始执行备份程序%s', $rep, PHP_EOL));
 
-            $stderrFile = tempnam('/tmp', 'svnadmin_');
+            $stderrFile = tempnam(sys_get_temp_dir(), 'svnadmin_');
 
             $cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $rep, $this->configSvn['backup_base_path'] .  $backupName);
             passthru($cmd . " 2>$stderrFile", $this->code);
@@ -287,7 +287,7 @@ class Command
 
             print_r(sprintf('仓库[%s]开始执行检查程序%s', $rep, PHP_EOL));
 
-            $stderrFile = tempnam('/tmp', 'svnadmin_');
+            $stderrFile = tempnam(sys_get_temp_dir(), 'svnadmin_');
 
             // $cmd = sprintf("'%s' verify --quiet '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $rep);
             // passthru($cmd . " 2>$stderrFile", $this->code);
@@ -316,9 +316,9 @@ class Command
     {
         print_r(sprintf('脚本[%s]开始执行%s', $this->crond['task_name'], PHP_EOL));
 
-        $stderrFile = tempnam('/tmp', 'svnadmin_');
+        $stderrFile = tempnam(sys_get_temp_dir(), 'svnadmin_');
 
-        $shellFile = tempnam('/tmp', 'svnadmin_');
+        $shellFile = tempnam(sys_get_temp_dir(), 'svnadmin_');
         file_put_contents($shellFile, $this->crond['shell']);
 
         passthru($shellFile . " 2>$stderrFile", $this->code);

@@ -118,8 +118,8 @@ class Ldap extends Base
                 'group_base_dn' => ['type' => 'string', 'notNull' => true],
                 'group_search_filter' => ['type' => 'string', 'notNull' => true],
                 'group_attributes' => ['type' => 'string', 'notNull' => true],
-                'groups_to_user_attribute' => ['type' => 'string', 'notNull' => true],
-                'groups_to_user_attribute_value' => ['type' => 'string', 'notNull' => true],
+                'groups_to_user_attribute' => ['type' => 'string', 'notNull' => false],
+                'groups_to_user_attribute_value' => ['type' => 'string', 'notNull' => false],
             ]);
             if ($checkResult['status'] == 0) {
                 return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
@@ -149,7 +149,9 @@ class Ldap extends Base
         $pageCookie = '';
         $data = [];
         do {
-            ldap_control_paged_result($connection, $pageSize, true, $pageCookie);
+            // if (function_exists("ldap_control_paged_result") && function_exists("ldap_control_paged_result_response")) {
+            //     ldap_control_paged_result($connection, $pageSize, true, $pageCookie);
+            // }
 
             $result = ldap_search($connection, $baseDn, $filter, $attributes, 0, 0);
             if (!$result) {
@@ -174,7 +176,10 @@ class Ldap extends Base
                     array_push($data, isset($item[$attributes[0]][0]) ? $item[$attributes[0]][0] : ' ');
                 }
             }
-            ldap_control_paged_result_response($connection, $result, $pageCookie);
+
+            // if (function_exists("ldap_control_paged_result") && function_exists("ldap_control_paged_result_response")) {
+            //     ldap_control_paged_result_response($connection, $result, $pageCookie);
+            // }
         } while ($pageCookie !== null && $pageCookie != '');
 
         ldap_unbind($connection);

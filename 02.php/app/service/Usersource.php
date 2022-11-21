@@ -102,6 +102,14 @@ class Usersource extends Base
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
 
+            //写入/etc/sasl2/svn.conf
+            $unknown = '/etc/sasl2/svn.conf';
+            funShellExec(sprintf("mkdir -p /etc/sasl2 && touch '%s' && chmod o+w '%s'", $unknown, $unknown));
+            if (!is_readable($unknown)) {
+                return message(200, 0, sprintf('文件[%s]不可读或不存在', $unknown));
+            }
+            file_put_contents('/etc/sasl2/svn.conf', "pwcheck_method: saslauthd\nmech_list: PLAIN LOGIN\n");
+
             //写入 sasl/ldap/saslauthd.conf
             $templeteSaslauthdPath = BASE_PATH . '/templete/sasl/ldap/saslauthd.conf';
             if (!is_readable($templeteSaslauthdPath)) {
@@ -179,8 +187,8 @@ class Usersource extends Base
 
         $default = [
             //数据源
-            'user_source' => 'ldap',
-            'group_source' => 'ldap',
+            'user_source' => 'passwd',
+            'group_source' => 'authz',
 
             //ldap服务器
             'ldap_host' => 'ldap://127.0.0.1/',

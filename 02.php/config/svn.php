@@ -98,6 +98,16 @@ return [
     'templete_init_01_path' => $home . 'templete/initStruct/01/',
 
     /**
+     * sasl目录
+     */
+    'sasl_home' => $home . 'sasl/',
+
+    /**
+     * ldap目录
+     */
+    'ldap_home' => $home . 'sasl/ldap',
+
+    /**
      * ldap服务器配置文件
      */
     'ldap_config_file' => $home . 'sasl/ldap/saslauthd.conf',

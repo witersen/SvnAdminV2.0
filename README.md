@@ -18,6 +18,67 @@
   - Subversion：1.8+
 - 问题协助或功能建议加Q群：633108141
 
+
+
+```
+2.3.4测试阶段
+
+【说明】
+2.3.4版本老用户使用与之前版本不兼容，需要升级包升级（稍后放出）
+2.3.4版本新用户可直接安装使用
+2.3.4测试后一段时间无问题后正式发布安装包+升级包+docker版本
+
+【安装包】
+https://update.witersen.com/svnadmin/2.3.4.zip
+
+【新增】
+新增子管理员
+新增二次授权
+新增支持对接ldap
+新增任务计划
+对授权对象列表进行UI优化：分组可查看成员列表、可搜索
+增加用户多设备登录顶掉功能
+管理员可通过svn用户列表查看用户有权限的仓库列表
+增加svn用户、子管理员在线状态查看
+
+【性能】
+使用本地套接字代替TCP套接字 并发效率更高
+
+【安全】
+去除无脑777 改用 chown 属主和数组的功能为关键文件授权
+
+【bug修复】
+修改若干匹配程序的bug
+修复匹配库的若干匹配问题
+
+【体验】
+优化同步机制 解决插入重复问题
+优化导航栏
+优化进程状态探测
+弃用chmod -R，解决仓库文件过多导致的卡顿
+对由于回溯限制和递归限制造成的匹配错误做出提醒
+
+
+【安装】
+#安装相关工具
+yum install -y zip unzip wget vim which
+#安装sasl支持
+yum install -y cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain
+#安装php(5.5+)及依赖
+yum install -y php php-common php-cli php-fpm php-mysqlnd php-mysql php-pdo php-process php-json php-gd php-bcmath php-ldap
+#安装web服务器 以apache为例
+yum install -y httpd
+systemctl start httpd
+systemctl enable httpd
+#安装本程序
+wget https://update.witersen.com/svnadmin/2.3.4.zip
+unzip 2.3.4
+php server/install.php
+nohpu php server/svnadmind.php start &
+```
+
+
+
 ## 一、手动安装
 
 ### 1、在CentOS7.6操作系统裸机安装示例
@@ -26,7 +87,12 @@
 
 ```
 # 解压缩和网络获取工具
-yum install -y zip unzip wget vim
+yum install -y zip unzip wget vim which
+
+#sasl
+yum install -y cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain
+
+#记得最后chown
 
 # 由于CentOS7默认源中提供的PHP版本为5.4，而我们需要 5.5+，因此使用remi源
 # 可将 remi-php55 切换为想安装的版本 如喜欢 php7.4 则 remi-php74
@@ -35,7 +101,7 @@ rpm -Uvh https://mirrors.aliyun.com/remi/enterprise/remi-release-7.rpm
 yum-config-manager --enable remi-php74
 
 # 安装php及相关扩展
-yum install -y php php-common php-cli php-fpm php-mysqlnd php-mysql php-pdo php-process php-json php-gd php-bcmath
+yum install -y php php-common php-cli php-fpm php-mysqlnd php-mysql php-pdo php-process php-json php-gd php-bcmath php-ldap
 ```
 
 - 安装web服务器

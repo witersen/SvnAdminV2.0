@@ -80,7 +80,7 @@ class Subadmin extends Base
         $time = time();
         foreach ($list as $key => $value) {
             $list[$key]['subadmin_status'] = $value['subadmin_status'] == 1 ? true : false;
-            $list[$key]['online'] = empty($value['subadmin_token']) ? false : (explode($this->configSign['signSeparator'], $value['subadmin_token'])[3] > $time);
+            $list[$key]['online'] = (empty($value['subadmin_token']) || $value['subadmin_token'] == '-') ? false : (explode($this->configSign['signSeparator'], $value['subadmin_token'])[3] > $time);
             unset($list[$key]['subadmin_token']);
         }
 

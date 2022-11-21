@@ -252,19 +252,19 @@ class Common extends Base
     {
         if ($this->userRoleId == 1) {
             $this->database->update('admin_users', [
-                'admin_user_token' => ''
+                'admin_user_token' => '-'
             ], [
                 'admin_user_name' => $this->userName
             ]);
         } else if ($this->userRoleId == 2) {
             $this->database->update('svn_users', [
-                'svn_user_token' => ''
+                'svn_user_token' => '-'
             ], [
                 'svn_user_name' => $this->userName
             ]);
         } else if ($this->userRoleId == 3) {
             $this->database->update('subadmin', [
-                'subadmin_token' => ''
+                'subadmin_token' => '-'
             ], [
                 'subadmin_name' => $this->userName
             ]);

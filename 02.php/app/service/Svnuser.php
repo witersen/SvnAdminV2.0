@@ -313,7 +313,7 @@ class Svnuser extends Base
         $time = time();
         foreach ($result as $key => $value) {
             $result[$key]['svn_user_status'] = $value['svn_user_status'] == 1 ? true : false;
-            $result[$key]['online'] = empty($value['svn_user_token']) ? false : (explode($this->configSign['signSeparator'], $value['svn_user_token'])[3] > $time);
+            $result[$key]['online'] = (empty($value['svn_user_token']) || $value['svn_user_token'] == '-') ? false : (explode($this->configSign['signSeparator'], $value['svn_user_token'])[3] > $time);
             unset($result[$key]['svn_user_token']);
         }
 

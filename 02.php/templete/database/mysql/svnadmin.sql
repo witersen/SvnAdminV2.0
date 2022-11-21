@@ -28,6 +28,7 @@ CREATE TABLE `admin_users` (
   `admin_user_password` varchar(45) NOT NULL COMMENT '用户密码',
   `admin_user_phone` char(11) DEFAULT NULL COMMENT '用户手机号',
   `admin_user_email` varchar(45) DEFAULT NULL COMMENT '用户邮箱',
+  `admin_user_token` varchar(255) DEFAULT NULL COMMENT '用户当前token',
   PRIMARY KEY (`admin_user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='管理系统用户';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -38,7 +39,7 @@ CREATE TABLE `admin_users` (
 
 LOCK TABLES `admin_users` WRITE;
 /*!40000 ALTER TABLE `admin_users` DISABLE KEYS */;
-INSERT INTO `admin_users` VALUES (1,'admin','admin',NULL,NULL);
+INSERT INTO `admin_users` VALUES (1,'admin','admin',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `admin_users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -66,6 +67,45 @@ CREATE TABLE `black_token` (
 LOCK TABLES `black_token` WRITE;
 /*!40000 ALTER TABLE `black_token` DISABLE KEYS */;
 /*!40000 ALTER TABLE `black_token` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `crond`
+--
+
+DROP TABLE IF EXISTS `crond`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `crond` (
+  `crond_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `sign` varchar(45) NOT NULL COMMENT 'shell文件和日志文件唯一标识',
+  `task_type` int(11) unsigned NOT NULL COMMENT '任务计划类型\r\n\r\n1 仓库备份[dump-全量]\r\n2 仓库备份[dump-增量]\r\n3 仓库备份[hotcopy-全量]\r\n4 仓库备份[hotcopy-增量]\r\n5 仓库检查\r\n6 shell脚本',
+  `task_name` varchar(450) NOT NULL COMMENT '任务名称',
+  `cycle_type` varchar(45) NOT NULL COMMENT '周期类型\r\n\r\nminute 每分钟\r\nminute_n 每隔N分钟\r\nhour 每小时\r\nhour_n 每隔N小时\r\nday 每天\r\nday_n 每隔N天\r\nweek 每周\r\nmonth 每月',
+  `cycle_desc` varchar(450) NOT NULL COMMENT '执行周期描述',
+  `status` int(11) unsigned NOT NULL COMMENT '启用状态',
+  `save_count` int(11) unsigned NOT NULL COMMENT '保存数量',
+  `rep_name` varchar(255) DEFAULT NULL COMMENT '操作仓库列表',
+  `week` int(11) unsigned DEFAULT NULL COMMENT '周',
+  `day` int(11) unsigned DEFAULT NULL COMMENT '天或日',
+  `hour` int(11) unsigned DEFAULT NULL COMMENT '小时',
+  `minute` int(11) unsigned DEFAULT NULL COMMENT '分钟',
+  `notice` int(11) unsigned NOT NULL COMMENT '0 关闭通知 1 成功通知 2 失败通知 3 全部通知',
+  `code` varchar(45) NOT NULL COMMENT '任务计划表达式',
+  `shell` mediumtext COMMENT '自定义脚本',
+  `last_exec_time` varchar(45) NOT NULL COMMENT '上次执行时间',
+  `create_time` varchar(45) NOT NULL COMMENT '添加时间',
+  PRIMARY KEY (`crond_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `crond`
+--
+
+LOCK TABLES `crond` WRITE;
+/*!40000 ALTER TABLE `crond` DISABLE KEYS */;
+/*!40000 ALTER TABLE `crond` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -121,6 +161,39 @@ LOCK TABLES `options` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `subadmin`
+--
+
+DROP TABLE IF EXISTS `subadmin`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `subadmin` (
+  `subadmin_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `subadmin_name` varchar(255) NOT NULL,
+  `subadmin_password` varchar(255) NOT NULL,
+  `subadmin_phone` varchar(255) DEFAULT NULL,
+  `subadmin_email` varchar(255) DEFAULT NULL,
+  `subadmin_status` int(255) NOT NULL,
+  `subadmin_note` varchar(255) DEFAULT NULL,
+  `subadmin_last_login` varchar(255) DEFAULT NULL,
+  `subadmin_create_time` varchar(20) NOT NULL,
+  `subadmin_tree` mediumtext,
+  `subadmin_functions` mediumtext,
+  `subadmin_token` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`subadmin_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `subadmin`
+--
+
+LOCK TABLES `subadmin` WRITE;
+/*!40000 ALTER TABLE `subadmin` DISABLE KEYS */;
+/*!40000 ALTER TABLE `subadmin` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `svn_groups`
 --
 
@@ -132,6 +205,7 @@ CREATE TABLE `svn_groups` (
   `svn_group_name` varchar(200) NOT NULL COMMENT '分组名称',
   `include_user_count` int(11) NOT NULL,
   `include_group_count` int(11) NOT NULL,
+  `include_aliase_count` int(11) NOT NULL,
   `svn_group_note` varchar(1000) DEFAULT NULL COMMENT '分组备注信息',
   PRIMARY KEY (`svn_group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SVN分组表';
@@ -174,6 +248,31 @@ LOCK TABLES `svn_reps` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `svn_second_pri`
+--
+
+DROP TABLE IF EXISTS `svn_second_pri`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `svn_second_pri` (
+  `svn_second_pri_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `svnn_user_pri_path_id` int(10) unsigned NOT NULL,
+  `svn_object_type` varchar(255) NOT NULL,
+  `svn_object_name` varchar(255) NOT NULL,
+  PRIMARY KEY (`svn_second_pri_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `svn_second_pri`
+--
+
+LOCK TABLES `svn_second_pri` WRITE;
+/*!40000 ALTER TABLE `svn_second_pri` DISABLE KEYS */;
+/*!40000 ALTER TABLE `svn_second_pri` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `svn_user_pri_paths`
 --
 
@@ -187,6 +286,7 @@ CREATE TABLE `svn_user_pri_paths` (
   `rep_pri` varchar(45) DEFAULT NULL COMMENT '该用户所拥有的权限',
   `svn_user_name` varchar(200) NOT NULL COMMENT '该路径的权限的拥有人',
   `unique` varchar(20000) NOT NULL COMMENT '使用仓库名和路径和权限拼接的唯一值',
+  `second_pri` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否可二次授权',
   PRIMARY KEY (`svnn_user_pri_path_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SVN用户有权限的仓库路径';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -209,12 +309,14 @@ DROP TABLE IF EXISTS `svn_users`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `svn_users` (
   `svn_user_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '用户id',
-  `svn_user_name` varchar(200) NOT NULL COMMENT '用户名',
-  `svn_user_pass` varchar(200) NOT NULL COMMENT '用户密码',
+  `svn_user_name` varchar(200) CHARACTER SET utf8 NOT NULL COMMENT '用户名',
+  `svn_user_pass` varchar(200) CHARACTER SET utf8 NOT NULL COMMENT '用户密码',
   `svn_user_status` int(1) NOT NULL COMMENT '用户启用状态\n0 禁用\n1 启用',
-  `svn_user_note` varchar(1000) DEFAULT NULL COMMENT '用户备注信息',
+  `svn_user_note` varchar(1000) CHARACTER SET utf8 DEFAULT NULL COMMENT '用户备注信息',
+  `svn_user_last_login` varchar(255) CHARACTER SET utf8 DEFAULT NULL COMMENT '上次登录时间',
+  `svn_user_token` varchar(255) CHARACTER SET utf8 DEFAULT NULL COMMENT '用户token',
   PRIMARY KEY (`svn_user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='svn用户表';
+) ENGINE=InnoDB DEFAULT CHARSET=sjis COMMENT='svn用户表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -270,4 +372,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-09 14:22:54
+-- Dump completed on 2022-11-20 21:15:39

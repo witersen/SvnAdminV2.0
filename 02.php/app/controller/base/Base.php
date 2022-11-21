@@ -140,22 +140,23 @@ class Base
             }
 
             if ($userRoleId == 1) {
-                $status = $database->get('admin_users', 'admin_user_id', [
+                $status = $database->get('admin_users', 'admin_user_token', [
                     'admin_user_name' => $userName,
-                    'admin_user_token' => $parm['token']
                 ]);
             } else if ($userRoleId == 2) {
-                $status = $database->get('svn_users', 'svn_user_id', [
+                $status = $database->get('svn_users', 'svn_user_token', [
                     'svn_user_name' => $userName,
-                    'svn_user_token' => $parm['token']
                 ]);
             } else if ($userRoleId == 3) {
-                $status = $database->get('subadmin', 'subadmin_id', [
+                $status = $database->get('subadmin', 'subadmin_token', [
                     'subadmin_name' => $userName,
-                    'subadmin_token' => $parm['token']
                 ]);
             }
-            empty($status) ? json1(401, 0, '当前账户在其它设备登录') : '';
+            if (!empty($status)) {
+                if ($status != $parm['token']) {
+                    json1(401, 0, '当前账户在其它设备登录');
+                }
+            }
 
             /**
              * 8、检查token是否已注销

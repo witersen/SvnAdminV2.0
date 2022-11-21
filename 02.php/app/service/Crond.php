@@ -194,9 +194,6 @@ class Crond extends Base
         }
 
         //写入 /home/svnadmin/crond/xxx
-        if (!is_dir($this->configSvn['crond_base_path'])) {
-            funShellExec(sprintf("mkdir -p '%s' && chmod 777 -R '%s'", $this->configSvn['crond_base_path'], $this->configSvn['crond_base_path']));
-        }
         $nameCrond = $this->configSvn['crond_base_path'] . $sign;
         $nameCrondLog = $nameCrond . '.log';
 
@@ -224,7 +221,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         $crontabs = trim($result['result']);
 
         //crontab file 写入新的任务计划列表
-        $tempFile = tempnam('/tmp', 'svnadmin_crond_');
+        $tempFile = tempnam($this->configSvn['crond_base_path'], 'svnadmin_crond_');
         file_put_contents($tempFile, (empty($crontabs) ? '' : $crontabs . "\n") . sprintf("%s %s >> %s 2>&1\n", $code, $nameCrond, $nameCrondLog));
         $result = funShellExec(sprintf("crontab %s", $tempFile));
         @unlink($tempFile);
@@ -386,7 +383,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         if (empty($crontabs)) {
             funShellExec('crontab -r');
         } else {
-            $tempFile = tempnam('/tmp', 'svnadmin_crond_');
+            $tempFile = tempnam($this->configSvn['crond_base_path'], 'svnadmin_crond_');
             file_put_contents($tempFile, $crontabs . "\n");
             $result = funShellExec(sprintf("crontab %s", $tempFile));
             @unlink($tempFile);
@@ -444,7 +441,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
             if (empty($crontabs)) {
                 funShellExec('crontab -r');
             } else {
-                $tempFile = tempnam('/tmp', 'svnadmin_crond_');
+                $tempFile = tempnam($this->configSvn['crond_base_path'], 'svnadmin_crond_');
                 file_put_contents($tempFile, $crontabs . "\n");
                 $result = funShellExec(sprintf("crontab %s", $tempFile));
                 @unlink($tempFile);
@@ -490,7 +487,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         $nameCrond = $this->configSvn['crond_base_path'] . $sign;
         $nameCrondLog = $nameCrond . '.log';
 
-        $tempFile = tempnam('/tmp', 'svnadmin_crond_');
+        $tempFile = tempnam($this->configSvn['crond_base_path'], 'svnadmin_crond_');
 
         file_put_contents($tempFile, sprintf("%s >> %s 2>&1\n", $nameCrond, $nameCrondLog));
 

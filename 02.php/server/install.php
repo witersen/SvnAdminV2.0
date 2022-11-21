@@ -357,7 +357,8 @@ class Install
             'svnrdump' => '',
             'svndumpfilter' => '',
             'svnmucc' => '',
-            'svnauthz-validate' => ''
+            'svnauthz-validate' => '',
+            'saslauthd' => ''
         ];
 
         echo '===============================================' . PHP_EOL;
@@ -381,7 +382,7 @@ class Install
             if ($binPath == "\n") {
                 $binPath = trim(shell_exec("which $key 2>/dev/null"));
                 if ($binPath == '') {
-                    if ($key == 'svnmucc' || $key == 'svnauthz-validate') {
+                    if ($key == 'svnmucc' || $key == 'svnauthz-validate' || $key == 'saslauthd') {
                         echo "未检测到 $key ，请手动输入程序路径！" . PHP_EOL;
                         echo "由于 $key 在当前版本非必要，因此无安装可忽略" . PHP_EOL;
                         echo '===============================================' . PHP_EOL;
@@ -412,7 +413,8 @@ class Install
             'svnrdump' => '{$needBin['svnrdump']}',
             'svndumpfilter' => '{$needBin['svndumpfilter']}',
             'svnmucc' => '{$needBin['svnmucc']}',
-            'svnauthz-validate' => '{$needBin['svnauthz-validate']}'
+            'svnauthz-validate' => '{$needBin['svnauthz-validate']}',
+            'saslauthd' => '{$needBin['saslauthd']}'
         ];
 CON;
 
@@ -428,27 +430,36 @@ CON;
         clearstatcache();
 
         //创建SVNAdmin软件配置信息的主目录
-        is_dir($this->configSvn['home_path']) ? '' : mkdir($this->configSvn['home_path'], 0700, true);
+        is_dir($this->configSvn['home_path']) ? '' : mkdir($this->configSvn['home_path'], 0754, true);
 
         //创建SVN仓库父目录
-        is_dir($this->configSvn['rep_base_path']) ? '' : mkdir($this->configSvn['rep_base_path'], 0700, true);
+        is_dir($this->configSvn['rep_base_path']) ? '' : mkdir($this->configSvn['rep_base_path'], 0754, true);
 
         //创建推荐钩子目录
-        is_dir($this->configSvn['recommend_hook_path']) ? '' : mkdir($this->configSvn['recommend_hook_path'], 0700, true);
+        is_dir($this->configSvn['recommend_hook_path']) ? '' : mkdir($this->configSvn['recommend_hook_path'], 0754, true);
         shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/hooks', $this->configSvn['home_path']));
 
         //创建备份目录
-        is_dir($this->configSvn['backup_base_path']) ? '' : mkdir($this->configSvn['backup_base_path'], 0700, true);
+        is_dir($this->configSvn['backup_base_path']) ? '' : mkdir($this->configSvn['backup_base_path'], 0754, true);
 
         //创建日志目录
-        is_dir($this->configSvn['log_base_path']) ? '' : mkdir($this->configSvn['log_base_path'], 0700, true);
+        is_dir($this->configSvn['log_base_path']) ? '' : mkdir($this->configSvn['log_base_path'], 0754, true);
 
         //创建模板文件目录
-        is_dir($this->configSvn['templete_base_path']) ? '' : mkdir($this->configSvn['templete_base_path'], 0700, true);
+        is_dir($this->configSvn['templete_base_path']) ? '' : mkdir($this->configSvn['templete_base_path'], 0754, true);
 
         //创建仓库结构模板目录
-        // is_dir($this->configSvn['templete_init_path']) ? '' : mkdir($this->configSvn['templete_init_path'], 0700, true);
+        // is_dir($this->configSvn['templete_init_path']) ? '' : mkdir($this->configSvn['templete_init_path'], 0754, true);
         shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/initStruct', $this->configSvn['templete_base_path']));
+
+        //创建sasl目录
+        is_dir($this->configSvn['sasl_home']) ? '' : mkdir($this->configSvn['sasl_home'], 0754, true);
+
+        //创建ldap目录
+        is_dir($this->configSvn['ldap_home']) ? '' : mkdir($this->configSvn['ldap_home'], 0754, true);
+
+        //创建crond目录
+        is_dir($this->configSvn['crond_base_path']) ? '' : mkdir($this->configSvn['crond_base_path'], 0754, true);
 
         echo '===============================================' . PHP_EOL;
 
@@ -462,6 +473,9 @@ CON;
         //写入SVN仓库权限配置文件
         $con_svn_conf_file = file_get_contents($templete_path . 'svnserve/svnserve.conf');
         file_put_contents($this->configSvn['svn_conf_file'], $con_svn_conf_file);
+
+        //ldap服务器配置文件
+        file_put_contents($this->configSvn['ldap_config_file'], '');
 
         //写入authz文件
         $con_svn_authz_file = file_get_contents($templete_path . 'svnserve/authz');

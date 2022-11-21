@@ -116,7 +116,7 @@ class Daemon
 
         if ($type == 'passthru') {
             //定义错误输出文件路径
-            $stderrFile = tempnam('/tmp', 'svnadmin_');
+            $stderrFile = tempnam(sys_get_temp_dir(), 'svnadmin_');
 
             //将标准错误重定向到文件
             //使用状态码来标识错误信息
