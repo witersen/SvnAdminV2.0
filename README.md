@@ -23,6 +23,10 @@
 ```
 2.3.4测试阶段
 
+【测试机器地址】
+http://118.195.234.69
+admin/admin
+
 【说明】
 2.3.4版本老用户使用与之前版本不兼容，需要升级包升级（稍后放出）
 2.3.4版本新用户可直接安装使用
@@ -71,10 +75,14 @@ yum install -y httpd
 systemctl start httpd
 systemctl enable httpd
 #安装本程序
+cd /var/www/html/
 wget https://update.witersen.com/svnadmin/2.3.4.zip
 unzip 2.3.4
 php server/install.php
-nohpu php server/svnadmind.php start &
+#这一步很重要喔 把 /home/svnadmin 的属主和数组 以便php对目录有操作权限
+#如果你用的不是apache服务器 可web通过访问 host/server/own.php 来查看属主属组
+chown -R apache:apache /home/svnadmin
+nohup php server/svnadmind.php start &
 ```
 
 
