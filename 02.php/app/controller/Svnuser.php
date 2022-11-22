@@ -41,9 +41,18 @@ class Svnuser extends Base
     /**
      * 自动识别 passwd 文件中的用户列表并返回
      */
-    public function ScanPasswd()
+    public function UserScan()
     {
-        $result = $this->ServiceSvnuser->ScanPasswd();
+        $result = $this->ServiceSvnuser->UserScan();
+        json2($result);
+    }
+
+    /**
+     * 用户批量导入
+     */
+    public function UserImport()
+    {
+        $result = $this->ServiceSvnuser->UserImport();
         json2($result);
     }
 
@@ -55,7 +64,7 @@ class Svnuser extends Base
         $result = $this->ServiceSvnuser->UpdUserStatus();
         json2($result);
     }
-    
+
     /**
      * 修改SVN用户的备注信息
      */

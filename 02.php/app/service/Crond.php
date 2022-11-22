@@ -544,53 +544,17 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
      */
     public function GetCronStatus()
     {
-        $software = [
-            [
-                'shell' => 'crontab -c',
-                'desc' => 'crontab 服务未安装'
-            ],
-            [
-                'shell' => 'at -l',
-                'desc' => 'at 服务未安装'
-            ],
-        ];
-
-        $serviceStart = [
-            [
-                'shell' => 'crond',
-            ],
-            [
-                'shell' => 'atd',
-            ],
-        ];
-
-        $service = [
-            [
-                'shell' => 'ps aux | grep -v grep | grep crond',
-                'desc' => 'crond 服务未启动'
-            ],
-            [
-                'shell' => 'ps aux | grep -v grep | grep atd',
-                'desc' => 'atd 服务未启动'
-            ],
-        ];
-
-        // foreach ($software as $value) {
-        //     $result = funShellExec($value['shell']);
-        //     if ($result['code'] != 0) {
-        //         return message(200, 0, $value['desc'] . ': ' . $result['error']);
-        //     }
-        // }
-
-        foreach ($serviceStart as $value) {
-            $result = funShellExec($value['shell']);
+        $resultCrond = funShellExec('ps aux | grep -v grep | grep crond');
+        if (empty($resultCrond['result'])) {
+            $resultCron = funShellExec('ps aux | grep -v grep | grep cron');
+            if (empty($resultCron)) {
+                return message(200, 0, 'cron或crond服务未启动');
+            }
         }
 
-        foreach ($service as $value) {
-            $result = funShellExec($value['shell']);
-            if (empty($result['result'])) {
-                return message(200, 0, $value['desc']);
-            }
+        $resultCron = funShellExec('ps aux | grep -v grep | grep atd');
+        if (empty($resultCron)) {
+            return message(200, 0, 'atd服务未启动');
         }
 
         return message();

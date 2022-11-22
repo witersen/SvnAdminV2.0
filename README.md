@@ -234,6 +234,7 @@ php install.php
     sudo a2enmod proxy_fcgi setenvif
     sudo systemctl restart apache2
     sudo a2enconf php7.2-fpm
+    sudo systemctl reload apache2
     
     sudo apt-get install -y php-json
     
@@ -248,8 +249,13 @@ php install.php
     
     sudo systemctl restart apache2
     
-    
     sudo apt-get install -y subversion subversion-tools
+    
+    cd /var/www/html
+    
+    wget xxx.zip
+    
+    unzip xxx.zip
     
     sudo server/install.php （选项2）
     

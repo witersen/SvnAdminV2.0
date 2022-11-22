@@ -12,6 +12,7 @@ namespace app\service;
 // use app\service\Sasl as ServiceSasl;
 // use app\service\Svn as ServiceSvn;
 use app\service\Usersource as ServiceUsersource;
+use stdClass;
 
 class Ldap extends Base
 {
@@ -101,10 +102,26 @@ class Ldap extends Base
                 return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
             }
 
-            $users = $this->GeteObjectFromEntry($connection, $dataSource['user_base_dn'], $dataSource['user_search_filter'], [$dataSource['user_attributes']]);
+            // The standard attributes.
+            $attributes = explode(',', $dataSource['user_attributes']);
+
+            // Include the attribute which is used in the "member" attribute of a group-entry.
+            if (isset($dataSource['groups_to_user_attribute_value'])) {
+                $attributes[] = $dataSource['groups_to_user_attribute_value'];
+            }
+
+            $ldapUsers = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['user_base_dn'], $dataSource['user_search_filter'], $attributes, 0);
+
+            $ldapUsersLen = count($ldapUsers);
+
+            $up_name = $attributes[0];
+            $users = [];
+            for ($i = 0; $i < $ldapUsersLen; ++$i) {
+                $users[] = $ldapUsers[$i]->$up_name;
+            }
 
             return message(200, 1, '成功', [
-                'count' => count($users),
+                'count' => $ldapUsersLen,
                 'users' => implode(',', $users)
             ]);
         } else if ($type == 'group') {
@@ -125,76 +142,160 @@ class Ldap extends Base
                 return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
             }
 
-            $groups = $this->GeteObjectFromEntry($connection, $dataSource['group_base_dn'], $dataSource['group_search_filter'], [$dataSource['group_attributes']], $dataSource['groups_to_user_attribute'], $dataSource['groups_to_user_attribute_value']);
+            $attributes = explode(',', $dataSource['group_attributes']);
+
+            $includeMembers = false;
+            if ($includeMembers) {
+                $attributes[] = $dataSource['groups_to_user_attribute'];
+            }
+
+            $ldapGroups = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['group_base_dn'], $dataSource['group_search_filter'], $attributes, 0);
+
+            $ldapGroupsLen = count($ldapGroups);
+
+            $group_name_property = $attributes[0];
+            $groups = [];
+            for ($i = 0; $i < $ldapGroupsLen; ++$i) {
+                $groups[] = $ldapGroups[$i]->$group_name_property;
+            }
 
             return message(200, 1, '成功', [
-                'count' => count($groups),
+                'count' => $ldapGroupsLen,
                 'groups' => implode(',', $groups)
             ]);
         }
     }
 
     /**
-     * 过滤ldap对象
+     * Searches for entries in the ldap.
+     * 
+     * <b>Note:</b>
+     * Using PHP version < 5.4 will never return more than 1001 items.
+     * PHP 5.4 is required for large results.
      *
-     * @param \LDAP\Connection $connection
-     * @param array|string $baseDn 用户所在的dn目录
-     * @param array|string $filter 过滤条件
-     * @param array $attributes 获取哪些字段 可以不填
-     * @return array
+     * @param \LDAP\Connection $conn The ldap connection handle.
+     * @param string $base_dn The base DN in which is to search.
+     * @param string $search_filter The filter which is to use.
+     * @param array $return_attributes The attributes of entries which should be fetched.
+     * @param int $limit The maximum number of entries.
+     *
+     * @return array of stdClass objects with property values defined by $return_attributes+"dn"
      */
-    private function GeteObjectFromEntry($connection, $baseDn, $filter, $attributes, $groupsToUserAttribute = '', $groupsToUserAttributeValue = '')
+    protected function objectSearch($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $limit)
     {
-        $pageSize = 500;
-        $pageCookie = '';
-        $data = [];
+        $base_dn = $this->prepareQueryString($base_dn, $protocolVersion);
+        $search_filter = $this->prepareQueryString($search_filter, $protocolVersion);
+
+        $ret = array();
+        $pageCookie = "";
         do {
             // if (function_exists("ldap_control_paged_result") && function_exists("ldap_control_paged_result_response")) {
-            //     ldap_control_paged_result($connection, $pageSize, true, $pageCookie);
+            //     ldap_control_paged_result($conn, $this->ldapSearchPageSize, true, $pageCookie);
             // }
 
-            $result = ldap_search($connection, $baseDn, $filter, $attributes, 0, 0);
-            if (!$result) {
+            // Start search in LDAP directory.
+            $sr = ldap_search($conn, $base_dn, $search_filter, $return_attributes, 0, $limit);
+            if (!$sr)
                 break;
-            }
 
-            $entries = ldap_get_entries($connection, $result);
-            if (!$entries) {
+            // Get the found entries as array.
+            $entries = ldap_get_entries($conn, $sr);
+            if (!$entries)
                 break;
-            }
 
-            if (!empty($entries)) {
-                // 利用yield 循环
-                $yieldData = $this->createRange($entries["count"], $entries);
-                foreach ($yieldData as $item) {
-                    // array_push($data, [
-                    //     'username' => isset($item["cn"][0]) ? $item["cn"][0] : ' ', //用户名
-                    //     'email' => isset($item["email"][0]) ? $item["email"][0] : '', // 邮箱
-                    //     'mobile' => isset($item["mobile"][0]) ? $item["mobile"][0] : '', // 手机号
-                    //     'name' => isset($item["displayname"][0]) ? $item["displayname"][0] : '' // 真实姓名
-                    // ]);
-                    array_push($data, isset($item[$attributes[0]][0]) ? $item[$attributes[0]][0] : ' ');
-                }
+            $count = $entries["count"];
+            for ($i = 0; $i < $count; ++$i) {
+                // A $entry (array) contains all attributes of a single dataset from LDAP.
+                $entry = $entries[$i];
+
+                // Create a new object which will hold the attributes.
+                // And add the default attribute "dn".
+                $o = self::createObjectFromEntry($entry, $protocolVersion);
+                $ret[] = $o;
             }
 
             // if (function_exists("ldap_control_paged_result") && function_exists("ldap_control_paged_result_response")) {
-            //     ldap_control_paged_result_response($connection, $result, $pageCookie);
+            //     ldap_control_paged_result_response($conn, $sr, $pageCookie);
             // }
-        } while ($pageCookie !== null && $pageCookie != '');
-
-        ldap_unbind($connection);
-
-        return $data;
+        } while ($pageCookie !== null && $pageCookie != "");
+        return $ret;
     }
 
     /**
-     * yield 生成器 ， 为了减少内存占用
+     * Creates a stdClass object with a property for each attribute.
+     * For example:
+     *   Entry ( "sn" => "Chuck Norris", "kick" => "Round house kick" )
+     * Will return the stdClass object with following properties:
+     *   stdClass->sn
+     *   stdClass->kick
+     *
+     * @return stdClass
      */
-    private function createRange($number, $data)
+    protected function createObjectFromEntry(&$entry, $protocolVersion)
     {
-        for ($i = 0; $i < $number; $i++) {
-            yield $data[$i];
+        // Create a new user object which will hold the attributes.
+        // And add the default attribute "dn".
+        $u = new stdClass;
+        $u->dn = $this->prepareResultString($entry["dn"], $protocolVersion);
+
+        // The number of attributes inside the $entry array.
+        $att_count = $entry["count"];
+
+        for ($j = 0; $j < $att_count; $j++) {
+            $attr_name = $entry[$j];
+            $attr_value = $entry[$attr_name];
+            $attr_value_count = $entry[$attr_name]["count"];
+
+            // Use single scalar object for the attr value.
+            if ($attr_value_count == 1) {
+                $attr_single_value = $this->prepareResultString($attr_value[0], $protocolVersion);
+                $u->$attr_name = $attr_single_value;
+            } else {
+                $attr_multi_value = array();
+                for ($n = 0; $n < $attr_value_count; $n++) {
+                    $attr_multi_value[] = $this->prepareResultString($attr_value[$n], $protocolVersion);
+                }
+                $u->$attr_name = $attr_multi_value;
+            }
         }
+        return $u;
+    }
+
+    /**
+     * Prepares the encoding of a string before it is passed via LDAP
+     * protocol to server. This method have to be called on all DN and attribute
+     * string values before passing them to the server.
+     *
+     * @param string $str
+     *
+     * @return string
+     */
+    protected function prepareQueryString($str, $protocolVersion)
+    {
+        if ($protocolVersion >= 3) {
+            $str = if_ensure_utf8_encoding($str);
+        } else if ($protocolVersion <= 2) {
+            $str = if_ensure_utf8_decoding($str);
+        }
+        return $str;
+    }
+
+    /**
+     * Prepares string data which were receive via response from LDAP server
+     * for usage.
+     *
+     * @param string $str
+     *
+     * @return string
+     */
+    protected function prepareResultString($str, $protocolVersion)
+    {
+        if ($protocolVersion >= 3) {
+            $str = if_ensure_utf8_encoding($str);
+        } else if ($protocolVersion <= 2) {
+            $str = if_ensure_utf8_encoding($str);
+        }
+        return $str;
     }
 
     /**
@@ -213,7 +314,9 @@ class Ldap extends Base
 
         ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, $dataSource['ldap_version']);
 
-        $result = @ldap_bind($connection, sprintf('%s=%s,%s', $dataSource['user_attributes'], $username, $dataSource['user_base_dn']), $password);
+        $attributes = explode(',', $dataSource['user_attributes']);
+
+        $result = @ldap_bind($connection, sprintf('%s=%s,%s', $attributes[0], $username, $dataSource['user_base_dn']), $password);
         if (!$result) {
             return false;
         }
@@ -224,7 +327,7 @@ class Ldap extends Base
     /**
      * 获取ldap用户列表
      *
-     * @return array
+     * @return object
      */
     public function GetLdapUsers()
     {
@@ -242,7 +345,28 @@ class Ldap extends Base
             return message(200, 0, sprintf('连接失败: %s', ldap_error($connection)));
         }
 
-        return message(200, 1, '成功', $this->GeteObjectFromEntry($connection, $dataSource['user_base_dn'], $dataSource['user_search_filter'], [$dataSource['user_attributes']]));
+        // The standard attributes.
+        $attributes = explode(',', $dataSource['user_attributes']);
+
+        // Include the attribute which is used in the "member" attribute of a group-entry.
+        if (isset($dataSource['groups_to_user_attribute_value'])) {
+            $attributes[] = $dataSource['groups_to_user_attribute_value'];
+        }
+
+        $ldapUsers = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['user_base_dn'], $dataSource['user_search_filter'], $attributes, 0);
+
+        $ldapUsersLen = count($ldapUsers);
+
+        $up_name = $attributes[0];
+        $users = [];
+        for ($i = 0; $i < $ldapUsersLen; ++$i) {
+            $users[] = $ldapUsers[$i]->$up_name;
+        }
+
+        return message(200, 1, '成功', [
+            'object' => $ldapUsers,
+            'users' => $users
+        ]);
     }
 
     /**
@@ -250,7 +374,7 @@ class Ldap extends Base
      *
      * @return array
      */
-    public function GetLdapGroups()
+    public function GetLdapGroups($includeMembers = false)
     {
         $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
 
@@ -266,6 +390,149 @@ class Ldap extends Base
             return message(200, 0, sprintf('连接失败: %s', ldap_error($connection)));
         }
 
-        return message(200, 1, '成功', $this->GeteObjectFromEntry($connection, $dataSource['group_base_dn'], $dataSource['group_search_filter'], [$dataSource['group_attributes']], $dataSource['groups_to_user_attribute'], $dataSource['groups_to_user_attribute_value']));
+        $attributes = explode(',', $dataSource['group_attributes']);
+
+        $includeMembers = false;
+        if ($includeMembers) {
+            $attributes[] = $dataSource['groups_to_user_attribute'];
+        }
+
+        $ldapGroups = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['group_base_dn'], $dataSource['group_search_filter'], $attributes, 0);
+
+        $ldapGroupsLen = count($ldapGroups);
+
+        $group_name_property = $attributes[0];
+        $groups = [];
+        for ($i = 0; $i < $ldapGroupsLen; ++$i) {
+            $groups[] = $ldapGroups[$i]->$group_name_property;
+        }
+
+        return message(200, 1, '成功', [
+            'object' => $ldapGroups,
+            'groups' => $groups
+        ]);
+    }
+
+    /**
+     * 分组(ldap) => authz
+     *
+     * @return array
+     */
+    public function SyncLdapToAuthz()
+    {
+        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+
+        $authzContent = $this->authzContent;
+
+        //清空原有分组
+        // $authzContent = $this->SVNAdmin->ClearGroupSection($this->authzContent);
+        // if (is_numeric($authzContent)) {
+        //     if ($authzContent == 612) {
+        //         return message(200, 0, '文件格式错误(不存在[groups]标识)');
+        //     } else {
+        //         return message(200, 0, "错误码$authzContent");
+        //     }
+        // }
+
+        //从ldap获取分组和用户
+        $users = $this->GetLdapUsers();
+        if ($users['status'] != 1) {
+            return message($users['code'], $users['status'], $users['message'], $users['data']);
+        }
+        $users = $users['data']['object'];
+
+        $groups = $this->GetLdapGroups(true);
+        if ($groups['status'] != 1) {
+            return message($groups['code'], $groups['status'], $groups['message'], $groups['data']);
+        }
+        $groups = $groups['data']['object'];
+
+        //一个分组条目中表示分组名的属性
+        $groups_attributes = explode(',', $dataSource['group_attributes']);
+        $gp_name = strtolower($groups_attributes[0]);
+
+        //分组下包含多个对象 具备此属性的对象才可被识别为分组的成员 如 member
+        $gp_member_id = strtolower($dataSource['groups_to_user_attribute']);
+
+        //一个用户条目中表示用户名的属性
+        $users_attributes = explode(',', $dataSource['user_attributes']);
+        $up_name = strtolower($users_attributes[0]);
+
+        //表示分组下的成员的唯一标识的属性 如 distinguishedName
+        $up_id = strtolower($dataSource['groups_to_user_attribute_value']);
+
+        foreach ($groups as $g) {
+            if (!property_exists($g, $gp_name)) {
+                //搜索的对象不存在 group-name
+                continue;
+            }
+
+            //group是否符合规则 todo
+
+            //添加分组
+            $result = $this->SVNAdmin->AddGroup($authzContent, $g->$gp_name);
+            if (is_numeric($result)) {
+                if ($result == 612) {
+                    return message(200, 0, '文件格式错误(不存在[groups]标识)');
+                } else if ($result == 820) {
+                    //分组已存在
+                    continue;
+                } else {
+                    return message(200, 0, "错误码$result");
+                }
+            }
+            $authzContent = $result;
+
+
+            if (!property_exists($g, $gp_member_id)) {
+                //分组下无成员
+            } elseif (is_array($g->$gp_member_id)) {
+                //分组下多个成员
+                foreach ($g->$gp_member_id as $member_id) {
+                    //获取成员用户名
+                    foreach ($users as $u) {
+                        if ($u->$up_id == $member_id) {
+                            //为分组添加成员
+                            $result = $this->SVNAdmin->UpdGroupMember($authzContent, $g->$gp_name, $u->$up_name, 'user', 'add');
+                            if (is_numeric($result)) {
+                                if ($result == 612) {
+                                    return message(200, 0, '文件格式错误(不存在[groups]标识)');
+                                } else if ($result == 803) {
+                                } else {
+                                    return message(200, 0, "错误码$result");
+                                }
+                            }
+                            $authzContent = $result;
+                            break;
+                        }
+                    }
+                }
+            } elseif (is_string($g->$gp_member_id)) {
+                //分组下单个成员
+                $member_id = $g->$gp_member_id;
+                //获取成员用户名
+                foreach ($users as $u) {
+                    if ($u->$up_id == $member_id) {
+                        //为分组添加成员
+                        $result = $this->SVNAdmin->UpdGroupMember($authzContent, $g->$gp_name, $u->$up_name, 'user', 'add');
+                        if (is_numeric($result)) {
+                            if ($result == 612) {
+                                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+                            } else if ($result == 803) {
+                            } else {
+                                return message(200, 0, "错误码$result");
+                            }
+                        }
+                        $authzContent = $result;
+                        break;
+                    }
+                }
+            }
+        }
+
+        file_put_contents($this->configSvn['svn_authz_file'], $authzContent);
+        $this->authzContent = $authzContent;
+
+        return message();
     }
 }

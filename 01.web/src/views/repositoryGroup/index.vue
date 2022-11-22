@@ -423,13 +423,7 @@ export default {
           slot: "action",
         },
       ],
-      tableDataGroupMember: [
-        {
-          objectType: "user",
-          objectName: "user1",
-          status: 1,
-        },
-      ],
+      tableDataGroupMember: [],
     };
   },
   components: {

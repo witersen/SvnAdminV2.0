@@ -46,7 +46,7 @@ class Svnrep extends Base
             return message(200, 0, '需要在 config/bin.php 文件中配置 svnauthz-validate 的路径');
         }
 
-        if ($this->configBin['svnauthz-validate'] == '') {
+        if (empty($this->configBin['svnauthz-validate'])) {
             return message(200, 0, '未在 config/bin.php 文件中配置 svnauthz-validate 路径');
         }
 

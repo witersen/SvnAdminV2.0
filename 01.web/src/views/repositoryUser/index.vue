@@ -16,9 +16,9 @@
           <Button icon="md-add" type="primary" ghost @click="ModalCreateUser"
             >新建SVN用户</Button
           >
-          <!-- <Button icon="ios-sync" type="primary" ghost @click="ModalScanPasswd"
+          <Button icon="ios-sync" type="primary" ghost @click="ModalUserScan"
             >用户迁入</Button
-          > -->
+          >
           <Tooltip
             max-width="250"
             content="1、同步才可获取最新用户列表 
@@ -158,7 +158,8 @@
         >
       </div>
     </Modal>
-    <Modal v-model="modalScanPasswd" :draggable="true" title="步骤一：用户识别">
+    <!-- 对话框-步骤一：用户识别 -->
+    <Modal v-model="modalUserScan" :draggable="true" title="步骤一：用户识别">
       <Input
         v-model="tempPasswdContent"
         placeholder="请粘贴 passwd 文件内容
@@ -177,9 +178,69 @@ user3=passwd3"
         <Button
           type="primary"
           ghost
-          @click="ScanPasswd"
-          :loading="loadingScanPasswd"
+          @click="UserScan"
+          :loading="loadingUserScan"
           >识别</Button
+        >
+      </div>
+    </Modal>
+    <!-- 对话框-步骤二：结果确认 -->
+    <Modal
+      v-model="modalUserScanResult"
+      :draggable="true"
+      title="步骤二：结果确认"
+    >
+      <Table
+        highlight-row
+        border
+        :height="250"
+        size="small"
+        :columns="tableColumnUserScanResult"
+        :data="tableDataUserScanResult"
+        style="margin-bottom: 10px"
+      >
+        <template slot-scope="{ row }" slot="disabled">
+          <Tag color="blue" v-if="row.disabled == '0' || row.disabled == 0"
+            >正常</Tag
+          >
+          <Tag color="red" v-else>禁用</Tag>
+        </template>
+        <template slot-scope="{ index }" slot="action">
+          <Tag
+            style="cursor: pointer"
+            color="red"
+            @click.native="UpdUserSacanResult(index)"
+            >移除</Tag
+          >
+        </template>
+      </Table>
+      <div slot="footer">
+        <Button type="primary" ghost @click="UserImport">导入</Button>
+      </div>
+    </Modal>
+    <!-- 对话框-步骤三：导入结果 -->
+    <Modal
+      v-model="modalUserImportResult"
+      :draggable="true"
+      title="步骤三：导入结果"
+    >
+      <Table
+        highlight-row
+        border
+        :height="250"
+        size="small"
+        :columns="tableColumnUserImportResult"
+        :data="tableDataUserImportResult"
+        style="margin-bottom: 10px"
+      >
+        <template slot-scope="{ row }" slot="status">
+          <Tag color="blue" v-if="row.status == 1">成功</Tag>
+          <Tag color="red" v-else>失败</Tag>
+        </template>
+      </Table>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalUserImportResult = false"
+          >取消</Button
         >
       </div>
     </Modal>
@@ -411,7 +472,9 @@ export default {
       //修改用户密码
       loadingEditUserPass: false,
       //识别 passwd 文件
-      loadingScanPasswd: false,
+      loadingUserScan: false,
+      //导入 passwd
+      loadingUserImport: false,
       //用户有权限的仓库列表
       loadingUserRep: true,
       //获取二次授权对象
@@ -435,7 +498,11 @@ export default {
       //编辑仓库信息
       modalEditUserPass: false,
       //识别 passwd 文件
-      modalScanPasswd: false,
+      modalUserScan: false,
+      //识别 passwd 文件的结果
+      modalUserScanResult: false,
+      //导入 passwd 文件的结果
+      modalUserImportResult: false,
       //SVN用户权限路径列表
       modalSvnUserPriPath: false,
       //SVN对象列表组件
@@ -645,6 +712,47 @@ export default {
         },
       ],
       tableDataSecondpriObject: [],
+      //识别出的待导入用户
+      tableColumnUserScanResult: [
+        {
+          title: "用户名",
+          key: "userName",
+          tooltip: true,
+        },
+        {
+          title: "密码",
+          key: "userPass",
+          tooltip: true,
+        },
+        {
+          title: "用户状态",
+          slot: "disabled",
+        },
+        {
+          title: "操作",
+          slot: "action",
+          width: 90,
+        },
+      ],
+      tableDataUserScanResult: [],
+      //导入结果
+      tableColumnUserImportResult: [
+        {
+          title: "用户名",
+          key: "userName",
+          tooltip: true,
+        },
+        {
+          title: "导入结果",
+          slot: "status",
+          tooltip: true,
+        },
+        {
+          title: "原因",
+          key: "reason",
+        },
+      ],
+      tableDataUserImportResult: [],
     };
   },
   components: {
@@ -806,28 +914,62 @@ export default {
     /**
      * 识别 passwd 文件
      */
-    ModalScanPasswd() {
-      this.modalScanPasswd = true;
+    ModalUserScan() {
+      this.modalUserScan = true;
     },
-    ScanPasswd() {
+    UserScan() {
       var that = this;
-      that.loadingScanPasswd = true;
+      that.loadingUserScan = true;
       var data = {
-        passwdContent: that.tempPasswdContent,
+        passwd: that.tempPasswdContent,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=ScanPasswd&t=web", data)
+        .post("/api.php?c=Svnuser&a=UserScan&t=web", data)
         .then(function (response) {
-          that.loadingScanPasswd = false;
+          that.loadingUserScan = false;
           var result = response.data;
           if (result.status == 1) {
-            that.$Message.success(result.message);
+            that.modalUserScanResult = true;
+            that.tableDataUserScanResult = result.data;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
-          that.loadingScanPasswd = false;
+          that.loadingUserScan = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 修改识别结果
+     */
+    UpdUserSacanResult(index) {
+      this.tableDataUserScanResult.splice(index, 1);
+    },
+    /**
+     * 确认导入
+     */
+    UserImport() {
+      var that = this;
+      that.loadingUserImport = true;
+      var data = {
+        users: that.tableDataUserScanResult,
+      };
+      that.$axios
+        .post("/api.php?c=Svnuser&a=UserImport&t=web", data)
+        .then(function (response) {
+          that.loadingUserImport = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.modalUserImportResult = true;
+            that.tableDataUserImportResult = result.data;
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingUserImport = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });

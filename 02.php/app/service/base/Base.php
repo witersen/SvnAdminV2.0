@@ -521,6 +521,35 @@ class Base
                     'children' => []
                 ],
                 [
+                    'title' => '用户迁入',
+                    'expand' => false,
+                    'checked' => false,
+                    'disabled' => false,
+                    'necessary_functions' => [],
+                    'children' => [
+                        [
+                            'title' => '用户识别',
+                            'expand' => false,
+                            'checked' => false,
+                            'disabled' => true,
+                            'necessary_functions' => [
+                                'Svnuser/UserScan',
+                            ],
+                            'children' => []
+                        ],
+                        [
+                            'title' => '确认导入',
+                            'expand' => false,
+                            'checked' => false,
+                            'disabled' => true,
+                            'necessary_functions' => [
+                                'Svnuser/UserImport',
+                            ],
+                            'children' => []
+                        ],
+                    ]
+                ],
+                [
                     'title' => '弃用或禁用SVN用户',
                     'expand' => false,
                     'checked' => false,

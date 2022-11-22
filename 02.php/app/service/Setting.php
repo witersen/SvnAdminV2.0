@@ -194,6 +194,10 @@ class Setting extends Base
 
         $configUpdate = Config::get('update');
 
+        if (!function_exists('curl_init')) {
+            return message(200, 0, '请先安装或启用php的curl扩展');
+        }
+
         foreach ($configUpdate['update_server'] as $key1 => $value1) {
 
             $result = funCurlRequest(sprintf($value1['url'], $configVersion['version']));

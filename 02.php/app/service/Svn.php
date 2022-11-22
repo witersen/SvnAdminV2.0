@@ -143,7 +143,7 @@ class Svn extends Base
         }
 
         if (is_dir("/proc/$pid")) {
-            return message(200, 0, '服务停止失败');
+            return message(200, 0, 'svnserve服务停止失败');
         }
 
         return message();

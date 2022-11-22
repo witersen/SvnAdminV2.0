@@ -714,7 +714,6 @@
                     <Col span="12">
                       <Input
                         v-model="formDataSource.groups_to_user_attribute"
-                        disabled
                       ></Input>
                     </Col>
                   </Row>
@@ -724,7 +723,6 @@
                     <Col span="12">
                       <Input
                         v-model="formDataSource.groups_to_user_attribute_value"
-                        disabled
                       ></Input>
                     </Col>
                     <Col span="1"> </Col>
@@ -1738,7 +1736,7 @@ export default {
       that.$Modal.confirm({
         title: "警告",
         content:
-          "如果为切换到ldap服务器，请仔细阅读以下内容后做出选择:<br/>1、此操作会将数据库中的SVN用户信息清空。后续手动同步时会自动将ldap用户写入数据库。<br/>2、接入ldap不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会清空本系统中的authz文件中的分组信息。后续手动同步时会自动将ldap分组写入数据库和authz文件。",
+          "如果为切换到ldap服务器，请仔细阅读以下内容后做出选择:<br/>1、此操作会将数据库中的SVN用户信息清空。后续手动同步时会自动将ldap用户写入数据库。<br/>2、接入ldap不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会清空本系统中的authz文件中的分组信息。后续手动同步时会自动将ldap分组写入数据库和authz文件。<br/>4、此操作不会清理被清理分组和用户之前已配置的仓库路径权限",
         onOk: () => {
           that.loadingUpdLdapInfo = true;
           var data = {

@@ -34,190 +34,123 @@ class Svngroup extends Base
     }
 
     /**
-     * SVN分组 => 数据库
+     * 执行同步
+     *
+     * @return array
      */
-    private function SyncGroupToDb()
+    private function SyncGroup()
     {
         $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
-            $ldapGroups = $this->ServiceLdap->GetLdapGroups();
-            if ($ldapGroups['status'] != 1) {
-                return message($ldapGroups['code'], $ldapGroups['status'], $ldapGroups['message'], $ldapGroups['data']);
+            $oldAuthz = $this->authzContent;
+
+            $this->ServiceLdap->SyncLdapToAuthz();
+
+            $newAuthz = $this->authzContent;
+
+            $result = $this->SyncAuthzToDb();
+            if ($result['status'] != 1) {
+                return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
 
-            $ldapGroups = $ldapGroups['data'];
-
-            //过滤空白分组
-            $ldapGroups = array_values(array_filter($ldapGroups, 'funArrayValueFilter'));
-
-            /**
-             * 删除数据表重复插入的项
-             */
-            $dbGroupList = $this->database->select('svn_groups', [
-                'svn_group_id',
-                'svn_group_name',
-                'svn_group_note',
-                'include_user_count [Int]',
-                'include_group_count [Int]',
-                'include_aliase_count [Int]'
-            ], [
-                'GROUP' => [
-                    'svn_group_name'
-                ]
-            ]);
-            $dbGroupListAll = $this->database->select('svn_groups', [
-                'svn_group_id',
-                'svn_group_name',
-            ]);
-
-            $duplicates = array_diff(array_column($dbGroupListAll, 'svn_group_id'), array_column($dbGroupList, 'svn_group_id'));
-            foreach ($duplicates as $value) {
-                $this->database->delete('svn_groups', [
-                    'svn_group_id' => $value,
-                ]);
-            }
-
-            /**
-             * 数据对比增删改
-             */
-            $old = array_column($dbGroupList, 'svn_group_name');
-            $oldCombin = array_combine($old, $dbGroupList);
-            $new = $ldapGroups;
-
-            //删除
-            $delete = array_diff($old, $new);
-            foreach ($delete as $value) {
-                $this->database->delete('svn_groups', [
-                    'svn_group_name' => $value,
-                ]);
-            }
-
-            //新增
-            $create = array_diff($new, $old);
-            foreach ($create as $value) {
-                $this->database->insert('svn_groups', [
-                    'svn_group_name' => $value,
-                    'include_user_count' => 0,
-                    'include_group_count' => 0,
-                    'include_aliase_count' => 0,
-                    'svn_group_note' => '',
-                ]);
-            }
-
-            //清空旧authz分组
-            $result = $this->SVNAdmin->ClearGroupSection($this->authzContent);
-            if (is_numeric($result)) {
-                if ($result == 612) {
-                    return message(200, 0, '文件格式错误(不存在[groups]标识)');
-                } else {
-                    return message(200, 0, "错误码$result");
-                }
-            }
-            file_put_contents($this->configSvn['svn_authz_file'], $result);
-            $this->authzContent = $result;
-
-            //写入新authz
-            $authzContent = $this->authzContent;
-            foreach ($ldapGroups as $group) {
-                $result = $this->SVNAdmin->AddGroup($authzContent, $group);
-                if (is_numeric($result)) {
-                    if ($result == 612) {
-                        return message(200, 0, '文件格式错误(不存在[groups]标识)');
-                    } else if ($result == 820) {
-                        //分组已存在
-                        continue;
-                    } else {
-                        //其它错误码
-                        continue;
-                    }
-                }
-                $authzContent = $result;
-            }
-
-            file_put_contents($this->configSvn['svn_authz_file'], $authzContent);
-            $this->authzContent = $authzContent;
+            //对比删除的分组和用户 进行对应的权限路径删除 todo
         } else {
-            /**
-             * 删除数据表重复插入的项
-             */
-            $dbGroupList = $this->database->select('svn_groups', [
-                'svn_group_id',
-                'svn_group_name',
-                'svn_group_note',
-                'include_user_count [Int]',
-                'include_group_count [Int]',
-                'include_aliase_count [Int]'
-            ], [
-                'GROUP' => [
-                    'svn_group_name'
-                ]
+            $result = $this->SyncAuthzToDb();
+            if ($result['status'] != 1) {
+                return message($result['code'], $result['status'], $result['message'], $result['data']);
+            }
+        }
+
+        return message();
+    }
+
+    /**
+     * 分组(authz) => db
+     *
+     * @return array
+     */
+    private function SyncAuthzToDb()
+    {
+        /**
+         * 删除数据表重复插入的项
+         */
+        $dbGroupList = $this->database->select('svn_groups', [
+            'svn_group_id',
+            'svn_group_name',
+            'svn_group_note',
+            'include_user_count [Int]',
+            'include_group_count [Int]',
+            'include_aliase_count [Int]'
+        ], [
+            'GROUP' => [
+                'svn_group_name'
+            ]
+        ]);
+        $dbGroupListAll = $this->database->select('svn_groups', [
+            'svn_group_id',
+            'svn_group_name',
+        ]);
+
+        $duplicates = array_diff(array_column($dbGroupListAll, 'svn_group_id'), array_column($dbGroupList, 'svn_group_id'));
+        foreach ($duplicates as $value) {
+            $this->database->delete('svn_groups', [
+                'svn_group_id' => $value,
             ]);
-            $dbGroupListAll = $this->database->select('svn_groups', [
-                'svn_group_id',
-                'svn_group_name',
+        }
+
+        /**
+         * 数据对比增删改
+         */
+        $old = array_column($dbGroupList, 'svn_group_name');
+        $oldCombin = array_combine($old, $dbGroupList);
+
+        $svnGroupList = $this->SVNAdmin->GetGroupInfo($this->authzContent);
+        if (is_numeric($svnGroupList)) {
+            if ($svnGroupList == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else {
+                return message(200, 0, "错误码$svnGroupList");
+            }
+        }
+
+        $new = array_column($svnGroupList, 'groupName');
+        $newCombin = array_combine($new, $svnGroupList);
+
+        //删除
+        $delete = array_diff($old, $new);
+        foreach ($delete as $value) {
+            $this->database->delete('svn_groups', [
+                'svn_group_name' => $value,
             ]);
+        }
 
-            $duplicates = array_diff(array_column($dbGroupListAll, 'svn_group_id'), array_column($dbGroupList, 'svn_group_id'));
-            foreach ($duplicates as $value) {
-                $this->database->delete('svn_groups', [
-                    'svn_group_id' => $value,
-                ]);
-            }
+        //新增
+        $create = array_diff($new, $old);
+        foreach ($create as $value) {
+            $this->database->insert('svn_groups', [
+                'svn_group_name' => $value,
+                'include_user_count' => $newCombin[$value]['include']['users']['count'],
+                'include_group_count' => $newCombin[$value]['include']['groups']['count'],
+                'include_aliase_count' => $newCombin[$value]['include']['aliases']['count'],
+                'svn_group_note' => '',
+            ]);
+        }
 
-            /**
-             * 数据对比增删改
-             */
-            $old = array_column($dbGroupList, 'svn_group_name');
-            $oldCombin = array_combine($old, $dbGroupList);
-
-            $svnGroupList = $this->SVNAdmin->GetGroupInfo($this->authzContent);
-            if (is_numeric($svnGroupList)) {
-                if ($svnGroupList == 612) {
-                    return message(200, 0, '文件格式错误(不存在[groups]标识)');
-                } else {
-                    return message(200, 0, "错误码$svnGroupList");
-                }
-            }
-
-            $new = array_column($svnGroupList, 'groupName');
-            $newCombin = array_combine($new, $svnGroupList);
-
-            //删除
-            $delete = array_diff($old, $new);
-            foreach ($delete as $value) {
-                $this->database->delete('svn_groups', [
-                    'svn_group_name' => $value,
-                ]);
-            }
-
-            //新增
-            $create = array_diff($new, $old);
-            foreach ($create as $value) {
-                $this->database->insert('svn_groups', [
-                    'svn_group_name' => $value,
+        //更新
+        $update = array_intersect($old, $new);
+        foreach ($update as $value) {
+            if (
+                $oldCombin[$value]['include_user_count'] !=  $newCombin[$value]['include']['users']['count'] ||
+                $oldCombin[$value]['include_group_count'] !=  $newCombin[$value]['include']['groups']['count'] ||
+                $oldCombin[$value]['include_aliase_count'] !=  $newCombin[$value]['include']['aliases']['count']
+            ) {
+                $this->database->update('svn_groups', [
                     'include_user_count' => $newCombin[$value]['include']['users']['count'],
                     'include_group_count' => $newCombin[$value]['include']['groups']['count'],
-                    'include_aliase_count' => $newCombin[$value]['include']['aliases']['count'],
-                    'svn_group_note' => '',
+                    'include_aliase_count' => $newCombin[$value]['include']['aliases']['count']
+                ], [
+                    'svn_group_name' => $value
                 ]);
-            }
-
-            //更新
-            $update = array_intersect($old, $new);
-            foreach ($update as $value) {
-                if (
-                    $oldCombin[$value]['include_user_count'] !=  $newCombin[$value]['include']['users']['count'] ||
-                    $oldCombin[$value]['include_group_count'] !=  $newCombin[$value]['include']['groups']['count'] ||
-                    $oldCombin[$value]['include_aliase_count'] !=  $newCombin[$value]['include']['aliases']['count']
-                ) {
-                    $this->database->update('svn_groups', [
-                        'include_user_count' => $newCombin[$value]['include']['users']['count'],
-                        'include_group_count' => $newCombin[$value]['include']['groups']['count'],
-                        'include_aliase_count' => $newCombin[$value]['include']['aliases']['count']
-                    ], [
-                        'svn_group_name' => $value
-                    ]);
-                }
             }
         }
 
@@ -258,7 +191,7 @@ class Svngroup extends Base
 
         if ($sync) {
             //同步
-            $syncResult = $this->SyncGroupToDb();
+            $syncResult = $this->SyncGroup();
             if ($syncResult['status'] != 1) {
                 return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
             }
@@ -471,7 +404,7 @@ class Svngroup extends Base
         }
 
         //修改前同步下
-        $syncResult = $this->SyncGroupToDb();
+        $syncResult = $this->SyncGroup();
         if ($syncResult['status'] != 1) {
             return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
         }
@@ -499,7 +432,7 @@ class Svngroup extends Base
 
         //修改后同步下
         $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
-        $syncResult = $this->SyncGroupToDb();
+        $syncResult = $this->SyncGroup();
         if ($syncResult['status'] != 1) {
             return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
         }
@@ -628,7 +561,7 @@ class Svngroup extends Base
 
         //修改后同步下
         $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
-        $syncResult = $this->SyncGroupToDb();
+        $syncResult = $this->SyncGroup();
         if ($syncResult['status'] != 1) {
             return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
         }

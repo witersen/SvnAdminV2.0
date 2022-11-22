@@ -74,6 +74,10 @@ class Sasl extends Base
      */
     public function UpdSaslStatusStart()
     {
+        if (empty($this->configBin['saslauthd'])) {
+            return message(200, 0, '未在 config/bin.php 文件中配置 saslauthd 路径');
+        }
+
         if (file_exists($this->configSvn['saslauthd_pid_file'])) {
             $pid = trim(file_get_contents($this->configSvn['saslauthd_pid_file']));
             if (is_dir("/proc/$pid")) {
@@ -133,11 +137,11 @@ class Sasl extends Base
         $result = funShellExec(sprintf("kill -15 '%s'", $pid));
 
         if ($result['code'] != 0) {
-            return message(200, 0, '停止服务失败: ' . $result['error']);
+            return message(200, 0, 'saslauthd服务停止失败: ' . $result['error']);
         }
 
         if (is_dir("/proc/$pid")) {
-            return message(200, 0, '服务停止失败');
+            return message(200, 0, 'saslauthd服务停止失败');
         }
 
         return message();
