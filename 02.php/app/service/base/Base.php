@@ -1392,4 +1392,14 @@ class Base
 
         return $functions;
     }
+
+    /**
+     * 重读authz的值
+     *
+     * @return void
+     */
+    public function ReloadAuthz()
+    {
+        $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
+    }
 }

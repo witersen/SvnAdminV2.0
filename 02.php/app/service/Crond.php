@@ -132,8 +132,6 @@ class Crond extends Base
      */
     public function CreateCrontab()
     {
-        //todo 检查crond服务有无开启
-
         if (!isset($this->payload['cycle'])) {
             return message(200, 0, '参数[cycle]不存在');
         }
@@ -214,16 +212,16 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         );
 
         file_put_contents($nameCrond, $conCrond);
-        funShellExec(sprintf("chmod 777 '%s'", $nameCrond));
+        funShellExec(sprintf("chmod 755 '%s'", $nameCrond), true);
 
         //crontab -l 获取原有的任务计划列表
-        $result = funShellExec('crontab -l');
+        $result = funShellExec('crontab -l', true);
         $crontabs = trim($result['result']);
 
         //crontab file 写入新的任务计划列表
         $tempFile = tempnam($this->configSvn['crond_base_path'], 'svnadmin_crond_');
         file_put_contents($tempFile, (empty($crontabs) ? '' : $crontabs . "\n") . sprintf("%s %s >> %s 2>&1\n", $code, $nameCrond, $nameCrondLog));
-        $result = funShellExec(sprintf("crontab %s", $tempFile));
+        $result = funShellExec(sprintf("crontab %s", $tempFile), true);
         @unlink($tempFile);
         if ($result['code'] != 0) {
             @unlink($nameCrond);
@@ -362,7 +360,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         $code = $result['code'];
 
         //crontab -l 获取原有的任务计划列表
-        $result = funShellExec('crontab -l');
+        $result = funShellExec('crontab -l', true);
         $crontabs = trim($result['result']);
 
         if ($this->payload['status']) {
@@ -381,11 +379,11 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         }
 
         if (empty($crontabs)) {
-            funShellExec('crontab -r');
+            funShellExec('crontab -r', true);
         } else {
             $tempFile = tempnam($this->configSvn['crond_base_path'], 'svnadmin_crond_');
             file_put_contents($tempFile, $crontabs . "\n");
-            $result = funShellExec(sprintf("crontab %s", $tempFile));
+            $result = funShellExec(sprintf("crontab %s", $tempFile), true);
             @unlink($tempFile);
             if ($result['code'] != 0) {
                 return message(200, 0, $result['error']);
@@ -422,7 +420,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
         $sign = $result['sign'];
 
         //crontab -l 获取原有的任务计划列表
-        $result = funShellExec('crontab -l');
+        $result = funShellExec('crontab -l', true);
         $crontabs = trim($result['result']);
 
         //查询标识并删除标识所在行
@@ -439,11 +437,11 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
             $crontabs = trim(implode("\n", $contabArray));
             //crontab file 写入新的任务计划列表
             if (empty($crontabs)) {
-                funShellExec('crontab -r');
+                funShellExec('crontab -r', true);
             } else {
                 $tempFile = tempnam($this->configSvn['crond_base_path'], 'svnadmin_crond_');
                 file_put_contents($tempFile, $crontabs . "\n");
-                $result = funShellExec(sprintf("crontab %s", $tempFile));
+                $result = funShellExec(sprintf("crontab %s", $tempFile), true);
                 @unlink($tempFile);
                 if ($result['code'] != 0) {
                     return message(200, 0, $result['error']);
@@ -491,7 +489,7 @@ echo ----------endTime:[\$endDate]--------------------------------------------",
 
         file_put_contents($tempFile, sprintf("%s >> %s 2>&1\n", $nameCrond, $nameCrondLog));
 
-        $result = funShellExec(sprintf("at -f '%s' now", $tempFile));
+        $result = funShellExec(sprintf("at -f '%s' now", $tempFile), true);
 
         @unlink($tempFile);
 

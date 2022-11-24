@@ -170,7 +170,7 @@
 user1=passwd1
 user2=passwd2
 user3=passwd3"
-        :rows="15"
+        :rows="11"
         show-word-limit
         type="textarea"
       />
@@ -240,7 +240,7 @@ user3=passwd3"
       </Table>
       <div slot="footer">
         <Button type="primary" ghost @click="modalUserImportResult = false"
-          >取消</Button
+          >关闭</Button
         >
       </div>
     </Modal>

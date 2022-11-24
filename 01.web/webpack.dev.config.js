@@ -46,7 +46,7 @@ module.exports = merge(webpackBaseConfig, {
         disableHostCheck: true,
         proxy: {
             '/api.php': {
-                target: 'http://dev.witersen.com/api.php',
+                target: 'http://sas2.witersen.com:8085/api.php',
                 changeOrigin: true,
                 // pathRewrite: { '^/api': '' }
             }

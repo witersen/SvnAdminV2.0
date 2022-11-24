@@ -1784,7 +1784,7 @@ class SVNAdmin
      *
      * @param $passwdContent
      * @param $userName
-     * @param $disable true 禁用用户 false 启用用户
+     * @param $disable true 原来为启用状态现在要禁用 false 原来为禁用状态现在要启用
      * @return int|string
      *
      * 621      文件格式错误(不存在[users]标识)

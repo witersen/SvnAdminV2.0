@@ -109,7 +109,7 @@ class Svn extends Base
             $result['bindHost']
         );
 
-        $result = funShellExec($cmdStart);
+        $result = funShellExec($cmdStart, true);
 
         if ($result['code'] == 0) {
             return message();
@@ -136,7 +136,7 @@ class Svn extends Base
             return message();
         }
 
-        $result = funShellExec(sprintf("kill -15 '%s'", $pid));
+        $result = funShellExec(sprintf("kill -15 '%s'", $pid), true);
 
         if ($result['code'] != 0) {
             return message(200, 0, $result['error']);

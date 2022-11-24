@@ -62,18 +62,7 @@ class Usersource extends Base
         }
 
         if ($this->payload['data_source']['user_source'] == 'ldap') {
-            //判断saslauthd服务有无开启
-            // if (!file_exists($this->configSvn['saslauthd_pid_file'])) {
-            //     return message(200, 0, sprintf('请先启动saslauthd服务-PID文件[%s]不存在或不可读', $this->configSvn['saslauthd_pid_file']));
-            // }
-            // $pid = file_get_contents($this->configSvn['saslauthd_pid_file']);
-            // if (empty($pid)) {
-            //     return message(200, 0, sprintf('请先启动saslauthd服务-PID文件[%s]内容为空', $this->configSvn['saslauthd_pid_file']));
-            // }
-            // if (!is_dir("/proc/$pid")) {
-            //     return message(200, 0, sprintf('请先启动saslauthd服务-PID为[%s]的进程不存在', $pid));
-            // }
-
+            //清空数据库的用户
             $this->database->delete('svn_users', [
                 'svn_user_id[>]' => 0
             ]);
@@ -83,17 +72,6 @@ class Usersource extends Base
                 $this->database->delete('svn_groups', [
                     'svn_group_id[>]' => 0
                 ]);
-                //清空authz文件的分组
-                $result = $this->SVNAdmin->ClearGroupSection($this->authzContent);
-                if (is_numeric($result)) {
-                    if ($result == 612) {
-                        return message(200, 0, '文件格式错误(不存在[groups]标识)');
-                    } else {
-                        return message(200, 0, "错误码$result");
-                    }
-                }
-                file_put_contents($this->configSvn['svn_authz_file'], $result);
-                $this->authzContent = $result;
             }
 
             //开启use-sasl

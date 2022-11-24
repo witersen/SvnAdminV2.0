@@ -2,10 +2,10 @@
   <div>
     <Card :bordered="false" :dis-hover="true">
       <Tabs v-model="currentAdvanceTab" @on-click="SetCurrentAdvanceTab">
-        <TabPane label="Subversion" name="1">
+        <TabPane label="svnserve【svn协议】" name="1">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="100" label-position="left">
-              <FormItem label="Subversion">
+              <FormItem label="svnserve">
                 <Row>
                   <Col span="12">
                     <span>{{ formSvn.version }}</span>
@@ -150,9 +150,10 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="saslauthd" name="2">
+
+        <TabPane label="saslauthd" name="3">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Alert>如果不使用LDAP认证 可关闭此服务以节约资源 </Alert>
+            <Alert>saslauthd服务用于svn服务器接入ldap等认证使用</Alert>
             <Form :label-width="100" label-position="left">
               <FormItem label="当前版本">
                 <Row>
@@ -212,7 +213,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="路径信息" name="3">
+        <TabPane label="路径信息" name="4">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert
               >可在命令行模式下执行 server/insta.php 进行目录更换操作
@@ -232,7 +233,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="邮件服务" name="4">
+        <TabPane label="邮件服务" name="5">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="120" label-position="left">
               <FormItem label="SMTP主机">
@@ -436,7 +437,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="消息推送" name="5">
+        <TabPane label="消息推送" name="6">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Alert
               >由于邮件发送没有使用异步任务<br /><br />
@@ -470,7 +471,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="安全配置" name="6">
+        <TabPane label="安全配置" name="7">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem
@@ -498,7 +499,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="自助检测" name="7" v-if="false">
+        <TabPane label="自助检测" name="8" v-if="false">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert
               >不经意的配置可能会导致 authz 配置文件失效<br /><br />
@@ -534,7 +535,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="用户来源" name="8">
+        <TabPane label="用户来源" name="9">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="120" label-position="left">
               <FormItem label="SVN用户来源">
@@ -716,6 +717,16 @@
                         v-model="formDataSource.groups_to_user_attribute"
                       ></Input>
                     </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="分组下包含多个对象 具备此属性的对象才可被识别为分组的成员 如 member"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Groups to user attribute value">
@@ -726,13 +737,27 @@
                       ></Input>
                     </Col>
                     <Col span="1"> </Col>
-                    <Col span="6">
-                      <Button
-                        type="success"
-                        @click="LdapTest('group')"
-                        :loading="loadingLdapTestGroup"
-                        >验证</Button
-                      >
+                    <Col span="8">
+                      <Row>
+                        <Col span="11">
+                          <Tooltip
+                            :transfer="true"
+                            max-width="250"
+                            content="表示分组下的成员的唯一标识的属性 如 distinguishedName"
+                          >
+                            <Button type="info">说明</Button>
+                          </Tooltip>
+                        </Col>
+                        <Col span="2"> </Col>
+                        <Col span="11">
+                          <Button
+                            type="success"
+                            @click="LdapTest('group')"
+                            :loading="loadingLdapTestGroup"
+                            >验证</Button
+                          >
+                        </Col>
+                      </Row>
                     </Col>
                   </Row>
                 </FormItem>
@@ -749,7 +774,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane :label="labelUpd" name="9">
+        <TabPane :label="labelUpd" name="10">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">
@@ -1736,7 +1761,7 @@ export default {
       that.$Modal.confirm({
         title: "警告",
         content:
-          "如果为切换到ldap服务器，请仔细阅读以下内容后做出选择:<br/>1、此操作会将数据库中的SVN用户信息清空。后续手动同步时会自动将ldap用户写入数据库。<br/>2、接入ldap不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会清空本系统中的authz文件中的分组信息。后续手动同步时会自动将ldap分组写入数据库和authz文件。<br/>4、此操作不会清理被清理分组和用户之前已配置的仓库路径权限",
+          "如果为切换到ldap服务器，请仔细阅读以下内容后做出选择:<br/>1、此操作会将数据库中的SVN用户信息清空,后续手动同步时会将ldap用户写入数据库。<br/>2、接入ldap不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会将数据库中的SVN分组信息清空但是不立刻清空authz的分组信息。后续手动同步时自动清空authz的分组信息之后进行到authz文件中分组和数据库的同步。<br/>4、此操作不会清理被清理分组和用户之前已配置的仓库路径权限",
         onOk: () => {
           that.loadingUpdLdapInfo = true;
           var data = {

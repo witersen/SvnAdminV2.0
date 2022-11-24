@@ -579,7 +579,7 @@ class Svnrep extends Base
             /**
              * 及时更新
              */
-            $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
+            parent::ReloadAuthz();
 
             /**
              * 对用户有权限的仓库路径列表进行一一验证
@@ -593,7 +593,7 @@ class Svnrep extends Base
             /**
              * 及时更新
              */
-            // $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
+            // parent::ReloadAuthz();
 
             /**
              * 用户有权限的仓库路径列表 => svn_user_pri_paths数据表
@@ -1970,6 +1970,8 @@ class Svnrep extends Base
         $cmd = sprintf("'%s' load --quiet '%s' < '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $this->configSvn['backup_base_path'] .  $this->payload['fileName']);
         $result = funShellExec($cmd);
 
+        //更新仓库的版本 todo
+
         if ($result['error'] == '') {
             return message();
         } else {
@@ -2105,6 +2107,10 @@ class Svnrep extends Base
     {
         $hooksPath = $this->configSvn['rep_base_path'] . $this->payload['rep_name'] . '/hooks/';
 
+        if (!is_writable($hooksPath)) {
+            return message(200, 0, sprintf('文件[%s]不可写', $hooksPath));
+        }
+        
         funFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
 
         return message();

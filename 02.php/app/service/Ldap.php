@@ -117,6 +117,9 @@ class Ldap extends Base
             $up_name = $attributes[0];
             $users = [];
             for ($i = 0; $i < $ldapUsersLen; ++$i) {
+                if (!property_exists($ldapUsers[$i], $up_name)) {
+                    continue;
+                }
                 $users[] = $ldapUsers[$i]->$up_name;
             }
 
@@ -135,8 +138,8 @@ class Ldap extends Base
                 'group_base_dn' => ['type' => 'string', 'notNull' => true],
                 'group_search_filter' => ['type' => 'string', 'notNull' => true],
                 'group_attributes' => ['type' => 'string', 'notNull' => true],
-                'groups_to_user_attribute' => ['type' => 'string', 'notNull' => false],
-                'groups_to_user_attribute_value' => ['type' => 'string', 'notNull' => false],
+                'groups_to_user_attribute' => ['type' => 'string', 'notNull' => true],
+                'groups_to_user_attribute_value' => ['type' => 'string', 'notNull' => true],
             ]);
             if ($checkResult['status'] == 0) {
                 return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
@@ -156,6 +159,9 @@ class Ldap extends Base
             $group_name_property = $attributes[0];
             $groups = [];
             for ($i = 0; $i < $ldapGroupsLen; ++$i) {
+                if (!property_exists($ldapGroups[$i], $group_name_property)) {
+                    continue;
+                }
                 $groups[] = $ldapGroups[$i]->$group_name_property;
             }
 
@@ -194,7 +200,7 @@ class Ldap extends Base
             // }
 
             // Start search in LDAP directory.
-            $sr = ldap_search($conn, $base_dn, $search_filter, $return_attributes, 0, $limit);
+            $sr = @ldap_search($conn, $base_dn, $search_filter, $return_attributes, 0, $limit);
             if (!$sr)
                 break;
 
@@ -360,6 +366,9 @@ class Ldap extends Base
         $up_name = $attributes[0];
         $users = [];
         for ($i = 0; $i < $ldapUsersLen; ++$i) {
+            if (!property_exists($ldapUsers[$i], $up_name)) {
+                continue;
+            }
             $users[] = $ldapUsers[$i]->$up_name;
         }
 
@@ -392,7 +401,6 @@ class Ldap extends Base
 
         $attributes = explode(',', $dataSource['group_attributes']);
 
-        $includeMembers = false;
         if ($includeMembers) {
             $attributes[] = $dataSource['groups_to_user_attribute'];
         }
@@ -404,6 +412,9 @@ class Ldap extends Base
         $group_name_property = $attributes[0];
         $groups = [];
         for ($i = 0; $i < $ldapGroupsLen; ++$i) {
+            if (!property_exists($ldapGroups[$i], $group_name_property)) {
+                continue;
+            }
             $groups[] = $ldapGroups[$i]->$group_name_property;
         }
 
@@ -425,14 +436,14 @@ class Ldap extends Base
         $authzContent = $this->authzContent;
 
         //清空原有分组
-        // $authzContent = $this->SVNAdmin->ClearGroupSection($this->authzContent);
-        // if (is_numeric($authzContent)) {
-        //     if ($authzContent == 612) {
-        //         return message(200, 0, '文件格式错误(不存在[groups]标识)');
-        //     } else {
-        //         return message(200, 0, "错误码$authzContent");
-        //     }
-        // }
+        $authzContent = $this->SVNAdmin->ClearGroupSection($authzContent);
+        if (is_numeric($authzContent)) {
+            if ($authzContent == 612) {
+                return message(200, 0, '文件格式错误(不存在[groups]标识)');
+            } else {
+                return message(200, 0, "错误码$authzContent");
+            }
+        }
 
         //从ldap获取分组和用户
         $users = $this->GetLdapUsers();
@@ -467,7 +478,11 @@ class Ldap extends Base
                 continue;
             }
 
-            //group是否符合规则 todo
+            //检查分组名是否合法
+            $checkResult = $this->checkService->CheckRepGroup($g->$gp_name);
+            if ($checkResult['status'] != 1) {
+                continue;
+            }
 
             //添加分组
             $result = $this->SVNAdmin->AddGroup($authzContent, $g->$gp_name);
@@ -483,7 +498,6 @@ class Ldap extends Base
             }
             $authzContent = $result;
 
-
             if (!property_exists($g, $gp_member_id)) {
                 //分组下无成员
             } elseif (is_array($g->$gp_member_id)) {
@@ -491,6 +505,9 @@ class Ldap extends Base
                 foreach ($g->$gp_member_id as $member_id) {
                     //获取成员用户名
                     foreach ($users as $u) {
+                        if (!property_exists($u, $up_id)) {
+                            continue;
+                        }
                         if ($u->$up_id == $member_id) {
                             //为分组添加成员
                             $result = $this->SVNAdmin->UpdGroupMember($authzContent, $g->$gp_name, $u->$up_name, 'user', 'add');
@@ -531,7 +548,8 @@ class Ldap extends Base
         }
 
         file_put_contents($this->configSvn['svn_authz_file'], $authzContent);
-        $this->authzContent = $authzContent;
+
+        parent::ReloadAuthz();
 
         return message();
     }

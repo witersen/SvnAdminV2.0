@@ -34,7 +34,7 @@ class Sasl extends Base
      */
     public function GetSaslInfo()
     {
-        $result = funShellExec(sprintf("'%s' -v", $this->configBin['saslauthd']), 'stderr');
+        $result = funShellExec(sprintf("'%s' -v", $this->configBin['saslauthd']));
 
         $result = $result['error'];
 
@@ -95,7 +95,7 @@ class Sasl extends Base
             $this->configSvn['ldap_config_file']
         );
 
-        $result = funShellExec($cmdStart);
+        $result = funShellExec($cmdStart, true);
 
         if ($result['code'] != 0) {
             return message(200, 0, '启动进程失败: ' . $result['error']);
@@ -134,7 +134,7 @@ class Sasl extends Base
             return message();
         }
 
-        $result = funShellExec(sprintf("kill -15 '%s'", $pid));
+        $result = funShellExec(sprintf("kill -15 '%s'", $pid), true);
 
         if ($result['code'] != 0) {
             return message(200, 0, 'saslauthd服务停止失败: ' . $result['error']);

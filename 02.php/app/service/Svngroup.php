@@ -35,6 +35,8 @@ class Svngroup extends Base
 
     /**
      * 执行同步
+     * 
+     * 为用户提供可选项 选择是否清理之前的分组和用户的权限 todo
      *
      * @return array
      */
@@ -42,18 +44,15 @@ class Svngroup extends Base
     {
         $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
-            $oldAuthz = $this->authzContent;
-
-            $this->ServiceLdap->SyncLdapToAuthz();
-
-            $newAuthz = $this->authzContent;
+            $result = $this->ServiceLdap->SyncLdapToAuthz();
+            if ($result['status'] != 1) {
+                return message($result['code'], $result['status'], $result['message'], $result['data']);
+            }
 
             $result = $this->SyncAuthzToDb();
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
-
-            //对比删除的分组和用户 进行对应的权限路径删除 todo
         } else {
             $result = $this->SyncAuthzToDb();
             if ($result['status'] != 1) {
@@ -195,7 +194,6 @@ class Svngroup extends Base
             if ($syncResult['status'] != 1) {
                 return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
             }
-            //更新authz todo
         }
 
         if ($page) {
@@ -431,10 +429,10 @@ class Svngroup extends Base
         funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //修改后同步下
-        $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
-        $syncResult = $this->SyncGroup();
-        if ($syncResult['status'] != 1) {
-            return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
+        parent::ReloadAuthz();
+        $result = $this->SyncGroup();
+        if ($result['status'] != 1) {
+            return message($result['code'], $result['status'], $result['message'], $result['data']);
         }
 
         return message();
@@ -560,7 +558,7 @@ class Svngroup extends Base
         funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //修改后同步下
-        $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
+        parent::ReloadAuthz();
         $syncResult = $this->SyncGroup();
         if ($syncResult['status'] != 1) {
             return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
