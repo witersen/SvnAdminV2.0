@@ -126,4 +126,14 @@ return [
      * saslauthd服务pid文件
      */
     'saslauthd_pid_file' => $home . 'sasl/saslauthd.pid',
+
+    /**
+     * apache modules 目录
+     */
+    'apache_modules_path' => '/etc/httpd/modules/',
+
+    /**
+     * apache svn 配置文件
+     */
+    'apache_subversion_file' => '/etc/httpd/conf.d/subversion.conf'
 ];

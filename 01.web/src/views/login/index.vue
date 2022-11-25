@@ -36,7 +36,11 @@
               </Input>
             </FormItem>
             <FormItem>
-              <Select v-model="formUserLogin.user_role" :transfer="true">
+              <Select
+                v-model="formUserLogin.user_role"
+                :transfer="true"
+                @on-change="ChangeSelect"
+              >
                 <Option value="1">管理人员</Option>
                 <Option value="3">子管理员</Option>
                 <Option value="2">SVN用户</Option>
@@ -99,7 +103,7 @@ export default {
       formUserLogin: {
         user_name: "",
         user_pass: "",
-        user_role: "2",
+        user_role: "",
         code: "",
         uuid: "",
         base64: "",
@@ -124,6 +128,10 @@ export default {
   created() {},
   mounted() {
     var that = this;
+    //还原下拉
+    that.formUserLogin.user_role = localStorage.user_role
+      ? localStorage.user_role
+      : "2";
     if (sessionStorage.token) {
       that.$Message.success("已有登录信息 自动跳转中...");
       setTimeout(function () {
@@ -134,6 +142,10 @@ export default {
     }
   },
   methods: {
+    //记录下拉
+    ChangeSelect(value) {
+      localStorage.setItem("user_role", value);
+    },
     //表单提交
     Submit(formName) {
       this.$refs[formName].validate((valid) => {

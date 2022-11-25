@@ -164,12 +164,17 @@
         v-model="tempPasswdContent"
         placeholder="请粘贴 passwd 文件内容
 
-示例：  
+如果为 svn 协议检出(密码明文)，内容示例如下：  
 
 [users]
 user1=passwd1
 user2=passwd2
-user3=passwd3"
+
+如果为 http 协议检出(密码密文)，内容示例如下：  
+
+user1:passwd1
+user2:passwd2
+"
         :rows="11"
         show-word-limit
         type="textarea"

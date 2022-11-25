@@ -4,6 +4,7 @@
       <Tabs v-model="currentAdvanceTab" @on-click="SetCurrentAdvanceTab">
         <TabPane label="svnserve【svn协议检出】" name="1">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Alert>svnserve服务在使用svn协议检出时使用</Alert>
             <Form :label-width="100" label-position="left">
               <FormItem label="svnserve">
                 <Row>
@@ -192,6 +193,7 @@
         </TabPane>
         <TabPane label="mod_dav_svn【http协议检出】" name="2">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Alert>mod_dav_svn等模块在使用http协议检出时使用</Alert>
             <Form :label-width="100" label-position="left">
               <FormItem label="httpd">
                 <Row>
@@ -266,7 +268,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="saslauthd" name="3">
+        <TabPane label="saslauthd【第三方认证】" name="3">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert>saslauthd服务用于svn服务器接入ldap等认证使用</Alert>
             <Form :label-width="100" label-position="left">
@@ -324,6 +326,245 @@
                     >
                   </Col>
                 </Row>
+              </FormItem>
+            </Form>
+            <Divider>用户来源</Divider>
+            <Alert>目前ldap只支持在使用svn协议检出时接入</Alert>
+            <Form :label-width="120" label-position="left">
+              <FormItem label="SVN用户来源">
+                <Row>
+                  <Col span="12">
+                    <Select
+                      :disabled="!formSvn.enable"
+                      v-model="formDataSource.user_source"
+                      style="width: 200px"
+                      @on-change="ChangeUserSource"
+                    >
+                      <Option value="passwd">passwd文件</Option>
+                      <Option value="ldap">ldap</Option>
+                    </Select>
+                  </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="SVN分组来源">
+                <Row>
+                  <Col span="12">
+                    <Select
+                    :disabled="!formSvn.enable"
+                      v-model="formDataSource.group_source"
+                      style="width: 200px"
+                    >
+                      <Option value="authz">authz文件</Option>
+                      <Option
+                        value="ldap"
+                        :disabled="formDataSource.user_source == 'passwd'"
+                        >ldap</Option
+                      >
+                    </Select>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      v-if="
+                        formDataSource.user_source == 'ldap' ||
+                        formDataSource.group_source == 'ldap'
+                      "
+                      :transfer="true"
+                      max-width="250"
+                      content="如果要设置SVN分组来源为LDAP  必须要先设置SVN用户来源为LDAP"
+                    >
+                      <Button type="info">说明</Button>
+                    </Tooltip>
+                  </Col>
+                </Row>
+              </FormItem>
+              <!-- LDAP 服务器 -->
+              <span
+                v-if="
+                  formDataSource.user_source == 'ldap' ||
+                  formDataSource.group_source == 'ldap'
+                "
+              >
+                <Divider>LDAP 服务器</Divider>
+                <FormItem label="LDAP 主机地址">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.ldap_host"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="LDAP 端口">
+                  <Row>
+                    <Col span="12">
+                      <InputNumber
+                        :min="1"
+                        v-model="formDataSource.ldap_port"
+                      ></InputNumber>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="LDAP 协议版本">
+                  <Row>
+                    <Col span="12">
+                      <InputNumber
+                        :min="2"
+                        :max="3"
+                        v-model="formDataSource.ldap_version"
+                      ></InputNumber>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Bind DN">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.ldap_bind_dn"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Bind password">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.ldap_bind_password"
+                        type="password"
+                        password
+                      ></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Button
+                        type="success"
+                        @click="LdapTest('connection')"
+                        :loading="loadingLdapTestConnection"
+                        >验证</Button
+                      >
+                    </Col>
+                  </Row>
+                </FormItem>
+              </span>
+              <!-- LDAP 用户 -->
+              <span v-if="formDataSource.user_source == 'ldap'">
+                <Divider>LDAP 用户</Divider>
+                <FormItem label="Base DN">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.user_base_dn"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Search filter">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.user_search_filter"
+                      ></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Attributes">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.user_attributes"></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Button
+                        type="success"
+                        @click="LdapTest('user')"
+                        :loading="loadingLdapTestUser"
+                        >验证</Button
+                      >
+                    </Col>
+                  </Row>
+                </FormItem>
+              </span>
+              <!-- LDAP 分组 -->
+              <span v-if="formDataSource.group_source == 'ldap'">
+                <Divider>LDAP 分组</Divider>
+                <FormItem label="Base DN">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.group_base_dn"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Search filter">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.group_search_filter"
+                      ></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Attributes">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formDataSource.group_attributes"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Groups to user attribute">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.groups_to_user_attribute"
+                      ></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="分组下包含多个对象 具备此属性的对象才可被识别为分组的成员 如 member"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Groups to user attribute value">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formDataSource.groups_to_user_attribute_value"
+                      ></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="8">
+                      <Row>
+                        <Col span="11">
+                          <Tooltip
+                            :transfer="true"
+                            max-width="250"
+                            content="表示分组下的成员的唯一标识的属性 如 distinguishedName"
+                          >
+                            <Button type="info">说明</Button>
+                          </Tooltip>
+                        </Col>
+                        <Col span="2"> </Col>
+                        <Col span="11">
+                          <Button
+                            type="success"
+                            @click="LdapTest('group')"
+                            :loading="loadingLdapTestGroup"
+                            >验证</Button
+                          >
+                        </Col>
+                      </Row>
+                    </Col>
+                  </Row>
+                </FormItem>
+              </span>
+              <!-- 保存 -->
+              <FormItem>
+                <Button
+                  type="primary"
+                  @click="UpdUsersourceInfo"
+                  :loading="loadingUpdLdapInfo"
+                  >保存</Button
+                >
               </FormItem>
             </Form>
           </Card>
@@ -646,245 +887,6 @@
                   </Col>
                   <Col span="6"> </Col>
                 </Row>
-              </FormItem>
-            </Form>
-          </Card>
-        </TabPane>
-        <TabPane label="用户来源" name="9">
-          <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Form :label-width="120" label-position="left">
-              <FormItem label="SVN用户来源">
-                <Row>
-                  <Col span="12">
-                    <Select
-                      v-model="formDataSource.user_source"
-                      style="width: 200px"
-                      @on-change="ChangeUserSource"
-                    >
-                      <Option value="passwd">passwd文件</Option>
-                      <Option value="ldap">ldap</Option>
-                    </Select>
-                  </Col>
-                  <Col span="6"> </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="SVN分组来源">
-                <Row>
-                  <Col span="12">
-                    <Select
-                      v-model="formDataSource.group_source"
-                      style="width: 200px"
-                    >
-                      <Option value="authz">authz文件</Option>
-                      <Option
-                        value="ldap"
-                        :disabled="formDataSource.user_source == 'passwd'"
-                        >ldap</Option
-                      >
-                    </Select>
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6">
-                    <Tooltip
-                      v-if="
-                        formDataSource.user_source == 'ldap' ||
-                        formDataSource.group_source == 'ldap'
-                      "
-                      :transfer="true"
-                      max-width="250"
-                      content="如果要设置SVN分组来源为LDAP  必须要先设置SVN用户来源为LDAP"
-                    >
-                      <Button type="info">说明</Button>
-                    </Tooltip>
-                  </Col>
-                </Row>
-              </FormItem>
-              <!-- LDAP 服务器 -->
-              <span
-                v-if="
-                  formDataSource.user_source == 'ldap' ||
-                  formDataSource.group_source == 'ldap'
-                "
-              >
-                <Divider>LDAP 服务器</Divider>
-                <FormItem label="LDAP 主机地址">
-                  <Row>
-                    <Col span="12">
-                      <Input v-model="formDataSource.ldap_host"></Input>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="LDAP 端口">
-                  <Row>
-                    <Col span="12">
-                      <InputNumber
-                        :min="1"
-                        v-model="formDataSource.ldap_port"
-                      ></InputNumber>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="LDAP 协议版本">
-                  <Row>
-                    <Col span="12">
-                      <InputNumber
-                        :min="2"
-                        :max="3"
-                        v-model="formDataSource.ldap_version"
-                      ></InputNumber>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="Bind DN">
-                  <Row>
-                    <Col span="12">
-                      <Input v-model="formDataSource.ldap_bind_dn"></Input>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="Bind password">
-                  <Row>
-                    <Col span="12">
-                      <Input
-                        v-model="formDataSource.ldap_bind_password"
-                        type="password"
-                        password
-                      ></Input>
-                    </Col>
-                    <Col span="1"> </Col>
-                    <Col span="6">
-                      <Button
-                        type="success"
-                        @click="LdapTest('connection')"
-                        :loading="loadingLdapTestConnection"
-                        >验证</Button
-                      >
-                    </Col>
-                  </Row>
-                </FormItem>
-              </span>
-              <!-- LDAP 用户 -->
-              <span v-if="formDataSource.user_source == 'ldap'">
-                <Divider>LDAP 用户</Divider>
-                <FormItem label="Base DN">
-                  <Row>
-                    <Col span="12">
-                      <Input v-model="formDataSource.user_base_dn"></Input>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="Search filter">
-                  <Row>
-                    <Col span="12">
-                      <Input
-                        v-model="formDataSource.user_search_filter"
-                      ></Input>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="Attributes">
-                  <Row>
-                    <Col span="12">
-                      <Input v-model="formDataSource.user_attributes"></Input>
-                    </Col>
-                    <Col span="1"> </Col>
-                    <Col span="6">
-                      <Button
-                        type="success"
-                        @click="LdapTest('user')"
-                        :loading="loadingLdapTestUser"
-                        >验证</Button
-                      >
-                    </Col>
-                  </Row>
-                </FormItem>
-              </span>
-              <!-- LDAP 分组 -->
-              <span v-if="formDataSource.group_source == 'ldap'">
-                <Divider>LDAP 分组</Divider>
-                <FormItem label="Base DN">
-                  <Row>
-                    <Col span="12">
-                      <Input v-model="formDataSource.group_base_dn"></Input>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="Search filter">
-                  <Row>
-                    <Col span="12">
-                      <Input
-                        v-model="formDataSource.group_search_filter"
-                      ></Input>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="Attributes">
-                  <Row>
-                    <Col span="12">
-                      <Input v-model="formDataSource.group_attributes"></Input>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="Groups to user attribute">
-                  <Row>
-                    <Col span="12">
-                      <Input
-                        v-model="formDataSource.groups_to_user_attribute"
-                      ></Input>
-                    </Col>
-                    <Col span="1"> </Col>
-                    <Col span="6">
-                      <Tooltip
-                        :transfer="true"
-                        max-width="250"
-                        content="分组下包含多个对象 具备此属性的对象才可被识别为分组的成员 如 member"
-                      >
-                        <Button type="info">说明</Button>
-                      </Tooltip>
-                    </Col>
-                  </Row>
-                </FormItem>
-                <FormItem label="Groups to user attribute value">
-                  <Row>
-                    <Col span="12">
-                      <Input
-                        v-model="formDataSource.groups_to_user_attribute_value"
-                      ></Input>
-                    </Col>
-                    <Col span="1"> </Col>
-                    <Col span="8">
-                      <Row>
-                        <Col span="11">
-                          <Tooltip
-                            :transfer="true"
-                            max-width="250"
-                            content="表示分组下的成员的唯一标识的属性 如 distinguishedName"
-                          >
-                            <Button type="info">说明</Button>
-                          </Tooltip>
-                        </Col>
-                        <Col span="2"> </Col>
-                        <Col span="11">
-                          <Button
-                            type="success"
-                            @click="LdapTest('group')"
-                            :loading="loadingLdapTestGroup"
-                            >验证</Button
-                          >
-                        </Col>
-                      </Row>
-                    </Col>
-                  </Row>
-                </FormItem>
-              </span>
-              <!-- 保存 -->
-              <FormItem>
-                <Button
-                  type="primary"
-                  @click="UpdUsersourceInfo"
-                  :loading="loadingUpdLdapInfo"
-                  >保存</Button
-                >
               </FormItem>
             </Form>
           </Card>

@@ -169,16 +169,24 @@ class Base
          * 9、检查关键目录/文件是否可读写
          */
         if ($parm['controller_prefix'] . '/' . $parm['action'] == 'Common/Login') {
+            $continue = [
+                'svnserve_pid_file',
+                'httpd_pid_file',
+                'saslauthd_pid_file',
+                'apache_modules_path',
+                'apache_subversion_file'
+            ];
             foreach ($configSvn as $key => $value) {
                 if (is_array($value)) {
+                    continue;
+                }
+                if (in_array($key, $continue)) {
                     continue;
                 }
                 if (substr($key, -5) == '_path') {
                     if (!is_writable($value)) {
                         json1(200, 0, sprintf('目录[%s]不存在或不可写', $value));
                     }
-                } else if (substr($key, -9) == '_pid_file') {
-                    continue;
                 } else if (substr($key, -5) == '_file') {
                     if (!is_writable($value)) {
                         json1(200, 0, sprintf('文件[%s]不存在或不可写', $value));

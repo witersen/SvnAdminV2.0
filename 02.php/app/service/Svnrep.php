@@ -108,22 +108,31 @@ class Svnrep extends Base
      */
     public function GetSvnserveStatus()
     {
-        clearstatcache();
-
-        $statusRun = true;
-
-        if (!file_exists($this->configSvn['svnserve_pid_file'])) {
-            $statusRun = false;
-        } else {
-            $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
-            if (is_dir("/proc/$pid")) {
-                $statusRun = true;
-            } else {
-                $statusRun = false;
-            }
+        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
+        if (is_numeric($passworddb)) {
+            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
         }
 
-        return message(200, 1, $statusRun ? '服务正常' : 'svnserve服务未在运行，出于安全原因，SVN用户将无法使用系统的仓库在线内容浏览功能，其它功能不受影响', $statusRun);
+        if ($passworddb == 'passwd') {
+            clearstatcache();
+
+            $statusRun = true;
+
+            if (!file_exists($this->configSvn['svnserve_pid_file'])) {
+                $statusRun = false;
+            } else {
+                $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
+                if (is_dir("/proc/$pid")) {
+                    $statusRun = true;
+                } else {
+                    $statusRun = false;
+                }
+            }
+
+            return message(200, 1, $statusRun ? '服务正常' : 'svnserve服务未在运行，出于安全原因，SVN用户将无法使用系统的仓库在线内容浏览功能，其它功能不受影响', $statusRun);
+        } else {
+            return message();
+        }
     }
 
     /**

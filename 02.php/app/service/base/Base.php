@@ -989,7 +989,7 @@ class Base
             'necessary_functions' => [],
             'children' => [
                 [
-                    'title' => 'Subversion',
+                    'title' => 'svnserve【svn协议检出】',
                     'expand' => false,
                     'checked' => false,
                     'disabled' => true,
@@ -1001,11 +1001,23 @@ class Base
                         'Setting/UpdSvnserveHost',
                         'Setting/UpdManageHost',
                         'Setting/UpdCheckoutHost',
+                        'Setting/UpdSvnEnable'
                     ],
                     'children' => []
                 ],
                 [
-                    'title' => 'saslauthd',
+                    'title' => 'mod_dav_svn【http协议检出】',
+                    'expand' => false,
+                    'checked' => false,
+                    'disabled' => true,
+                    'necessary_functions' => [
+                        'Setting/GetApacheInfo',
+                        'Setting/UpdSubversionEnable'
+                    ],
+                    'children' => []
+                ],
+                [
+                    'title' => 'saslauthd【第三方认证】',
                     'expand' => false,
                     'checked' => false,
                     'disabled' => true,
@@ -1013,6 +1025,9 @@ class Base
                         'Setting/GetSaslInfo',
                         'Setting/UpdSaslStatusStart',
                         'Setting/UpdSaslStatusStop',
+                        'Setting/GetUsersourceInfo',
+                        'Setting/UpdUsersourceInfo',
+                        'Setting/LdapTest',
                     ],
                     'children' => []
                 ],
@@ -1058,18 +1073,6 @@ class Base
                     'necessary_functions' => [
                         'Setting/GetSafeInfo',
                         'Setting/UpdSafeInfo'
-                    ],
-                    'children' => []
-                ],
-                [
-                    'title' => '用户来源',
-                    'expand' => false,
-                    'checked' => false,
-                    'disabled' => true,
-                    'necessary_functions' => [
-                        'Setting/GetUsersourceInfo',
-                        'Setting/UpdUsersourceInfo',
-                        'Setting/LdapTest',
                     ],
                     'children' => []
                 ],
@@ -1405,5 +1408,25 @@ class Base
     public function ReloadAuthz()
     {
         $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
+    }
+
+    /**
+     * 重读passwd的值
+     *
+     * @return void
+     */
+    public function ReloadPasswd()
+    {
+        $this->passwdContent = file_get_contents($this->configSvn['svn_passwd_file']);
+    }
+
+    /**
+     * 重读httppasswd的值
+     *
+     * @return void
+     */
+    public function ReloadHttpPasswd()
+    {
+        $this->httpPasswdContent = file_get_contents($this->configSvn['http_passwd_file']);
     }
 }

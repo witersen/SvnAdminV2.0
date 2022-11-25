@@ -19,5 +19,6 @@ return [
     'svnmucc' => '/usr/bin/svnmucc',
     'svnauthz-validate' => '/usr/bin/svn-tools/svnauthz-validate',
     'saslauthd' => '/usr/sbin/saslauthd',
-    'httpd' => '/usr/sbin/httpd'
+    'httpd' => '/usr/sbin/httpd',
+    'htpasswd' => '/usr/bin/htpasswd'
 ];

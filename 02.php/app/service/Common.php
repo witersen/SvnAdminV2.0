@@ -13,6 +13,8 @@ use Config;
 use Verifycode;
 use app\service\Ldap as ServiceLdap;
 use app\service\Usersource as ServiceUsersource;
+use app\service\Svn as ServiceSvn;
+use app\service\Apache as ServiceApache;
 
 class Common extends Base
 {
@@ -21,23 +23,27 @@ class Common extends Base
      *
      * @var object
      */
-    private $Svnuser;
+    // private $Svnuser;
     private $Logs;
     private $Mail;
     private $Setting;
     private $ServiceLdap;
     private $ServiceUsersource;
+    private $ServiceSvn;
+    private $ServiceApache;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
-        $this->Svnuser = new Svnuser($parm);
+        // $this->Svnuser = new Svnuser($parm);
         $this->Logs = new Logs($parm);
         $this->Mail = new Mail($parm);
         $this->Setting = new Setting($parm);
         $this->ServiceLdap = new ServiceLdap($parm);
         $this->ServiceUsersource = new ServiceUsersource($parm);
+        $this->ServiceSvn = new ServiceSvn($parm);
+        $this->ServiceApache = new ServiceApache($parm);
     }
 
     /**
@@ -82,13 +88,13 @@ class Common extends Base
                 ], [
                     'uuid' => $this->payload['uuid']
                 ]);
-                return message(200, 0, '验证码错误', $endTime);
+                return message(200, 0, '登录失败[验证码错误]', $endTime);
             }
             if ($endTime == 0) {
-                return message(200, 0, '验证码仅可用一次');
+                return message(200, 0, '登陆失败[验证码失效]');
             }
             if ($endTime < time()) {
-                return message(200, 0, '验证码过期');
+                return message(200, 0, '登陆失败[验证码过期]');
             }
         }
 
@@ -104,7 +110,7 @@ class Common extends Base
                 'admin_user_password' => $userPass
             ]);
             if (empty($result)) {
-                return message(200, 0, '账号或密码错误');
+                return message(200, 0, '登录失败[账号或密码错误]');
             }
 
             //更新token
@@ -120,11 +126,11 @@ class Common extends Base
                     'svn_user_name' => $userName,
                 ]);
                 if (empty($result)) {
-                    return message(200, 0, 'ldap账户错误或信息未同步本系统');
+                    return message(200, 0, '登录失败[ldap账户未同步]');
                 }
 
                 if (!$this->ServiceLdap->LdapUserLogin($userName, $userPass)) {
-                    return message(200, 0, 'ldap账户认证失败');
+                    return message(200, 0, '登录失败[ldap账户认证失败]');
                 }
 
                 $this->database->update('svn_users', [
@@ -134,21 +140,52 @@ class Common extends Base
                 ]);
 
                 if (strstr($userName, '|')) {
-                    return message(200, 0, 'ldap账户认证成功-用户名不符合本系统要求');
+                    return message(200, 0, '登录失败[ldap账户名不合法]');
                 }
             } else {
-                $result = $this->database->get('svn_users', [
-                    'svn_user_id',
-                    'svn_user_status'
-                ], [
-                    'svn_user_name' => $userName,
-                    'svn_user_pass' => $userPass
-                ]);
-                if (empty($result)) {
-                    return message(200, 0, '账号或密码错误');
+                $passworddb = $this->ServiceSvn->GetPasswddbInfo();
+                if (is_numeric($passworddb)) {
+                    return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
                 }
-                if ($result['svn_user_status'] == 0) {
-                    return message(200, 0, '用户已过期');
+
+                if ($passworddb == 'passwd') {
+                    $result = $this->database->get('svn_users', [
+                        'svn_user_id',
+                        'svn_user_status'
+                    ], [
+                        'svn_user_name' => $userName,
+                        'svn_user_pass' => $userPass
+                    ]);
+                    if (empty($result)) {
+                        return message(200, 0, '登录失败[账号或密码错误]');
+                    }
+                    if ($result['svn_user_status'] == 0) {
+                        return message(200, 0, '登录失败[用户已过期]');
+                    }
+                } else {
+                    $result = $this->ServiceApache->Auth($userName, $userPass);
+                    if ($result['status'] != 1) {
+                        return message2($result);
+                    }
+
+                    $result = $this->database->get('svn_users', [
+                        'svn_user_id',
+                        'svn_user_status'
+                    ], [
+                        'svn_user_name' => $userName
+                    ]);
+                    if (empty($result)) {
+                        return message(200, 0, '登录失败[用户未同步]');
+                    }
+                    if ($result['svn_user_status'] == 0) {
+                        return message(200, 0, '登录失败[用户已过期]');
+                    }
+
+                    $this->database->update('svn_users', [
+                        'svn_user_pass' => $userPass
+                    ], [
+                        'svn_user_name' => $userName
+                    ]);
                 }
             }
 
@@ -176,10 +213,10 @@ class Common extends Base
                 'subadmin_password' => md5($userPass)
             ]);
             if (empty($result)) {
-                return message(200, 0, '账号或密码错误');
+                return message(200, 0, '登录失败[账号或密码错误]');
             }
             if ($result['subadmin_status'] == 0) {
-                return message(200, 0, '用户已过期');
+                return message(200, 0, '登录失败[用户已过期]');
             }
 
             //更新登录时间
