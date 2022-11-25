@@ -77,6 +77,8 @@ class Base
     //svn配置文件
     public $authzContent;
     public $passwdContent;
+    public $httpPasswdContent;
+    public $svnserveContent;
 
     //medoo
     public $database;
@@ -1285,6 +1287,8 @@ class Base
          */
         $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
         $this->passwdContent = file_get_contents($this->configSvn['svn_passwd_file']);
+        $this->httpPasswdContent = file_get_contents($this->configSvn['http_passwd_file']);
+        $this->svnserveContent = file_get_contents($this->configSvn['svn_conf_file']);
 
         /**
          * 9、获取payload

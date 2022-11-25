@@ -119,9 +119,9 @@ class Usersource extends Base
 
                 //重启saslauthd
                 $result = $this->ServiceSasl->UpdSaslStatusStop();
-                if ($result['status'] != 1) {
-                    return message($result['code'], $result['status'], $result['message'], $result['data']);
-                }
+                // if ($result['status'] != 1) {
+                //     return message($result['code'], $result['status'], $result['message'], $result['data']);
+                // }
                 sleep(1);
                 $result = $this->ServiceSasl->UpdSaslStatusStart();
                 if ($result['status'] != 1) {

@@ -16,6 +16,7 @@ use app\service\Ldap as ServiceLdap;
 use app\service\Sasl as ServiceSasl;
 use app\service\Svn as ServiceSvn;
 use app\service\Usersource as ServiceUsersource;
+use app\service\Apache as ServiceApache;
 
 class Setting extends Base
 {
@@ -31,6 +32,7 @@ class Setting extends Base
     private $ServiceSasl;
     private $ServiceSvn;
     private $ServiceUsersource;
+    private $ServiceApache;
 
     function __construct($parm)
     {
@@ -43,6 +45,7 @@ class Setting extends Base
         $this->ServiceSasl = new ServiceSasl($parm);
         $this->ServiceSvn = new ServiceSvn($parm);
         $this->ServiceUsersource = new ServiceUsersource($parm);
+        $this->ServiceApache = new ServiceApache($parm);
     }
 
     /**
@@ -267,6 +270,39 @@ class Setting extends Base
     public function UpdSaslStatusStop()
     {
         $result = $this->ServiceSasl->UpdSaslStatusStop();
+        json2($result);
+    }
+
+    /**
+     * 获取 apache 服务器信息
+     *
+     * @return void
+     */
+    public function GetApacheInfo()
+    {
+        $result = $this->ServiceApache->GetApacheInfo();
+        json2($result);
+    }
+
+    /**
+     * 启用 http 协议检出
+     *
+     * @return void
+     */
+    public function UpdSubversionEnable()
+    {
+        $result = $this->ServiceApache->UpdSubversionEnable();
+        json2($result);
+    }
+
+    /**
+     * 启用 svn 协议检出
+     *
+     * @return void
+     */
+    public function UpdSvnEnable()
+    {
+        $result = $this->ServiceSvn->UpdSvnEnable();
         json2($result);
     }
 }

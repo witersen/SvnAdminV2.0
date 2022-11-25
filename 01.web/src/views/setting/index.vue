@@ -2,7 +2,7 @@
   <div>
     <Card :bordered="false" :dis-hover="true">
       <Tabs v-model="currentAdvanceTab" @on-click="SetCurrentAdvanceTab">
-        <TabPane label="svnserve【svn协议】" name="1">
+        <TabPane label="svnserve【svn协议检出】" name="1">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="100" label-position="left">
               <FormItem label="svnserve">
@@ -15,7 +15,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="可在命令行模式下执行 server/insta.php 进行Subversion安装和初始化等操作"
+                      content="可在命令行模式下执行 server/install.php 进行 svnserve 安装和初始化等操作"
                     >
                       <Button type="info">说明</Button>
                     </Tooltip>
@@ -137,7 +137,7 @@
                 <Row>
                   <Col span="12">
                     <RadioGroup
-                      v-model="formSvn.enable"
+                      v-model="formSvn.currentHost"
                       @on-change="UpdCheckoutHost"
                     >
                       <Radio label="bindHost">绑定主机</Radio>
@@ -147,10 +147,125 @@
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
+              <FormItem label="关联用户文件">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formSvn.passwordDb }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="svn协议检出默认情况下使用明文密码的用户认证文件"
+                    >
+                      <Button type="info">说明</Button>
+                    </Tooltip>
+                  </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="协议启用状态">
+                <Row>
+                  <Col span="12">
+                    <span style="color: #f90" v-if="!formSvn.enable"
+                      >未启用</span
+                    >
+                    <span style="color: #19be6b" v-if="formSvn.enable"
+                      >启用中</span
+                    >
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Button
+                      :loading="loadingUpdSvnEnable"
+                      type="success"
+                      v-if="!formSvn.enable"
+                      @click="UpdSvnEnable"
+                      >启用</Button
+                    >
+                  </Col>
+                </Row>
+              </FormItem>
             </Form>
           </Card>
         </TabPane>
-
+        <TabPane label="mod_dav_svn【http协议检出】" name="2">
+          <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Form :label-width="100" label-position="left">
+              <FormItem label="httpd">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formApache.version }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6"> </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="svn相关模块">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formApache.modules }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6"> </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="安装模块目录">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formApache.modulesPath }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6"> </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="关联用户文件">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formApache.passwordDb }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="http协议检出默认情况下使用密文密码的用户认证文件"
+                    >
+                      <Button type="info">说明</Button>
+                    </Tooltip>
+                  </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="协议启用状态">
+                <Row>
+                  <Col span="12">
+                    <span style="color: #f90" v-if="!formApache.enable"
+                      >未启用</span
+                    >
+                    <span style="color: #19be6b" v-if="formApache.enable"
+                      >启用中</span
+                    >
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Button
+                      :loading="loadingUpdSubversionEnable"
+                      type="success"
+                      v-if="!formApache.enable"
+                      @click="UpdSubversionEnable"
+                      >启用</Button
+                    >
+                  </Col>
+                </Row>
+              </FormItem>
+            </Form>
+          </Card>
+        </TabPane>
         <TabPane label="saslauthd" name="3">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert>saslauthd服务用于svn服务器接入ldap等认证使用</Alert>
@@ -971,6 +1086,11 @@ export default {
       tempLdapUsersGroups: "",
 
       /**
+       * 定时器
+       */
+      timer: null,
+
+      /**
        * 控制修改状态
        */
       disabledEditPort: true,
@@ -1030,6 +1150,10 @@ export default {
       //sasl
       loadingUpdSaslStatusStart: false,
       loadingUpdSaslStatusStop: false,
+      //启用 svn 协议检出
+      loadingUpdSvnEnable: false,
+      //启用 http 协议检出
+      loadingUpdSubversionEnable: false,
 
       /**
        * subversion信息
@@ -1039,8 +1163,10 @@ export default {
         bindPort: "",
         bindHost: "",
         manageHost: "",
-        enable: "",
+        currentHost: "",
         svnserveLog: "",
+        passwordDb: "",
+        enable: false,
       },
 
       /**
@@ -1133,6 +1259,14 @@ export default {
         mechanisms: "",
         status: false,
       },
+      //apache
+      formApache: {
+        version: "",
+        modules: "",
+        modulesPath: "",
+        passwordDb: "",
+        enable: false,
+      },
     };
   },
   computed: {},
@@ -1144,6 +1278,7 @@ export default {
       this.currentAdvanceTab = sessionStorage.currentAdvanceTab;
     }
     this.GetSvnserveInfo();
+    this.GetApacheInfo();
     this.GetDirInfo();
     this.GetMailInfo();
     this.GetMailPushInfo();
@@ -1160,7 +1295,7 @@ export default {
       this.currentAdvanceTab = name;
     },
     /**
-     * 获取subversion的详细信息
+     * 获取 svnserve 的详细信息
      */
     GetSvnserveInfo() {
       var that = this;
@@ -1179,6 +1314,10 @@ export default {
             that.disabledEditPort = true;
             that.disabledEditHost = true;
             that.disabledEditManageHost = true;
+            if (that.timer) {
+              that.$Message.success(result.message);
+              clearInterval(that.timer);
+            }
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -1893,6 +2032,101 @@ export default {
             })
             .catch(function (error) {
               that.loadingUpdSaslStatusStop = false;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        },
+      });
+    },
+    /**
+     * 获取 apache 服务器信息
+     */
+    GetApacheInfo() {
+      var that = this;
+      var data = {};
+      that.$axios
+        .post("/api.php?c=Setting&a=GetApacheInfo&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          if (result.status == 1) {
+            that.formApache = result.data;
+            if (that.timer) {
+              that.$Message.success(result.message);
+              clearInterval(that.timer);
+            }
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 启用 http 协议检出
+     */
+    UpdSubversionEnable() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "警告",
+        content: "启用 http 协议检出将会使用另外的用户密码文件。是否继续？",
+        onOk: () => {
+          that.loadingUpdSubversionEnable = true;
+          var data = {};
+          that.$axios
+            .post("/api.php?c=Setting&a=UpdSubversionEnable&t=web", data)
+            .then(function (response) {
+              var result = response.data;
+              that.loadingUpdSubversionEnable = false;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetApacheInfo();
+                that.GetSvnserveInfo();
+              } else {
+                that.$Message.error({ content: result.message, duration: 2 });
+              }
+            })
+            .catch(function (error) {
+              that.loadingUpdSubversionEnable = false;
+              console.log(error);
+              that.timer = window.setInterval(() => {
+                setTimeout(function () {
+                  that.GetApacheInfo();
+                  that.GetSvnserveInfo();
+                }, 0);
+              }, 1000);
+              that.$Message.success("等待httpd服务重启");
+            });
+        },
+      });
+    },
+    /**
+     * 启用 svn 协议检出
+     */
+    UpdSvnEnable() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "警告",
+        content: "启用 svn 协议检出将会使用另外的用户密码文件。是否继续？",
+        onOk: () => {
+          that.loadingUpdSvnEnable = true;
+          var data = {};
+          that.$axios
+            .post("/api.php?c=Setting&a=UpdSvnEnable&t=web", data)
+            .then(function (response) {
+              var result = response.data;
+              that.loadingUpdSvnEnable = false;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetApacheInfo();
+                that.GetSvnserveInfo();
+              } else {
+                that.$Message.error({ content: result.message, duration: 2 });
+              }
+            })
+            .catch(function (error) {
+              that.loadingUpdSvnEnable = false;
               console.log(error);
               that.$Message.error("出错了 请联系管理员！");
             });

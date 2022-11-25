@@ -12,6 +12,7 @@ namespace app\service;
 use app\service\Logs as ServiceLogs;
 use app\service\Ldap as ServiceLdap;
 use app\service\Usersource as ServiceUsersource;
+use app\service\Svn as ServiceSvn;
 
 class Svnuser extends Base
 {
@@ -28,9 +29,10 @@ class Svnuser extends Base
     {
         parent::__construct($parm);
 
-        $this->ServiceLogs = new ServiceLogs();
-        $this->ServiceLdap = new ServiceLdap();
-        $this->ServiceUsersource = new ServiceUsersource();
+        $this->ServiceLogs = new ServiceLogs($parm);
+        $this->ServiceLdap = new ServiceLdap($parm);
+        $this->ServiceUsersource = new ServiceUsersource($parm);
+        $this->ServiceSvn = new ServiceSvn($parm);
     }
 
     /**
@@ -41,14 +43,23 @@ class Svnuser extends Base
     public function SyncUser()
     {
         $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
+        if (is_numeric($passworddb)) {
+            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
+        }
 
         if ($dataSource['user_source'] == 'ldap') {
             $result = $this->SyncLdapToDb();
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
-        } else {
+        } else if ($passworddb == 'passwd') {
             $result = $this->SyncPasswdToDb();
+            if ($result['status'] != 1) {
+                return message($result['code'], $result['status'], $result['message'], $result['data']);
+            }
+        } else if ($passworddb == 'httpPasswd') {
+            $result = $this->SyncHttpPasswdToDb();
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
@@ -58,7 +69,7 @@ class Svnuser extends Base
     }
 
     /**
-     * 用户(passwd) ==> db
+     * 用户(passwd) => db
      *
      * @return array
      */
@@ -220,6 +231,93 @@ class Svnuser extends Base
                 'svn_user_status' => 1,
                 'svn_user_note' => ''
             ]);
+        }
+
+        return message();
+    }
+
+    /**
+     * 用户(httpPasswd) => db 
+     *
+     * @return array
+     */
+    private function SyncHttpPasswdToDb()
+    {
+        /**
+         * 删除数据表重复插入的项
+         */
+        $dbUserList = $this->database->select('svn_users', [
+            'svn_user_id',
+            'svn_user_name',
+            'svn_user_pass',
+            'svn_user_status',
+            'svn_user_note'
+        ], [
+            'GROUP' => [
+                'svn_user_name'
+            ]
+        ]);
+        $dbUserListAll = $this->database->select('svn_users', [
+            'svn_user_id',
+            'svn_user_name',
+        ]);
+
+        $duplicates = array_diff(array_column($dbUserListAll, 'svn_user_id'), array_column($dbUserList, 'svn_user_id'));
+        foreach ($duplicates as $value) {
+            $this->database->delete('svn_users', [
+                'svn_user_id' => $value,
+            ]);
+        }
+
+        /**
+         * 数据对比增删改
+         */
+        $old = array_column($dbUserList, 'svn_user_name');
+        $oldCombin = array_combine($old, $dbUserList);
+        $svnUserList =  $this->SVNAdmin->GetUserInfoHttp($this->httpPasswdContent);
+        if (is_numeric($svnUserList)) {
+            if ($svnUserList == 710) {
+                return message(200, 0, '用户不存在');
+            } else {
+                return message(200, 0, "错误码$svnUserList");
+            }
+        }
+        $new = array_column($svnUserList, 'userName');
+        $newCombin = array_combine($new, $svnUserList);
+
+        //删除
+        $delete = array_diff($old, $new);
+        foreach ($delete as $value) {
+            $this->database->delete('svn_users', [
+                'svn_user_name' => $value,
+            ]);
+        }
+
+        //新增
+        $create = array_diff($new, $old);
+        foreach ($create as $value) {
+            $this->database->insert('svn_users', [
+                'svn_user_name' => $value,
+                'svn_user_pass' => $newCombin[$value]['userPass'],
+                'svn_user_status' => $newCombin[$value]['disabled'] == 1 ? 0 : 1,
+                'svn_user_note' => ''
+            ]);
+        }
+
+        //更新
+        $update = array_intersect($old, $new);
+        foreach ($update as $value) {
+            if (
+                $oldCombin[$value]['svn_user_pass'] != $newCombin[$value]['userPass'] ||
+                $oldCombin[$value]['svn_user_status'] != ($newCombin[$value]['disabled'] == 1 ? 0 : 1)
+            ) {
+                $this->database->update('svn_users', [
+                    'svn_user_pass' => $newCombin[$value]['userPass'],
+                    'svn_user_status' => $newCombin[$value]['disabled'] == 1 ? 0 : 1,
+                ], [
+                    'svn_user_name' => $value
+                ]);
+            }
         }
 
         return message();
@@ -515,19 +613,38 @@ class Svnuser extends Base
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
 
-        //status true 启用用户 false 禁用用户
-        $result = $this->SVNAdmin->UpdUserStatus($this->passwdContent, $this->payload['svn_user_name'], !$this->payload['status']);
-        if (is_numeric($result)) {
-            if ($result == 621) {
-                return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($result == 710) {
-                return message(200, 0, '用户不存在');
-            } else {
-                return message(200, 0, "错误码$result");
-            }
+        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
+        if (is_numeric($passworddb)) {
+            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
         }
 
-        funFilePutContents($this->configSvn['svn_passwd_file'], $result);
+        if ($passworddb == 'passwd') {
+            //status true 启用用户 false 禁用用户
+            $result = $this->SVNAdmin->UpdUserStatus($this->passwdContent, $this->payload['svn_user_name'], !$this->payload['status']);
+            if (is_numeric($result)) {
+                if ($result == 621) {
+                    return message(200, 0, '文件格式错误(不存在[users]标识)');
+                } else if ($result == 710) {
+                    return message(200, 0, '用户不存在');
+                } else {
+                    return message(200, 0, "错误码$result");
+                }
+            }
+
+            funFilePutContents($this->configSvn['svn_passwd_file'], $result);
+        } else {
+            //status true 启用用户 false 禁用用户
+            $result = $this->SVNAdmin->UpdUserStatusHttp($this->httpPasswdContent, $this->payload['svn_user_name'], !$this->payload['status']);
+            if (is_numeric($result)) {
+                if ($result == 710) {
+                    return message(200, 0, '用户不存在');
+                } else {
+                    return message(200, 0, "错误码$result");
+                }
+            }
+
+            funFilePutContents($this->configSvn['http_passwd_file'], $result);
+        }
 
         $this->database->update('svn_users', [
             'svn_user_status' => $this->payload['status'] ? 1 : 0,

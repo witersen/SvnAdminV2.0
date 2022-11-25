@@ -45,9 +45,19 @@ return [
     'svn_passwd_file' => $home . 'passwd',
 
     /**
+     * httpPasswd文件
+     */
+    'http_passwd_file' => $home . 'httpPasswd',
+
+    /**
      * svnserve pid文件
      */
     'svnserve_pid_file' => $home . 'svnserve.pid',
+
+    /**
+     * httpd pid文件
+     */
+    'httpd_pid_file' => '/run/httpd/httpd.pid',
 
     /**
      * svnserve 自启动文件

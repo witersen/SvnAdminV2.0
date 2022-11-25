@@ -14,6 +14,7 @@ namespace app\service;
 use app\service\Svn as ServiceSvn;
 use app\service\Logs as ServiceLogs;
 use app\service\Usersource as ServiceUsersource;
+// use app\service\Apache as ServiceApache;
 
 class Svnrep extends Base
 {
@@ -25,14 +26,16 @@ class Svnrep extends Base
     private $ServiceSvn;
     private $ServiceLogs;
     private $ServiceUsersource;
+    // private $ServiceApache;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
-        $this->ServiceSvn = new ServiceSvn();
-        $this->ServiceLogs = new ServiceLogs();
+        $this->ServiceSvn = new ServiceSvn($parm);
+        $this->ServiceLogs = new ServiceLogs($parm);
         $this->ServiceUsersource = new ServiceUsersource($parm);
+        // $this->ServiceApache = new ServiceApache($parm);
     }
 
     /**
@@ -66,7 +69,7 @@ class Svnrep extends Base
         //获取绑定主机、端口等信息
         $bindInfo = $this->ServiceSvn->GetSvnserveListen();
 
-        //获取Subversion版本
+        //获取 svnserve 版本
         $version = '-';
         $result = funShellExec(sprintf("'%s' --version", $this->configBin['svnserve']));
         if ($result['code'] == 0) {
@@ -81,14 +84,22 @@ class Svnrep extends Base
             }
         }
 
+        //获取 svn 协议启用状态
+        $result = $this->ServiceSvn->GetPasswddbInfo('passwd');
+        if (is_numeric($result)) {
+            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 1, $result));
+        }
+
         return message(200, 1, '成功', [
             'version' => $version,
             'status' => $this->GetSvnserveStatus()['data'],
             'bindPort' => (int)$bindInfo['bindPort'],
             'bindHost' => $bindInfo['bindHost'],
             'manageHost' => $bindInfo['manageHost'],
-            'enable' => $bindInfo['enable'],
-            'svnserveLog' => $this->configSvn['svnserve_log_file']
+            'currentHost' => $bindInfo['enable'],
+            'svnserveLog' => $this->configSvn['svnserve_log_file'],
+            'passwordDb' => $this->configSvn['svn_passwd_file'],
+            'enable' => $result
         ]);
     }
 
@@ -2110,7 +2121,7 @@ class Svnrep extends Base
         if (!is_writable($hooksPath)) {
             return message(200, 0, sprintf('文件[%s]不可写', $hooksPath));
         }
-        
+
         funFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
 
         return message();

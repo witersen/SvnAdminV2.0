@@ -125,7 +125,7 @@ class Sasl extends Base
             return message();
         }
 
-        $pid = file_get_contents($this->configSvn['saslauthd_pid_file']);
+        $pid = trim(file_get_contents($this->configSvn['saslauthd_pid_file']));
         if (empty($pid)) {
             return message();
         }
@@ -134,7 +134,7 @@ class Sasl extends Base
             return message();
         }
 
-        $result = funShellExec(sprintf("kill -15 '%s'", $pid), true);
+        $result = funShellExec(sprintf("kill -15 %s", $pid), true);
 
         if ($result['code'] != 0) {
             return message(200, 0, 'saslauthd服务停止失败: ' . $result['error']);

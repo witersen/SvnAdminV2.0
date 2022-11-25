@@ -98,6 +98,11 @@ class SVNAdmin
     private $reg_5 = "/^[ \t]*(%s)[ \t]*=[ \t]*(.*)[ \t]*$/m";
 
     /**
+     * @var string 匹配 %s=value 形式
+     */
+    private $reg_8 = "/^[ \t]*(%s)[ \t]*:[ \t]*(.*)[ \t]*$/m";
+
+    /**
      * @var string 匹配 %s= 形式
      */
     private $reg_6 = "/^[ \t]*(%s)[ \t]*=/m";
@@ -1739,6 +1744,48 @@ class SVNAdmin
     }
 
     /**
+     * 获取用户信息 http
+     * 不指定用户则返回所有用户信息
+     *
+     * @param string $passwdContent
+     * @param string $userName
+     * @return array
+     * 
+     * 710      指定用户不存在
+     * array    正常
+     */
+    public function GetUserInfoHttp($passwdContent, $userName = '')
+    {
+        $passwdContent = trim($passwdContent);
+        if (empty($passwdContent)) {
+            return $userName == '' ? [] : 710;
+        } else {
+            preg_match_all(sprintf($this->reg_8, "($this->reg_1)*" . ($userName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($userName))), $passwdContent, $resultPreg);
+            if (preg_last_error() != 0) {
+                return preg_last_error();
+            }
+            if (empty($resultPreg[0])) {
+                return $userName == '' ? [] : 710;
+            }
+            $result = [];
+            foreach ($resultPreg[1] as $key => $value) {
+                $item = [];
+                if (substr($value, 0, strlen($this->reg_1)) == $this->reg_1) {
+                    $item['userName'] = substr($value, strlen($this->reg_1));
+                    $item['userPass'] = $resultPreg[3][$key];
+                    $item['disabled'] = '1';
+                } else {
+                    $item['userName'] = $value;
+                    $item['userPass'] = $resultPreg[3][$key];
+                    $item['disabled'] = '0';
+                }
+                $result[] = $item;
+            }
+            return $userName == '' ? $result : (empty($result) ? 710 : $result[0]);
+        }
+    }
+
+    /**
      * 修改指定用户的密码
      *
      * @param string $passwdContent
@@ -1780,6 +1827,39 @@ class SVNAdmin
     }
 
     /**
+     * 修改指定用户的密码 http
+     *
+     * @param string $passwdContent
+     * @param string $userName
+     * @param string $userPass
+     * @param boolean $isDisabledUser
+     * @return string|int
+     * 
+     * 710      用户不存在
+     * string   正常
+     */
+    public function UpdUserPassHttp($passwdContent, $userName, $userPass, $isDisabledUser = false)
+    {
+        $userName = trim($userName);
+        $userName = $isDisabledUser ? ($this->reg_1 . $userName) : $userName;
+
+        $passwdContent = trim($passwdContent);
+        if (empty($passwdContent)) {
+            return 710;
+        } else {
+            preg_match_all(sprintf($this->reg_8, preg_quote($userName)), $passwdContent, $resultPreg);
+            if (preg_last_error() != 0) {
+                return preg_last_error();
+            }
+            if (array_key_exists(0, $resultPreg[0])) {
+                return trim(preg_replace(sprintf($this->reg_8, preg_quote($userName)), "$userName:$userPass", $passwdContent)) . "\n";
+            } else {
+                return 710;
+            }
+        }
+    }
+
+    /**
      * 启用或禁用用户
      *
      * @param $passwdContent
@@ -1817,6 +1897,38 @@ class SVNAdmin
             }
         } else {
             return 621;
+        }
+    }
+
+    /**
+     * 启用或禁用用户 http
+     *
+     * @param $passwdContent
+     * @param $userName
+     * @param $disable true 原来为启用状态现在要禁用 false 原来为禁用状态现在要启用
+     * @return int|string
+     *
+     * 710      用户不存在
+     * string   正常
+     */
+    public function UpdUserStatusHttp($passwdContent, $userName, $disable = false)
+    {
+        $userName = trim($userName);
+        $passwdContent = trim($passwdContent);
+        if (empty($passwdContent)) {
+            return 710;
+        } else {
+            $preg = $disable ? $userName : ($this->reg_1 . $userName);
+            preg_match_all(sprintf($this->reg_8, preg_quote($preg)), $passwdContent, $resultPreg);
+            if (preg_last_error() != 0) {
+                return preg_last_error();
+            }
+            if (array_key_exists(0, $resultPreg[0])) {
+                $replace = ($disable ? $this->reg_1 : '') . $userName . ':' . $resultPreg[2][0];
+                return trim(preg_replace(sprintf($this->reg_8, preg_quote($preg)), $replace, $passwdContent)) . "\n";
+            } else {
+                return 710;
+            }
         }
     }
 
