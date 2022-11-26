@@ -53,6 +53,7 @@ class Sasl extends Base
             $statusRun = false;
         } else {
             $pid = trim(file_get_contents($this->configSvn['saslauthd_pid_file']));
+            clearstatcache();
             if (is_dir("/proc/$pid")) {
                 $statusRun = true;
             } else {
@@ -80,6 +81,7 @@ class Sasl extends Base
 
         if (file_exists($this->configSvn['saslauthd_pid_file'])) {
             $pid = trim(file_get_contents($this->configSvn['saslauthd_pid_file']));
+            clearstatcache();
             if (is_dir("/proc/$pid")) {
                 return message(200, 0, '服务运行中');
             }
@@ -100,6 +102,8 @@ class Sasl extends Base
         if ($result['code'] != 0) {
             return message(200, 0, '启动进程失败: ' . $result['error']);
         }
+
+        sleep(1);
 
         $result = funShellExec(sprintf("ps aux | grep -v grep | grep %s | awk 'NR==1' | awk '{print $2}'", $unique));
         if ($result['code'] != 0) {
@@ -130,6 +134,7 @@ class Sasl extends Base
             return message();
         }
 
+        clearstatcache();
         if (!is_dir("/proc/$pid")) {
             return message();
         }
@@ -140,6 +145,9 @@ class Sasl extends Base
             return message(200, 0, 'saslauthd服务停止失败: ' . $result['error']);
         }
 
+        sleep(1);
+
+        clearstatcache();
         if (is_dir("/proc/$pid")) {
             return message(200, 0, 'saslauthd服务停止失败');
         }

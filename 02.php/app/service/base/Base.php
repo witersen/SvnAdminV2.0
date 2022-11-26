@@ -62,9 +62,6 @@ use Config;
 use Medoo\Medoo;
 
 use Witersen\SVNAdmin;
-use SVNAdmin\SVN\Group;
-use SVNAdmin\SVN\Rep;
-use SVNAdmin\SVN\User;
 
 class Base
 {
@@ -101,6 +98,16 @@ class Base
 
     //检查
     public $checkService;
+
+    //svnserve
+    public $svnserveHost = '127.0.0.1';
+    public $svnservePort = 3690;
+
+    //主机
+    public $host = '';
+
+    //数据源
+    public $dataSource = [];
 
     /**
      * 子管理员权限树
@@ -1000,7 +1007,6 @@ class Base
                         'Setting/UpdSvnservePort',
                         'Setting/UpdSvnserveHost',
                         'Setting/UpdManageHost',
-                        'Setting/UpdCheckoutHost',
                         'Setting/UpdSvnEnable'
                     ],
                     'children' => []
@@ -1258,12 +1264,14 @@ class Base
     {
         //配置信息
         $this->configBin =  Config::get('bin');                       //可执行文件路径
-        $configDatabase = Config::get('database');              //数据库配置
         $this->configSvn = Config::get('svn');                        //仓库
         $this->configReg = Config::get('reg');                        //正则
         $this->configSign = Config::get('sign');                      //密钥
 
         $this->token = isset($parm['token']) ? $parm['token'] : '';
+
+        global $database;
+        $this->database = $database;
 
         /**
          * 4、用户信息获取
@@ -1276,14 +1284,6 @@ class Base
             $this->userRoleId = $array[0];
             $this->userName = $array[1];
         }
-
-        /**
-         * 6、获取数据库连接
-         */
-        if (array_key_exists('database_file', $configDatabase)) {
-            $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $this->configSvn['home_path']);
-        }
-        $this->database = new Medoo($configDatabase);
 
         /**
          * 8、获取authz和passwd的配置文件信息
@@ -1307,6 +1307,67 @@ class Base
          * 11、检查对象
          */
         $this->checkService = new Check($this->configReg);
+
+        /**
+         * 12、svnserve监听信息
+         */
+        if (preg_match('/--listen-port[\s]+([0-9]+)/', file_get_contents($this->configSvn['svnserve_env_file']), $portMatchs)) {
+            $this->svnservePort = (int)trim($portMatchs[1]);
+        }
+        if (preg_match('/--listen-host[\s]+([\S]+)\b/', file_get_contents($this->configSvn['svnserve_env_file']), $hostMatchs)) {
+            $this->svnserveHost = trim($hostMatchs[1]);
+        }
+
+        /**
+         * 13、host信息
+         */
+        $host = $this->database->get('options', [
+            'option_id',
+            'option_value'
+        ], [
+            'option_name' => 'host'
+        ]);
+        if (empty($host)) {
+            $this->database->insert('options', [
+                'option_value' => 'localhost',
+                'option_name' => 'host',
+            ]);
+
+            $this->host = 'localhost';
+        }
+        $this->host = $host['option_value'];
+
+        /**
+         * 14、数据源
+         */
+        $this->dataSource = $this->database->get('options', 'option_value', [
+            'option_name' => 'data_source'
+        ]);
+        $default = [
+            //数据源
+            'user_source' => 'passwd',
+            'group_source' => 'authz',
+
+            //ldap服务器
+            'ldap_host' => 'ldap://127.0.0.1/',
+            'ldap_port' => 389,
+            'ldap_version' => 3,
+            'ldap_bind_dn' => '',
+            'ldap_bind_password' => '',
+
+            //用户相关
+            'user_base_dn' => '',
+            'user_search_filter' => '',
+            'user_attributes' => '',
+
+            //分组相关
+            'group_base_dn' => '',
+            'group_search_filter' => '',
+            'group_attributes' => '',
+            'groups_to_user_attribute' => '',
+            'groups_to_user_attribute_value' => ''
+        ];
+        $this->dataSource = empty($this->dataSource) ? $default : unserialize($this->dataSource);
     }
 
     /**
@@ -1405,7 +1466,7 @@ class Base
      *
      * @return void
      */
-    public function ReloadAuthz()
+    public function RereadAuthz()
     {
         $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
     }
@@ -1415,7 +1476,7 @@ class Base
      *
      * @return void
      */
-    public function ReloadPasswd()
+    public function RereadPasswd()
     {
         $this->passwdContent = file_get_contents($this->configSvn['svn_passwd_file']);
     }
@@ -1425,8 +1486,23 @@ class Base
      *
      * @return void
      */
-    public function ReloadHttpPasswd()
+    public function RereadHttpPasswd()
     {
         $this->httpPasswdContent = file_get_contents($this->configSvn['http_passwd_file']);
+    }
+
+    /**
+     * 重读svnserve环境变量文件
+     *
+     * @return void
+     */
+    public function RereadSvnserve()
+    {
+        if (preg_match('/--listen-port[\s]+([0-9]+)/', file_get_contents($this->configSvn['svnserve_env_file']), $portMatchs)) {
+            $this->svnservePort = (int)trim($portMatchs[1]);
+        }
+        if (preg_match('/--listen-host[\s]+([\S]+)\b/', file_get_contents($this->configSvn['svnserve_env_file']), $hostMatchs)) {
+            $this->svnserveHost = trim($hostMatchs[1]);
+        }
     }
 }

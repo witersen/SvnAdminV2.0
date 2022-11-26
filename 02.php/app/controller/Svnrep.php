@@ -43,10 +43,7 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取Subversion的检出地址前缀
-     * 
-     * 先从Subversion配置文件获取绑定端口和主机
-     * 然后与listen.json配置文件中的端口和主机进行对比和同步
+     * 获取检出地址前缀
      */
     public function GetCheckout()
     {

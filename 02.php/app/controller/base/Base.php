@@ -76,6 +76,8 @@ class Base
         $configDatabase = Config::get('database');              //数据库配置
         $configSvn = Config::get('svn');                        //仓库
         $configSign = Config::get('sign');                      //密钥
+        
+        global $database;
 
         /**
          * 2、检查接口类型
@@ -107,14 +109,6 @@ class Base
             /**
              * 5、检查特定角色权限路由
              */
-            if (array_key_exists('database_file', $configDatabase)) {
-                $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
-            }
-            try {
-                $database = new Medoo($configDatabase);
-            } catch (\Exception $e) {
-                json1(200, 0, $e->getMessage());
-            }
             $info = explode($configSign['signSeparator'], $parm['token']);
             $userRoleId = $info[0];
             $userName = $info[1];
@@ -135,10 +129,6 @@ class Base
             /**
              * 7、检查是否被顶掉
              */
-            if (array_key_exists('database_file', $configDatabase)) {
-                $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
-            }
-
             if ($userRoleId == 1) {
                 $status = $database->get('admin_users', 'admin_user_token', [
                     'admin_user_name' => $userName,

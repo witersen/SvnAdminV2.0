@@ -311,7 +311,7 @@ class Ldap extends Base
      */
     public function LdapUserLogin($username, $password)
     {
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $dataSource = $this->dataSource;
 
         $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
         if (!$connection) {
@@ -337,7 +337,7 @@ class Ldap extends Base
      */
     public function GetLdapUsers()
     {
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $dataSource = $this->dataSource;
 
         $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
         if (!$connection) {
@@ -385,7 +385,7 @@ class Ldap extends Base
      */
     public function GetLdapGroups($includeMembers = false)
     {
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $dataSource = $this->dataSource;
 
         $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
         if (!$connection) {
@@ -431,7 +431,7 @@ class Ldap extends Base
      */
     public function SyncLdapToAuthz()
     {
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $dataSource = $this->dataSource;
 
         $authzContent = $this->authzContent;
 
@@ -549,7 +549,7 @@ class Ldap extends Base
 
         file_put_contents($this->configSvn['svn_authz_file'], $authzContent);
 
-        parent::ReloadAuthz();
+        parent::RereadAuthz();
 
         return message();
     }

@@ -74,13 +74,6 @@
               <FormItem label="用户名">
                 <Input readonly v-model="formUpdSvnUserPass.userName"></Input>
               </FormItem>
-              <FormItem label="旧密码">
-                <Input
-                  type="password"
-                  password
-                  v-model="formUpdSvnUserPass.oldPassword"
-                ></Input>
-              </FormItem>
               <FormItem label="新密码">
                 <Input
                   type="password"
@@ -240,7 +233,6 @@ export default {
       },
       formUpdSvnUserPass: {
         userName: sessionStorage.user_name,
-        oldPassword: "",
         newPassword: "",
         confirm: "",
       },
@@ -358,7 +350,6 @@ export default {
       that.loadingUpdSvnUserPass = true;
       var data = {
         userName: sessionStorage.user_name,
-        oldPassword: that.formUpdSvnUserPass.oldPassword,
         newPassword: that.formUpdSvnUserPass.newPassword,
         confirm: that.formUpdSvnUserPass.confirm,
       };

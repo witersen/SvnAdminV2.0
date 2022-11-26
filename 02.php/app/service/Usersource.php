@@ -138,11 +138,11 @@ class Usersource extends Base
 
         sleep(1);
 
-        //重启svnserve
+        //重启 svnserve
         $result = $this->ServiceSvn->UpdSvnserveStatusStop();
-        if ($result['status'] != 1) {
-            return message($result['code'], $result['status'], $result['message'], $result['data']);
-        }
+        // if ($result['status'] != 1) {
+        //     return message($result['code'], $result['status'], $result['message'], $result['data']);
+        // }
         sleep(1);
         $result = $this->ServiceSvn->UpdSvnserveStatusSart();
         if ($result['status'] != 1) {
@@ -159,37 +159,6 @@ class Usersource extends Base
      */
     public function GetUsersourceInfo()
     {
-        $dataSource = $this->database->get('options', 'option_value', [
-            'option_name' => 'data_source'
-        ]);
-
-        $default = [
-            //数据源
-            'user_source' => 'passwd',
-            'group_source' => 'authz',
-
-            //ldap服务器
-            'ldap_host' => 'ldap://127.0.0.1/',
-            'ldap_port' => 389,
-            'ldap_version' => 3,
-            'ldap_bind_dn' => '',
-            'ldap_bind_password' => '',
-
-            //用户相关
-            'user_base_dn' => '',
-            'user_search_filter' => '',
-            'user_attributes' => '',
-
-            //分组相关
-            'group_base_dn' => '',
-            'group_search_filter' => '',
-            'group_attributes' => '',
-            'groups_to_user_attribute' => '',
-            'groups_to_user_attribute_value' => ''
-        ];
-
-        $dataSource = empty($dataSource) ? $default : unserialize($dataSource);
-
-        return message(200, 1, '成功', $dataSource);
+        return message(200, 1, '成功', $this->dataSource);
     }
 }

@@ -49,6 +49,26 @@ class Setting extends Base
     }
 
     /**
+     * 获取主机配置
+     *
+     * @return array
+     */
+    public function GetHostInfo()
+    {
+        $result = $this->ServiceSetting->GetHostInfo();
+        json2($result);
+    }
+
+    /**
+     * 获取主机配置
+     */
+    public function UpdHost()
+    {
+        $result = $this->ServiceSetting->UpdHost();
+        json2($result);
+    }
+
+    /**
      * 获取Subversion的详细信息
      */
     public function GetSvnserveInfo()
@@ -76,7 +96,7 @@ class Setting extends Base
     }
 
     /**
-     * 修改svnserve的绑定端口
+     * 修改 svnserve 监听端口
      */
     public function UpdSvnservePort()
     {
@@ -85,29 +105,11 @@ class Setting extends Base
     }
 
     /**
-     * 修改svnserve的绑定主机
+     * 修改 svnserve 的监听主机
      */
     public function UpdSvnserveHost()
     {
         $result = $this->ServiceSetting->UpdSvnserveHost();
-        json2($result);
-    }
-
-    /**
-     * 修改管理系统主机名
-     */
-    public function UpdManageHost()
-    {
-        $result = $this->ServiceSetting->UpdManageHost();
-        json2($result);
-    }
-
-    /**
-     * 修改检出地址
-     */
-    public function UpdCheckoutHost()
-    {
-        $result = $this->ServiceSetting->UpdCheckoutHost();
         json2($result);
     }
 

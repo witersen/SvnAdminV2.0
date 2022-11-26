@@ -66,9 +66,6 @@ class Svnrep extends Base
      */
     public function GetSvnserveInfo()
     {
-        //获取绑定主机、端口等信息
-        $bindInfo = $this->ServiceSvn->GetSvnserveListen();
-
         //获取 svnserve 版本
         $version = '-';
         $result = funShellExec(sprintf("'%s' --version", $this->configBin['svnserve']));
@@ -93,10 +90,8 @@ class Svnrep extends Base
         return message(200, 1, '成功', [
             'version' => $version,
             'status' => $this->GetSvnserveStatus()['data'],
-            'bindPort' => (int)$bindInfo['bindPort'],
-            'bindHost' => $bindInfo['bindHost'],
-            'manageHost' => $bindInfo['manageHost'],
-            'currentHost' => $bindInfo['enable'],
+            'listenPort' => $this->svnservePort,
+            'listenHost' => $this->svnserveHost,
             'svnserveLog' => $this->configSvn['svnserve_log_file'],
             'passwordDb' => $this->configSvn['svn_passwd_file'],
             'enable' => $result
@@ -122,6 +117,7 @@ class Svnrep extends Base
                 $statusRun = false;
             } else {
                 $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
+                clearstatcache();
                 if (is_dir("/proc/$pid")) {
                     $statusRun = true;
                 } else {
@@ -136,21 +132,15 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取Subversion的检出地址前缀
-     * 
-     * 先从Subversion配置文件获取绑定端口和主机
-     * 然后与listen.json配置文件中的端口和主机进行对比和同步
+     * 获取检出地址前缀
      */
     public function GetCheckout()
     {
-        $result = $this->ServiceSvn->GetSvnserveListen();
-        $checkoutHost = $result[$result['enable']];
-        if ($result['bindPort'] != 3690) {
-            $checkoutHost .= ':' . $result['bindPort'];
-        }
+        $prifix = $this->svnservePort == 3690 ? $this->host : $this->host . ':' . $this->svnservePort;
+
         return message(200, 1, '成功', [
             'protocal' => 'svn://',
-            'prefix' => $checkoutHost
+            'prefix' => $prifix
         ]);
     }
 
@@ -599,7 +589,7 @@ class Svnrep extends Base
             /**
              * 及时更新
              */
-            parent::ReloadAuthz();
+            parent::RereadAuthz();
 
             /**
              * 对用户有权限的仓库路径列表进行一一验证
@@ -613,7 +603,7 @@ class Svnrep extends Base
             /**
              * 及时更新
              */
-            // parent::ReloadAuthz();
+            // parent::RereadAuthz();
 
             /**
              * 用户有权限的仓库路径列表 => svn_user_pri_paths数据表
@@ -2364,40 +2354,16 @@ class Svnrep extends Base
      */
     private function GetSvnList($repPath, $repName)
     {
-        /**
-         * 获取svn检出地址
-         * 
-         * 目的为使用当前SVN用户的身份来进行被授权过的路径的内容浏览
-         */
-        $bindInfo = $this->ServiceSvn->GetSvnserveListen();
-        $checkoutHost = 'svn://' . $bindInfo['bindHost'];
-        if ($bindInfo['bindPort'] != '3690') {
-            $checkoutHost = 'svn://' . $bindInfo['bindHost'] . ':' . $bindInfo['bindPort'];
-        }
+        $checkoutHost = $this->svnservePort == 3690 ? $this->host : $this->host . ':' . $this->svnservePort;
 
         /**
          * 获取SVN用户密码
          * 
          * 目的为使用该用户的权限进行操作 确保用户看到的就是所授权的
          */
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
-        if ($dataSource['user_source'] == 'ldap') {
-            $svnUserPass = $this->database->get('svn_users', 'svn_user_pass', [
-                'svn_user_name' => $this->userName
-            ]);
-        } else {
-            $svnUserPass = $this->SVNAdmin->GetUserInfo($this->passwdContent, $this->userName);
-            if (is_numeric($svnUserPass)) {
-                if ($svnUserPass == 621) {
-                    return message(200, 0, '文件格式错误(不存在[users]标识)');
-                } else if ($svnUserPass == 710) {
-                    return message(200, 0, '用户不存在');
-                } else {
-                    return message(200, 0, "错误码$svnUserPass");
-                }
-            }
-            $svnUserPass = $svnUserPass['userPass'];
-        }
+        $svnUserPass = $this->database->get('svn_users', 'svn_user_pass', [
+            'svn_user_name' => $this->userName
+        ]);
 
         /**
          * 使用svn list进行内容获取

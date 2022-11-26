@@ -11,6 +11,8 @@
  * PHP 5.5+
  */
 
+use Medoo\Medoo;
+
 /**
  * 开启错误信息 如需要调试 可取消注释
  */
@@ -49,7 +51,6 @@ $type = empty($_GET['t']) ? '' : $_GET['t'];
 $payload = file_get_contents("php://input");
 $payload = !empty($payload) ? json_decode($payload, true) : [];
 
-//检测PHP版本
 $version = Config::get('version');
 if (isset($version['php']['lowest']) && !empty($version['php']['lowest'])) {
     if (PHP_VERSION < $version['php']['lowest']) {
@@ -62,13 +63,10 @@ if (isset($version['php']['highest']) && !empty($version['php']['highest'])) {
     }
 }
 
-
-//检测open_basedir
 if (ini_get('open_basedir') != '') {
     json1(200, 0, '需要关闭open_basedir！如果已经关闭未生效，请重启php！');
 }
 
-//检测禁用函数
 $require_functions = ['shell_exec', 'passthru'];
 $disable_functions = explode(',', ini_get('disable_functions'));
 foreach ($disable_functions as $disable) {
@@ -77,7 +75,6 @@ foreach ($disable_functions as $disable) {
     }
 }
 
-//检测守护进程状态
 $state = funDetectState();
 if ($state == 0) {
     json1(401, 0, '守护进程响应超时');
@@ -85,9 +82,17 @@ if ($state == 0) {
     json1(401, 0, '后台程序未启动');
 }
 
-/**
- * 检查控制器和方法是否存在并实例化
- */
+$configDatabase = Config::get('database');
+$configSvn = Config::get('svn');
+if (array_key_exists('database_file', $configDatabase)) {
+    $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
+}
+try {
+    $database = new Medoo($configDatabase);
+} catch (\Exception $e) {
+    json1(200, 0, $e->getMessage());
+}
+
 if (file_exists($controller_path)) {
     $obj = new $controller($parm = [
         'token' => $token,

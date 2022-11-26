@@ -93,24 +93,8 @@ class Personal extends Base
             return message(200, 0, '输入不一致');
         }
 
-        //获取SVN指定用户的密码
-        $result = $this->SVNAdmin->GetUserInfo($this->passwdContent, $this->userName);
-        if (is_numeric($result)) {
-            if ($result == 621) {
-                return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($result == 710) {
-                return message(200, 0, '用户不存在');
-            } else {
-                return message(200, 0, "错误码$result");
-            }
-        }
-
         if (trim($this->payload['newPassword']) == '') {
             return message(200, 0, '密码不合法');
-        }
-
-        if ($result['userPass'] != $this->payload['oldPassword']) {
-            return message(200, 0, '旧密码输入错误');
         }
 
         //修改SVN指定用户的密码

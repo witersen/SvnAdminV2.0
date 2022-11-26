@@ -2,7 +2,61 @@
   <div>
     <Card :bordered="false" :dis-hover="true">
       <Tabs v-model="currentAdvanceTab" @on-click="SetCurrentAdvanceTab">
-        <TabPane label="svnserve【svn协议检出】" name="1">
+        <TabPane label="主机配置" name="1">
+          <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Alert>该信息将用于仓库检出地址</Alert>
+            <Form :label-width="100" label-position="left">
+              <FormItem label="本机IP/域名">
+                <Row>
+                  <Col span="12">
+                    <Input
+                      v-model="tempHost"
+                      @on-change="ChangeUpdHost"
+                      placeholder="localhost"
+                    />
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="350"
+                      content="请注意，此值不影响 svnserve 服务器的正常运行，只是一个管理员自定义的主机地址字符串。"
+                    >
+                      <Button
+                        type="warning"
+                        @click="UpdHost"
+                        :disabled="disableUpdHost"
+                        :loading="loadingUpdHost"
+                        >修改</Button
+                      >
+                    </Tooltip>
+                  </Col>
+                </Row>
+              </FormItem>
+            </Form>
+          </Card>
+        </TabPane>
+        <TabPane label="路径信息" name="2">
+          <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <Alert
+              >可在命令行模式下执行 server/insta.php 进行目录更换操作
+            </Alert>
+            <Form :label-width="160" label-position="left">
+              <FormItem
+                :label="item.key"
+                v-for="(item, index) in configList"
+                :key="index"
+              >
+                <Row>
+                  <Col span="12">
+                    <span>{{ item.value }}</span>
+                  </Col>
+                </Row>
+              </FormItem>
+            </Form>
+          </Card>
+        </TabPane>
+        <TabPane label="svn协议检出" name="3">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert>svnserve服务在使用svn协议检出时使用</Alert>
             <Form :label-width="100" label-position="left">
@@ -59,12 +113,12 @@
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="绑定端口">
+              <FormItem label="监听端口">
                 <Row>
                   <Col span="12">
                     <InputNumber
                       :min="1"
-                      v-model="tempBindPort"
+                      v-model="tempListenPort"
                       @on-change="ChangeEditPort"
                     ></InputNumber>
                   </Col>
@@ -80,11 +134,11 @@
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="绑定主机">
+              <FormItem label="监听地址">
                 <Row>
                   <Col span="12">
                     <Input
-                      v-model="tempBindHost"
+                      v-model="tempListenHost"
                       @on-change="ChangeEditHost"
                       placeholder="默认地址：0.0.0.0"
                     />
@@ -105,47 +159,6 @@
                       >
                     </Tooltip>
                   </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="自定义主机">
-                <Row>
-                  <Col span="12">
-                    <Input
-                      v-model="tempManageHost"
-                      @on-change="ChangeEditManageHost"
-                      placeholder="默认地址：127.0.0.1"
-                    />
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6">
-                    <Tooltip
-                      :transfer="true"
-                      max-width="350"
-                      content="请注意，此值不影响 svnserve 服务器的正常运行，只是一个管理员自定义的主机地址字符串。如果将下方的检出地址切换为自定义主机，用户进行仓库浏览的时候，复制的检出地址将会以此值为前缀"
-                    >
-                      <Button
-                        type="warning"
-                        @click="UpdManageHost"
-                        :disabled="disabledEditManageHost"
-                        :loading="loadingEditManageHost"
-                        >修改</Button
-                      >
-                    </Tooltip>
-                  </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="检出地址选用">
-                <Row>
-                  <Col span="12">
-                    <RadioGroup
-                      v-model="formSvn.currentHost"
-                      @on-change="UpdCheckoutHost"
-                    >
-                      <Radio label="bindHost">绑定主机</Radio>
-                      <Radio label="manageHost">自定义主机</Radio>
-                    </RadioGroup>
-                  </Col>
-                  <Col span="6"> </Col>
                 </Row>
               </FormItem>
               <FormItem label="关联用户文件">
@@ -191,7 +204,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="mod_dav_svn【http协议检出】" name="2">
+        <TabPane label="http协议检出" name="4">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert>mod_dav_svn等模块在使用http协议检出时使用</Alert>
             <Form :label-width="100" label-position="left">
@@ -223,6 +236,54 @@
                   <Col span="1"> </Col>
                   <Col span="6"> </Col>
                   <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="http端口">
+                <Row>
+                  <Col span="12">
+                    <InputNumber
+                      :min="1"
+                      v-model="tempListenPort"
+                      @on-change="ChangeEditPort"
+                    ></InputNumber>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Button
+                      type="warning"
+                      @click="UpdSvnservePort"
+                      :disabled="disabledEditPort"
+                      :loading="loadingEditPort"
+                      >修改</Button
+                    >
+                  </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="访问前缀">
+                <Row>
+                  <Col span="12">
+                    <Input
+                      v-model="tempListenHost"
+                      @on-change="ChangeEditHost"
+                      placeholder="默认地址：0.0.0.0"
+                    />
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="350"
+                      content="请注意，此值默认为 0.0.0.0 ，是 svnserve 服务器的实际的默认的绑定地址。如果无特殊原因无需修改此默认值。如果你要更换为公网IP地址，且你的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。"
+                    >
+                      <Button
+                        type="warning"
+                        @click="UpdSvnserveHost"
+                        :disabled="disabledEditHost"
+                        :loading="loadingEditHost"
+                        >修改</Button
+                      >
+                    </Tooltip>
+                  </Col>
                 </Row>
               </FormItem>
               <FormItem label="关联用户文件">
@@ -268,9 +329,11 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="saslauthd【第三方认证】" name="3">
+        <TabPane label="第三方认证" name="5">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Alert>saslauthd服务用于svn服务器接入ldap等认证使用</Alert>
+            <Alert
+              >saslauthd服务用于svn服务接入第三方认证如ldap等认证使用</Alert
+            >
             <Form :label-width="100" label-position="left">
               <FormItem label="当前版本">
                 <Row>
@@ -351,7 +414,7 @@
                 <Row>
                   <Col span="12">
                     <Select
-                    :disabled="!formSvn.enable"
+                      :disabled="!formSvn.enable"
                       v-model="formDataSource.group_source"
                       style="width: 200px"
                     >
@@ -569,27 +632,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="路径信息" name="4">
-          <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Alert
-              >可在命令行模式下执行 server/insta.php 进行目录更换操作
-            </Alert>
-            <Form :label-width="160" label-position="left">
-              <FormItem
-                :label="item.key"
-                v-for="(item, index) in configList"
-                :key="index"
-              >
-                <Row>
-                  <Col span="12">
-                    <span>{{ item.value }}</span>
-                  </Col>
-                </Row>
-              </FormItem>
-            </Form>
-          </Card>
-        </TabPane>
-        <TabPane label="邮件服务" name="5">
+        <TabPane label="邮件服务" name="6">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="120" label-position="left">
               <FormItem label="SMTP主机">
@@ -793,7 +836,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="消息推送" name="6">
+        <TabPane label="消息推送" name="7">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Alert
               >由于邮件发送没有使用异步任务<br /><br />
@@ -827,7 +870,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="安全配置" name="7">
+        <TabPane label="安全配置" name="8">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem
@@ -855,43 +898,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="自助检测" name="8" v-if="false">
-          <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Alert
-              >不经意的配置可能会导致 authz 配置文件失效<br /><br />
-              如 svnserve 1.10 版本中为空分组授权会导致配置失效等<br /><br />
-              因此可通过此工具在线检测 authz 配置文件<br /><br />
-              此功能依赖 svnauthz-validate</Alert
-            >
-            <Form :label-width="100" label-position="left">
-              <FormItem label="authz文件">
-                <Row>
-                  <Col span="12">
-                    <span>/home/svnadmin/authz</span>
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6">
-                    <Button type="info">查看</Button>
-                  </Col>
-                  <Col span="6"> </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="passwd文件">
-                <Row>
-                  <Col span="12">
-                    <span>/home/svnadmin/authz</span>
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6">
-                    <Button type="info">查看</Button>
-                  </Col>
-                  <Col span="6"> </Col>
-                </Row>
-              </FormItem>
-            </Form>
-          </Card>
-        </TabPane>
-        <TabPane :label="labelUpd" name="10">
+        <TabPane :label="labelUpd" name="9">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">
@@ -1075,11 +1082,11 @@ export default {
        * 临时变量
        */
       //svnserve绑定端口
-      tempBindPort: 0,
+      tempListenPort: 0,
       //svnserve绑定主机名
-      tempBindHost: "",
+      tempListenHost: "",
       //管理系统主机名称
-      tempManageHost: "",
+      tempHost: "",
       //测试邮箱
       tempTestEmail: "",
       //添加收件人邮箱
@@ -1097,7 +1104,7 @@ export default {
        */
       disabledEditPort: true,
       disabledEditHost: true,
-      disabledEditManageHost: true,
+      disableUpdHost: true,
 
       /**
        * 标题
@@ -1131,8 +1138,8 @@ export default {
       loadingEditHost: false,
       //更换绑定主机
       loadingEditPort: false,
-      //更换管理系统地址
-      loadingEditManageHost: false,
+      //修改主机地址
+      loadingUpdHost: false,
       //发送测试邮件
       loadingSendTest: false,
       //保存邮件配置信息
@@ -1162,13 +1169,16 @@ export default {
        */
       formSvn: {
         version: "",
-        bindPort: "",
-        bindHost: "",
-        manageHost: "",
-        currentHost: "",
+        listenPort: "",
+        listenHost: "",
         svnserveLog: "",
         passwordDb: "",
         enable: false,
+      },
+
+      //主机信息
+      formHost: {
+        host: "",
       },
 
       /**
@@ -1279,6 +1289,7 @@ export default {
     } else {
       this.currentAdvanceTab = sessionStorage.currentAdvanceTab;
     }
+    this.GetHostInfo();
     this.GetSvnserveInfo();
     this.GetApacheInfo();
     this.GetDirInfo();
@@ -1309,13 +1320,11 @@ export default {
           if (result.status == 1) {
             that.formSvn = result.data;
             //为临时变量赋值
-            that.tempBindPort = result.data.bindPort;
-            that.tempBindHost = result.data.bindHost;
-            that.tempManageHost = result.data.manageHost;
+            that.tempListenPort = result.data.listenPort;
+            that.tempListenHost = result.data.listenHost;
             //初始化禁用按钮
             that.disabledEditPort = true;
             that.disabledEditHost = true;
-            that.disabledEditManageHost = true;
             if (that.timer) {
               that.$Message.success(result.message);
               clearInterval(that.timer);
@@ -1333,7 +1342,7 @@ export default {
      * 修改端口的值 触发重新计算按钮的禁用状态
      */
     ChangeEditPort(value) {
-      if (this.tempBindPort == this.formSvn.bindPort) {
+      if (this.tempListenPort == this.formSvn.listenPort) {
         this.disabledEditPort = true;
       } else {
         this.disabledEditPort = false;
@@ -1343,21 +1352,15 @@ export default {
      * 修改地址的值 触发重新计算按钮的禁用状态
      */
     ChangeEditHost(event) {
-      if (this.tempBindHost == this.formSvn.bindHost) {
+      if (this.tempListenHost == this.formSvn.listenHost) {
         this.disabledEditHost = true;
       } else {
         this.disabledEditHost = false;
       }
     },
-    /**
-     * 修改管理系统主机名的值 触发重新计算按钮的禁用状态
-     */
-    ChangeEditManageHost(event) {
-      if (this.tempManageHost == this.formSvn.manageHost) {
-        this.disabledEditManageHost = true;
-      } else {
-        this.disabledEditManageHost = false;
-      }
+    //修改主机地址 触发重新计算按钮的禁用状态
+    ChangeUpdHost(event) {
+      this.disableUpdHost = this.tempHost == this.formHost.host ? true : false;
     },
     /**
      * 获取邮件配置信息
@@ -1691,7 +1694,7 @@ export default {
         onOk: () => {
           that.loadingEditPort = true;
           var data = {
-            bindPort: that.tempBindPort,
+            listenPort: that.tempListenPort,
           };
           that.$axios
             .post("/api.php?c=Setting&a=UpdSvnservePort&t=web", data)
@@ -1726,7 +1729,7 @@ export default {
         onOk: () => {
           that.loadingEditHost = true;
           var data = {
-            bindHost: that.tempBindHost,
+            listenHost: that.tempListenHost,
           };
           that.$axios
             .post("/api.php?c=Setting&a=UpdSvnserveHost&t=web", data)
@@ -1749,62 +1752,48 @@ export default {
         },
       });
     },
-    /**
-     * 修改管理系统主机名
-     */
-    UpdManageHost() {
+    //获取主机配置
+    GetHostInfo() {
       var that = this;
-      that.$Modal.confirm({
-        title: "更换管理系统主机名",
-        content:
-          "确定要更换管理系统主机名吗？此操作不会影响svnserve服务的状态！",
-        onOk: () => {
-          that.loadingEditManageHost = true;
-          var data = {
-            manageHost: that.tempManageHost,
-          };
-          that.$axios
-            .post("/api.php?c=Setting&a=UpdManageHost&t=web", data)
-            .then(function (response) {
-              that.loadingEditManageHost = false;
-              var result = response.data;
-              if (result.status == 1) {
-                that.$Message.success(result.message);
-                that.GetSvnserveInfo();
-              } else {
-                that.GetSvnserveInfo();
-                that.$Message.error({ content: result.message, duration: 2 });
-              }
-            })
-            .catch(function (error) {
-              that.loadingEditManageHost = false;
-              console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
-            });
-        },
-      });
-    },
-    /**
-     * 修改检出地址
-     */
-    UpdCheckoutHost(value) {
-      var that = this;
-      var data = {
-        enable: value,
-      };
+      var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=UpdCheckoutHost&t=web", data)
+        .post("/api.php?c=Setting&a=GetHostInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetSvnserveInfo();
+            that.formHost = result.data;
+            that.tempHost = result.data.host;
+            that.disableUpdHost = true;
           } else {
-            that.GetSvnserveInfo();
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    //修改主机配置
+    UpdHost() {
+      var that = this;
+      that.loadingUpdHost = true;
+      var data = {
+        host: that.tempHost,
+      };
+      that.$axios
+        .post("/api.php?c=Setting&a=UpdHost&t=web", data)
+        .then(function (response) {
+          that.loadingUpdHost = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetHostInfo();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingUpdHost = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -2072,7 +2061,8 @@ export default {
       var that = this;
       that.$Modal.confirm({
         title: "警告",
-        content: "启用 http 协议检出将会使用另外的用户密码文件。是否继续？",
+        content:
+          "启用 http 协议检出将会使用另外的用户密码文件。并且会清空数据库中目前的用户信息。是否继续？",
         onOk: () => {
           that.loadingUpdSubversionEnable = true;
           var data = {};
@@ -2110,7 +2100,8 @@ export default {
       var that = this;
       that.$Modal.confirm({
         title: "警告",
-        content: "启用 svn 协议检出将会使用另外的用户密码文件。是否继续？",
+        content:
+          "启用 svn 协议检出将会使用另外的用户密码文件。并且会清空数据库中目前的用户信息。是否继续？",
         onOk: () => {
           that.loadingUpdSvnEnable = true;
           var data = {};

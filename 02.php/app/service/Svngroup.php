@@ -42,7 +42,7 @@ class Svngroup extends Base
      */
     private function SyncGroup()
     {
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $dataSource = $this->dataSource;
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             $result = $this->ServiceLdap->SyncLdapToAuthz();
             if ($result['status'] != 1) {
@@ -298,7 +298,7 @@ class Svngroup extends Base
      */
     public function CreateGroup()
     {
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $dataSource = $this->dataSource;
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             return message(200, 0, '当前SVN分组来源为LDAP-不支持此操作');
         }
@@ -351,7 +351,7 @@ class Svngroup extends Base
      */
     public function DelGroup()
     {
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $dataSource = $this->dataSource;
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             return message(200, 0, '当前SVN分组来源为LDAP-不支持此操作');
         }
@@ -390,7 +390,7 @@ class Svngroup extends Base
      */
     public function UpdGroupName()
     {
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $dataSource = $this->dataSource;
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             return message(200, 0, '当前SVN分组来源为LDAP-不支持此操作');
         }
@@ -429,7 +429,7 @@ class Svngroup extends Base
         funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //修改后同步下
-        parent::ReloadAuthz();
+        parent::RereadAuthz();
         $result = $this->SyncGroup();
         if ($result['status'] != 1) {
             return message($result['code'], $result['status'], $result['message'], $result['data']);
@@ -520,7 +520,7 @@ class Svngroup extends Base
      */
     public function UpdGroupMember()
     {
-        $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
+        $dataSource = $this->dataSource;
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             return message(200, 0, '当前SVN分组来源为LDAP-不支持此操作');
         }
@@ -558,7 +558,7 @@ class Svngroup extends Base
         funFilePutContents($this->configSvn['svn_authz_file'], $result);
 
         //修改后同步下
-        parent::ReloadAuthz();
+        parent::RereadAuthz();
         $syncResult = $this->SyncGroup();
         if ($syncResult['status'] != 1) {
             return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);

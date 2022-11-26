@@ -120,8 +120,7 @@ class Common extends Base
                 'admin_user_name' => $userName
             ]);
         } else if ($userRole == 2) {
-            $dataSource = $this->ServiceUsersource->GetUsersourceInfo()['data'];
-            if ($dataSource['user_source'] == 'ldap') {
+            if ($this->dataSource['user_source'] == 'ldap') {
                 $result = $this->database->get('svn_users', 'svn_user_id', [
                     'svn_user_name' => $userName,
                 ]);

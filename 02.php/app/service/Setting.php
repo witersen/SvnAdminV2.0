@@ -31,29 +31,85 @@ class Setting extends Base
     }
 
     /**
-     * 修改 svnserve 的绑定端口
+     * 获取主机配置
+     *
+     * @return array
+     */
+    public function GetHostInfo()
+    {
+        return message(200, 1, '成功', [
+            'host' => $this->host
+        ]);
+    }
+
+    /**
+     * 更新主机配置
+     *
+     * @return array
+     */
+    public function UpdHost()
+    {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'host' => ['type' => 'string', 'notNull' => true]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
+        $host = trim($this->payload['host']);
+
+        if (!preg_match('/^(?!(http|https):\/\/).*$/m', $host, $result)) {
+            return message(200, 0, '主机地址无需携带协议前缀');
+        }
+
+        $this->database->update('options', [
+            'option_value' => $host,
+        ], [
+            'option_name' => 'host',
+        ]);
+
+        return message();
+    }
+
+    /**
+     * 修改 svnserve 监听端口
      */
     public function UpdSvnservePort()
     {
-        //port不能为空 todo
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'listenPort' => ['type' => 'integer', 'notNull' => true]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
 
-        //获取现在的端口与要修改的端口对比检查是否相同
-        $result = $this->ServiceSvn->GetSvnserveListen();
-
-        if ($this->payload['bindPort'] == $result['bindPort']) {
+        if ($this->payload['listenPort'] == $this->svnservePort) {
             return message(200, 0, '无需更换，端口相同');
         }
 
-        //停止svnserve
+        //停止
         $this->ServiceSvn->UpdSvnserveStatusStop();
 
         //重新构建配置文件内容
-        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->configSvn['rep_base_path'], $this->configSvn['svn_conf_file'], $this->configSvn['svnserve_log_file'], $this->payload['bindPort'], $result['bindHost']);
+        $config = sprintf(
+            "OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"",
+            $this->configSvn['rep_base_path'],
+            $this->configSvn['svn_conf_file'],
+            $this->configSvn['svnserve_log_file'],
+            $this->payload['listenPort'],
+            $this->svnserveHost
+        );
 
         //写入配置文件
         funFilePutContents($this->configSvn['svnserve_env_file'], $config);
 
-        //启动svnserve
+        parent::RereadSvnserve();
+
+        sleep(1);
+
+        //启动
         $resultStart = $this->ServiceSvn->UpdSvnserveStatusSart();
         if ($resultStart['status'] != 1) {
             return $resultStart;
@@ -63,83 +119,51 @@ class Setting extends Base
     }
 
     /**
-     * 修改 svnserve 的绑定主机
+     * 修改 svnserve 的监听主机
      */
     public function UpdSvnserveHost()
     {
-        //host不能为空
-        //不能带前缀如http或者https
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'listenHost' => ['type' => 'string', 'notNull' => true]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
 
-        //获取现在的绑定主机与要修改的主机对比检查是否相同
-        $result = $this->ServiceSvn->GetSvnserveListen();
+        if (!preg_match('/^(?!(http|https):\/\/).*$/m', $this->payload['listenHost'], $result)) {
+            return message(200, 0, '主机地址无需携带协议前缀');
+        }
 
-        if ($this->payload['bindHost'] == $result['bindHost']) {
+        if ($this->payload['listenHost'] == $this->svnserveHost) {
             return message(200, 0, '无需更换，地址相同');
         }
 
-        //停止svnserve
+        //停止
         $this->ServiceSvn->UpdSvnserveStatusStop();
 
         //重新构建配置文件内容
-        $config = sprintf("OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"", $this->configSvn['rep_base_path'], $this->configSvn['svn_conf_file'], $this->configSvn['svnserve_log_file'], $result['bindPort'], $this->payload['bindHost']);
+        $config = sprintf(
+            "OPTIONS=\"-r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s\"",
+            $this->configSvn['rep_base_path'],
+            $this->configSvn['svn_conf_file'],
+            $this->configSvn['svnserve_log_file'],
+            $this->svnservePort,
+            $this->payload['listenHost']
+        );
 
         //写入配置文件
         funFilePutContents($this->configSvn['svnserve_env_file'], $config);
 
-        //启动svnserve
+        parent::RereadSvnserve();
+
+        sleep(1);
+
+        //启动
         $resultStart = $this->ServiceSvn->UpdSvnserveStatusSart();
         if ($resultStart['status'] != 1) {
             return $resultStart;
         }
-
-        return message();
-    }
-
-    /**
-     * 修改管理系统主机名
-     */
-    public function UpdManageHost()
-    {
-        //不能为空
-        //不能带前缀如http或者https todo
-
-        $result = $this->ServiceSvn->GetSvnserveListen();
-
-        if ($this->payload['manageHost'] == $result['manageHost']) {
-            return message(200, 0, '无需更换，地址相同');
-        }
-
-        //更新
-        $result['manageHost'] = $this->payload['manageHost'];
-        $this->database->update('options', [
-            'option_value' => serialize($result),
-        ], [
-            'option_name' => 'svnserve_listen',
-        ]);
-
-        return message();
-    }
-
-    /**
-     * 修改检出地址
-     */
-    public function UpdCheckoutHost()
-    {
-        $result = $this->ServiceSvn->GetSvnserveListen();
-
-        //更新
-        $result['enable'] = $this->payload['enable'];
-        if (!in_array($result['enable'], [
-            'manageHost',
-            'bindHost'
-        ])) {
-            return message(200, 0, '允许的值[manageHost|bindHost]');
-        }
-        $this->database->update('options', [
-            'option_value' => serialize($result),
-        ], [
-            'option_name' => 'svnserve_listen',
-        ]);
 
         return message();
     }

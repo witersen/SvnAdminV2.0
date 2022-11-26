@@ -127,6 +127,17 @@ class Apache extends Base
             return message($result['code'], $result['status'], $result['message'], $result['data']);
         }
 
+        //关闭use-sasl
+        $result = $this->ServiceSvn->UpdSvnSaslStop();
+        if ($result['status'] != 1) {
+            return message($result['code'], $result['status'], $result['message'], $result['data']);
+        }
+
+        //清空数据库的用户
+        $this->database->delete('svn_users', [
+            'svn_user_id[>]' => 0
+        ]);
+
         //重启 httpd
         funShellExec(sprintf("'%s' -k restart", $this->configBin['httpd']), true);
 
