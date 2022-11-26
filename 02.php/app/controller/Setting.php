@@ -60,11 +60,20 @@ class Setting extends Base
     }
 
     /**
-     * 获取主机配置
+     * 更新主机名
      */
     public function UpdHost()
     {
         $result = $this->ServiceSetting->UpdHost();
+        json2($result);
+    }
+
+    /**
+     * 更新主机名
+     */
+    public function UpdPort()
+    {
+        $result = $this->ServiceSetting->UpdPort();
         json2($result);
     }
 
@@ -305,6 +314,17 @@ class Setting extends Base
     public function UpdSvnEnable()
     {
         $result = $this->ServiceSvn->UpdSvnEnable();
+        json2($result);
+    }
+
+    /**
+     * 修改 http 协议访问前缀
+     *
+     * @return void
+     */
+    public function UpdHttpPrefix()
+    {
+        $result = $this->ServiceApache->UpdHttpPrefix();
         json2($result);
     }
 }

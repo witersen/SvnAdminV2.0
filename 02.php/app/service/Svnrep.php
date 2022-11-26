@@ -136,12 +136,26 @@ class Svnrep extends Base
      */
     public function GetCheckout()
     {
-        $prifix = $this->svnservePort == 3690 ? $this->host : $this->host . ':' . $this->svnservePort;
+        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
+        if (is_numeric($passworddb)) {
+            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
+        }
 
-        return message(200, 1, '成功', [
-            'protocal' => 'svn://',
-            'prefix' => $prifix
-        ]);
+        if ($passworddb == 'passwd') {
+            $prifix = $this->svnservePort == 3690 ? $this->host : $this->host . ':' . $this->svnservePort;
+
+            return message(200, 1, '成功', [
+                'protocal' => 'svn://',
+                'prefix' => $prifix
+            ]);
+        } else {
+            $prifix = ($this->port == 80 ? $this->host : $this->host . ':' . $this->port) . $this->httpPrefix;
+
+            return message(200, 1, '成功', [
+                'protocal' => 'http://',
+                'prefix' => $prifix
+            ]);
+        }
     }
 
     /**

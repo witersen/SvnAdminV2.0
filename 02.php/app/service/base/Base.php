@@ -59,8 +59,6 @@ use Check;
 
 use Config;
 
-use Medoo\Medoo;
-
 use Witersen\SVNAdmin;
 
 class Base
@@ -105,9 +103,13 @@ class Base
 
     //主机
     public $host = '';
+    public $port = 0;
 
     //数据源
     public $dataSource = [];
+
+    //http
+    public $httpPrefix = '';
 
     /**
      * 子管理员权限树
@@ -996,44 +998,14 @@ class Base
             'necessary_functions' => [],
             'children' => [
                 [
-                    'title' => 'svnserve【svn协议检出】',
+                    'title' => '主机配置',
                     'expand' => false,
                     'checked' => false,
                     'disabled' => true,
                     'necessary_functions' => [
-                        'Setting/GetSvnserveInfo',
-                        'Setting/UpdSvnserveStatusStop',
-                        'Setting/UpdSvnserveStatusSart',
-                        'Setting/UpdSvnservePort',
-                        'Setting/UpdSvnserveHost',
-                        'Setting/UpdManageHost',
-                        'Setting/UpdSvnEnable'
-                    ],
-                    'children' => []
-                ],
-                [
-                    'title' => 'mod_dav_svn【http协议检出】',
-                    'expand' => false,
-                    'checked' => false,
-                    'disabled' => true,
-                    'necessary_functions' => [
-                        'Setting/GetApacheInfo',
-                        'Setting/UpdSubversionEnable'
-                    ],
-                    'children' => []
-                ],
-                [
-                    'title' => 'saslauthd【第三方认证】',
-                    'expand' => false,
-                    'checked' => false,
-                    'disabled' => true,
-                    'necessary_functions' => [
-                        'Setting/GetSaslInfo',
-                        'Setting/UpdSaslStatusStart',
-                        'Setting/UpdSaslStatusStop',
-                        'Setting/GetUsersourceInfo',
-                        'Setting/UpdUsersourceInfo',
-                        'Setting/LdapTest',
+                        'Setting/GetHostInfo',
+                        'Setting/UpdHost',
+                        'Setting/UpdPort'
                     ],
                     'children' => []
                 ],
@@ -1044,6 +1016,49 @@ class Base
                     'disabled' => true,
                     'necessary_functions' => [
                         'Setting/GetDirInfo'
+                    ],
+                    'children' => []
+                ],
+                [
+                    'title' => 'svn协议检出',
+                    'expand' => false,
+                    'checked' => false,
+                    'disabled' => true,
+                    'necessary_functions' => [
+                        'Setting/GetSvnserveInfo',
+                        'Setting/UpdSvnserveStatusStop',
+                        'Setting/UpdSvnserveStatusSart',
+                        'Setting/UpdSvnservePort',
+                        'Setting/UpdSvnserveHost',
+                        'Setting/UpdSvnEnable'
+                    ],
+                    'children' => []
+                ],
+                [
+                    'title' => 'http协议检出',
+                    'expand' => false,
+                    'checked' => false,
+                    'disabled' => true,
+                    'necessary_functions' => [
+                        'Setting/GetApacheInfo',
+                        'Setting/UpdHttpPrefix',
+                        'Setting/UpdSubversionEnable'
+                    ],
+                    'children' => []
+                ],
+                [
+                    'title' => '第三方认证',
+                    'expand' => false,
+                    'checked' => false,
+                    'disabled' => true,
+                    'necessary_functions' => [
+                        'Setting/GetSaslInfo',
+                        'Setting/UpdSaslStatusStart',
+                        'Setting/UpdSaslStatusStop',
+                        
+                        'Setting/GetUsersourceInfo',
+                        'Setting/UpdUsersourceInfo',
+                        'Setting/LdapTest',
                     ],
                     'children' => []
                 ],
@@ -1334,8 +1349,9 @@ class Base
             ]);
 
             $this->host = 'localhost';
+        } else {
+            $this->host = $host['option_value'];
         }
-        $this->host = $host['option_value'];
 
         /**
          * 14、数据源
@@ -1368,6 +1384,46 @@ class Base
             'groups_to_user_attribute_value' => ''
         ];
         $this->dataSource = empty($this->dataSource) ? $default : unserialize($this->dataSource);
+
+        /**
+         * 15、http端口
+         */
+        $port = $this->database->get('options', [
+            'option_id',
+            'option_value'
+        ], [
+            'option_name' => 'port'
+        ]);
+        if (empty($port)) {
+            $this->database->insert('options', [
+                'option_value' => 80,
+                'option_name' => 'port',
+            ]);
+
+            $this->port = 80;
+        } else {
+            $this->port = (int)$port['option_value'];
+        }
+
+        /**
+         * 16、http访问仓库前缀
+         */
+        $httpPrefix = $this->database->get('options', [
+            'option_id',
+            'option_value'
+        ], [
+            'option_name' => 'http_prefix'
+        ]);
+        if (empty($httpPrefix)) {
+            $this->database->insert('options', [
+                'option_value' => '/svn',
+                'option_name' => 'http_prefix',
+            ]);
+
+            $this->httpPrefix = '/svn';
+        } else {
+            $this->httpPrefix = $httpPrefix['option_value'];
+        }
     }
 
     /**

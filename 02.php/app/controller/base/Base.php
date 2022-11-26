@@ -61,8 +61,6 @@ function auto_require($path, $recursively = false)
 
 use Config;
 
-use Medoo\Medoo;
-
 class Base
 {
     public $param;
@@ -73,7 +71,6 @@ class Base
 
         //配置信息
         $configRouters =  Config::get('router');                //路由
-        $configDatabase = Config::get('database');              //数据库配置
         $configSvn = Config::get('svn');                        //仓库
         $configSign = Config::get('sign');                      //密钥
         
@@ -83,7 +80,6 @@ class Base
          * 2、检查接口类型
          */
         !in_array($parm['type'], array_keys($configRouters['public'])) ? json1(401, 0, '无效的接口类型') : '';
-
 
         if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], $configRouters['public'][$parm['type']])) {
             /**

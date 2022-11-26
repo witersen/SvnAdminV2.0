@@ -38,12 +38,13 @@ class Setting extends Base
     public function GetHostInfo()
     {
         return message(200, 1, '成功', [
-            'host' => $this->host
+            'host' => $this->host,
+            'port' => $this->port
         ]);
     }
 
     /**
-     * 更新主机配置
+     * 更新主机名
      *
      * @return array
      */
@@ -67,6 +68,34 @@ class Setting extends Base
             'option_value' => $host,
         ], [
             'option_name' => 'host',
+        ]);
+
+        return message();
+    }
+
+    /**
+     * 更新端口
+     *
+     * @return array
+     */
+    public function UpdPort()
+    {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'port' => ['type' => 'integer', 'notNull' => true]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
+        if (!is_numeric($this->payload['port'])) {
+            return message(200, 0, '端口不符合要求');
+        }
+
+        $this->database->update('options', [
+            'option_value' => $this->payload['port'],
+        ], [
+            'option_name' => 'port',
         ]);
 
         return message();

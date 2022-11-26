@@ -45,6 +45,8 @@ class Apache extends Base
             'modules' => implode(',', explode("\n", trim(funShellExec(sprintf("ls '%s' | grep svn", $this->configSvn['apache_modules_path']))['result']))),
             'modulesPath' => $this->configSvn['apache_modules_path'],
             'passwordDb' => $this->configSvn['http_passwd_file'],
+            'prefix' => $this->httpPrefix,
+            'port' => $this->port,
             'enable' => $result
         ]);
     }
@@ -54,14 +56,13 @@ class Apache extends Base
      *
      * @return void
      */
-    private function UpdSubversionInfo()
+    private function UpdSubversionInfo($prefix = '/svn')
     {
         $templeteSubversionPath = BASE_PATH . '/templete/apache/subversion.conf';
         if (!is_readable($templeteSubversionPath)) {
             return message(200, 0, sprintf('文件[%s]不可读或不存在', $templeteSubversionPath));
         }
 
-        $prefix = '/svn';
         $DAV = 'svn';
         $SVNListParentPath = 'on';
         $SVNParentPath = $this->configSvn['rep_base_path'];
@@ -137,6 +138,12 @@ class Apache extends Base
         $this->database->delete('svn_users', [
             'svn_user_id[>]' => 0
         ]);
+
+        //停止 svnserve
+        $result = $this->ServiceSvn->UpdSvnserveStatusStop();
+        // if ($result['status'] != 1) {
+        //     return message($result['code'], $result['status'], $result['message'], $result['data']);
+        // }
 
         //重启 httpd
         funShellExec(sprintf("'%s' -k restart", $this->configBin['httpd']), true);
@@ -266,5 +273,74 @@ class Apache extends Base
         }
 
         return message(200, 1, '成功', $result['result']);
+    }
+
+    /**
+     * 修改 http 协议访问前缀
+     *
+     * @return void
+     */
+    public function UpdHttpPrefix()
+    {
+        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
+        if (is_numeric($passworddb)) {
+            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
+        }
+
+        if ($passworddb == 'passwd') {
+            return message(200, 0, '需要切换为http协议检出状态才可修改');
+        }
+
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'prefix' => ['type' => 'string', 'notNull' => true]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
+        if (substr($this->payload['prefix'], 0, 1) != '/') {
+            return message(200, 0, '前缀要携带/');
+        }
+
+        if (substr($this->payload['prefix'], -1) == '/') {
+            return message(200, 0, '结尾无需/');
+        }
+
+        $this->database->update('options', [
+            'option_value' => $this->payload['prefix'],
+        ], [
+            'option_name' => 'http_prefix',
+        ]);
+
+        //修改 svnserve.conf 为 httpPasswd
+        $result = $this->ServiceSvn->UpdPasswddbInfo('httpPasswd');
+        if (is_numeric($result)) {
+            return message(200, 0, sprintf('更新[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $result));
+        }
+        file_put_contents($this->configSvn['svn_conf_file'], $result);
+
+        //写入 subversion.conf
+        $result = $this->UpdSubversionInfo($this->payload['prefix']);
+        if ($result['status'] != 1) {
+            return message($result['code'], $result['status'], $result['message'], $result['data']);
+        }
+
+        //关闭use-sasl
+        $result = $this->ServiceSvn->UpdSvnSaslStop();
+        if ($result['status'] != 1) {
+            return message($result['code'], $result['status'], $result['message'], $result['data']);
+        }
+
+        //停止 svnserve
+        $result = $this->ServiceSvn->UpdSvnserveStatusStop();
+        // if ($result['status'] != 1) {
+        //     return message($result['code'], $result['status'], $result['message'], $result['data']);
+        // }
+
+        //重启 httpd
+        funShellExec(sprintf("'%s' -k restart", $this->configBin['httpd']), true);
+
+        return message();
     }
 }

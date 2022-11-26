@@ -33,6 +33,33 @@
                   </Col>
                 </Row>
               </FormItem>
+              <FormItem label="web端口">
+                <Row>
+                  <Col span="12">
+                    <InputNumber
+                      :min="1"
+                      v-model="tempPort"
+                      @on-change="ChangeUpdPort"
+                    ></InputNumber>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="350"
+                      content="请注意，此值默认为 80，修改后不影响实际的 http 服务端口。但是SVN用户在本系统内浏览仓库依赖此端口，请务必保持填写值与 http 服务实际端口一致"
+                    >
+                      <Button
+                        type="warning"
+                        @click="UpdPort"
+                        :disabled="disableUpdPort"
+                        :loading="loadingUpdPort"
+                        >修改</Button
+                      >
+                    </Tooltip>
+                  </Col>
+                </Row>
+              </FormItem>
             </Form>
           </Card>
         </TabPane>
@@ -118,8 +145,8 @@
                   <Col span="12">
                     <InputNumber
                       :min="1"
-                      v-model="tempListenPort"
-                      @on-change="ChangeEditPort"
+                      v-model="tempSvnservePort"
+                      @on-change="ChangeUpdSvnservePort"
                     ></InputNumber>
                   </Col>
                   <Col span="1"> </Col>
@@ -127,8 +154,8 @@
                     <Button
                       type="warning"
                       @click="UpdSvnservePort"
-                      :disabled="disabledEditPort"
-                      :loading="loadingEditPort"
+                      :disabled="disableUpdSvnservePort"
+                      :loading="loadingUpdSvnservePort"
                       >修改</Button
                     >
                   </Col>
@@ -138,9 +165,9 @@
                 <Row>
                   <Col span="12">
                     <Input
-                      v-model="tempListenHost"
-                      @on-change="ChangeEditHost"
-                      placeholder="默认地址：0.0.0.0"
+                      v-model="tempSvnserveHost"
+                      @on-change="ChangeUpdSvnserveHost"
+                      placeholder="0.0.0.0"
                     />
                   </Col>
                   <Col span="1"> </Col>
@@ -153,8 +180,8 @@
                       <Button
                         type="warning"
                         @click="UpdSvnserveHost"
-                        :disabled="disabledEditHost"
-                        :loading="loadingEditHost"
+                        :disabled="disableUpdSvnserveHost"
+                        :loading="loadingUpdSvnserveHost"
                         >修改</Button
                       >
                     </Tooltip>
@@ -238,34 +265,13 @@
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="http端口">
-                <Row>
-                  <Col span="12">
-                    <InputNumber
-                      :min="1"
-                      v-model="tempListenPort"
-                      @on-change="ChangeEditPort"
-                    ></InputNumber>
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6">
-                    <Button
-                      type="warning"
-                      @click="UpdSvnservePort"
-                      :disabled="disabledEditPort"
-                      :loading="loadingEditPort"
-                      >修改</Button
-                    >
-                  </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="访问前缀">
+              <FormItem label="仓库访问前缀">
                 <Row>
                   <Col span="12">
                     <Input
-                      v-model="tempListenHost"
-                      @on-change="ChangeEditHost"
-                      placeholder="默认地址：0.0.0.0"
+                      v-model="tempHttpPrefix"
+                      @on-change="ChangeUpdHttpPrefix"
+                      placeholder="/svn"
                     />
                   </Col>
                   <Col span="1"> </Col>
@@ -273,13 +279,13 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="请注意，此值默认为 0.0.0.0 ，是 svnserve 服务器的实际的默认的绑定地址。如果无特殊原因无需修改此默认值。如果你要更换为公网IP地址，且你的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。"
+                      content="请注意，此值默认为 /svn ，为使用http协议检出时访问仓库的路径"
                     >
                       <Button
                         type="warning"
-                        @click="UpdSvnserveHost"
-                        :disabled="disabledEditHost"
-                        :loading="loadingEditHost"
+                        @click="UpdHttpPrefix"
+                        :disabled="disableUpdHttpPrefix"
+                        :loading="loadingUpdHttpPrefix"
                         >修改</Button
                       >
                     </Tooltip>
@@ -1082,11 +1088,15 @@ export default {
        * 临时变量
        */
       //svnserve绑定端口
-      tempListenPort: 0,
+      tempSvnservePort: 0,
       //svnserve绑定主机名
-      tempListenHost: "",
+      tempSvnserveHost: "",
       //管理系统主机名称
       tempHost: "",
+      //apache端口
+      tempPort: 0,
+      //apache访问仓库前缀
+      tempHttpPrefix: "",
       //测试邮箱
       tempTestEmail: "",
       //添加收件人邮箱
@@ -1102,9 +1112,16 @@ export default {
       /**
        * 控制修改状态
        */
-      disabledEditPort: true,
-      disabledEditHost: true,
+      //修改svnserve监听端口
+      disableUpdSvnservePort: true,
+      //修改svnserve监听地址
+      disableUpdSvnserveHost: true,
+      //修改主机名
       disableUpdHost: true,
+      //修改端口
+      disableUpdPort: true,
+      //修改apache访问仓库前缀
+      disableUpdHttpPrefix: true,
 
       /**
        * 标题
@@ -1120,7 +1137,7 @@ export default {
        * 版本信息
        */
       version: {
-        current_verson: "2.3.4",
+        current_verson: "2.4",
         php_version: "5.5+",
         database: "MYSQL、SQLite",
         github: "https://github.com/witersen/SvnAdminV2.0",
@@ -1135,11 +1152,15 @@ export default {
       //停止svnserve
       loadingSvnserveStop: false,
       //更换绑定地址
-      loadingEditHost: false,
+      loadingUpdSvnserveHost: false,
       //更换绑定主机
-      loadingEditPort: false,
+      loadingUpdSvnservePort: false,
       //修改主机地址
       loadingUpdHost: false,
+      //修改apache端口
+      loadingUpdPort: false,
+      //修改apache访问仓库前缀
+      loadingUpdHttpPrefix: false,
       //发送测试邮件
       loadingSendTest: false,
       //保存邮件配置信息
@@ -1179,6 +1200,7 @@ export default {
       //主机信息
       formHost: {
         host: "",
+        port: 0,
       },
 
       /**
@@ -1275,6 +1297,7 @@ export default {
       formApache: {
         version: "",
         modules: "",
+        prefix: "",
         modulesPath: "",
         passwordDb: "",
         enable: false,
@@ -1320,11 +1343,11 @@ export default {
           if (result.status == 1) {
             that.formSvn = result.data;
             //为临时变量赋值
-            that.tempListenPort = result.data.listenPort;
-            that.tempListenHost = result.data.listenHost;
+            that.tempSvnservePort = result.data.listenPort;
+            that.tempSvnserveHost = result.data.listenHost;
             //初始化禁用按钮
-            that.disabledEditPort = true;
-            that.disabledEditHost = true;
+            that.disableUpdSvnservePort = true;
+            that.disableUpdSvnserveHost = true;
             if (that.timer) {
               that.$Message.success(result.message);
               clearInterval(that.timer);
@@ -1338,29 +1361,28 @@ export default {
           that.$Message.error("出错了 请联系管理员！");
         });
     },
-    /**
-     * 修改端口的值 触发重新计算按钮的禁用状态
-     */
-    ChangeEditPort(value) {
-      if (this.tempListenPort == this.formSvn.listenPort) {
-        this.disabledEditPort = true;
-      } else {
-        this.disabledEditPort = false;
-      }
+    //重新计算按钮的禁用状态
+    ChangeUpdSvnservePort(value) {
+      this.disableUpdSvnservePort =
+        this.tempSvnservePort == this.formSvn.listenPort ? true : false;
     },
-    /**
-     * 修改地址的值 触发重新计算按钮的禁用状态
-     */
-    ChangeEditHost(event) {
-      if (this.tempListenHost == this.formSvn.listenHost) {
-        this.disabledEditHost = true;
-      } else {
-        this.disabledEditHost = false;
-      }
+    //重新计算按钮的禁用状态
+    ChangeUpdSvnserveHost(event) {
+      this.disableUpdSvnserveHost =
+        this.tempSvnserveHost == this.formSvn.listenHost ? true : false;
     },
-    //修改主机地址 触发重新计算按钮的禁用状态
+    //重新计算按钮的禁用状态
     ChangeUpdHost(event) {
       this.disableUpdHost = this.tempHost == this.formHost.host ? true : false;
+    },
+    //重新计算按钮的禁用状态
+    ChangeUpdHttpPrefix(event) {
+      this.disableUpdHttpPrefix =
+        this.tempHttpPrefix == this.formApache.prefix ? true : false;
+    },
+    //重新计算按钮的禁用状态
+    ChangeUpdPort(event) {
+      this.disableUpdPort = this.tempPort == this.formHost.port ? true : false;
     },
     /**
      * 获取邮件配置信息
@@ -1692,14 +1714,14 @@ export default {
         content:
           "确定要更换svnserve服务绑定端口吗？此操作会使svnserve服务停止并重新启动！",
         onOk: () => {
-          that.loadingEditPort = true;
+          that.loadingUpdSvnservePort = true;
           var data = {
-            listenPort: that.tempListenPort,
+            listenPort: that.tempSvnservePort,
           };
           that.$axios
             .post("/api.php?c=Setting&a=UpdSvnservePort&t=web", data)
             .then(function (response) {
-              that.loadingEditPort = false;
+              that.loadingUpdSvnservePort = false;
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
@@ -1710,7 +1732,7 @@ export default {
               }
             })
             .catch(function (error) {
-              that.loadingEditPort = false;
+              that.loadingUpdSvnservePort = false;
               console.log(error);
               that.$Message.error("出错了 请联系管理员！");
             });
@@ -1727,14 +1749,14 @@ export default {
         content:
           "确定要更换svnserve服务绑定主机吗？此操作会使svnserve服务停止并重新启动！",
         onOk: () => {
-          that.loadingEditHost = true;
+          that.loadingUpdSvnserveHost = true;
           var data = {
-            listenHost: that.tempListenHost,
+            listenHost: that.tempSvnserveHost,
           };
           that.$axios
             .post("/api.php?c=Setting&a=UpdSvnserveHost&t=web", data)
             .then(function (response) {
-              that.loadingEditHost = false;
+              that.loadingUpdSvnserveHost = false;
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
@@ -1745,7 +1767,7 @@ export default {
               }
             })
             .catch(function (error) {
-              that.loadingEditHost = false;
+              that.loadingUpdSvnserveHost = false;
               console.log(error);
               that.$Message.error("出错了 请联系管理员！");
             });
@@ -1763,7 +1785,9 @@ export default {
           if (result.status == 1) {
             that.formHost = result.data;
             that.tempHost = result.data.host;
+            that.tempPort = result.data.port;
             that.disableUpdHost = true;
+            that.disableUpdPort = true;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -2041,6 +2065,8 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.formApache = result.data;
+            that.tempHttpPrefix = result.data.prefix;
+            that.disableUpdHttpPrefix = true;
             if (that.timer) {
               that.$Message.success(result.message);
               clearInterval(that.timer);
@@ -2122,6 +2148,68 @@ export default {
               that.loadingUpdSvnEnable = false;
               console.log(error);
               that.$Message.error("出错了 请联系管理员！");
+            });
+        },
+      });
+    },
+    //修改http端口
+    UpdPort() {
+      var that = this;
+      that.loadingUpdPort = true;
+      var data = {
+        port: that.tempPort,
+      };
+      that.$axios
+        .post("/api.php?c=Setting&a=UpdPort&t=web", data)
+        .then(function (response) {
+          var result = response.data;
+          that.loadingUpdPort = false;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetHostInfo();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingUpdPort = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    //修改http访问仓库前缀
+    UpdHttpPrefix() {
+      var that = this;
+      that.$Modal.confirm({
+        title: "警告",
+        content: "此操作将会重启httpd服务。是否继续？",
+        onOk: () => {
+          that.loadingUpdHttpPrefix = true;
+          var data = {
+            prefix: that.tempHttpPrefix,
+          };
+          that.$axios
+            .post("/api.php?c=Setting&a=UpdHttpPrefix&t=web", data)
+            .then(function (response) {
+              var result = response.data;
+              that.loadingUpdHttpPrefix = false;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetApacheInfo();
+              } else {
+                that.$Message.error({ content: result.message, duration: 2 });
+              }
+            })
+            .catch(function (error) {
+              that.loadingUpdHttpPrefix = false;
+              console.log(error);
+              that.timer = window.setInterval(() => {
+                setTimeout(function () {
+                  that.GetApacheInfo();
+                  that.GetSvnserveInfo();
+                }, 0);
+              }, 1000);
+              that.$Message.success("等待httpd服务重启");
             });
         },
       });
