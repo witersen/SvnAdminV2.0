@@ -142,18 +142,18 @@ class Svnrep extends Base
         }
 
         if ($passworddb == 'passwd') {
-            $prifix = $this->svnservePort == 3690 ? $this->host : $this->host . ':' . $this->svnservePort;
+            $checkoutHost = $this->svnservePort == 3690 ? $this->host : $this->host . ':' . $this->svnservePort;
 
             return message(200, 1, '成功', [
                 'protocal' => 'svn://',
-                'prefix' => $prifix
+                'prefix' => $checkoutHost
             ]);
         } else {
-            $prifix = ($this->port == 80 ? $this->host : $this->host . ':' . $this->port) . $this->httpPrefix;
+            $checkoutHost = ($this->port == 80 ? $this->host : $this->host . ':' . $this->port) . $this->httpPrefix;
 
             return message(200, 1, '成功', [
                 'protocal' => 'http://',
-                'prefix' => $prifix
+                'prefix' => $checkoutHost
             ]);
         }
     }
@@ -588,6 +588,15 @@ class Svnrep extends Base
      */
     public function GetSvnUserRepList()
     {
+        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
+        if (is_numeric($passworddb)) {
+            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
+        }
+
+        if ($passworddb == 'httpPasswd') {
+            $checkoutHost = $this->http . '://' . ($this->port == 80 ? $this->host : $this->host . ':' . $this->port) . '/' . ltrim($this->httpPrefix, '/');
+        }
+
         $sync = $this->payload['sync'];
         $page = $this->payload['page'];
 
@@ -679,8 +688,15 @@ class Svnrep extends Base
             ]);
         }
 
-        foreach ($list as $key => $value) {
-            $list[$key]['second_pri'] = $value['second_pri'] == 1 ? true : false;
+        if ($passworddb == 'httpPasswd') {
+            foreach ($list as $key => $value) {
+                $list[$key]['second_pri'] = $value['second_pri'] == 1 ? true : false;
+                $list[$key]['raw_url'] = rtrim($checkoutHost, '/') . '/' . $value['rep_name'] . $value['pri_path'];
+            }
+        } else {
+            foreach ($list as $key => $value) {
+                $list[$key]['second_pri'] = $value['second_pri'] == 1 ? true : false;
+            }
         }
 
         $total = $this->database->count('svn_user_pri_paths', [
@@ -696,7 +712,8 @@ class Svnrep extends Base
 
         return message(200, 1, '成功', [
             'data' => $list,
-            'total' => $total
+            'total' => $total,
+            'passwdDb' => $passworddb
         ]);
     }
 
@@ -2368,20 +2385,25 @@ class Svnrep extends Base
      */
     private function GetSvnList($repPath, $repName)
     {
-        $checkoutHost = $this->svnservePort == 3690 ? $this->host : $this->host . ':' . $this->svnservePort;
+        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
+        if (is_numeric($passworddb)) {
+            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
+        }
 
-        /**
-         * 获取SVN用户密码
-         * 
-         * 目的为使用该用户的权限进行操作 确保用户看到的就是所授权的
-         */
-        $svnUserPass = $this->database->get('svn_users', 'svn_user_pass', [
-            'svn_user_name' => $this->userName
-        ]);
+        if ($passworddb == 'passwd') {
+            $checkoutHost = $this->svnservePort == 3690 ? $this->svnserveHost : $this->svnserveHost . ':' . $this->svnservePort;
 
-        /**
-         * 使用svn list进行内容获取
-         */
+            $svnUserPass = $this->database->get('svn_users', 'svn_user_pass', [
+                'svn_user_name' => $this->userName
+            ]);
+        } else {
+            $checkoutHost = $this->http . '://' . ($this->port == 80 ? $this->httpLocal : $this->httpLocal . ':' . $this->port) . '/' . ltrim($this->httpPrefix, '/');
+
+            $svnUserPass = $this->database->get('svn_users', 'svn_user_pass', [
+                'svn_user_name' => $this->userName
+            ]);
+        }
+
         $checkResult = $this->CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $this->userName, $svnUserPass);
         if ($checkResult['status'] != 1) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'], $checkResult['data']);
@@ -2397,7 +2419,7 @@ class Svnrep extends Base
     private function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, $svnUserPass)
     {
         $cmd = sprintf("'%s' list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $this->configBin['svn'], $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
-        $result = funShellExec($cmd);
+        $result = funShellExec($cmd, true);
 
         if ($result['code'] != 0) {
             //: Authentication error from server: Password incorrect
@@ -2418,7 +2440,7 @@ class Svnrep extends Base
             }
             //: Unable to connect to a repository at URL
             if (strstr($result['error'], 'svn: E170013')) {
-                return ['code' => 200, 'status' => 0, 'message' => '无法连接到仓库', 'data' => []];
+                return ['code' => 200, 'status' => 0, 'message' => '无法连接到仓库或无权限', 'data' => []];
             }
             //: Could not list all targets because some targets don't exist
             if (strstr($result['error'], 'svn: warning: W160013') || strstr($result['error'], "svn: E200009")) {

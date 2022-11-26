@@ -58,7 +58,7 @@ function auto_require($path, $recursively = false)
 use Check;
 
 use Config;
-
+use Medoo\Medoo;
 use Witersen\SVNAdmin;
 
 class Base
@@ -104,6 +104,8 @@ class Base
     //主机
     public $host = '';
     public $port = 0;
+    public $http = 'http';
+    public $httpLocal = '127.0.0.1';
 
     //数据源
     public $dataSource = [];
@@ -1055,7 +1057,7 @@ class Base
                         'Setting/GetSaslInfo',
                         'Setting/UpdSaslStatusStart',
                         'Setting/UpdSaslStatusStop',
-                        
+
                         'Setting/GetUsersourceInfo',
                         'Setting/UpdUsersourceInfo',
                         'Setting/LdapTest',
@@ -1286,7 +1288,20 @@ class Base
         $this->token = isset($parm['token']) ? $parm['token'] : '';
 
         global $database;
-        $this->database = $database;
+        if ($database) {
+            $this->database = $database;
+        } else {
+            $configDatabase = Config::get('database');
+            $configSvn = Config::get('svn');
+            if (array_key_exists('database_file', $configDatabase)) {
+                $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
+            }
+            try {
+                $this->database = new Medoo($configDatabase);
+            } catch (\Exception $e) {
+                json1(200, 0, $e->getMessage());
+            }
+        }
 
         /**
          * 4、用户信息获取
@@ -1538,7 +1553,7 @@ class Base
     }
 
     /**
-     * 重读httppasswd的值
+     * 重读httPpasswd的值
      *
      * @return void
      */

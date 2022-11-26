@@ -187,6 +187,13 @@
             @click="ModalViewUserRep(row.rep_name, row.pri_path)"
             >浏览</Button
           >
+          <Button
+            type="info"
+            size="small"
+            v-if="passwdDb == 'httpPasswd'"
+            @click="ModalViewUserRepRaw(row.raw_url)"
+            >原生浏览</Button
+          >
         </template>
       </Table>
       <!-- 管理人员SVN仓库分页 -->
@@ -899,6 +906,11 @@ export default {
       user_role_id: sessionStorage.user_role_id,
 
       /**
+       * 当前启用协议
+       */
+      passwdDb: "passwd",
+
+      /**
        * 对话框
        */
       //新建SVN仓库
@@ -1544,6 +1556,7 @@ export default {
             // that.$Message.success(result.message);
             that.tableDataUserRep = result.data.data;
             that.totalUserRep = result.data.total;
+            that.passwdDb = result.data.passwdDb;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -1658,6 +1671,12 @@ export default {
             that.currentRepPath;
         }
       });
+    },
+    /**
+     * 用户通过http提供的能力直接浏览
+     */
+    ModalViewUserRepRaw(row_url) {
+      window.open(row_url, "_blank");
     },
     /**
      * 获取检出地址前缀

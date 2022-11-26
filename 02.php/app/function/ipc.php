@@ -34,7 +34,7 @@ function funShellExec($shell, $daemon = false)
 
         socket_write($socket, $request, strlen($request));
 
-        $reply = socket_read($socket, $length);
+        $reply = @socket_read($socket, $length);
 
         socket_close($socket);
 

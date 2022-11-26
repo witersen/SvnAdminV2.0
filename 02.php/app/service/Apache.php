@@ -146,7 +146,7 @@ class Apache extends Base
         // }
 
         //重启 httpd
-        funShellExec(sprintf("'%s' -k restart", $this->configBin['httpd']), true);
+        funShellExec(sprintf("'%s' -k graceful", $this->configBin['httpd']), true);
 
         return message();
     }
@@ -339,7 +339,7 @@ class Apache extends Base
         // }
 
         //重启 httpd
-        funShellExec(sprintf("'%s' -k restart", $this->configBin['httpd']), true);
+        funShellExec(sprintf("'%s' -k graceful", $this->configBin['httpd']), true);
 
         return message();
     }
