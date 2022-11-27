@@ -9,22 +9,11 @@
 
 namespace app\service;
 
-use app\service\Svn as ServiceSvn;
-
 class Apache extends Base
 {
-    /**
-     * 服务层对象
-     *
-     * @var object
-     */
-    private $ServiceSvn;
-
     function __construct($parm = [])
     {
         parent::__construct($parm);
-
-        $this->ServiceSvn = new ServiceSvn($parm);
     }
 
     /**
@@ -191,35 +180,16 @@ class Apache extends Base
      */
     public function UpdSubversionEnable()
     {
-        //修改 svnserve.conf 为 httpPasswd
-        // $result = $this->ServiceSvn->UpdPasswddbInfo('httpPasswd');
-        // if (is_numeric($result)) {
-        //     return message(200, 0, sprintf('更新[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $result));
-        // }
-        // file_put_contents($this->configSvn['svn_conf_file'], $result);
-
         //写入 subversion.conf
         $result = $this->UpdConfSvn();
         if ($result['status'] != 1) {
             return message($result['code'], $result['status'], $result['message'], $result['data']);
         }
 
-        //关闭use-sasl
-        // $result = $this->ServiceSvn->UpdSvnSaslStop();
-        // if ($result['status'] != 1) {
-        //     return message($result['code'], $result['status'], $result['message'], $result['data']);
-        // }
-
         //清空数据库的用户
         $this->database->delete('svn_users', [
             'svn_user_id[>]' => 0
         ]);
-
-        //停止 svnserve
-        // $result = $this->ServiceSvn->UpdSvnserveStatusStop();
-        // if ($result['status'] != 1) {
-        //     return message($result['code'], $result['status'], $result['message'], $result['data']);
-        // }
 
         //切换目前状态
         $this->database->update('options', [
@@ -417,30 +387,11 @@ class Apache extends Base
             'option_name' => '24_http_prefix',
         ]);
 
-        //修改 svnserve.conf 为 httpPasswd
-        // $result = $this->ServiceSvn->UpdPasswddbInfo('httpPasswd');
-        // if (is_numeric($result)) {
-        //     return message(200, 0, sprintf('更新[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $result));
-        // }
-        // file_put_contents($this->configSvn['svn_conf_file'], $result);
-
         //写入 subversion.conf
         $result = $this->UpdConfSvn($this->payload['prefix']);
         if ($result['status'] != 1) {
             return message($result['code'], $result['status'], $result['message'], $result['data']);
         }
-
-        //关闭use-sasl
-        // $result = $this->ServiceSvn->UpdSvnSaslStop();
-        // if ($result['status'] != 1) {
-        //     return message($result['code'], $result['status'], $result['message'], $result['data']);
-        // }
-
-        //停止 svnserve
-        // $result = $this->ServiceSvn->UpdSvnserveStatusStop();
-        // if ($result['status'] != 1) {
-        //     return message($result['code'], $result['status'], $result['message'], $result['data']);
-        // }
 
         //重启 httpd
         funShellExec(sprintf("'%s' -k graceful", $this->configBin['httpd']), true);

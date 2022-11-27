@@ -315,6 +315,7 @@ CREATE TABLE `svn_users` (
   `svn_user_note` varchar(1000) CHARACTER SET utf8 DEFAULT NULL COMMENT '用户备注信息',
   `svn_user_last_login` varchar(255) CHARACTER SET utf8 DEFAULT NULL COMMENT '上次登录时间',
   `svn_user_token` varchar(255) CHARACTER SET utf8 DEFAULT NULL COMMENT '用户token',
+  `svn_user_mail` varchar(255) CHARACTER SET utf8 DEFAULT NULL COMMENT '用户token',
   PRIMARY KEY (`svn_user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=sjis COMMENT='svn用户表';
 /*!40101 SET character_set_client = @saved_cs_client */;

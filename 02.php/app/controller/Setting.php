@@ -11,9 +11,7 @@ namespace app\controller;
 
 use app\service\Setting as ServiceSetting;
 use app\service\Mail as ServiceMail;
-use app\service\Svnrep as ServiceSvnrep;
 use app\service\Ldap as ServiceLdap;
-use app\service\Sasl as ServiceSasl;
 use app\service\Svn as ServiceSvn;
 use app\service\Apache as ServiceApache;
 
@@ -26,9 +24,7 @@ class Setting extends Base
      */
     private $ServiceSetting;
     private $ServiceMail;
-    private $ServiceSvnrep;
     private $ServiceLdap;
-    private $ServiceSasl;
     private $ServiceSvn;
     private $ServiceApache;
 
@@ -38,9 +34,7 @@ class Setting extends Base
 
         $this->ServiceSetting = new ServiceSetting($parm);
         $this->ServiceMail = new ServiceMail($parm);
-        $this->ServiceSvnrep = new ServiceSvnrep($parm);
         $this->ServiceLdap = new ServiceLdap($parm);
-        $this->ServiceSasl = new ServiceSasl($parm);
         $this->ServiceSvn = new ServiceSvn($parm);
         $this->ServiceApache = new ServiceApache($parm);
     }

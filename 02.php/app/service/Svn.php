@@ -9,8 +9,6 @@
 
 namespace app\service;
 
-// use Config;
-
 class Svn extends Base
 {
     function __construct($parm = [])
@@ -519,106 +517,12 @@ class Svn extends Base
     }
 
     /**
-     * 修改 svnserve.conf 文件的 password-db 值
-     *
-     * @param string $status passwd|httpPasswd
-     * @return string|integer
-     */
-    public function UpdPasswddbInfo($status)
-    {
-        if (!in_array($status, [
-            'passwd',
-            'httpPasswd'
-        ])) {
-            return 0;
-        }
-
-        $con = $this->svnserveContent;
-
-        preg_match_all("/^[ \t]*\[general\](((?!\n[ \t]*\[)[\s\S])*)/m", $con, $conPreg);
-        if (preg_last_error() != 0) {
-            return preg_last_error();
-        }
-        if (array_key_exists(0, $conPreg[0])) {
-            $temp1 = trim($conPreg[1][0]);
-            if (empty($temp1)) {
-                return 1;
-            } else {
-                preg_match_all("/^[ \t]*(password-db)[ \t]*=[ \t]*(.*)[ \t]*$/m", $conPreg[1][0], $resultPreg);
-                if (preg_last_error() != 0) {
-                    return preg_last_error();
-                }
-                if (array_key_exists(0, $resultPreg[0])) {
-                    foreach ($resultPreg[1] as $key => $valueStr) {
-                        $value = trim($resultPreg[2][$key]);
-                        if ($value === $status) {
-                            return $con;
-                        } else {
-                            return preg_replace("/^[ \t]*\[general\](((?!\n[ \t]*\[)[\s\S])*)/m", "[general]\n" . trim(preg_replace("/^[ \t]*(password-db)[ \t]*=[ \t]*(.*)[ \t]*$/m", "password-db = $status", $conPreg[1][0])) . "\n", $con);
-                        }
-                    }
-                } else {
-                    return 2;
-                }
-            }
-        } else {
-            return 3;
-        }
-    }
-
-    /**
-     * 获取 svnserve.conf 文件的 password-db 值
-     *
-     * @return boolean|integer|string
-     */
-    public function GetPasswddbInfo($status = '')
-    {
-        $con = $this->svnserveContent;
-
-        preg_match_all("/^[ \t]*\[general\](((?!\n[ \t]*\[)[\s\S])*)/m", $con, $conPreg);
-        if (preg_last_error() != 0) {
-            return preg_last_error();
-        }
-        if (array_key_exists(0, $conPreg[0])) {
-            $temp1 = trim($conPreg[1][0]);
-            if (empty($temp1)) {
-                return 1;
-            } else {
-                preg_match_all("/^[ \t]*(password-db)[ \t]*=[ \t]*(.*)[ \t]*$/m", $conPreg[1][0], $resultPreg);
-                if (preg_last_error() != 0) {
-                    return preg_last_error();
-                }
-                if (array_key_exists(0, $resultPreg[0])) {
-                    foreach ($resultPreg[1] as $key => $valueStr) {
-                        if (empty($status)) {
-                            return trim($resultPreg[2][$key]);
-                        } else {
-                            return trim($resultPreg[2][$key]) === trim($status);
-                        }
-                    }
-                } else {
-                    return 2;
-                }
-            }
-        } else {
-            return 3;
-        }
-    }
-
-    /**
      * 启用 svn 协议检出
      *
      * @return void
      */
     public function UpdSvnEnable()
     {
-        //修改 svnserve.conf 为 passwd
-        // $result = $this->UpdPasswddbInfo('passwd');
-        // if (is_numeric($result)) {
-        //     return message(200, 0, sprintf('更新[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 1, $result));
-        // }
-        // file_put_contents($this->configSvn['svn_conf_file'], $result);
-
         //重启 svnserve
         $result = $this->UpdSvnserveStatusStop();
         // if ($result['status'] != 1) {

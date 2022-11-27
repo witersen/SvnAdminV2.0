@@ -9,8 +9,6 @@
 
 namespace app\service;
 
-// use Config;
-
 use app\service\Svn as ServiceSvn;
 use app\service\Logs as ServiceLogs;
 
@@ -68,7 +66,7 @@ class Svnrep extends Base
                 'prefix' => $checkoutHost
             ]);
         } else {
-            $checkoutHost = ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHost) . $this->httpPrefix;
+            $checkoutHost = ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHttpPort) . $this->httpPrefix;
 
             return message(200, 1, '成功', [
                 'protocal' => 'http://',

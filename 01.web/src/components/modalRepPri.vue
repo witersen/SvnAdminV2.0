@@ -633,7 +633,7 @@ export default {
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            that.modalSvnObject = false;
+            // that.modalSvnObject = false;
             that.$Message.success(result.message);
             that.GetRepPathAllPri();
           } else {
@@ -641,7 +641,7 @@ export default {
           }
         })
         .catch(function (error) {
-          that.modalSvnObject = false;
+          // that.modalSvnObject = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });

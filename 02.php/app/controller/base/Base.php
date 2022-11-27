@@ -73,7 +73,7 @@ class Base
         $configRouters =  Config::get('router');                //路由
         $configSvn = Config::get('svn');                        //仓库
         $configSign = Config::get('sign');                      //密钥
-        
+
         global $database;
 
         /**
@@ -117,7 +117,7 @@ class Base
                     'subadmin_name' => $userName
                 ]);
                 $subadminFunctions = json_decode($subadminFunctions, true);
-                if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], $subadminFunctions)) {
+                if (empty($subadminFunctions) || !in_array($parm['controller_prefix'] . '/' . $parm['action'], $subadminFunctions)) {
                     json1(403, 0, '权限未分配');
                 }
             }

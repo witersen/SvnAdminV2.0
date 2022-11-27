@@ -1011,9 +1011,8 @@ class Base
                     'checked' => false,
                     'disabled' => true,
                     'necessary_functions' => [
-                        // 'Setting/GetHostInfo',
-                        // 'Setting/UpdHost',
-                        // 'Setting/UpdPort'
+                        'Setting/GetDcokerHostInfo',
+                        'Setting/UpdDockerHostInfo',
                     ],
                     'children' => []
                 ],
@@ -1034,11 +1033,20 @@ class Base
                     'disabled' => true,
                     'necessary_functions' => [
                         'Setting/GetSvnInfo',
+
+                        'Setting/UpdSvnEnable',
+
                         'Setting/UpdSvnserveStatusStop',
                         'Setting/UpdSvnserveStatusSart',
+
                         'Setting/UpdSvnservePort',
                         'Setting/UpdSvnserveHost',
-                        'Setting/UpdSvnEnable'
+
+                        'Setting/UpdSaslStatusStart',
+                        'Setting/UpdSaslStatusStop',
+
+                        'Setting/LdapTest',
+                        'Setting/UpdSvnUsersource'
                     ],
                     'children' => []
                 ],
@@ -1049,21 +1057,14 @@ class Base
                     'disabled' => true,
                     'necessary_functions' => [
                         'Setting/GetApacheInfo',
+
+                        'Setting/UpdSubversionEnable',
+
+                        'Setting/UpdHttpPort',
                         'Setting/UpdHttpPrefix',
-                        'Setting/UpdSubversionEnable'
-                    ],
-                    'children' => []
-                ],
-                [
-                    'title' => '第三方认证',
-                    'expand' => false,
-                    'checked' => false,
-                    'disabled' => true,
-                    'necessary_functions' => [
-                        'Setting/UpdSaslStatusStart',
-                        'Setting/UpdSaslStatusStop',
 
                         'Setting/LdapTest',
+                        'Setting/UpdHttpUsersource'
                     ],
                     'children' => []
                 ],
@@ -1307,7 +1308,7 @@ class Base
         }
 
         /**
-         * 4、用户信息获取
+         * 1、用户信息获取
          */
         if (empty($this->token)) {
             $this->userRoleId = isset($parm['payload']['userRoleId']) ? $parm['payload']['userRoleId'] : 0;
@@ -1319,7 +1320,7 @@ class Base
         }
 
         /**
-         * 8、获取authz和passwd的配置文件信息
+         * 2、获取authz和passwd的配置文件信息
          */
         $this->authzContent = file_get_contents($this->configSvn['svn_authz_file']);
         $this->passwdContent = file_get_contents($this->configSvn['svn_passwd_file']);
@@ -1327,22 +1328,22 @@ class Base
         $this->svnserveContent = file_get_contents($this->configSvn['svn_conf_file']);
 
         /**
-         * 9、获取payload
+         * 3、获取payload
          */
         $this->payload = isset($parm['payload']) ? $parm['payload'] : [];
 
         /**
-         * 10、svnadmin对象
+         * 4、svnadmin对象
          */
         $this->SVNAdmin = new SVNAdmin();
 
         /**
-         * 11、检查对象
+         * 5、检查对象
          */
         $this->checkService = new Check($this->configReg);
 
         /**
-         * 12、宿主机信息
+         * 6、宿主机信息
          */
         $dockerHost = $this->database->get('options', [
             'option_id',
@@ -1372,7 +1373,7 @@ class Base
         }
 
         /**
-         * 13、本地信息
+         * 7、本地信息
          */
         if (preg_match('/--listen-port[\s]+([0-9]+)/', file_get_contents($this->configSvn['svnserve_env_file']), $portMatchs)) {
             $this->localSvnPort = (int)trim($portMatchs[1]);
@@ -1406,7 +1407,7 @@ class Base
         }
 
         /**
-         * 14、当前启用协议
+         * 8、当前启用协议
          */
         $this->enableCheckout = $this->database->get('options', [
             'option_id',
@@ -1427,7 +1428,7 @@ class Base
 
 
         /**
-         * 15、数据源
+         * 9、数据源
          */
         //svn
         $result = $this->database->get('options', [
@@ -1510,7 +1511,7 @@ class Base
         }
 
         /**
-         * 16、http访问仓库前缀
+         * 10、http访问仓库前缀
          */
         $this->httpPrefix = $this->database->get('options', [
             'option_id',

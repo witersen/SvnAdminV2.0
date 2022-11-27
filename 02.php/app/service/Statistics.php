@@ -9,22 +9,11 @@
 
 namespace app\service;
 
-use app\service\Svnaliase as ServiceSvnaliase;
-
 class Statistics extends Base
 {
-    /**
-     * 服务层对象
-     *
-     * @var object
-     */
-    private $ServiceSvnaliase;
-
     function __construct($parm = [])
     {
         parent::__construct($parm);
-
-        $this->ServiceSvnaliase = new ServiceSvnaliase($parm);
     }
 
     /**

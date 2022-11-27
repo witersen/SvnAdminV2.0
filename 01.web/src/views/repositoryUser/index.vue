@@ -1273,7 +1273,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.modalSvnObject = false;
+            // that.modalSvnObject = false;
             that.GetSecondpriObjectList();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });

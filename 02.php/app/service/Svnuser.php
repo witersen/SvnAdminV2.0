@@ -11,7 +11,6 @@ namespace app\service;
 
 use app\service\Logs as ServiceLogs;
 use app\service\Ldap as ServiceLdap;
-use app\service\Svn as ServiceSvn;
 use app\service\Apache as ServiceApache;
 
 class Svnuser extends Base
@@ -23,7 +22,6 @@ class Svnuser extends Base
      */
     private $ServiceLogs;
     private $ServiceLdap;
-    private $ServiceSvn;
     private $ServiceApache;
 
     function __construct($parm = [])
@@ -32,7 +30,6 @@ class Svnuser extends Base
 
         $this->ServiceLogs = new ServiceLogs($parm);
         $this->ServiceLdap = new ServiceLdap($parm);
-        $this->ServiceSvn = new ServiceSvn($parm);
         $this->ServiceApache = new ServiceApache($parm);
     }
 

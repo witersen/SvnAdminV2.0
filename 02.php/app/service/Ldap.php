@@ -9,26 +9,13 @@
 
 namespace app\service;
 
-// use app\service\Sasl as ServiceSasl;
-// use app\service\Svn as ServiceSvn;
 use stdClass;
 
 class Ldap extends Base
 {
-    // /**
-    //  * 服务层对象
-    //  *
-    //  * @var object
-    //  */
-    // private $ServiceSasl;
-    // private $ServiceSvn;
-
     function __construct($parm = [])
     {
         parent::__construct($parm);
-
-        // $this->ServiceSasl = new ServiceSasl();
-        // $this->ServiceSvn = new ServiceSvn();
     }
 
     /**

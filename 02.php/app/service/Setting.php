@@ -10,7 +10,6 @@
 namespace app\service;
 
 use app\service\Svn as ServiceSvn;
-use app\service\Logs as ServiceLogs;
 use Config;
 
 class Setting extends Base
@@ -21,7 +20,6 @@ class Setting extends Base
      * @var object
      */
     private $ServiceSvn;
-    private $ServiceLogs;
 
     function __construct($parm = [])
     {

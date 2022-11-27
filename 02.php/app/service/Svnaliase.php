@@ -11,13 +11,6 @@ namespace app\service;
 
 class Svnaliase extends Base
 {
-    /**
-     * 其它服务层对象
-     *
-     * @var object
-     */
-    private $Logs;
-
     function __construct($parm = [])
     {
         parent::__construct($parm);

@@ -229,7 +229,8 @@ CREATE TABLE "svn_users" (
   "svn_user_status" integer(1) NOT NULL,
   "svn_user_note" TEXT(1000),
   "svn_user_last_login" TEXT,
-  "svn_user_token" TEXT
+  "svn_user_token" TEXT,
+  "svn_user_mail" TEXT
 );
 
 -- ----------------------------

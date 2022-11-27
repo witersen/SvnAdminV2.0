@@ -39,7 +39,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="此值仅通过数据库维护-不影响业务运行"
+                      content="此值仅通过数据库维护-不影响业务运行-作用为当处于容器环境中通常会做端口映射导致容器内端口和宿主机端口不同-这个时候为了显示方便-可配置此值-当不处于容器环境时候此值与实际端口值一致即可"
                     >
                       <Button type="info">说明</Button>
                     </Tooltip>
@@ -59,7 +59,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="此值仅通过数据库维护-不影响业务运行"
+                      content="此值仅通过数据库维护-不影响业务运行-作用为当处于容器环境中通常会做端口映射导致容器内端口和宿主机端口不同-这个时候为了显示方便-可配置此值-当不处于容器环境时候此值与实际端口值一致即可"
                     >
                       <Button type="info">说明</Button>
                     </Tooltip>
@@ -113,13 +113,19 @@
                   </Col>
                   <Col span="1"> </Col>
                   <Col span="6">
-                    <Button
-                      :loading="loadingUpdSvnEnable"
-                      type="success"
-                      v-if="!formSvn.enable"
-                      @click="UpdSvnEnable"
-                      >启用</Button
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="svn协议检出和http协议检出可同时提供服务-只是管理系统同一时间只建议管理一套用户数据-因此通过此按钮进行管理切换"
                     >
+                      <Button
+                        :loading="loadingUpdSvnEnable"
+                        type="success"
+                        v-if="!formSvn.enable"
+                        @click="UpdSvnEnable"
+                        >启用</Button
+                      >
+                    </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
@@ -400,6 +406,16 @@
                     <Col span="12">
                       <Input v-model="formSvn.ldap.ldap_bind_dn"></Input>
                     </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如: CN=blue,CN=Users,DC=witersen,DC=com"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Bind password">
@@ -431,12 +447,32 @@
                     <Col span="12">
                       <Input v-model="formSvn.ldap.user_base_dn"></Input>
                     </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如: CN=Users,DC=witersen,DC=com"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Search filter">
                   <Row>
                     <Col span="12">
                       <Input v-model="formSvn.ldap.user_search_filter"></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如:  (&(objectClass=person)(objectClass=user))"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
                     </Col>
                   </Row>
                 </FormItem>
@@ -446,13 +482,27 @@
                       <Input v-model="formSvn.ldap.user_attributes"></Input>
                     </Col>
                     <Col span="1"> </Col>
-                    <Col span="6">
-                      <Button
-                        type="success"
-                        @click="LdapTest('svn', 'user')"
-                        :loading="loadingLdapTestUser"
-                        >验证</Button
-                      >
+                    <Col span="8">
+                      <Row>
+                        <Col span="11">
+                          <Tooltip
+                            :transfer="true"
+                            max-width="250"
+                            content="如: sAMAccountName"
+                          >
+                            <Button type="info">说明</Button>
+                          </Tooltip>
+                        </Col>
+                        <Col span="2"> </Col>
+                        <Col span="11">
+                          <Button
+                            type="success"
+                            @click="LdapTest('svn', 'user')"
+                            :loading="loadingLdapTestUser"
+                            >验证</Button
+                          >
+                        </Col>
+                      </Row>
                     </Col>
                   </Row>
                 </FormItem>
@@ -465,6 +515,16 @@
                     <Col span="12">
                       <Input v-model="formSvn.ldap.group_base_dn"></Input>
                     </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如: DC=witersen,DC=com"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Search filter">
@@ -472,12 +532,32 @@
                     <Col span="12">
                       <Input v-model="formSvn.ldap.group_search_filter"></Input>
                     </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如:  (objectClass=group)"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Attributes">
                   <Row>
                     <Col span="12">
                       <Input v-model="formSvn.ldap.group_attributes"></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如:  sAMAccountName"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
                     </Col>
                   </Row>
                 </FormItem>
@@ -561,13 +641,19 @@
                   </Col>
                   <Col span="1"> </Col>
                   <Col span="6">
-                    <Button
-                      :loading="loadingUpdSubversionEnable"
-                      type="success"
-                      v-if="!formHttp.enable"
-                      @click="UpdSubversionEnable"
-                      >启用</Button
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="svn协议检出和http协议检出可同时提供服务-只是管理系统同一时间只建议管理一套用户数据-因此通过此按钮进行管理切换"
                     >
+                      <Button
+                        :loading="loadingUpdSubversionEnable"
+                        type="success"
+                        v-if="!formHttp.enable"
+                        @click="UpdSubversionEnable"
+                        >启用</Button
+                      >
+                    </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
@@ -626,7 +712,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="此值仅通过数据库维护-不影响业务运行"
+                      content="此值仅通过数据库维护-不影响业务运行-由于实际情况复杂不便监控和管理apache服务器的运行端口-因此当本系统apache实际配置何端口值此处则填写何端口值-填写不正确则会影响http协议检出模式下的本系统内用户在线仓库浏览功能"
                     >
                       <Button
                         type="warning"
@@ -653,7 +739,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="此值默认为 /svn ，为使用http协议检出时访问仓库的路径。如果设置为 / 请注意与管理系统的地址冲突问题。"
+                      content="此值默认为 /svn 为使用http协议检出时访问仓库的路径-如果设置为 / 请注意与管理系统的地址冲突问题-可通过为本系统配置虚拟路径如/manage来达到仓库使用/前缀的目的"
                     >
                       <Button
                         type="warning"
@@ -695,7 +781,7 @@
                       style="width: 200px"
                       @on-change="ChangeHttpUsersource"
                     >
-                      <Option value="httpPasswd">passwd文件</Option>
+                      <Option value="httpPasswd">httpPasswd文件</Option>
                       <Option value="ldap">ldap</Option>
                     </Select>
                   </Col>
@@ -776,6 +862,16 @@
                     <Col span="12">
                       <Input v-model="formHttp.ldap.ldap_bind_dn"></Input>
                     </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如: CN=blue,CN=Users,DC=witersen,DC=com"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Bind password">
@@ -807,12 +903,32 @@
                     <Col span="12">
                       <Input v-model="formHttp.ldap.user_base_dn"></Input>
                     </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如: CN=Users,DC=witersen,DC=com"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Search filter">
                   <Row>
                     <Col span="12">
                       <Input v-model="formHttp.ldap.user_search_filter"></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如:  (&(objectClass=person)(objectClass=user))"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
                     </Col>
                   </Row>
                 </FormItem>
@@ -822,13 +938,27 @@
                       <Input v-model="formHttp.ldap.user_attributes"></Input>
                     </Col>
                     <Col span="1"> </Col>
-                    <Col span="6">
-                      <Button
-                        type="success"
-                        @click="LdapTest('apache', 'user')"
-                        :loading="loadingLdapTestUser"
-                        >验证</Button
-                      >
+                    <Col span="8">
+                      <Row>
+                        <Col span="11">
+                          <Tooltip
+                            :transfer="true"
+                            max-width="250"
+                            content="如: sAMAccountName"
+                          >
+                            <Button type="info">说明</Button>
+                          </Tooltip>
+                        </Col>
+                        <Col span="2"> </Col>
+                        <Col span="11">
+                          <Button
+                            type="success"
+                            @click="LdapTest('apache', 'user')"
+                            :loading="loadingLdapTestUser"
+                            >验证</Button
+                          >
+                        </Col>
+                      </Row>
                     </Col>
                   </Row>
                 </FormItem>
@@ -841,6 +971,16 @@
                     <Col span="12">
                       <Input v-model="formHttp.ldap.group_base_dn"></Input>
                     </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如: DC=witersen,DC=com"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Search filter">
@@ -850,12 +990,32 @@
                         v-model="formHttp.ldap.group_search_filter"
                       ></Input>
                     </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如:  (objectClass=group)"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Attributes">
                   <Row>
                     <Col span="12">
                       <Input v-model="formHttp.ldap.group_attributes"></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="如:  sAMAccountName"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
                     </Col>
                   </Row>
                 </FormItem>
@@ -1222,19 +1382,12 @@
                 </Row>
               </FormItem>
               <FormItem>
-                <!-- <Tooltip
-                  max-width="300"
-                  content="此操作是通过读取位于GitHub和Gitee公开仓库(witersen/update)的配置文件进行软件更新检测 所以需要软件所在主机能够访问外网"
-                  placement="top"
-                  transfer
-                > -->
                 <Button
                   type="primary"
                   :loading="loadingCheckUpdate"
                   @click="CheckUpdate()"
                   >检测更新</Button
                 >
-                <!-- </Tooltip> -->
               </FormItem>
             </Form>
           </Card>
@@ -1426,7 +1579,7 @@ export default {
        * 版本信息
        */
       version: {
-        current_verson: "2.4",
+        current_verson: "2.4.1",
         php_version: "5.5+",
         database: "MYSQL、SQLite",
         github: "https://github.com/witersen/SvnAdminV2.0",

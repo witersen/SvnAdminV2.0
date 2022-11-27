@@ -9,10 +9,8 @@
 
 namespace app\service;
 
-use Config;
 use Verifycode;
 use app\service\Ldap as ServiceLdap;
-use app\service\Svn as ServiceSvn;
 use app\service\Apache as ServiceApache;
 
 class Common extends Base
@@ -22,24 +20,20 @@ class Common extends Base
      *
      * @var object
      */
-    // private $Svnuser;
     private $Logs;
     private $Mail;
     private $Setting;
     private $ServiceLdap;
-    private $ServiceSvn;
     private $ServiceApache;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
-        // $this->Svnuser = new Svnuser($parm);
         $this->Logs = new Logs($parm);
         $this->Mail = new Mail($parm);
         $this->Setting = new Setting($parm);
         $this->ServiceLdap = new ServiceLdap($parm);
-        $this->ServiceSvn = new ServiceSvn($parm);
         $this->ServiceApache = new ServiceApache($parm);
     }
 

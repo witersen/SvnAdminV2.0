@@ -358,7 +358,9 @@ class Install
             'svndumpfilter' => '',
             'svnmucc' => '',
             'svnauthz-validate' => '',
-            'saslauthd' => ''
+            'saslauthd' => '',
+            'httpd' => '',
+            'htpasswd' => ''
         ];
 
         echo '===============================================' . PHP_EOL;
@@ -382,7 +384,13 @@ class Install
             if ($binPath == "\n") {
                 $binPath = trim(shell_exec("which $key 2>/dev/null"));
                 if ($binPath == '') {
-                    if ($key == 'svnmucc' || $key == 'svnauthz-validate' || $key == 'saslauthd') {
+                    if (in_array($key, [
+                        'svnmucc',
+                        'svnauthz-validate',
+                        'saslauthd',
+                        'httpd',
+                        'htpasswd'
+                    ])) {
                         echo "未检测到 $key ，请手动输入程序路径！" . PHP_EOL;
                         echo "由于 $key 在当前版本非必要，因此无安装可忽略" . PHP_EOL;
                         echo '===============================================' . PHP_EOL;
@@ -414,7 +422,9 @@ class Install
             'svndumpfilter' => '{$needBin['svndumpfilter']}',
             'svnmucc' => '{$needBin['svnmucc']}',
             'svnauthz-validate' => '{$needBin['svnauthz-validate']}',
-            'saslauthd' => '{$needBin['saslauthd']}'
+            'saslauthd' => '{$needBin['saslauthd']}',
+            'httpd' => '{$needBin['httpd']}',
+            'htpasswd' => '{$needBin['htpasswd']}'
         ];
 CON;
 
@@ -498,6 +508,11 @@ CON;
             }
         } else {
             file_put_contents($this->configSvn['svn_authz_file'], $con_svn_authz_file);
+        }
+
+        //写入httpPasswd文件
+        if (!file_exists($this->configSvn['http_passwd_file'])) {
+            file_put_contents($this->configSvn['http_passwd_file'], '');
         }
 
         //写入passwd文件
