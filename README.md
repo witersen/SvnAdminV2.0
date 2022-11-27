@@ -6,8 +6,8 @@
   - GitHub地址：https://github.com/witersen/SvnAdminV2.0 
   - Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
 - 发行包：
-  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.3.3.1/2.3.3.1.zip
-  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.3.3.1/2.3.3.1.zip
+  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.4.1/2.4.1.zip
+  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.1/2.4.1.zip
 - 兼容性
 
   - 本程序提供 docker 镜像，基于 centos7.9.2009 构建
