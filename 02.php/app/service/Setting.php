@@ -31,71 +31,51 @@ class Setting extends Base
     }
 
     /**
-     * 获取主机配置
+     * 获取宿主机配置
      *
      * @return array
      */
-    public function GetHostInfo()
+    public function GetDcokerHostInfo()
     {
         return message(200, 1, '成功', [
-            'host' => $this->host,
-            'port' => $this->port
+            'docker_host' => $this->dockerHost,
+            'docker_svn_port' => $this->dockerSvnPort,
+            'docker_http_port' => $this->dockerHttpPort,
         ]);
     }
 
     /**
-     * 更新主机名
+     * 修改宿主机配置
      *
-     * @return array
+     * @return void
      */
-    public function UpdHost()
+    public function UpdDockerHostInfo()
     {
         //检查表单
         $checkResult = funCheckForm($this->payload, [
-            'host' => ['type' => 'string', 'notNull' => true]
+            'dockerHost' => ['type' => 'array', 'notNull' => true]
         ]);
         if ($checkResult['status'] == 0) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
-        $host = trim($this->payload['host']);
+        $checkResult = funCheckForm($this->payload['dockerHost'], [
+            'docker_host' => ['type' => 'string', 'notNull' => true],
+            'docker_svn_port' => ['type' => 'integer', 'notNull' => true],
+            'docker_http_port' => ['type' => 'integer', 'notNull' => true]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
 
-        if (!preg_match('/^(?!(http|https):\/\/).*$/m', $host, $result)) {
+        if (!preg_match('/^(?!(http|https):\/\/).*$/m', $this->payload['dockerHost']['docker_host'], $result)) {
             return message(200, 0, '主机地址无需携带协议前缀');
         }
 
         $this->database->update('options', [
-            'option_value' => $host,
+            'option_value' => serialize($this->payload['dockerHost'])
         ], [
-            'option_name' => 'host',
-        ]);
-
-        return message();
-    }
-
-    /**
-     * 更新端口
-     *
-     * @return array
-     */
-    public function UpdPort()
-    {
-        //检查表单
-        $checkResult = funCheckForm($this->payload, [
-            'port' => ['type' => 'integer', 'notNull' => true]
-        ]);
-        if ($checkResult['status'] == 0) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
-        }
-
-        if (!is_numeric($this->payload['port'])) {
-            return message(200, 0, '端口不符合要求');
-        }
-
-        $this->database->update('options', [
-            'option_value' => $this->payload['port'],
-        ], [
-            'option_name' => 'port',
+            'option_name' => '24_docker_host',
         ]);
 
         return message();
@@ -108,13 +88,13 @@ class Setting extends Base
     {
         //检查表单
         $checkResult = funCheckForm($this->payload, [
-            'listenPort' => ['type' => 'integer', 'notNull' => true]
+            'listen_port' => ['type' => 'integer', 'notNull' => true]
         ]);
         if ($checkResult['status'] == 0) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
-        if ($this->payload['listenPort'] == $this->svnservePort) {
+        if ($this->payload['listen_port'] == $this->localSvnPort) {
             return message(200, 0, '无需更换，端口相同');
         }
 
@@ -127,8 +107,8 @@ class Setting extends Base
             $this->configSvn['rep_base_path'],
             $this->configSvn['svn_conf_file'],
             $this->configSvn['svnserve_log_file'],
-            $this->payload['listenPort'],
-            $this->svnserveHost
+            $this->payload['listen_port'],
+            $this->localSvnHost
         );
 
         //写入配置文件
@@ -154,17 +134,17 @@ class Setting extends Base
     {
         //检查表单
         $checkResult = funCheckForm($this->payload, [
-            'listenHost' => ['type' => 'string', 'notNull' => true]
+            'listen_host' => ['type' => 'string', 'notNull' => true]
         ]);
         if ($checkResult['status'] == 0) {
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
-        if (!preg_match('/^(?!(http|https):\/\/).*$/m', $this->payload['listenHost'], $result)) {
+        if (!preg_match('/^(?!(http|https):\/\/).*$/m', $this->payload['listen_host'], $result)) {
             return message(200, 0, '主机地址无需携带协议前缀');
         }
 
-        if ($this->payload['listenHost'] == $this->svnserveHost) {
+        if ($this->payload['listen_host'] == $this->localSvnHost) {
             return message(200, 0, '无需更换，地址相同');
         }
 
@@ -177,8 +157,8 @@ class Setting extends Base
             $this->configSvn['rep_base_path'],
             $this->configSvn['svn_conf_file'],
             $this->configSvn['svnserve_log_file'],
-            $this->svnservePort,
-            $this->payload['listenHost']
+            $this->localSvnPort,
+            $this->payload['listen_host']
         );
 
         //写入配置文件

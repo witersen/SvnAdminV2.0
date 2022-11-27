@@ -190,7 +190,7 @@
           <Button
             type="info"
             size="small"
-            v-if="passwdDb == 'httpPasswd'"
+            v-if="enableCheckout == 'http'"
             @click="ModalViewUserRepRaw(row.raw_url)"
             >原生浏览</Button
           >
@@ -908,7 +908,7 @@ export default {
       /**
        * 当前启用协议
        */
-      passwdDb: "passwd",
+      enableCheckout: "passwd",
 
       /**
        * 对话框
@@ -1556,7 +1556,7 @@ export default {
             // that.$Message.success(result.message);
             that.tableDataUserRep = result.data.data;
             that.totalUserRep = result.data.total;
-            that.passwdDb = result.data.passwdDb;
+            that.enableCheckout = result.data.enableCheckout;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }

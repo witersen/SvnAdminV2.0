@@ -13,8 +13,6 @@ namespace app\service;
 
 use app\service\Svn as ServiceSvn;
 use app\service\Logs as ServiceLogs;
-use app\service\Usersource as ServiceUsersource;
-// use app\service\Apache as ServiceApache;
 
 class Svnrep extends Base
 {
@@ -25,8 +23,6 @@ class Svnrep extends Base
      */
     private $ServiceSvn;
     private $ServiceLogs;
-    private $ServiceUsersource;
-    // private $ServiceApache;
 
     function __construct($parm = [])
     {
@@ -34,8 +30,6 @@ class Svnrep extends Base
 
         $this->ServiceSvn = new ServiceSvn($parm);
         $this->ServiceLogs = new ServiceLogs($parm);
-        $this->ServiceUsersource = new ServiceUsersource($parm);
-        // $this->ServiceApache = new ServiceApache($parm);
     }
 
     /**
@@ -62,94 +56,19 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取Subversion的详细信息
-     */
-    public function GetSvnserveInfo()
-    {
-        //获取 svnserve 版本
-        $version = '-';
-        $result = funShellExec(sprintf("'%s' --version", $this->configBin['svnserve']));
-        if ($result['code'] == 0) {
-            preg_match_all($this->configReg['REG_SUBVERSION_VERSION'], $result['result'], $versionInfoPreg);
-            if (preg_last_error() != 0) {
-                $version = 'PREG_ERROR';
-            }
-            if (array_key_exists(0, $versionInfoPreg[0])) {
-                $version = trim($versionInfoPreg[1][0]);
-            } else {
-                $version = '--';
-            }
-        }
-
-        //获取 svn 协议启用状态
-        $result = $this->ServiceSvn->GetPasswddbInfo('passwd');
-        if (is_numeric($result)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 1, $result));
-        }
-
-        return message(200, 1, '成功', [
-            'version' => $version,
-            'status' => $this->GetSvnserveStatus()['data'],
-            'listenPort' => $this->svnservePort,
-            'listenHost' => $this->svnserveHost,
-            'svnserveLog' => $this->configSvn['svnserve_log_file'],
-            'passwordDb' => $this->configSvn['svn_passwd_file'],
-            'enable' => $result
-        ]);
-    }
-
-    /**
-     * 获取 svnserve 的运行状态
-     */
-    public function GetSvnserveStatus()
-    {
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
-        if ($passworddb == 'passwd') {
-            clearstatcache();
-
-            $statusRun = true;
-
-            if (!file_exists($this->configSvn['svnserve_pid_file'])) {
-                $statusRun = false;
-            } else {
-                $pid = trim(file_get_contents($this->configSvn['svnserve_pid_file']));
-                clearstatcache();
-                if (is_dir("/proc/$pid")) {
-                    $statusRun = true;
-                } else {
-                    $statusRun = false;
-                }
-            }
-
-            return message(200, 1, $statusRun ? '服务正常' : 'svnserve服务未在运行，出于安全原因，SVN用户将无法使用系统的仓库在线内容浏览功能，其它功能不受影响', $statusRun);
-        } else {
-            return message();
-        }
-    }
-
-    /**
      * 获取检出地址前缀
      */
     public function GetCheckout()
     {
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
-        if ($passworddb == 'passwd') {
-            $checkoutHost = $this->svnservePort == 3690 ? $this->host : $this->host . ':' . $this->svnservePort;
+        if ($this->enableCheckout == 'svn') {
+            $checkoutHost = $this->dockerSvnPort == 3690 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerSvnPort;
 
             return message(200, 1, '成功', [
                 'protocal' => 'svn://',
                 'prefix' => $checkoutHost
             ]);
         } else {
-            $checkoutHost = ($this->port == 80 ? $this->host : $this->host . ':' . $this->port) . $this->httpPrefix;
+            $checkoutHost = ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHost) . $this->httpPrefix;
 
             return message(200, 1, '成功', [
                 'protocal' => 'http://',
@@ -588,13 +507,8 @@ class Svnrep extends Base
      */
     public function GetSvnUserRepList()
     {
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
-        if ($passworddb == 'httpPasswd') {
-            $checkoutHost = $this->http . '://' . ($this->port == 80 ? $this->host : $this->host . ':' . $this->port) . '/' . ltrim($this->httpPrefix, '/');
+        if ($this->enableCheckout == 'http') {
+            $checkoutHost = $this->localHttpProtocol . '://' . ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHttpPort) . '/' . ltrim($this->httpPrefix, '/');
         }
 
         $sync = $this->payload['sync'];
@@ -688,7 +602,7 @@ class Svnrep extends Base
             ]);
         }
 
-        if ($passworddb == 'httpPasswd') {
+        if ($this->enableCheckout == 'http') {
             foreach ($list as $key => $value) {
                 $list[$key]['second_pri'] = $value['second_pri'] == 1 ? true : false;
                 $list[$key]['raw_url'] = rtrim($checkoutHost, '/') . '/' . $value['rep_name'] . $value['pri_path'];
@@ -713,7 +627,7 @@ class Svnrep extends Base
         return message(200, 1, '成功', [
             'data' => $list,
             'total' => $total,
-            'passwdDb' => $passworddb
+            'enableCheckout' => $this->enableCheckout
         ]);
     }
 
@@ -2385,23 +2299,22 @@ class Svnrep extends Base
      */
     private function GetSvnList($repPath, $repName)
     {
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
-        if ($passworddb == 'passwd') {
-            $checkoutHost = $this->svnservePort == 3690 ? $this->svnserveHost : $this->svnserveHost . ':' . $this->svnservePort;
+        if ($this->enableCheckout == 'svn') {
+            $checkoutHost = 'svn://' . ($this->localSvnPort == 3690 ? $this->localSvnHost : $this->localSvnHost . ':' . $this->localSvnPort);
 
             $svnUserPass = $this->database->get('svn_users', 'svn_user_pass', [
                 'svn_user_name' => $this->userName
             ]);
         } else {
-            $checkoutHost = $this->http . '://' . ($this->port == 80 ? $this->httpLocal : $this->httpLocal . ':' . $this->port) . '/' . ltrim($this->httpPrefix, '/');
+            $checkoutHost = $this->localHttpProtocol . '://' . ($this->localHttpPort == 80 ? $this->localHttpHost : $this->localHttpHost . ':' . $this->localHttpPort) . '/' . ltrim($this->httpPrefix, '/');
 
             $svnUserPass = $this->database->get('svn_users', 'svn_user_pass', [
                 'svn_user_name' => $this->userName
             ]);
+        }
+
+        if (empty($svnUserPass)) {
+            return message(200, 0, '用户密码为空-未同步到本系统');
         }
 
         $checkResult = $this->CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $this->userName, $svnUserPass);
@@ -2419,7 +2332,7 @@ class Svnrep extends Base
     private function CheckSvnUserPathAutzh($checkoutHost, $repName, $repPath, $svnUserName, $svnUserPass)
     {
         $cmd = sprintf("'%s' list '%s' --username '%s' --password '%s' --no-auth-cache --non-interactive --trust-server-cert", $this->configBin['svn'], $checkoutHost . '/' . $repName . $repPath, $svnUserName, $svnUserPass);
-        $result = funShellExec($cmd, true);
+        $result = funShellExec($cmd);
 
         if ($result['code'] != 0) {
             //: Authentication error from server: Password incorrect

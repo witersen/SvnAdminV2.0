@@ -12,7 +12,6 @@ namespace app\service;
 use Config;
 use Verifycode;
 use app\service\Ldap as ServiceLdap;
-use app\service\Usersource as ServiceUsersource;
 use app\service\Svn as ServiceSvn;
 use app\service\Apache as ServiceApache;
 
@@ -28,7 +27,6 @@ class Common extends Base
     private $Mail;
     private $Setting;
     private $ServiceLdap;
-    private $ServiceUsersource;
     private $ServiceSvn;
     private $ServiceApache;
 
@@ -41,7 +39,6 @@ class Common extends Base
         $this->Mail = new Mail($parm);
         $this->Setting = new Setting($parm);
         $this->ServiceLdap = new ServiceLdap($parm);
-        $this->ServiceUsersource = new ServiceUsersource($parm);
         $this->ServiceSvn = new ServiceSvn($parm);
         $this->ServiceApache = new ServiceApache($parm);
     }
@@ -120,7 +117,13 @@ class Common extends Base
                 'admin_user_name' => $userName
             ]);
         } else if ($userRole == 2) {
-            if ($this->dataSource['user_source'] == 'ldap') {
+            if ($this->enableCheckout == 'svn') {
+                $dataSource = $this->svnDataSource;
+            } else {
+                $dataSource = $this->httpDataSource;
+            }
+
+            if ($dataSource['user_source'] == 'ldap') {
                 $result = $this->database->get('svn_users', 'svn_user_id', [
                     'svn_user_name' => $userName,
                 ]);
@@ -142,12 +145,7 @@ class Common extends Base
                     return message(200, 0, '登录失败[ldap账户名不合法]');
                 }
             } else {
-                $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-                if (is_numeric($passworddb)) {
-                    return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-                }
-
-                if ($passworddb == 'passwd') {
+                if ($this->enableCheckout == 'svn') {
                     $result = $this->database->get('svn_users', [
                         'svn_user_id',
                         'svn_user_status'

@@ -11,7 +11,6 @@ namespace app\service;
 
 use app\service\Logs as ServiceLogs;
 use app\service\Ldap as ServiceLdap;
-use app\service\Usersource as ServiceUsersource;
 
 class Svngroup extends Base
 {
@@ -22,15 +21,13 @@ class Svngroup extends Base
      */
     private $ServiceLogs;
     private $ServiceLdap;
-    private $ServiceUsersource;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
-        $this->ServiceLogs = new ServiceLogs();
-        $this->ServiceLdap = new ServiceLdap();
-        $this->ServiceUsersource = new ServiceUsersource();
+        $this->ServiceLogs = new ServiceLogs($parm);
+        $this->ServiceLdap = new ServiceLdap($parm);
     }
 
     /**
@@ -42,7 +39,12 @@ class Svngroup extends Base
      */
     private function SyncGroup()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             $result = $this->ServiceLdap->SyncLdapToAuthz();
             if ($result['status'] != 1) {
@@ -298,7 +300,12 @@ class Svngroup extends Base
      */
     public function CreateGroup()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             return message(200, 0, '当前SVN分组来源为LDAP-不支持此操作');
         }
@@ -351,7 +358,12 @@ class Svngroup extends Base
      */
     public function DelGroup()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             return message(200, 0, '当前SVN分组来源为LDAP-不支持此操作');
         }
@@ -390,7 +402,12 @@ class Svngroup extends Base
      */
     public function UpdGroupName()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             return message(200, 0, '当前SVN分组来源为LDAP-不支持此操作');
         }
@@ -520,7 +537,12 @@ class Svngroup extends Base
      */
     public function UpdGroupMember()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+        
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             return message(200, 0, '当前SVN分组来源为LDAP-不支持此操作');
         }

@@ -11,7 +11,6 @@ namespace app\service;
 
 // use app\service\Sasl as ServiceSasl;
 // use app\service\Svn as ServiceSvn;
-use app\service\Usersource as ServiceUsersource;
 use stdClass;
 
 class Ldap extends Base
@@ -30,7 +29,6 @@ class Ldap extends Base
 
         // $this->ServiceSasl = new ServiceSasl();
         // $this->ServiceSvn = new ServiceSvn();
-        $this->ServiceUsersource = new ServiceUsersource($parm);
     }
 
     /**
@@ -311,7 +309,12 @@ class Ldap extends Base
      */
     public function LdapUserLogin($username, $password)
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+        $dataSource = $dataSource['ldap'];
 
         $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
         if (!$connection) {
@@ -337,7 +340,12 @@ class Ldap extends Base
      */
     public function GetLdapUsers()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+        $dataSource = $dataSource['ldap'];
 
         $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
         if (!$connection) {
@@ -385,7 +393,12 @@ class Ldap extends Base
      */
     public function GetLdapGroups($includeMembers = false)
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+        $dataSource = $dataSource['ldap'];
 
         $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
         if (!$connection) {
@@ -431,7 +444,12 @@ class Ldap extends Base
      */
     public function SyncLdapToAuthz()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+        $dataSource = $dataSource['ldap'];
 
         $authzContent = $this->authzContent;
 

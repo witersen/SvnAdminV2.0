@@ -10,6 +10,7 @@
 namespace app\controller;
 
 use app\service\Svnrep as ServiceSvnrep;
+use app\service\Svn as ServiceSvn;
 
 class Svnrep extends Base
 {
@@ -21,6 +22,7 @@ class Svnrep extends Base
      * @var object
      */
     private $ServiceSvnrep;
+    private $ServiceSvn;
 
     function __construct($parm)
     {
@@ -29,6 +31,7 @@ class Svnrep extends Base
         parent::__construct($parm);
 
         $this->ServiceSvnrep = new ServiceSvnrep($parm);
+        $this->ServiceSvn = new ServiceSvn($parm);
     }
 
     /**
@@ -56,7 +59,7 @@ class Svnrep extends Base
      */
     public function GetSvnserveStatus()
     {
-        $result = $this->ServiceSvnrep->GetSvnserveStatus();
+        $result = $this->ServiceSvn->GetSvnserveStatus();
         json2($result);
     }
 

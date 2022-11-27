@@ -97,18 +97,24 @@ class Base
     //检查
     public $checkService;
 
-    //svnserve
-    public $svnserveHost = '127.0.0.1';
-    public $svnservePort = 3690;
+    //宿主机
+    public $dockerHost = '127.0.0.1';
+    public $dockerSvnPort = 3690;
+    public $dockerHttpPort = 80;
 
-    //主机
-    public $host = '';
-    public $port = 0;
-    public $http = 'http';
-    public $httpLocal = '127.0.0.1';
+    //本地
+    public $localSvnHost = '127.0.0.1';
+    public $localSvnPort = 3690;
+    public $localHttpHost = '127.0.0.1';
+    public $localHttpPort = 80;
+    public $localHttpProtocol = 'http';
+
+    //启用协议
+    public $enableCheckout = '';
 
     //数据源
-    public $dataSource = [];
+    public $svnDataSource;
+    public $httpDataSource;
 
     //http
     public $httpPrefix = '';
@@ -1005,9 +1011,9 @@ class Base
                     'checked' => false,
                     'disabled' => true,
                     'necessary_functions' => [
-                        'Setting/GetHostInfo',
-                        'Setting/UpdHost',
-                        'Setting/UpdPort'
+                        // 'Setting/GetHostInfo',
+                        // 'Setting/UpdHost',
+                        // 'Setting/UpdPort'
                     ],
                     'children' => []
                 ],
@@ -1027,7 +1033,7 @@ class Base
                     'checked' => false,
                     'disabled' => true,
                     'necessary_functions' => [
-                        'Setting/GetSvnserveInfo',
+                        'Setting/GetSvnInfo',
                         'Setting/UpdSvnserveStatusStop',
                         'Setting/UpdSvnserveStatusSart',
                         'Setting/UpdSvnservePort',
@@ -1054,12 +1060,9 @@ class Base
                     'checked' => false,
                     'disabled' => true,
                     'necessary_functions' => [
-                        'Setting/GetSaslInfo',
                         'Setting/UpdSaslStatusStart',
                         'Setting/UpdSaslStatusStop',
 
-                        'Setting/GetUsersourceInfo',
-                        'Setting/UpdUsersourceInfo',
                         'Setting/LdapTest',
                     ],
                     'children' => []
@@ -1339,105 +1342,191 @@ class Base
         $this->checkService = new Check($this->configReg);
 
         /**
-         * 12、svnserve监听信息
+         * 12、宿主机信息
+         */
+        $dockerHost = $this->database->get('options', [
+            'option_id',
+            'option_value'
+        ], [
+            'option_name' => '24_docker_host'
+        ]);
+        if (empty($dockerHost)) {
+            $this->database->insert('options', [
+                'option_value' => serialize([
+                    'docker_host' => '127.0.0.1',
+                    'docker_svn_port' => 3690,
+                    'docker_http_port' => 80
+                ]),
+                'option_name' => '24_docker_host',
+            ]);
+
+            $this->dockerHost = '127.0.0.1';
+            $this->dockerSvnPort = 3690;
+            $this->dockerHttpPort = 80;
+        } else {
+            $dockerHost = unserialize($dockerHost['option_value']);
+
+            $this->dockerHost = $dockerHost['docker_host'];
+            $this->dockerSvnPort = $dockerHost['docker_svn_port'];
+            $this->dockerHttpPort = $dockerHost['docker_http_port'];
+        }
+
+        /**
+         * 13、本地信息
          */
         if (preg_match('/--listen-port[\s]+([0-9]+)/', file_get_contents($this->configSvn['svnserve_env_file']), $portMatchs)) {
-            $this->svnservePort = (int)trim($portMatchs[1]);
+            $this->localSvnPort = (int)trim($portMatchs[1]);
         }
+
         if (preg_match('/--listen-host[\s]+([\S]+)\b/', file_get_contents($this->configSvn['svnserve_env_file']), $hostMatchs)) {
-            $this->svnserveHost = trim($hostMatchs[1]);
+            $this->localSvnHost = trim($hostMatchs[1]);
         }
 
-        /**
-         * 13、host信息
-         */
-        $host = $this->database->get('options', [
+        $this->localHttpHost = '127.0.0.1';
+
+        $localHost = $this->database->get('options', [
             'option_id',
             'option_value'
         ], [
-            'option_name' => 'host'
+            'option_name' => '24_local_host'
         ]);
-        if (empty($host)) {
+        if (empty($localHost)) {
             $this->database->insert('options', [
-                'option_value' => 'localhost',
-                'option_name' => 'host',
+                'option_value' => serialize([
+                    'local_http_port' => 80
+                ]),
+                'option_name' => '24_local_host',
             ]);
 
-            $this->host = 'localhost';
+            $this->localHttpPort = 80;
         } else {
-            $this->host = $host['option_value'];
+            $localHost = unserialize($localHost['option_value']);
+
+            $this->localHttpPort = $localHost['local_http_port'];
         }
 
         /**
-         * 14、数据源
+         * 14、当前启用协议
          */
-        $this->dataSource = $this->database->get('options', 'option_value', [
-            'option_name' => 'data_source'
-        ]);
-        $default = [
-            //数据源
-            'user_source' => 'passwd',
-            'group_source' => 'authz',
-
-            //ldap服务器
-            'ldap_host' => 'ldap://127.0.0.1/',
-            'ldap_port' => 389,
-            'ldap_version' => 3,
-            'ldap_bind_dn' => '',
-            'ldap_bind_password' => '',
-
-            //用户相关
-            'user_base_dn' => '',
-            'user_search_filter' => '',
-            'user_attributes' => '',
-
-            //分组相关
-            'group_base_dn' => '',
-            'group_search_filter' => '',
-            'group_attributes' => '',
-            'groups_to_user_attribute' => '',
-            'groups_to_user_attribute_value' => ''
-        ];
-        $this->dataSource = empty($this->dataSource) ? $default : unserialize($this->dataSource);
-
-        /**
-         * 15、http端口
-         */
-        $port = $this->database->get('options', [
+        $this->enableCheckout = $this->database->get('options', [
             'option_id',
             'option_value'
         ], [
-            'option_name' => 'port'
+            'option_name' => '24_enable_checkout'
         ]);
-        if (empty($port)) {
+        if (empty($this->enableCheckout)) {
             $this->database->insert('options', [
-                'option_value' => 80,
-                'option_name' => 'port',
+                'option_value' => 'svn',
+                'option_name' => '24_enable_checkout',
             ]);
 
-            $this->port = 80;
+            $this->enableCheckout = 'svn';
         } else {
-            $this->port = (int)$port['option_value'];
+            $this->enableCheckout = $this->enableCheckout['option_value'];
+        }
+
+
+        /**
+         * 15、数据源
+         */
+        //svn
+        $result = $this->database->get('options', [
+            'option_id',
+            'option_value'
+        ], [
+            'option_name' => '24_svn_datasource'
+        ]);
+        if (empty($result)) {
+            $this->svnDataSource = [
+                'user_source' => 'passwd',
+                'group_source' => 'authz',
+                'ldap' => [
+                    //ldap服务器
+                    'ldap_host' => 'ldap://127.0.0.1/',
+                    'ldap_port' => 389,
+                    'ldap_version' => 3,
+                    'ldap_bind_dn' => '',
+                    'ldap_bind_password' => '',
+
+                    //用户相关
+                    'user_base_dn' => '',
+                    'user_search_filter' => '',
+                    'user_attributes' => '',
+
+                    //分组相关
+                    'group_base_dn' => '',
+                    'group_search_filter' => '',
+                    'group_attributes' => '',
+                    'groups_to_user_attribute' => '',
+                    'groups_to_user_attribute_value' => ''
+                ]
+            ];
+            $this->database->insert('options', [
+                'option_name' => '24_svn_datasource',
+                'option_value' => serialize($this->svnDataSource)
+            ]);
+        } else {
+            $this->svnDataSource = unserialize($result['option_value']);
+        }
+
+        //http
+        $result = $this->database->get('options', [
+            'option_id',
+            'option_value'
+        ], [
+            'option_name' => '24_http_datasource'
+        ]);
+        if (empty($result)) {
+            $this->httpDataSource = [
+                'user_source' => 'httpPasswd',
+                'group_source' => 'authz',
+                'ldap' => [
+                    //ldap服务器
+                    'ldap_host' => 'ldap://127.0.0.1/',
+                    'ldap_port' => 389,
+                    'ldap_version' => 3,
+                    'ldap_bind_dn' => '',
+                    'ldap_bind_password' => '',
+
+                    //用户相关
+                    'user_base_dn' => '',
+                    'user_search_filter' => '',
+                    'user_attributes' => '',
+
+                    //分组相关
+                    'group_base_dn' => '',
+                    'group_search_filter' => '',
+                    'group_attributes' => '',
+                    'groups_to_user_attribute' => '',
+                    'groups_to_user_attribute_value' => ''
+                ]
+            ];
+            $this->database->insert('options', [
+                'option_name' => '24_http_datasource',
+                'option_value' => serialize($this->httpDataSource)
+            ]);
+        } else {
+            $this->httpDataSource = unserialize($result['option_value']);
         }
 
         /**
          * 16、http访问仓库前缀
          */
-        $httpPrefix = $this->database->get('options', [
+        $this->httpPrefix = $this->database->get('options', [
             'option_id',
             'option_value'
         ], [
-            'option_name' => 'http_prefix'
+            'option_name' => '24_http_prefix'
         ]);
-        if (empty($httpPrefix)) {
+        if (empty($this->httpPrefix)) {
             $this->database->insert('options', [
                 'option_value' => '/svn',
-                'option_name' => 'http_prefix',
+                'option_name' => '24_http_prefix',
             ]);
 
             $this->httpPrefix = '/svn';
         } else {
-            $this->httpPrefix = $httpPrefix['option_value'];
+            $this->httpPrefix = $this->httpPrefix['option_value'];
         }
     }
 
@@ -1570,10 +1659,38 @@ class Base
     public function RereadSvnserve()
     {
         if (preg_match('/--listen-port[\s]+([0-9]+)/', file_get_contents($this->configSvn['svnserve_env_file']), $portMatchs)) {
-            $this->svnservePort = (int)trim($portMatchs[1]);
+            $this->localSvnPort = (int)trim($portMatchs[1]);
         }
         if (preg_match('/--listen-host[\s]+([\S]+)\b/', file_get_contents($this->configSvn['svnserve_env_file']), $hostMatchs)) {
-            $this->svnserveHost = trim($hostMatchs[1]);
+            $this->localSvnHost = trim($hostMatchs[1]);
         }
+    }
+
+    /**
+     * 重读数据源
+     *
+     * @return void
+     */
+    public function ReloadDatasource()
+    {
+        //svn
+        $result = $this->database->get('options', [
+            'option_id',
+            'option_value'
+        ], [
+            'option_name' => '24_svn_datasource'
+        ]);
+
+        $this->svnDataSource = unserialize($result['option_value']);
+
+        //http
+        $result = $this->database->get('options', [
+            'option_id',
+            'option_value'
+        ], [
+            'option_name' => '24_http_datasource'
+        ]);
+
+        $this->httpDataSource = unserialize($result['option_value']);
     }
 }

@@ -15,7 +15,6 @@ use app\service\Svnrep as ServiceSvnrep;
 use app\service\Ldap as ServiceLdap;
 use app\service\Sasl as ServiceSasl;
 use app\service\Svn as ServiceSvn;
-use app\service\Usersource as ServiceUsersource;
 use app\service\Apache as ServiceApache;
 
 class Setting extends Base
@@ -31,7 +30,6 @@ class Setting extends Base
     private $ServiceLdap;
     private $ServiceSasl;
     private $ServiceSvn;
-    private $ServiceUsersource;
     private $ServiceApache;
 
     function __construct($parm)
@@ -44,45 +42,44 @@ class Setting extends Base
         $this->ServiceLdap = new ServiceLdap($parm);
         $this->ServiceSasl = new ServiceSasl($parm);
         $this->ServiceSvn = new ServiceSvn($parm);
-        $this->ServiceUsersource = new ServiceUsersource($parm);
         $this->ServiceApache = new ServiceApache($parm);
     }
 
     /**
-     * 获取主机配置
+     * 获取宿主机配置
      *
      * @return array
      */
-    public function GetHostInfo()
+    public function GetDcokerHostInfo()
     {
-        $result = $this->ServiceSetting->GetHostInfo();
+        $result = $this->ServiceSetting->GetDcokerHostInfo();
         json2($result);
     }
 
     /**
-     * 更新主机名
+     * 修改宿主机配置
      */
-    public function UpdHost()
+    public function UpdDockerHostInfo()
     {
-        $result = $this->ServiceSetting->UpdHost();
+        $result = $this->ServiceSetting->UpdDockerHostInfo();
         json2($result);
     }
 
     /**
-     * 更新主机名
+     * 获取 svnserve 的详细信息
      */
-    public function UpdPort()
+    public function GetSvnInfo()
     {
-        $result = $this->ServiceSetting->UpdPort();
+        $result = $this->ServiceSvn->GetSvnInfo();
         json2($result);
     }
 
     /**
-     * 获取Subversion的详细信息
+     * 保存 svnserve 相关配置
      */
-    public function GetSvnserveInfo()
+    public function UpdSvnUsersource()
     {
-        $result = $this->ServiceSvnrep->GetSvnserveInfo();
+        $result = $this->ServiceSvn->UpdSvnUsersource();
         json2($result);
     }
 
@@ -230,46 +227,13 @@ class Setting extends Base
     }
 
     /**
-     * 保存用户来源配置信息
-     *
-     * @return void
-     */
-    public function UpdUsersourceInfo()
-    {
-        $result = $this->ServiceUsersource->UpdUsersourceInfo();
-        json2($result);
-    }
-
-    /**
-     * 获取用户来源配置信息
-     *
-     * @return void
-     */
-    public function GetUsersourceInfo()
-    {
-        $result = $this->ServiceUsersource->GetUsersourceInfo();
-        json2($result);
-    }
-
-    /**
-     * 获取当前的 sasl 信息
-     *
-     * @return void
-     */
-    public function GetSaslInfo()
-    {
-        $result = $this->ServiceSasl->GetSaslInfo();
-        json2($result);
-    }
-
-    /**
      * 开启 saslauthd 服务
      *
      * @return void
      */
     public function UpdSaslStatusStart()
     {
-        $result = $this->ServiceSasl->UpdSaslStatusStart();
+        $result = $this->ServiceSvn->UpdSaslStatusStart();
         json2($result);
     }
 
@@ -280,7 +244,7 @@ class Setting extends Base
      */
     public function UpdSaslStatusStop()
     {
-        $result = $this->ServiceSasl->UpdSaslStatusStop();
+        $result = $this->ServiceSvn->UpdSaslStatusStop();
         json2($result);
     }
 
@@ -325,6 +289,26 @@ class Setting extends Base
     public function UpdHttpPrefix()
     {
         $result = $this->ServiceApache->UpdHttpPrefix();
+        json2($result);
+    }
+
+    /**
+     * 修改 http 协议显示端口
+     *
+     * @return void
+     */
+    public function UpdHttpPort()
+    {
+        $result = $this->ServiceApache->UpdHttpPort();
+        json2($result);
+    }
+
+    /**
+     * 保存 apache 相关配置
+     */
+    public function UpdHttpUsersource()
+    {
+        $result = $this->ServiceApache->UpdHttpUsersource();
         json2($result);
     }
 }

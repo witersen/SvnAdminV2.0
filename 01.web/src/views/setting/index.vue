@@ -4,14 +4,13 @@
       <Tabs v-model="currentAdvanceTab" @on-click="SetCurrentAdvanceTab">
         <TabPane label="主机配置" name="1">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Alert>该信息将用于仓库检出地址</Alert>
-            <Form :label-width="100" label-position="left">
-              <FormItem label="本机IP/域名">
+            <Alert>该信息主要用于仓库检出地址的拼接</Alert>
+            <Form :label-width="120" label-position="left">
+              <FormItem label="宿主机IP/域名">
                 <Row>
                   <Col span="12">
                     <Input
-                      v-model="tempHost"
-                      @on-change="ChangeUpdHost"
+                      v-model="formDockerHost.docker_host"
                       placeholder="localhost"
                     />
                   </Col>
@@ -20,26 +19,19 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="请注意，此值不影响 svnserve 服务器的正常运行，只是一个管理员自定义的主机地址字符串。"
+                      content="此值仅通过数据库维护-不影响业务运行"
                     >
-                      <Button
-                        type="warning"
-                        @click="UpdHost"
-                        :disabled="disableUpdHost"
-                        :loading="loadingUpdHost"
-                        >修改</Button
-                      >
+                      <Button type="info">说明</Button>
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="web端口">
+              <FormItem label="宿主机svn端口">
                 <Row>
                   <Col span="12">
                     <InputNumber
                       :min="1"
-                      v-model="tempPort"
-                      @on-change="ChangeUpdPort"
+                      v-model="formDockerHost.docker_svn_port"
                     ></InputNumber>
                   </Col>
                   <Col span="1"> </Col>
@@ -47,18 +39,40 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="请注意，此值默认为 80，修改后不影响实际的 http 服务端口。但是SVN用户在本系统内浏览仓库依赖此端口，请务必保持填写值与 http 服务实际端口一致"
+                      content="此值仅通过数据库维护-不影响业务运行"
                     >
-                      <Button
-                        type="warning"
-                        @click="UpdPort"
-                        :disabled="disableUpdPort"
-                        :loading="loadingUpdPort"
-                        >修改</Button
-                      >
+                      <Button type="info">说明</Button>
                     </Tooltip>
                   </Col>
                 </Row>
+              </FormItem>
+              <FormItem label="宿主机web端口">
+                <Row>
+                  <Col span="12">
+                    <InputNumber
+                      :min="1"
+                      v-model="formDockerHost.docker_http_port"
+                    ></InputNumber>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="350"
+                      content="此值仅通过数据库维护-不影响业务运行"
+                    >
+                      <Button type="info">说明</Button>
+                    </Tooltip>
+                  </Col>
+                </Row>
+              </FormItem>
+              <FormItem>
+                <Button
+                  type="primary"
+                  @click="UpdDockerHostInfo"
+                  :loading="loadingUpdDockerHostInfo"
+                  >保存</Button
+                >
               </FormItem>
             </Form>
           </Card>
@@ -85,7 +99,32 @@
         </TabPane>
         <TabPane label="svn协议检出" name="3">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Alert>svnserve服务在使用svn协议检出时使用</Alert>
+            <h2 style="margin: 0 0 30px 0">协议启用状态</h2>
+            <Form :label-width="100" label-position="left">
+              <FormItem label="协议启用状态">
+                <Row>
+                  <Col span="12">
+                    <span style="color: #f90" v-if="!formSvn.enable"
+                      >未启用</span
+                    >
+                    <span style="color: #19be6b" v-if="formSvn.enable"
+                      >启用中</span
+                    >
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Button
+                      :loading="loadingUpdSvnEnable"
+                      type="success"
+                      v-if="!formSvn.enable"
+                      @click="UpdSvnEnable"
+                      >启用</Button
+                    >
+                  </Col>
+                </Row>
+              </FormItem>
+            </Form>
+            <h2 style="margin: 30px 0 30px 0">svnserve服务信息</h2>
             <Form :label-width="100" label-position="left">
               <FormItem label="svnserve">
                 <Row>
@@ -97,7 +136,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="可在命令行模式下执行 server/install.php 进行 svnserve 安装和初始化等操作"
+                      content="当使用svn协议检出时必须通过svnserve服务"
                     >
                       <Button type="info">说明</Button>
                     </Tooltip>
@@ -191,7 +230,7 @@
               <FormItem label="关联用户文件">
                 <Row>
                   <Col span="12">
-                    <span>{{ formSvn.passwordDb }}</span>
+                    <span>{{ formSvn.password_db }}</span>
                   </Col>
                   <Col span="1"> </Col>
                   <Col span="6">
@@ -206,103 +245,20 @@
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="协议启用状态">
-                <Row>
-                  <Col span="12">
-                    <span style="color: #f90" v-if="!formSvn.enable"
-                      >未启用</span
-                    >
-                    <span style="color: #19be6b" v-if="formSvn.enable"
-                      >启用中</span
-                    >
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6">
-                    <Button
-                      :loading="loadingUpdSvnEnable"
-                      type="success"
-                      v-if="!formSvn.enable"
-                      @click="UpdSvnEnable"
-                      >启用</Button
-                    >
-                  </Col>
-                </Row>
-              </FormItem>
             </Form>
-          </Card>
-        </TabPane>
-        <TabPane label="http协议检出" name="4">
-          <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Alert>mod_dav_svn等模块在使用http协议检出时使用</Alert>
+            <h2 style="margin: 30px 0 30px 0">saslauthd服务信息</h2>
             <Form :label-width="100" label-position="left">
-              <FormItem label="httpd">
+              <FormItem label="saslauthd">
                 <Row>
                   <Col span="12">
-                    <span>{{ formApache.version }}</span>
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6"> </Col>
-                  <Col span="6"> </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="svn相关模块">
-                <Row>
-                  <Col span="12">
-                    <span>{{ formApache.modules }}</span>
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6"> </Col>
-                  <Col span="6"> </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="安装模块目录">
-                <Row>
-                  <Col span="12">
-                    <span>{{ formApache.modulesPath }}</span>
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6"> </Col>
-                  <Col span="6"> </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="仓库访问前缀">
-                <Row>
-                  <Col span="12">
-                    <Input
-                      v-model="tempHttpPrefix"
-                      @on-change="ChangeUpdHttpPrefix"
-                      placeholder="/svn"
-                    />
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6">
-                    <Tooltip
-                      :transfer="true"
-                      max-width="350"
-                      content="请注意，此值默认为 /svn ，为使用http协议检出时访问仓库的路径"
-                    >
-                      <Button
-                        type="warning"
-                        @click="UpdHttpPrefix"
-                        :disabled="disableUpdHttpPrefix"
-                        :loading="loadingUpdHttpPrefix"
-                        >修改</Button
-                      >
-                    </Tooltip>
-                  </Col>
-                </Row>
-              </FormItem>
-              <FormItem label="关联用户文件">
-                <Row>
-                  <Col span="12">
-                    <span>{{ formApache.passwordDb }}</span>
+                    <span>{{ formSvn.sasl.version }}</span>
                   </Col>
                   <Col span="1"> </Col>
                   <Col span="6">
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="http协议检出默认情况下使用密文密码的用户认证文件"
+                      content="当使用svn协议检出时如要接入第三方认证如ldap等必须通过额外的服务saslauthd"
                     >
                       <Button type="info">说明</Button>
                     </Tooltip>
@@ -310,51 +266,10 @@
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="协议启用状态">
-                <Row>
-                  <Col span="12">
-                    <span style="color: #f90" v-if="!formApache.enable"
-                      >未启用</span
-                    >
-                    <span style="color: #19be6b" v-if="formApache.enable"
-                      >启用中</span
-                    >
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6">
-                    <Button
-                      :loading="loadingUpdSubversionEnable"
-                      type="success"
-                      v-if="!formApache.enable"
-                      @click="UpdSubversionEnable"
-                      >启用</Button
-                    >
-                  </Col>
-                </Row>
-              </FormItem>
-            </Form>
-          </Card>
-        </TabPane>
-        <TabPane label="第三方认证" name="5">
-          <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Alert
-              >saslauthd服务用于svn服务接入第三方认证如ldap等认证使用</Alert
-            >
-            <Form :label-width="100" label-position="left">
-              <FormItem label="当前版本">
-                <Row>
-                  <Col span="12">
-                    <span>{{ formSasl.version }}</span>
-                  </Col>
-                  <Col span="1"> </Col>
-                  <Col span="6"> </Col>
-                  <Col span="6"> </Col>
-                </Row>
-              </FormItem>
               <FormItem label="支持信息">
                 <Row>
                   <Col span="12">
-                    <span>{{ formSasl.mechanisms }}</span>
+                    <span>{{ formSvn.sasl.mechanisms }}</span>
                   </Col>
                   <Col span="1"> </Col>
                   <Col span="6"> </Col>
@@ -369,10 +284,10 @@
                       max-width="300"
                       content="运行状态通过pid文件和pid数值进行判断-如有误判请检查saslauthd程序的启动方式"
                     >
-                      <span style="color: #f90" v-if="!formSasl.status"
+                      <span style="color: #f90" v-if="!formSvn.sasl.status"
                         >未启动</span
                       >
-                      <span style="color: #19be6b" v-if="formSasl.status"
+                      <span style="color: #19be6b" v-if="formSvn.sasl.status"
                         >运行中</span
                       >
                     </Tooltip>
@@ -382,14 +297,14 @@
                     <Button
                       :loading="loadingUpdSaslStatusStart"
                       type="success"
-                      v-if="!formSasl.status"
+                      v-if="!formSvn.sasl.status"
                       @click="UpdSaslStatusStart"
                       >启动</Button
                     >
                     <Button
                       :loading="loadingUpdSaslStatusStop"
                       type="warning"
-                      v-if="formSasl.status"
+                      v-if="formSvn.sasl.status"
                       @click="UpdSaslStatusStop"
                       >停止</Button
                     >
@@ -397,17 +312,15 @@
                 </Row>
               </FormItem>
             </Form>
-            <Divider>用户来源</Divider>
-            <Alert>目前ldap只支持在使用svn协议检出时接入</Alert>
+            <h2 style="margin: 30px 0 30px 0">用户来源</h2>
             <Form :label-width="120" label-position="left">
               <FormItem label="SVN用户来源">
                 <Row>
                   <Col span="12">
                     <Select
-                      :disabled="!formSvn.enable"
-                      v-model="formDataSource.user_source"
+                      v-model="formSvn.user_source"
                       style="width: 200px"
-                      @on-change="ChangeUserSource"
+                      @on-change="ChangeSvnUsersource"
                     >
                       <Option value="passwd">passwd文件</Option>
                       <Option value="ldap">ldap</Option>
@@ -419,15 +332,11 @@
               <FormItem label="SVN分组来源">
                 <Row>
                   <Col span="12">
-                    <Select
-                      :disabled="!formSvn.enable"
-                      v-model="formDataSource.group_source"
-                      style="width: 200px"
-                    >
+                    <Select v-model="formSvn.group_source" style="width: 200px">
                       <Option value="authz">authz文件</Option>
                       <Option
                         value="ldap"
-                        :disabled="formDataSource.user_source == 'passwd'"
+                        :disabled="formSvn.user_source == 'passwd'"
                         >ldap</Option
                       >
                     </Select>
@@ -436,8 +345,8 @@
                   <Col span="6">
                     <Tooltip
                       v-if="
-                        formDataSource.user_source == 'ldap' ||
-                        formDataSource.group_source == 'ldap'
+                        formSvn.user_source == 'ldap' ||
+                        formSvn.group_source == 'ldap'
                       "
                       :transfer="true"
                       max-width="250"
@@ -448,18 +357,20 @@
                   </Col>
                 </Row>
               </FormItem>
+            </Form>
+            <Form :label-width="120" label-position="left">
               <!-- LDAP 服务器 -->
               <span
                 v-if="
-                  formDataSource.user_source == 'ldap' ||
-                  formDataSource.group_source == 'ldap'
+                  formSvn.user_source == 'ldap' ||
+                  formSvn.group_source == 'ldap'
                 "
               >
                 <Divider>LDAP 服务器</Divider>
                 <FormItem label="LDAP 主机地址">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formDataSource.ldap_host"></Input>
+                      <Input v-model="formSvn.ldap.ldap_host"></Input>
                     </Col>
                   </Row>
                 </FormItem>
@@ -468,7 +379,7 @@
                     <Col span="12">
                       <InputNumber
                         :min="1"
-                        v-model="formDataSource.ldap_port"
+                        v-model="formSvn.ldap.ldap_port"
                       ></InputNumber>
                     </Col>
                   </Row>
@@ -479,7 +390,7 @@
                       <InputNumber
                         :min="2"
                         :max="3"
-                        v-model="formDataSource.ldap_version"
+                        v-model="formSvn.ldap.ldap_version"
                       ></InputNumber>
                     </Col>
                   </Row>
@@ -487,7 +398,7 @@
                 <FormItem label="Bind DN">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formDataSource.ldap_bind_dn"></Input>
+                      <Input v-model="formSvn.ldap.ldap_bind_dn"></Input>
                     </Col>
                   </Row>
                 </FormItem>
@@ -495,7 +406,7 @@
                   <Row>
                     <Col span="12">
                       <Input
-                        v-model="formDataSource.ldap_bind_password"
+                        v-model="formSvn.ldap.ldap_bind_password"
                         type="password"
                         password
                       ></Input>
@@ -504,7 +415,7 @@
                     <Col span="6">
                       <Button
                         type="success"
-                        @click="LdapTest('connection')"
+                        @click="LdapTest('svn', 'connection')"
                         :loading="loadingLdapTestConnection"
                         >验证</Button
                       >
@@ -513,34 +424,32 @@
                 </FormItem>
               </span>
               <!-- LDAP 用户 -->
-              <span v-if="formDataSource.user_source == 'ldap'">
+              <span v-if="formSvn.user_source == 'ldap'">
                 <Divider>LDAP 用户</Divider>
                 <FormItem label="Base DN">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formDataSource.user_base_dn"></Input>
+                      <Input v-model="formSvn.ldap.user_base_dn"></Input>
                     </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Search filter">
                   <Row>
                     <Col span="12">
-                      <Input
-                        v-model="formDataSource.user_search_filter"
-                      ></Input>
+                      <Input v-model="formSvn.ldap.user_search_filter"></Input>
                     </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Attributes">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formDataSource.user_attributes"></Input>
+                      <Input v-model="formSvn.ldap.user_attributes"></Input>
                     </Col>
                     <Col span="1"> </Col>
                     <Col span="6">
                       <Button
                         type="success"
-                        @click="LdapTest('user')"
+                        @click="LdapTest('svn', 'user')"
                         :loading="loadingLdapTestUser"
                         >验证</Button
                       >
@@ -549,28 +458,26 @@
                 </FormItem>
               </span>
               <!-- LDAP 分组 -->
-              <span v-if="formDataSource.group_source == 'ldap'">
+              <span v-if="formSvn.group_source == 'ldap'">
                 <Divider>LDAP 分组</Divider>
                 <FormItem label="Base DN">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formDataSource.group_base_dn"></Input>
+                      <Input v-model="formSvn.ldap.group_base_dn"></Input>
                     </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Search filter">
                   <Row>
                     <Col span="12">
-                      <Input
-                        v-model="formDataSource.group_search_filter"
-                      ></Input>
+                      <Input v-model="formSvn.ldap.group_search_filter"></Input>
                     </Col>
                   </Row>
                 </FormItem>
                 <FormItem label="Attributes">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formDataSource.group_attributes"></Input>
+                      <Input v-model="formSvn.ldap.group_attributes"></Input>
                     </Col>
                   </Row>
                 </FormItem>
@@ -578,7 +485,7 @@
                   <Row>
                     <Col span="12">
                       <Input
-                        v-model="formDataSource.groups_to_user_attribute"
+                        v-model="formSvn.ldap.groups_to_user_attribute"
                       ></Input>
                     </Col>
                     <Col span="1"> </Col>
@@ -597,7 +504,7 @@
                   <Row>
                     <Col span="12">
                       <Input
-                        v-model="formDataSource.groups_to_user_attribute_value"
+                        v-model="formSvn.ldap.groups_to_user_attribute_value"
                       ></Input>
                     </Col>
                     <Col span="1"> </Col>
@@ -616,7 +523,7 @@
                         <Col span="11">
                           <Button
                             type="success"
-                            @click="LdapTest('group')"
+                            @click="LdapTest('svn', 'group')"
                             :loading="loadingLdapTestGroup"
                             >验证</Button
                           >
@@ -630,15 +537,393 @@
               <FormItem>
                 <Button
                   type="primary"
-                  @click="UpdUsersourceInfo"
-                  :loading="loadingUpdLdapInfo"
+                  @click="UpdSvnUsersource"
+                  :loading="loadingUpdSvnUsersource"
                   >保存</Button
                 >
               </FormItem>
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="邮件服务" name="6">
+        <TabPane label="http协议检出" name="4">
+          <Card :bordered="false" :dis-hover="true" style="width: 620px">
+            <h2 style="margin: 0 0 30px 0">协议启用状态</h2>
+            <Form :label-width="100" label-position="left">
+              <FormItem label="协议启用状态">
+                <Row>
+                  <Col span="12">
+                    <span style="color: #f90" v-if="!formHttp.enable"
+                      >未启用</span
+                    >
+                    <span style="color: #19be6b" v-if="formHttp.enable"
+                      >启用中</span
+                    >
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Button
+                      :loading="loadingUpdSubversionEnable"
+                      type="success"
+                      v-if="!formHttp.enable"
+                      @click="UpdSubversionEnable"
+                      >启用</Button
+                    >
+                  </Col>
+                </Row>
+              </FormItem>
+            </Form>
+            <h2 style="margin: 30px 0 30px 0">apache服务信息</h2>
+            <Form :label-width="100" label-position="left">
+              <FormItem label="apache">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formHttp.version }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="当使用http协议检出时必须通过apache和mod_dav_svn模块"
+                    >
+                      <Button type="info">说明</Button>
+                    </Tooltip>
+                  </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="svn相关模块">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formHttp.modules }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6"> </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="安装模块目录">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formHttp.modules_path }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6"> </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="监听端口">
+                <Row>
+                  <Col span="12">
+                    <InputNumber
+                      :min="1"
+                      v-model="tempHttpPort"
+                      @on-change="ChangeUpdHttpPort"
+                    ></InputNumber>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="350"
+                      content="此值仅通过数据库维护-不影响业务运行"
+                    >
+                      <Button
+                        type="warning"
+                        @click="UpdHttpPort"
+                        :disabled="disableUpdHttpPort"
+                        :loading="loadingUpdHttpPort"
+                        >修改</Button
+                      >
+                    </Tooltip>
+                  </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="仓库访问前缀">
+                <Row>
+                  <Col span="12">
+                    <Input
+                      v-model="tempHttpPrefix"
+                      @on-change="ChangeUpdHttpPrefix"
+                      placeholder="/svn"
+                    />
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="350"
+                      content="此值默认为 /svn ，为使用http协议检出时访问仓库的路径。如果设置为 / 请注意与管理系统的地址冲突问题。"
+                    >
+                      <Button
+                        type="warning"
+                        @click="UpdHttpPrefix"
+                        :disabled="disableUpdHttpPrefix"
+                        :loading="loadingUpdHttpPrefix"
+                        >修改</Button
+                      >
+                    </Tooltip>
+                  </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="关联用户文件">
+                <Row>
+                  <Col span="12">
+                    <span>{{ formHttp.password_db }}</span>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="http协议检出默认情况下使用密文密码的用户认证文件"
+                    >
+                      <Button type="info">说明</Button>
+                    </Tooltip>
+                  </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+            </Form>
+            <h2 style="margin: 30px 0 30px 0">用户来源</h2>
+            <Form :label-width="120" label-position="left">
+              <FormItem label="SVN用户来源">
+                <Row>
+                  <Col span="12">
+                    <Select
+                      v-model="formHttp.user_source"
+                      style="width: 200px"
+                      @on-change="ChangeHttpUsersource"
+                    >
+                      <Option value="httpPasswd">passwd文件</Option>
+                      <Option value="ldap">ldap</Option>
+                    </Select>
+                  </Col>
+                  <Col span="6"> </Col>
+                </Row>
+              </FormItem>
+              <FormItem label="SVN分组来源">
+                <Row>
+                  <Col span="12">
+                    <Select
+                      v-model="formHttp.group_source"
+                      style="width: 200px"
+                    >
+                      <Option value="authz">authz文件</Option>
+                      <Option
+                        value="ldap"
+                        :disabled="formHttp.user_source == 'httpPasswd'"
+                        >ldap</Option
+                      >
+                    </Select>
+                  </Col>
+                  <Col span="1"> </Col>
+                  <Col span="6">
+                    <Tooltip
+                      v-if="
+                        formHttp.user_source == 'ldap' ||
+                        formHttp.group_source == 'ldap'
+                      "
+                      :transfer="true"
+                      max-width="250"
+                      content="如果要设置SVN分组来源为LDAP  必须要先设置SVN用户来源为LDAP"
+                    >
+                      <Button type="info">说明</Button>
+                    </Tooltip>
+                  </Col>
+                </Row>
+              </FormItem>
+            </Form>
+            <Form :label-width="120" label-position="left">
+              <!-- LDAP 服务器 -->
+              <span
+                v-if="
+                  formHttp.user_source == 'ldap' ||
+                  formHttp.group_source == 'ldap'
+                "
+              >
+                <Divider>LDAP 服务器</Divider>
+                <FormItem label="LDAP 主机地址">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formHttp.ldap.ldap_host"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="LDAP 端口">
+                  <Row>
+                    <Col span="12">
+                      <InputNumber
+                        :min="1"
+                        v-model="formHttp.ldap.ldap_port"
+                      ></InputNumber>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="LDAP 协议版本">
+                  <Row>
+                    <Col span="12">
+                      <InputNumber
+                        :min="2"
+                        :max="3"
+                        v-model="formHttp.ldap.ldap_version"
+                      ></InputNumber>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Bind DN">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formHttp.ldap.ldap_bind_dn"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Bind password">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formHttp.ldap.ldap_bind_password"
+                        type="password"
+                        password
+                      ></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Button
+                        type="success"
+                        @click="LdapTest('apache', 'connection')"
+                        :loading="loadingLdapTestConnection"
+                        >验证</Button
+                      >
+                    </Col>
+                  </Row>
+                </FormItem>
+              </span>
+              <!-- LDAP 用户 -->
+              <span v-if="formHttp.user_source == 'ldap'">
+                <Divider>LDAP 用户</Divider>
+                <FormItem label="Base DN">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formHttp.ldap.user_base_dn"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Search filter">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formHttp.ldap.user_search_filter"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Attributes">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formHttp.ldap.user_attributes"></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Button
+                        type="success"
+                        @click="LdapTest('apache', 'user')"
+                        :loading="loadingLdapTestUser"
+                        >验证</Button
+                      >
+                    </Col>
+                  </Row>
+                </FormItem>
+              </span>
+              <!-- LDAP 分组 -->
+              <span v-if="formHttp.group_source == 'ldap'">
+                <Divider>LDAP 分组</Divider>
+                <FormItem label="Base DN">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formHttp.ldap.group_base_dn"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Search filter">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formHttp.ldap.group_search_filter"
+                      ></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Attributes">
+                  <Row>
+                    <Col span="12">
+                      <Input v-model="formHttp.ldap.group_attributes"></Input>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Groups to user attribute">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formHttp.ldap.groups_to_user_attribute"
+                      ></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="6">
+                      <Tooltip
+                        :transfer="true"
+                        max-width="250"
+                        content="分组下包含多个对象 具备此属性的对象才可被识别为分组的成员 如 member"
+                      >
+                        <Button type="info">说明</Button>
+                      </Tooltip>
+                    </Col>
+                  </Row>
+                </FormItem>
+                <FormItem label="Groups to user attribute value">
+                  <Row>
+                    <Col span="12">
+                      <Input
+                        v-model="formHttp.ldap.groups_to_user_attribute_value"
+                      ></Input>
+                    </Col>
+                    <Col span="1"> </Col>
+                    <Col span="8">
+                      <Row>
+                        <Col span="11">
+                          <Tooltip
+                            :transfer="true"
+                            max-width="250"
+                            content="表示分组下的成员的唯一标识的属性 如 distinguishedName"
+                          >
+                            <Button type="info">说明</Button>
+                          </Tooltip>
+                        </Col>
+                        <Col span="2"> </Col>
+                        <Col span="11">
+                          <Button
+                            type="success"
+                            @click="LdapTest('apache', 'group')"
+                            :loading="loadingLdapTestGroup"
+                            >验证</Button
+                          >
+                        </Col>
+                      </Row>
+                    </Col>
+                  </Row>
+                </FormItem>
+              </span>
+              <!-- 保存 -->
+              <FormItem>
+                <Button
+                  type="primary"
+                  @click="UpdHttpUsersource"
+                  :loading="loadingUpdHttpUsersource"
+                  >保存</Button
+                >
+              </FormItem>
+            </Form>
+          </Card>
+        </TabPane>
+        <TabPane label="邮件服务" name="5">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="120" label-position="left">
               <FormItem label="SMTP主机">
@@ -842,7 +1127,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="消息推送" name="7">
+        <TabPane label="消息推送" name="6">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Alert
               >由于邮件发送没有使用异步任务<br /><br />
@@ -876,7 +1161,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="安全配置" name="8">
+        <TabPane label="安全配置" name="7">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem
@@ -904,7 +1189,7 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane :label="labelUpd" name="9">
+        <TabPane :label="labelUpd" name="8">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem label="当前版本">
@@ -1103,6 +1388,8 @@ export default {
       tempToEmail: "",
       //ldap用户/分组过滤结果
       tempLdapUsersGroups: "",
+      //apache显示端口
+      tempHttpPort: 0,
 
       /**
        * 定时器
@@ -1122,6 +1409,8 @@ export default {
       disableUpdPort: true,
       //修改apache访问仓库前缀
       disableUpdHttpPrefix: true,
+      //修改http显示端口
+      disableUpdHttpPort: false,
 
       /**
        * 标题
@@ -1156,7 +1445,7 @@ export default {
       //更换绑定主机
       loadingUpdSvnservePort: false,
       //修改主机地址
-      loadingUpdHost: false,
+      loadingUpdDockerHostInfo: false,
       //修改apache端口
       loadingUpdPort: false,
       //修改apache访问仓库前缀
@@ -1185,22 +1474,64 @@ export default {
       //启用 http 协议检出
       loadingUpdSubversionEnable: false,
 
+      //更新svn用户源
+      loadingUpdSvnUsersource: false,
+      //更新http用户源
+      loadingUpdHttpUsersource: false,
+
+      //修改http显示端口
+      loadingUpdHttpPort: false,
+
       /**
-       * subversion信息
+       * svnserve信息
        */
       formSvn: {
         version: "",
-        listenPort: "",
-        listenHost: "",
-        svnserveLog: "",
-        passwordDb: "",
+        status: false,
+        listen_port: "",
+        listen_host: "",
+        svnserve_log: "",
+        password_db: "",
         enable: false,
+
+        //数据源
+        user_source: "",
+        group_source: "",
+
+        //sasl
+        sasl: {
+          version: "",
+          mechanisms: "",
+          status: false,
+        },
+
+        ldap: {
+          //ldap服务器
+          ldap_host: "",
+          ldap_port: 389,
+          ldap_version: 3,
+          ldap_bind_dn: "",
+          ldap_bind_password: "",
+
+          //用户相关
+          user_base_dn: "",
+          user_search_filter: "",
+          user_attributes: "",
+
+          //分组相关
+          group_base_dn: "",
+          group_search_filter: "",
+          group_attributes: "",
+          groups_to_user_attribute: "",
+          groups_to_user_attribute_value: "",
+        },
       },
 
       //主机信息
-      formHost: {
-        host: "",
-        port: 0,
+      formDockerHost: {
+        docker_host: "",
+        docker_svn_port: 0,
+        docker_http_port: 0,
       },
 
       /**
@@ -1262,31 +1593,6 @@ export default {
           download: [],
         },
       },
-      //用户来源
-      formDataSource: {
-        //数据源
-        user_source: "",
-        group_source: "",
-
-        //ldap服务器
-        ldap_host: "",
-        ldap_port: 389,
-        ldap_version: 3,
-        ldap_bind_dn: "",
-        ldap_bind_password: "",
-
-        //用户相关
-        user_base_dn: "",
-        user_search_filter: "",
-        user_attributes: "",
-
-        //分组相关
-        group_base_dn: "",
-        group_search_filter: "",
-        group_attributes: "",
-        groups_to_user_attribute: "",
-        groups_to_user_attribute_value: "",
-      },
       //sasl
       formSasl: {
         version: "",
@@ -1294,13 +1600,40 @@ export default {
         status: false,
       },
       //apache
-      formApache: {
+      formHttp: {
+        enable: false,
+
         version: "",
         modules: "",
+        port: 0,
         prefix: "",
-        modulesPath: "",
-        passwordDb: "",
-        enable: false,
+        modules_path: "",
+        password_db: "",
+
+        //数据源
+        user_source: "",
+        group_source: "",
+
+        ldap: {
+          //ldap服务器
+          ldap_host: "",
+          ldap_port: 389,
+          ldap_version: 3,
+          ldap_bind_dn: "",
+          ldap_bind_password: "",
+
+          //用户相关
+          user_base_dn: "",
+          user_search_filter: "",
+          user_attributes: "",
+
+          //分组相关
+          group_base_dn: "",
+          group_search_filter: "",
+          group_attributes: "",
+          groups_to_user_attribute: "",
+          groups_to_user_attribute_value: "",
+        },
       },
     };
   },
@@ -1312,15 +1645,13 @@ export default {
     } else {
       this.currentAdvanceTab = sessionStorage.currentAdvanceTab;
     }
-    this.GetHostInfo();
-    this.GetSvnserveInfo();
+    this.GetDcokerHostInfo();
+    this.GetSvnInfo();
     this.GetApacheInfo();
     this.GetDirInfo();
     this.GetMailInfo();
     this.GetMailPushInfo();
     this.GetSafeInfo();
-    this.GetUsersourceInfo();
-    this.GetSaslInfo();
   },
   methods: {
     /**
@@ -1333,18 +1664,18 @@ export default {
     /**
      * 获取 svnserve 的详细信息
      */
-    GetSvnserveInfo() {
+    GetSvnInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetSvnserveInfo&t=web", data)
+        .post("/api.php?c=Setting&a=GetSvnInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
             that.formSvn = result.data;
             //为临时变量赋值
-            that.tempSvnservePort = result.data.listenPort;
-            that.tempSvnserveHost = result.data.listenHost;
+            that.tempSvnservePort = result.data.listen_port;
+            that.tempSvnserveHost = result.data.listen_host;
             //初始化禁用按钮
             that.disableUpdSvnservePort = true;
             that.disableUpdSvnserveHost = true;
@@ -1361,28 +1692,19 @@ export default {
           that.$Message.error("出错了 请联系管理员！");
         });
     },
-    //重新计算按钮的禁用状态
     ChangeUpdSvnservePort(value) {
       this.disableUpdSvnservePort =
-        this.tempSvnservePort == this.formSvn.listenPort ? true : false;
+        this.tempSvnservePort == this.formSvn.listen_port;
     },
-    //重新计算按钮的禁用状态
     ChangeUpdSvnserveHost(event) {
       this.disableUpdSvnserveHost =
-        this.tempSvnserveHost == this.formSvn.listenHost ? true : false;
+        this.tempSvnserveHost == this.formSvn.listen_host;
     },
-    //重新计算按钮的禁用状态
-    ChangeUpdHost(event) {
-      this.disableUpdHost = this.tempHost == this.formHost.host ? true : false;
+    ChangeUpdHttpPort(value) {
+      this.disableUpdHttpPort = this.tempHttpPort == this.formHttp.port;
     },
-    //重新计算按钮的禁用状态
     ChangeUpdHttpPrefix(event) {
-      this.disableUpdHttpPrefix =
-        this.tempHttpPrefix == this.formApache.prefix ? true : false;
-    },
-    //重新计算按钮的禁用状态
-    ChangeUpdPort(event) {
-      this.disableUpdPort = this.tempPort == this.formHost.port ? true : false;
+      this.disableUpdHttpPrefix = this.tempHttpPrefix == this.formHttp.prefix;
     },
     /**
      * 获取邮件配置信息
@@ -1660,7 +1982,7 @@ export default {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetSvnserveInfo();
+                that.GetSvnInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -1691,7 +2013,7 @@ export default {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetSvnserveInfo();
+                that.GetSvnInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -1716,7 +2038,7 @@ export default {
         onOk: () => {
           that.loadingUpdSvnservePort = true;
           var data = {
-            listenPort: that.tempSvnservePort,
+            listen_port: that.tempSvnservePort,
           };
           that.$axios
             .post("/api.php?c=Setting&a=UpdSvnservePort&t=web", data)
@@ -1725,9 +2047,9 @@ export default {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetSvnserveInfo();
+                that.GetSvnInfo();
               } else {
-                that.GetSvnserveInfo();
+                that.GetSvnInfo();
                 that.$Message.error({ content: result.message, duration: 2 });
               }
             })
@@ -1751,7 +2073,7 @@ export default {
         onOk: () => {
           that.loadingUpdSvnserveHost = true;
           var data = {
-            listenHost: that.tempSvnserveHost,
+            listen_host: that.tempSvnserveHost,
           };
           that.$axios
             .post("/api.php?c=Setting&a=UpdSvnserveHost&t=web", data)
@@ -1760,9 +2082,9 @@ export default {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetSvnserveInfo();
+                that.GetSvnInfo();
               } else {
-                that.GetSvnserveInfo();
+                that.GetSvnInfo();
                 that.$Message.error({ content: result.message, duration: 2 });
               }
             })
@@ -1775,19 +2097,15 @@ export default {
       });
     },
     //获取主机配置
-    GetHostInfo() {
+    GetDcokerHostInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetHostInfo&t=web", data)
+        .post("/api.php?c=Setting&a=GetDcokerHostInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            that.formHost = result.data;
-            that.tempHost = result.data.host;
-            that.tempPort = result.data.port;
-            that.disableUpdHost = true;
-            that.disableUpdPort = true;
+            that.formDockerHost = result.data;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -1798,26 +2116,26 @@ export default {
         });
     },
     //修改主机配置
-    UpdHost() {
+    UpdDockerHostInfo() {
       var that = this;
-      that.loadingUpdHost = true;
+      that.loadingUpdDockerHostInfo = true;
       var data = {
-        host: that.tempHost,
+        dockerHost: that.formDockerHost,
       };
       that.$axios
-        .post("/api.php?c=Setting&a=UpdHost&t=web", data)
+        .post("/api.php?c=Setting&a=UpdDockerHostInfo&t=web", data)
         .then(function (response) {
-          that.loadingUpdHost = false;
+          that.loadingUpdDockerHostInfo = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetHostInfo();
+            that.GetDcokerHostInfo();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
-          that.loadingUpdHost = false;
+          that.loadingUpdDockerHostInfo = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -1853,7 +2171,7 @@ export default {
     /**
      * 测试连接ldap服务器
      */
-    LdapTest(type) {
+    LdapTest(source, type) {
       var that = this;
       if (type == "connection") {
         that.loadingLdapTestConnection = true;
@@ -1864,7 +2182,7 @@ export default {
       }
       var data = {
         type: type,
-        data_source: that.formDataSource,
+        data_source: source == "svn" ? that.formSvn.ldap : that.formHttp.ldap,
       };
       that.$axios
         .post("/api.php?c=Setting&a=LdapTest&t=web", data)
@@ -1907,89 +2225,81 @@ export default {
           that.$Message.error("出错了 请联系管理员！");
         });
     },
-    /**
-     * 保存用户来源配置信息
-     */
-    UpdUsersourceInfo() {
+    //保存svnserve配置
+    UpdSvnUsersource() {
       var that = this;
       that.$Modal.confirm({
         title: "警告",
         content:
           "如果为切换到ldap服务器，请仔细阅读以下内容后做出选择:<br/>1、此操作会将数据库中的SVN用户信息清空,后续手动同步时会将ldap用户写入数据库。<br/>2、接入ldap不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会将数据库中的SVN分组信息清空但是不立刻清空authz的分组信息。后续手动同步时自动清空authz的分组信息之后进行到authz文件中分组和数据库的同步。<br/>4、此操作不会清理被清理分组和用户之前已配置的仓库路径权限",
         onOk: () => {
-          that.loadingUpdLdapInfo = true;
+          that.loadingUpdSvnUsersource = true;
           var data = {
-            data_source: that.formDataSource,
+            data_source: that.formSvn,
           };
           that.$axios
-            .post("/api.php?c=Setting&a=UpdUsersourceInfo&t=web", data)
+            .post("/api.php?c=Setting&a=UpdSvnUsersource&t=web", data)
             .then(function (response) {
               var result = response.data;
-              that.loadingUpdLdapInfo = false;
+              that.loadingUpdSvnUsersource = false;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetUsersourceInfo();
+                that.GetSvnInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {
-              that.loadingUpdLdapInfo = false;
+              that.loadingUpdSvnUsersource = false;
               console.log(error);
               that.$Message.error("出错了 请联系管理员！");
             });
         },
       });
     },
-    /**
-     * 获取用户来源配置信息
-     */
-    GetUsersourceInfo() {
+    //保存htp配置
+    UpdHttpUsersource() {
       var that = this;
-      var data = {};
-      that.$axios
-        .post("/api.php?c=Setting&a=GetUsersourceInfo&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.formDataSource = result.data;
-          } else {
-            that.$Message.error({ content: result.message, duration: 2 });
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
+      that.$Modal.confirm({
+        title: "警告",
+        content:
+          "如果为切换到ldap服务器，请仔细阅读以下内容后做出选择:<br/>1、此操作会将数据库中的SVN用户信息清空,后续手动同步时会将ldap用户写入数据库。<br/>2、接入ldap不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会将数据库中的SVN分组信息清空但是不立刻清空authz的分组信息。后续手动同步时自动清空authz的分组信息之后进行到authz文件中分组和数据库的同步。<br/>4、此操作不会清理被清理分组和用户之前已配置的仓库路径权限",
+        onOk: () => {
+          that.loadingUpdHttpUsersource = true;
+          var data = {
+            data_source: that.formHttp,
+          };
+          that.$axios
+            .post("/api.php?c=Setting&a=UpdHttpUsersource&t=web", data)
+            .then(function (response) {
+              var result = response.data;
+              that.loadingUpdHttpUsersource = false;
+              if (result.status == 1) {
+                that.$Message.success(result.message);
+                that.GetApacheInfo();
+              } else {
+                that.$Message.error({ content: result.message, duration: 2 });
+              }
+            })
+            .catch(function (error) {
+              that.loadingUpdHttpUsersource = false;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        },
+      });
     },
-    /**
-     * SVN用户来源下拉切换
-     */
-    ChangeUserSource(value) {
+    //svn用户来源下拉
+    ChangeSvnUsersource(value) {
       if (value == "passwd") {
-        this.formDataSource.group_source = "authz";
+        this.formSvn.group_source = "authz";
       }
     },
-    /**
-     * 获取当前的 sasl 信息
-     */
-    GetSaslInfo() {
-      var that = this;
-      var data = {};
-      that.$axios
-        .post("/api.php?c=Setting&a=GetSaslInfo&t=web", data)
-        .then(function (response) {
-          var result = response.data;
-          if (result.status == 1) {
-            that.formSasl = result.data;
-          } else {
-            that.$Message.error({ content: result.message, duration: 2 });
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
+    //http用户来源下拉
+    ChangeHttpUsersource(value) {
+      if (value == "httpPasswd") {
+        this.formHttp.group_source = "authz";
+      }
     },
     /**
      * 启动sasl
@@ -2009,7 +2319,7 @@ export default {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetSaslInfo();
+                that.GetSvnInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -2040,7 +2350,7 @@ export default {
               var result = response.data;
               if (result.status == 1) {
                 that.$Message.success(result.message);
-                that.GetSaslInfo();
+                that.GetSvnInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -2064,9 +2374,13 @@ export default {
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            that.formApache = result.data;
+            that.formHttp = result.data;
+
             that.tempHttpPrefix = result.data.prefix;
             that.disableUpdHttpPrefix = true;
+
+            that.tempHttpPort = result.data.port;
+            that.disableUpdHttpPort = true;
             if (that.timer) {
               that.$Message.success(result.message);
               clearInterval(that.timer);
@@ -2100,7 +2414,7 @@ export default {
               if (result.status == 1) {
                 that.$Message.success(result.message);
                 that.GetApacheInfo();
-                that.GetSvnserveInfo();
+                that.GetSvnInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -2111,7 +2425,7 @@ export default {
               that.timer = window.setInterval(() => {
                 setTimeout(function () {
                   that.GetApacheInfo();
-                  that.GetSvnserveInfo();
+                  that.GetSvnInfo();
                 }, 0);
               }, 1000);
               that.$Message.success("等待httpd服务重启");
@@ -2139,7 +2453,7 @@ export default {
               if (result.status == 1) {
                 that.$Message.success(result.message);
                 that.GetApacheInfo();
-                that.GetSvnserveInfo();
+                that.GetSvnInfo();
               } else {
                 that.$Message.error({ content: result.message, duration: 2 });
               }
@@ -2166,13 +2480,38 @@ export default {
           that.loadingUpdPort = false;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.GetHostInfo();
+            that.GetDcokerHostInfo();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
           that.loadingUpdPort = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    //修改http显示端口
+    UpdHttpPort() {
+      var that = this;
+      that.loadingUpdHttpPort = true;
+      var data = {
+        port: that.tempHttpPort,
+      };
+      that.$axios
+        .post("/api.php?c=Setting&a=UpdHttpPort&t=web", data)
+        .then(function (response) {
+          that.loadingUpdHttpPort = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetApacheInfo();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingUpdHttpPort = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -2206,7 +2545,7 @@ export default {
               that.timer = window.setInterval(() => {
                 setTimeout(function () {
                   that.GetApacheInfo();
-                  that.GetSvnserveInfo();
+                  that.GetSvnInfo();
                 }, 0);
               }, 1000);
               that.$Message.success("等待httpd服务重启");

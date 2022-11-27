@@ -11,7 +11,6 @@ namespace app\service;
 
 use app\service\Logs as ServiceLogs;
 use app\service\Ldap as ServiceLdap;
-use app\service\Usersource as ServiceUsersource;
 use app\service\Svn as ServiceSvn;
 use app\service\Apache as ServiceApache;
 
@@ -24,7 +23,6 @@ class Svnuser extends Base
      */
     private $ServiceLogs;
     private $ServiceLdap;
-    private $ServiceUsersource;
     private $ServiceSvn;
     private $ServiceApache;
 
@@ -34,7 +32,6 @@ class Svnuser extends Base
 
         $this->ServiceLogs = new ServiceLogs($parm);
         $this->ServiceLdap = new ServiceLdap($parm);
-        $this->ServiceUsersource = new ServiceUsersource($parm);
         $this->ServiceSvn = new ServiceSvn($parm);
         $this->ServiceApache = new ServiceApache($parm);
     }
@@ -46,10 +43,10 @@ class Svnuser extends Base
      */
     public function SyncUser()
     {
-        $dataSource = $this->dataSource;
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
         }
 
         if ($dataSource['user_source'] == 'ldap') {
@@ -57,12 +54,12 @@ class Svnuser extends Base
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
-        } else if ($passworddb == 'passwd') {
+        } else if ($this->enableCheckout == 'svn') {
             $result = $this->SyncPasswdToDb();
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
-        } else if ($passworddb == 'httpPasswd') {
+        } else {
             $result = $this->SyncHttpPasswdToDb();
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
@@ -465,7 +462,12 @@ class Svnuser extends Base
      */
     public function UserScan()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
@@ -478,12 +480,7 @@ class Svnuser extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
-        if ($passworddb == 'passwd') {
+        if ($this->enableCheckout == 'svn') {
             $svnUserPassList = $this->SVNAdmin->GetUserInfo($this->payload['passwd']);
             if (is_numeric($svnUserPassList)) {
                 if ($svnUserPassList == 621) {
@@ -513,7 +510,12 @@ class Svnuser extends Base
      */
     public function UserImport()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
@@ -528,13 +530,8 @@ class Svnuser extends Base
 
         $users = $this->payload['users'];
 
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
         $all = [];
-        if ($passworddb == 'passwd') {
+        if ($this->enableCheckout == 'svn') {
             $passwdContent = $this->passwdContent;
 
             foreach ($users as $user) {
@@ -711,17 +708,17 @@ class Svnuser extends Base
      */
     public function UpdUserStatus()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
 
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
-        if ($passworddb == 'passwd') {
+        if ($this->enableCheckout == 'svn') {
             //status true 启用用户 false 禁用用户
             $result = $this->SVNAdmin->UpdUserStatus($this->passwdContent, $this->payload['svn_user_name'], !$this->payload['status']);
             if (is_numeric($result)) {
@@ -777,7 +774,12 @@ class Svnuser extends Base
      */
     public function CreateUser()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
@@ -793,12 +795,7 @@ class Svnuser extends Base
             return message(200, 0, '密码不能为空');
         }
 
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
-        if ($passworddb == 'passwd') {
+        if ($this->enableCheckout == 'svn') {
             //检查用户是否已存在
             $result = $this->SVNAdmin->AddUser($this->passwdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass']);
             if (is_numeric($result)) {
@@ -855,7 +852,12 @@ class Svnuser extends Base
      */
     public function UpdUserPass()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
@@ -864,12 +866,7 @@ class Svnuser extends Base
             return message(200, 0, '密码不能为空');
         }
 
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
-        if ($passworddb == 'passwd') {
+        if ($this->enableCheckout == 'svn') {
             //检查用户是否已存在
             $result = $this->SVNAdmin->UpdUserPass($this->passwdContent, $this->payload['svn_user_name'], $this->payload['svn_user_pass'], !$this->payload['svn_user_status']);
             if (is_numeric($result)) {
@@ -906,17 +903,17 @@ class Svnuser extends Base
      */
     public function DelUser()
     {
-        $dataSource = $this->dataSource;
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
         if ($dataSource['user_source'] == 'ldap') {
             return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
         }
 
-        $passworddb = $this->ServiceSvn->GetPasswddbInfo();
-        if (is_numeric($passworddb)) {
-            return message(200, 0, sprintf('获取[%s]配置信息失败-请及时检查[%s-%s]', $this->configSvn['svn_conf_file'], 2, $passworddb));
-        }
-
-        if ($passworddb == 'passwd') {
+        if ($this->enableCheckout == 'svn') {
             //从passwd文件中全局删除
             $resultPasswd = $this->SVNAdmin->DelUserFromPasswd($this->passwdContent, $this->payload['svn_user_name'], !$this->payload['svn_user_status']);
             if (is_numeric($resultPasswd)) {
