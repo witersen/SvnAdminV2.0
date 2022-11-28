@@ -66,7 +66,7 @@ class Svnrep extends Base
                 'prefix' => $checkoutHost
             ]);
         } else {
-            $checkoutHost = ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHttpPort) . $this->httpPrefix;
+            $checkoutHost = ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHttpPort) . ($this->httpPrefix == '/' ? '' : $this->httpPrefix);
 
             return message(200, 1, '成功', [
                 'protocal' => 'http://',
@@ -506,7 +506,7 @@ class Svnrep extends Base
     public function GetSvnUserRepList()
     {
         if ($this->enableCheckout == 'http') {
-            $checkoutHost = $this->localHttpProtocol . '://' . ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHttpPort) . '/' . ltrim($this->httpPrefix, '/');
+            $checkoutHost = $this->localHttpProtocol . '://' . ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHttpPort) . ($this->httpPrefix == '/' ? '' : $this->httpPrefix);
         }
 
         $sync = $this->payload['sync'];
@@ -2304,7 +2304,7 @@ class Svnrep extends Base
                 'svn_user_name' => $this->userName
             ]);
         } else {
-            $checkoutHost = $this->localHttpProtocol . '://' . ($this->localHttpPort == 80 ? $this->localHttpHost : $this->localHttpHost . ':' . $this->localHttpPort) . '/' . ltrim($this->httpPrefix, '/');
+            $checkoutHost = $this->localHttpProtocol . '://' . ($this->localHttpPort == 80 ? $this->localHttpHost : $this->localHttpHost . ':' . $this->localHttpPort) . ($this->httpPrefix == '/' ? '' : $this->httpPrefix);
 
             $svnUserPass = $this->database->get('svn_users', 'svn_user_pass', [
                 'svn_user_name' => $this->userName
