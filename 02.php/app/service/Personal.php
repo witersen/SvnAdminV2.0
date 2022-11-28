@@ -9,6 +9,8 @@
 
 namespace app\service;
 
+use app\service\Apache as ServiceApache;
+
 class Personal extends Base
 {
     /**
@@ -17,12 +19,14 @@ class Personal extends Base
      * @var object
      */
     private $Mail;
+    private $ServiceApache;
 
     function __construct($parm = [])
     {
         parent::__construct($parm);
 
-        $this->Mail = new Mail();
+        $this->Mail = new Mail($parm);
+        $this->ServiceApache = new ServiceApache($parm);
     }
 
     /**
@@ -89,6 +93,16 @@ class Personal extends Base
      */
     public function EditSvnUserPass()
     {
+        if ($this->enableCheckout == 'svn') {
+            $dataSource = $this->svnDataSource;
+        } else {
+            $dataSource = $this->httpDataSource;
+        }
+
+        if ($dataSource['user_source'] == 'ldap') {
+            return message(200, 0, '当前SVN用户来源为LDAP-不支持此操作');
+        }
+
         if ($this->payload['newPassword'] != $this->payload['confirm']) {
             return message(200, 0, '输入不一致');
         }
@@ -97,19 +111,25 @@ class Personal extends Base
             return message(200, 0, '密码不合法');
         }
 
-        //修改SVN指定用户的密码
-        $result = $this->SVNAdmin->UpdUserPass($this->passwdContent, $this->userName, $this->payload['newPassword']);
-        if (is_numeric($result)) {
-            if ($result == 621) {
-                return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($result == 710) {
-                return message(200, 0, '用户不存在');
-            } else {
-                return message(200, 0, "错误码$result");
+        if ($this->enableCheckout == 'svn') {
+            $result = $this->SVNAdmin->UpdUserPass($this->passwdContent, $this->userName, $this->payload['newPassword']);
+            if (is_numeric($result)) {
+                if ($result == 621) {
+                    return message(200, 0, '文件格式错误(不存在[users]标识)');
+                } else if ($result == 710) {
+                    return message(200, 0, '用户不存在 请管理员同步用户后重试');
+                } else {
+                    return message(200, 0, "错误码$result");
+                }
+            }
+
+            funFilePutContents($this->configSvn['svn_passwd_file'], $result);
+        } else {
+            $result = $this->ServiceApache->UpdUserPass($this->userName, $this->payload['newPassword']);
+            if ($result['status'] != 1) {
+                return message2($result);
             }
         }
-
-        funFilePutContents($this->configSvn['svn_passwd_file'], $result);
 
         $this->database->update('svn_users', [
             'svn_user_pass' => $this->payload['newPassword']
