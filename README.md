@@ -6,8 +6,8 @@
   - GitHub地址：https://github.com/witersen/SvnAdminV2.0 
   - Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
 - 发行包：
-  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.4.1/2.4.1.zip
-  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.1/2.4.1.zip
+  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.4.2/2.4.2.zip
+  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.2/2.4.2.zip
 - 兼容性
 
   - 本程序提供 docker 镜像，基于 centos7.9.2009 构建
@@ -25,7 +25,7 @@
 - 拉取镜像
 
 ```
-docker pull witersencom/svnadmin:2.4.1
+docker pull witersencom/svnadmin:2.4.2
 ```
 
 - 仅运行查看效果（不挂载宿主机的目录）
@@ -36,7 +36,7 @@ docker run -d \
 -p 80:80 \
 -p 3690:3690 \
 --privileged \
-witersencom/svnadmin:2.4.1
+witersencom/svnadmin:2.4.2
 ```
 
 - 正式使用（新用户）（挂载宿主机目录）
@@ -44,7 +44,7 @@ witersencom/svnadmin:2.4.1
   - 启动一个临时容器
 
   ```
-  docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.4.1 /usr/sbin/init
+  docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.4.2 /usr/sbin/init
   ```
 
   - 把配置文件复制出来（复制的数据在宿主机 /home/svnadmin）
@@ -68,7 +68,7 @@ witersencom/svnadmin:2.4.1
   -v /home/svnadmin/:/home/svnadmin/ \
   --privileged \
   --name svnadmin
-  witersencom/svnadmin:2.4.1
+  witersencom/svnadmin:2.4.2
   ```
 
   - 容器内授权
@@ -79,11 +79,14 @@ witersencom/svnadmin:2.4.1
   ```
 
 - 正式使用（老用户）（挂载主机目录）
-  
-  - 由于本次更新改动较大 2.4.1之前的版本升级到2.4.1需要升级包 请耐心等待
 
+  - 2.4.1升级到2.4.2直接替换代码即可
+  - **2.4.1之前的版本升级到2.4.2需要等待升级包**
 
 ## 二、手动安装
+
+- 2.4.1升级到2.4.2直接替换代码即可
+- **2.4.1之前的版本升级到2.4.2需要等待升级包**
 
 ### 1、在CentOS7.6/Rocky安装
 
@@ -126,9 +129,9 @@ yum install -y cronie at
 - 下载解压代码包
 
 ```
-cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.1/2.4.1.zip
+cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.2/2.4.2.zip
 
-unzip v2.4.1.zip
+unzip v2.4.2.zip
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）（注意需要Subversion >= 1.8）
@@ -553,11 +556,14 @@ chmod 777 -R /home/svnadmin
 
 - 感谢各位使用者的鼓励，捐赠更多代表的是认可，作者会继续动力更新的！
 
-| 捐赠者            | 渠道  | 时间       |
-| ----------------- | ----- | ---------- |
-| qq@cat            | 微信  | 2022-10-10 |
-| qq@Listen_        | 微信  | 2022-11-16 |
-| qq@小吴飞刀丶mike | 微信  | 2011-11-16 |
-| gitee@tango_zhu   | Gitee | 2022-11-18 |
+| 捐赠者            | 渠道   | 时间       |
+| ----------------- | ------ | ---------- |
+| qq@cat            | 微信   | 2022-10-10 |
+| qq@Listen_        | 微信   | 2022-11-16 |
+| qq@小吴飞刀丶mike | 微信   | 2011-11-16 |
+| gitee@tango_zhu   | Gitee  | 2022-11-18 |
+| qq@三多～(๑°3°๑)  | 支付宝 | 2022-11-28 |
 
 <img src="00.static/wechat.png" alt="" width="40%" height="40%" />
+
+<img src="00.static/alipay.jpg" alt="" width="40%" height="40%" />
