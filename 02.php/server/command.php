@@ -63,7 +63,7 @@ class Command
 
     private $taskType = [
         '1' => '仓库备份[dump-全量]',
-        '2' => '仓库备份[dump-增量]',
+        '2' => '仓库备份[dump-增量-deltas]',
         '3' => '仓库备份[hotcopy-全量]',
         '4' => '仓库备份[hotcopy-增量]',
         '5' => '仓库检查',
@@ -234,12 +234,72 @@ class Command
     }
 
     /**
-     * 仓库备份[dump-增量]
+     * 仓库备份[dump-增量-deltas]
      *
      * @return void
      */
-    public function RepDumpPart()
+    public function RepDumpDeltas()
     {
+        $repList = json_decode($this->crond['rep_name'], true);
+
+        if (in_array('-1', $repList)) {
+            $repList = $this->database->select('svn_reps', 'rep_name');
+            print_r(sprintf('当前模式为deltas增量备份所有仓库-仓库列表[%s]%s', implode('|', $repList), PHP_EOL));
+        } else {
+            print_r(sprintf('当前模式为deltas增量备份部分仓库-仓库列表[%s]%s', implode('|', $repList), PHP_EOL));
+        }
+
+        foreach ($repList as $rep) {
+            $this->currentRep = $rep;
+
+            clearstatcache();
+            if (!is_dir($this->configSvn['rep_base_path'] .  $rep)) {
+                print_r(sprintf('仓库[%s]在磁盘中不存在-自动跳过%s', $rep, PHP_EOL));
+                continue;
+            }
+
+            $prefix = 'rep_' . $rep . '_deltas_';
+            $backupName = $prefix . date('YmdHis') . '.dump';
+
+            //数量检查
+            $backupList = [];
+            $fileList = scandir($this->configSvn['backup_base_path']);
+            foreach ($fileList as $key => $value) {
+                if ($value == '.' || $value == '..' || is_dir($this->configSvn['backup_base_path'] . '/' . $value)) {
+                    continue;
+                }
+                if (substr($value, 0, strlen($prefix)) == $prefix) {
+                    $backupList[] = $value;
+                }
+            }
+            if ($this->crond['save_count'] <= count($backupList)) {
+                rsort($backupList);
+                for ($i = $this->crond['save_count']; $i <= count($backupList); $i++) {
+                    print_r(sprintf('删除仓库[%s]多余的deltas增量备份文件[%s]%s', $rep, $backupList[$i - 1], PHP_EOL));
+                    @unlink($this->configSvn['backup_base_path'] . '/' . $backupList[$i - 1]);
+                }
+            }
+
+            print_r(sprintf('仓库[%s]开始执行deltas增量备份程序%s', $rep, PHP_EOL));
+
+            $stderrFile = tempnam(sys_get_temp_dir(), 'svnadmin_');
+
+            $cmd = sprintf("'%s' dump '%s' --deltas --quiet > '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $rep, $this->configSvn['backup_base_path'] .  $backupName);
+            passthru($cmd . " 2>$stderrFile", $this->code);
+
+            // $cmd = sprintf("'%s' dump '%s' > '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $rep, $this->configSvn['backup_base_path'] .  $backupName);
+            // passthru($cmd . " 2>$stderrFile", $this->code);
+
+            if ($this->code == 0) {
+                print_r(sprintf('仓库[%s]deltas增量备份结束%s', $rep, PHP_EOL));
+            } else {
+                print_r(sprintf('仓库[%s]deltas增量备份结束-有错误信息[%s]%s', $rep, file_get_contents($stderrFile), PHP_EOL));
+            }
+
+            @unlink($stderrFile);
+
+            $this->SendMail();
+        }
     }
 
     /**
@@ -342,8 +402,8 @@ switch ($argv[1]) {
     case 1: //仓库备份[dump-全量]
         $command->RepDumpAll();
         break;
-    case 2: //仓库备份[dump-增量]
-        $command->RepDumpPart();
+    case 2: //仓库备份[dump-增量-deltas]
+        $command->RepDumpDeltas();
         break;
     case 3: //仓库备份[hotcopy-全量]
         $command->RepHotcopyAll();

@@ -400,10 +400,10 @@ export default {
           key: 1,
           value: "仓库备份[dump-全量]",
         },
-        // {
-        //   key: 2,
-        //   value: "仓库备份[dump-增量]",
-        // },
+        {
+          key: 2,
+          value: "仓库备份[dump-增量-deltas]",
+        },
         // {
         //   key: 3,
         //   value: "仓库备份[hotcopy-全量]",
