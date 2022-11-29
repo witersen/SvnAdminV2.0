@@ -887,6 +887,7 @@
       :propCurrentRepPath="currentRepPath"
       :propModalRepPri="modalRepPri"
       :propChangeParentModalVisible="CloseModalRepPri"
+      :propChangeParentCurrentRepPath="ChangeCurrentRepPath"
       :propSvnnUserPriPathId="svnn_user_pri_path_id"
     />
   </div>
@@ -1384,6 +1385,12 @@ export default {
      */
     CloseModalRepPri() {
       this.modalRepPri = false;
+    },
+    /**
+     * 子组件 modalRepPri 传递变量给父组件
+     */
+    ChangeCurrentRepPath(value) {
+      this.currentRepPath = value;
     },
 
     /**

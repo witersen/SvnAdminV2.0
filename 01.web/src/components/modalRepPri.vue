@@ -180,13 +180,17 @@ export default {
       type: String,
       default: "",
     },
+    propSvnnUserPriPathId: {
+      type: Number,
+      default: -1,
+    },
     //向父组件发送对话框状态变量
     propChangeParentModalVisible: {
       type: Function,
     },
-    propSvnnUserPriPathId: {
-      type: Number,
-      default: -1,
+    //向父组件发送仓库路径
+    propChangeParentCurrentRepPath: {
+      type: Function,
     },
   },
   data() {
@@ -514,6 +518,7 @@ export default {
       var that = this;
       var data = [];
       that.currentRepPath = item.fullPath;
+      that.propChangeParentCurrentRepPath(item.fullPath);
       that.GetRepPathAllPri();
       if (
         sessionStorage.user_role_id == 1 ||
@@ -582,6 +587,7 @@ export default {
      */
     ChangeSelectTreeNode(selectArray, currentItem) {
       this.currentRepPath = currentItem.fullPath;
+      this.propChangeParentCurrentRepPath(currentItem.fullPath);
       this.GetRepPathAllPri();
     },
     /**
