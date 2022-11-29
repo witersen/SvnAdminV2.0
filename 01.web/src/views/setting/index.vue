@@ -1579,7 +1579,7 @@ export default {
        * 版本信息
        */
       version: {
-        current_verson: "2.4.2",
+        current_verson: "2.4.3",
         php_version: "5.5+",
         database: "MYSQL、SQLite",
         github: "https://github.com/witersen/SvnAdminV2.0",
