@@ -20,7 +20,7 @@
 
 - 系统截图
 
-<img src="00.static/demo.jpg" alt="" width="100%" height="65%" />
+<img src="00.static/demo.jpg" alt="" width="100%" height="100%" />
 
 
 
