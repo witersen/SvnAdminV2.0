@@ -1,94 +1,108 @@
-# SVNAdmin - 开源SVN管理系统
-- 基于web的Subversion（SVN）服务器端管理工具
-- 支持http协议、SVN协议、支持SASL（ldap）认证、docker部署
-- 演示地址：http://svnadmin.witersen.com (默认的用户名与密码都为 admin)
-- 项目地址：
-  - GitHub地址：https://github.com/witersen/SvnAdminV2.0 
-  - Gitee地址：https://gitee.com/witersen/SvnAdminV2.0
-- 发行包：
-  - GitHub：https://github.com/witersen/SvnAdminV2.0/releases/download/v2.4.3/2.4.3.zip
-  - Gitee：https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.3/2.4.3.zip
-- 兼容性
+# SVNAdmin2 - 基于web的SVN管理系统
 
-  - 本程序提供 docker 镜像，基于 centos7.9.2009 构建
+### 1. 介绍
 
-  - 操作系统（手动安装）：CentOS7（推荐）、CentOS8、Rocky、Ubuntu（Windows及其它Linux发行版正在测试兼容中）
-  - PHP版本：PHP 5.5+ 推荐 PHP 7.0 +
-  - 数据库：SQLite、MySQL
-  - Subversion：1.8+
-- 问题协助或功能建议加Q群：633108141
-- **由于此版本改动较大，老用户都需要等待升级包升级**（除非舍弃你的数据库重新安装）
+- SVNAdmin2 是一款**通过图形界面管理服务端SVN的web程序**。
 
-## 一、docker安装
+- 正常情况下配置SVN仓库的人员权限需要登录到服务器手动修改 authz 和 passwd 两个文件，当仓库结构和人员权限上了规模后，手动管理就变的非常容易出错，本系统能够识别人员和权限并提供管理和拓展功能。
 
-- **如果要使用http协议检出，建议使用docker安装方式**
-- 拉取镜像
+- SVNAdmin2 支持**SVN协议检出、HTTP协议检出**，并且支持两种协议之间互相切换，支持docker部署或源码部署。
+
+- SVNAdmin2 支持进行**LDAP的接入**，进而达到使用原有的人员架构和分组规则的目的。
+
+- SVNAdmin2 第一个版本（20年初）被开发用来个人管理SVN仓库使用，无意中开源后发现用户渐多，于是开始专门维护迭代。
+
+- [GitHub地址](https://github.com/witersen/SvnAdminV2.0)   [Gitee地址](https://gitee.com/witersen/SvnAdminV2.0)
+
+- 问题求助、功能建议、更新计划、SVN技术讨论，可加QQ群：**633108141**
+
+- 项目演示地址：http://svnadmin.witersen.com (管理人员/admin/admin)
+
+- 系统截图
+
+<img src="00.static/demo.jpg" alt="" width="100%" height="65%" />
+
+
+
+### 2. 兼容性
+
+**docker > CentOS7 > CentOS8 > Rocky > Ubuntu**
+
+Windows下如有需求，可使用 docker 版本
+
+PHP版本：PHP 5.5+ 推荐 PHP 7.0 +
+
+数据库：SQLite、MySQL
+
+Subversion：1.8+
+
+
+
+### 3. docker安装
+
+##### 3.1 适用于：快速部署看效果
+
+此方式可快速部署程序体验效果，数据不存储在宿主机，生产环境慎用
+
+`docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.4.3`
+
+##### 3.2 适用于：新用户正式使用
+
+- 启动一个临时的容器用于复制配置文件出来
 
 ```
-docker pull witersencom/svnadmin:2.4.3
+docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.4.3 /usr/sbin/init
 ```
 
-- 仅运行查看效果（不挂载宿主机的目录）
+- 把配置文件复制到本机的 `/home/svnadmin` 目录
 
 ```
-docker run -d \
---name svnadmintemp \
--p 80:80 \
--p 3690:3690 \
---privileged \
-witersencom/svnadmin:2.4.3
+cd /home/ && docker cp svnadmintemp:/home/svnadmin ./
 ```
 
-- 正式使用（新用户）（挂载宿主机目录）
+- 删除掉临时容器
 
-  - 启动一个临时容器
+```
+docker stop svnadmintemp && docker rm svnadmintemp
+```
 
-  ```
-  docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.4.3 /usr/sbin/init
-  ```
+- 启动正式的容器
 
-  - 把配置文件复制出来（复制的数据在宿主机 /home/svnadmin）
+```
+docker run -d -p 80:80 -p 3690:3690 -v /home/svnadmin/:/home/svnadmin/ --privileged --name svnadmin witersencom/svnadmin:2.4.3
+```
 
-  ```
-  cd /home/ && docker cp svnadmintemp:/home/svnadmin ./
-  ```
+- 进入容器内进行文件授权
 
-  - 删除临时容器
+```
+docker exec -it svnadmin bash
+chown -R apache:apache /home/svnadmin
+```
 
-  ```
-  docker stop svnadmintemp && docker rm svnadmintemp
-  ```
+##### 3.3 适用于：旧用户升级
 
-  - 启动正式容器
+- 2.4.x 之前的用户升级到2.4.x （可以联网的用户）
+  - 进入容器内
+  - yum install -y unzip
+  - cd /var/www/html/server && php install.php
+  - yum install -y unzip cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain mod_dav_svn mod_ldap mod_php php-ldap cronie at
+  - httpd -k graceful
+  - chown -R apache:apache /home/svnadmin/
+  - php svnadmind.php stop
+  - nohup svnadmind.php start &
+- 2.4.x 之前的用户升级到2.4.x （不可联网的用户）
+  - 在有网络的环境下下载升级包，注意下载 update.tar.gz 而不是 update.zip
+  - 提前下载好升级包并复制到容器中 /var/www/html/server/ 目录下
+  - cd /var/www/html/server/
+  - tar -zxvf update.tar.gz
+  - php update/index.php
+  - 退出容器
+  - 停止旧的容器，拉取新容器，挂载本地的数据目录到新版本的容器即可
 
-  ```
-  docker run -d \
-  -p 80:80 \
-  -p 3690:3690 \
-  -v /home/svnadmin/:/home/svnadmin/ \
-  --privileged \
-  --name svnadmin
-  witersencom/svnadmin:2.4.3
-  ```
 
-  - 容器内授权
+### 4. 源码安装
 
-  ```
-  docker exec -it svnadmin bash
-  chown -R apache:apache /home/svnadmin
-  ```
-
-- 正式使用（老用户）（挂载主机目录）
-
-  - 2.4.x升级到2.4.3直接替换代码即可
-  - **2.4.x之前的版本升级到2.4.3需要等待升级包**
-
-## 二、手动安装
-
-- 2.4.x升级到2.4.3直接替换代码即可
-- **2.4.x之前的版本升级到2.4.3需要等待升级包**
-
-### 1、在CentOS7.6/Rocky安装
+##### 4.1 适用于：CentOS7、Rocky等
 
 - 安装解压缩等工具
 
@@ -205,13 +219,13 @@ chown -R apache:apache /home/svnadmin
   systemctl enable svnadmind
   ```
 
-### 2、在宝塔面板安装
+##### 2、适用于：宝塔面板
 
 - 安装方式跟手动部署类似，只是宝塔系统了很多可视化操作很方便
 
 - 参考视频：[SVNAdmin V2.2.1 系统部署与使用演示视频【针对宝塔面板】]( https://www.bilibili.com/video/BV1XR4y1H7p3?share_source=copy_web&vd_source=f4620db503611c42618f1afd9c8afecd) 
 
-### 3、在ubutntu18安装
+##### 3、适用于：ubutntu18
 
 - 步骤同1（注意需要以root用户执行 server/install.php 和 server/svnadmind.php ）
 - 在ubuntu中软件包名称多与CentOS系列不同，需要用户自行处理
@@ -260,50 +274,52 @@ su root
 nohup php server/svnadmind.php start &
 ```
 
-## 三、FAQ
+### 5. 常见问题解答
 
-### 1、如何将已有的SVN仓库使用此系统管理 ？
+##### 5.1 使用此系统管理管理之前的仓库 ？
 
-- （1）安装本系统
-- （2）执行 php server/install.php  使用内置的功能重新配置你的Subversion
-- （3）将已有的一个或多个SVN仓库移动到 /home/svnadmin/rep/ 目录下 
-- （4）刷新管理系统的仓库管理页面即可识别SVN仓库
-- （5）注意此方式并不会识别SVN仓库原有的用户以及权限配置，因为我们使用了统一的配置文件来进行用户和权限管理，因此迁移仓库后还需要在管理系统重新添加用户、用户组、配置权限！
+- 确认之前SVN仓库的版本，如果是1.8+则无需担心，如果是1.8以下，则需要简单升级下仓库
 
-<img src="00.static/01.demo/qianyi.png" alt="" width="45%" height="45%" />
+- 安装本系统
+- 执行 php server/install.php  使用内置的功能重新配置你的Subversion
+- 将已有的一个或多个SVN仓库移动到 /home/svnadmin/rep/ 目录下 
+- 在导航**SVN仓库**中执行**同步列表**，即可识别SVN仓库
+- 注意：如果你原来是一个仓库一套配置文件的方式，则还需要按照截图的方式稍微调整下你的配置文件。因为现在是多个仓库一套配置文件的管理方式。
 
-### 2、如何将数据库切换为MySQL ？
+<img src="00.static/qianyi.png" alt="" width="45%" height="45%" />
 
-- 创建数据库
+##### 5.2 如何将数据库切换为MySQL ？
 
-- 将系统提供的 mysql 数据库文件导入到你的MySQL数据库
-
+- 创建数据库 svnadmin
+- 将安装包中的MySQL文件 templete/database/mysql/svnadmind.sql 导入数据库
 - 修改 config/database.php 将sqlite部分注释并配置你的MySQL即可
 - 注意：若php版本过低而MySQL版本>=8.0，则会提示：The server requested authentication method unknown to the client，只需要升级php版本或者修改MySQL数据库的配置信息即可
 
-### 3、为什么只支持管理Subversion1.8+ ？
+##### 5.3 为什么只支持管理Subversion1.8+ ？
 
+- 因为目前是通过多个仓库读取一套配置文件的方式，而subversion1.8+才支持这种方式
 - 预计在 2.5.x 版本向下适配，支持管理 Subversion 1.5+
 
-### 4、为什么目前只支持Linux操作系统 ？
+##### 5.4 为什么目前只支持Linux操作系统 ？
 
-- 正在使用新方案对Windows操作系统进行支持测试
-- ~~预计在 2.4.x 版本支持 Windows 部署~~
+- 系统中使用了一些多进程的方案，而这在Windows下实现需要花费更多的时间
 
-### 5、仓库初始化结构模板 ？
+- 短期内没有支持Windows部署的计划
+- Windows下使用可通过docker版本
+
+##### 5.5 仓库初始化结构模板 ？
 
 - 我们可以在创建仓库的时候选择创建指定内容结构的仓库，如包含 "trunk" "branches" "tags" 文件夹的结构，这一结构是可选的并且可调整的，我们可以手动调整 /home/svnadmin/templete/initStruct/01/ 下的目录结构
 
-### 6、常用钩子推荐 ？
+##### 5.6 常用钩子推荐 ？
 
 - 我们可以在目录 /home/svnadmin/hooks/ 下增加自己常用的钩子 
   - /home/svnadmin/hooks/ 下建立文件夹 xx，名称任意
   - 在 xx 下新建文件 hookDescription 写入对此钩子的描述文本内容
   - 在 xx 下新建文件 hookName 写入钩子类型，如post-commit等
   - 在 xx 下新建文件 ，以钩子类型命名，如 post-commit ，然后写入具体钩子内容
-- 感谢 【北方糙汉子-】提供的钩子脚本
 
-### 9、管理员找回密码
+##### 5.7 管理员找回密码
 
 - 使用默认的SQLite数据库
 ```
@@ -325,11 +341,11 @@ select * from admin_users;
 - 使用MySQL数据库
   - 使用可视化工具登录到数据库查看 admin_users 数据表信息即可
 
-### 10、关于大文件下载中断问题
+##### 5.8 关于大文件下载中断问题
 
 - 当下载1G以及以上的大文件会出现下载被中断的问题，是因为文件下载为了安全没有使用http文件直链，而是通过php校验后读取文件流下载，所以会存在一个php-fpm最大执行时间的问题，因此你可以通过 设置 php-fpm.conf 配置文件的 request_terminate_timeout 为0 来取消超时限制
 
-### 11、容器重启后无法正常访问web服务（svn不受影响）
+##### 5.9 容器重启后无法正常访问web服务（svn不受影响）
 
 ```
 【原因】 
@@ -345,7 +361,7 @@ select * from admin_users;
 后面会考虑更换更方便的解决方案
 ```
 
-### 12、如果配置了多个仓库模板，如何在创建仓库时指定使用某个仓库模板？
+##### 5.10 如果配置了多个仓库模板，如何在创建仓库时指定使用某个仓库模板？
 
 ```
 例如： 
@@ -357,24 +373,7 @@ select * from admin_users;
 可以通过修改 config/svn.php 中的 templete_init_struct_01 值来修改
 ```
 
-### 13、docker版本要修改容器内 svn 的 3690 默认端口 
-
-```
-【解释】 
-既然使用 docker 版本，则无需考虑容器内应用的端口，因为可通过容器启动时候做端口映射 
-docker版本因为处于容器中权限问题禁用了一些按钮的操作权限，如修改svn服务的端口和绑定主机等信息 
-假如启动容器时，映射关系为 3691:3690 表示宿主机3691映射到容器的3690，因此在容器中修改3690为3692，会导致宿主机的3691无法提供服务 
-后面会改进 docker 版本，尽量令使用体验跟原生机器一致 
-【修改端口方案】 
-法1 
-直接在容器启动时即指定宿主机的映射端口，如 3692:3690 这样在容器中的管理系统查看还是3690，但是宿主机通过 3692 提供svn服务 
-法2（通过提供的dockefile自己重构docker镜像） 
-修改所有文件中的3690端口为想要的端口如3692 
-之后通过 docker build . -t svnadmin:xxx-edit 即可得到标签为 svnadmin:xxx-edit 的自定义构建镜像 
-这样的做法好处为管理系统查看到的端口为3692，启动docker时候映射端口的写法也可为 3692:3692
-```
-
-### 15、配置了自定义仓库模板但是创建仓库时没有生效
+##### 5.11 配置了自定义仓库模板但是创建仓库时没有生效
 
 ```
 注意配置自定义仓库模板的位置 
@@ -382,7 +381,7 @@ docker版本因为处于容器中权限问题禁用了一些按钮的操作权�
 而不是在项目代码相关的位置
 ```
 
-### 16、数据长度超过8192 请向上调整参数：SOCKET_READ_LENGTH
+##### 5.12 数据长度超过8192 请向上调整参数：SOCKET_READ_LENGTH
 
 ```
 【出现问题原因】
@@ -395,20 +394,7 @@ svn的用户量和权限配置数量增加，超过了默认值
 2.1.0+
 ```
 
-### 17、登录时二维码总是提示输入错误
-
-```
-【出现问题原因】 
-首次登录数据信息默认使用sqlite数据库 
-由于部署问题或其它问题造成数据库文件 /home/svnadmin/svnadmin.db 没有权限 
-【解决方案】 
-为sqlite数据库文件和文件所在目录授权777 
-chmod 777 /home/svnadmin/svnadmin.db 
-chmod 777 -R /home/svnadmin 
-如果是容器部署，需要在容器中执行此操作而不是在宿主机执行
-```
-
-### 18、关于修改数据存储主目录后的升级
+##### 5.13 关于修改数据存储主目录后的升级
 
 ```
 修改过数据存储主目录的，升级新版本程序需要注意：
@@ -423,146 +409,20 @@ chmod 777 -R /home/svnadmin
 会在下个版本简化升级步骤并解决此问题
 ```
 
-## 四、功能介绍
+### 6. :heart: 捐赠感谢
 
-- 系统支持三种角色：管理员、子管理员、SVN用户
-
-<img src="00.static/01.demo/01.jpg" alt="" width="80%" height="80%" />
-
-- 首页系统概览
-
-<img src="00.static/01.demo/02.jpg" alt="" width="80%" height="80%" />
-
-- 仓库管理
-
-<img src="00.static/01.demo/03.jpg" alt="" width="80%" height="80%" />
-
-- 自定义仓库结构
-
-<img src="00.static/01.demo/04.jpg" alt="" width="80%" height="80%" />
-
-- 在线浏览仓库结构
-
-<img src="00.static/01.demo/05.jpg" alt="" width="80%" height="80%" />
-
-- 仓库备份
-
-<img src="00.static/01.demo/06.jpg" alt="" width="80%" height="80%" />
-
-- 在线授权
-
-<img src="00.static/01.demo/07.jpg" alt="" width="80%" height="80%" />
-
-- 授权对象列表
-
-<img src="00.static/01.demo/08.jpg" alt="" width="80%" height="80%" />
-
-- 权限反转
-
-<img src="00.static/01.demo/09.jpg" alt="" width="80%" height="80%" />
-
-- 仓库钩子
-
-<img src="00.static/01.demo/10.jpg" alt="" width="80%" height="80%" />
-
-- 仓库详细信息
-
-<img src="00.static/01.demo/11.jpg" alt="" width="80%" height="80%" />
-
-- 创建SVN用户
-
-<img src="00.static/01.demo/12.jpg" alt="" width="80%" height="80%" />
-
-- 查看SVN用户有权限仓库路径列表
-
-<img src="00.static/01.demo/13.jpg" alt="" width="80%" height="80%" />
-
-- 二次授权功能推荐
-
-<img src="00.static/01.demo/14.jpg" alt="" width="80%" height="80%" />
-
-- 二次授权授权对象
-
-<img src="00.static/01.demo/15.jpg" alt="" width="80%" height="80%" />
-
-- 分组成员编辑
-
-<img src="00.static/01.demo/16.jpg" alt="" width="80%" height="80%" />
-
-- 系统操作日志
-
-<img src="00.static/01.demo/17.jpg" alt="" width="80%" height="80%" />
-
-- 任务计划进行仓库备份、仓库检查、自定义shell操作
-
-<img src="00.static/01.demo/18.jpg" alt="" width="80%" height="80%" />
-
-- 任务计划日志
-
-<img src="00.static/01.demo/19.jpg" alt="" width="80%" height="80%" />
-
-- 个人中心修改密码
-
-<img src="00.static/01.demo/20.jpg" alt="" width="80%" height="80%" />
-
-- 子管理员
-
-<img src="00.static/01.demo/21.jpg" alt="" width="80%" height="80%" />
-
-- 子管理员支持权限树配置
-
-<img src="00.static/01.demo/22.jpg" alt="" width="80%" height="80%" />
-
-- 主机配置
-
-<img src="00.static/01.demo/23.jpg" alt="" width="80%" height="80%" />
-
-- 路径信息
-
-<img src="00.static/01.demo/24.jpg" alt="" width="80%" height="80%" />
-
-- 支持SVN协议检出，通知支持SVN协议配置SASL中的LDAP认证
-
-<img src="00.static/01.demo/25.jpg" alt="" width="80%" height="80%" />
-
-- 支持http协议检出，同时支持对接LDAP认证
-
-<img src="00.static/01.demo/26.jpg" alt="" width="80%" height="80%" />
-
-- 状态切换方便
-
-<img src="00.static/01.demo/27.jpg" alt="" width="80%" height="80%" />
-
-- 邮件服务配置
-
-<img src="00.static/01.demo/28.jpg" alt="" width="80%" height="80%" />
-
-- 消息推送
-
-<img src="00.static/01.demo/29.jpg" alt="" width="80%" height="80%" />
-
-- 安全配置-验证码
-
-<img src="00.static/01.demo/30.jpg" alt="" width="80%" height="80%" />
-
-- 检查更新
-
-<img src="00.static/01.demo/31.jpg" alt="" width="80%" height="80%" />
-
-
-## 五、最后
-
-### :heart: 捐赠感谢
-
-- 感谢各位使用者的鼓励，捐赠更多代表的是认可，作者会继续动力更新的！
+- 本人工作时间之余大部分的时间精力都投入在了 SVNAdmin2
+- 如果有可能，希望得到各位使用者的捐赠鼓励，捐赠更多代表的是认可，作者会继续动力更新的！
 
 | 捐赠者            | 渠道   | 时间       |
 | ----------------- | ------ | ---------- |
+| 22@穿裤衩的狐狸   | QQ     | 2021-08-19 |
 | qq@cat            | 微信   | 2022-10-10 |
 | qq@Listen_        | 微信   | 2022-11-16 |
-| qq@小吴飞刀丶mike | 微信   | 2011-11-16 |
+| qq@小吴飞刀丶mike | 微信   | 2022-11-16 |
 | gitee@tango_zhu   | Gitee  | 2022-11-18 |
 | qq@三多～(๑°3°๑)  | 支付宝 | 2022-11-28 |
+| wechat@Z*h        | 微信   | 2022-11-30 |
 
 <img src="00.static/wechat.png" alt="" width="40%" height="40%" />
 
