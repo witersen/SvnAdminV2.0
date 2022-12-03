@@ -219,13 +219,13 @@ chown -R apache:apache /home/svnadmin
   systemctl enable svnadmind
   ```
 
-##### 2、适用于：宝塔面板
+##### 4.2 适用于：宝塔面板
 
 - 安装方式跟手动部署类似，只是宝塔系统了很多可视化操作很方便
 
 - 参考视频：[SVNAdmin V2.2.1 系统部署与使用演示视频【针对宝塔面板】]( https://www.bilibili.com/video/BV1XR4y1H7p3?share_source=copy_web&vd_source=f4620db503611c42618f1afd9c8afecd) 
 
-##### 3、适用于：ubutntu18
+##### 4.3 适用于：ubutntu18
 
 - 步骤同1（注意需要以root用户执行 server/install.php 和 server/svnadmind.php ）
 - 在ubuntu中软件包名称多与CentOS系列不同，需要用户自行处理
@@ -273,6 +273,24 @@ su root
 
 nohup php server/svnadmind.php start &
 ```
+
+##### 4.4 适用于：旧用户升级
+
+- 2.4.x 之前的用户升级到2.4.x
+  - yum install -y unzip
+  - cd /var/www/html/server && php install.php
+  - yum install -y unzip cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain mod_dav_svn mod_ldap mod_php php-ldap cronie at
+  - httpd -k graceful （如果web服务器不是apache则不需要重启）
+  - chown -R apache:apache /home/svnadmin/（如果web服务器不是apache可看上方关于 own.php 使用说明）
+  - php svnadmind.php stop
+  - nohup svnadmind.php start & （如果你有自己的启动方式则使用自己的启动方式）
+- 2.4.x 之后的升级
+  - 执行 `php code/server/install.php`，没有升级包则需要手动升级
+  - 手动升级，直接重新下载安装包覆盖之前的代码即可
+  - 由于下载的新代码没有之前的配置信息，所重新修改自己的配置文件
+    - 数据库配置信息`web/config/database.php`
+    - 主目录配置信息 `web/config/svn.php`
+    - 二进制文件配置文件 `web/config/bin.php`
 
 ### 5. 常见问题解答
 
@@ -394,29 +412,14 @@ svn的用户量和权限配置数量增加，超过了默认值
 2.1.0+
 ```
 
-##### 5.13 关于修改数据存储主目录后的升级
-
-```
-修改过数据存储主目录的，升级新版本程序需要注意：
-升级后程序的配置还是默认的目录路径不是修改过的路径
-需要做以下修改
-1、停止后台程序 php server/svnadmind.php stop
-2、修改配置文件 config/svn.php 中的一处默认路径 /home/svnadmin/ 为自己配置的路径
-3、停止 svnserve 服务 systemctl stop svnserve 或者直接 kill pid
-4、修改 svnserve 的服务文件中的两处默认路径 /home/svnadmin/ 为自己配置的路径
-5、启动后台程序和启动 svnserve 服务
-
-会在下个版本简化升级步骤并解决此问题
-```
-
 ### 6. :heart: 捐赠感谢
 
-- 本人工作时间之余大部分的时间精力都投入在了 SVNAdmin2
+- 本人工作之余大部分的时间精力都投入在了 SVNAdmin2
 - 如果有可能，希望得到各位使用者的捐赠鼓励，捐赠更多代表的是认可，作者会继续动力更新的！
 
 | 捐赠者            | 渠道   | 时间       |
 | ----------------- | ------ | ---------- |
-| 22@穿裤衩的狐狸   | QQ     | 2021-08-19 |
+| qq@穿裤衩的狐狸   | QQ     | 2021-08-19 |
 | qq@cat            | 微信   | 2022-10-10 |
 | qq@Listen_        | 微信   | 2022-11-16 |
 | qq@小吴飞刀丶mike | 微信   | 2022-11-16 |
