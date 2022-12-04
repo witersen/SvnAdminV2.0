@@ -44,7 +44,9 @@ Subversion：1.8+
 
 此方式可快速部署程序体验效果，数据不存储在宿主机，生产环境慎用
 
-`docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.4.3`
+```
+docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.4.3
+```
 
 ##### 3.2 适用于：新用户正式使用
 
@@ -363,23 +365,7 @@ select * from admin_users;
 
 - 当下载1G以及以上的大文件会出现下载被中断的问题，是因为文件下载为了安全没有使用http文件直链，而是通过php校验后读取文件流下载，所以会存在一个php-fpm最大执行时间的问题，因此你可以通过 设置 php-fpm.conf 配置文件的 request_terminate_timeout 为0 来取消超时限制
 
-##### 5.9 容器重启后无法正常访问web服务（svn不受影响）
-
-```
-【原因】 
-重启容器后，容器内的 httpd 由于一些原因没有成功重启 
-1、构建的 docker 镜像是以 CentOS7.9.2009 为基础进行的 
-由于 CentOS7.9.2009 基础镜像的权限问题：https://github.com/docker-library/docs/tree/master/centos#dockerfile-for-systemd-base-image 
-导致如果启动容器时不增加 --privileged 参数 和不以 /usr/sbin/init 作为首先执行的指令，将会导致容器内一些程序无法正常启动 
-2、另外不排除重启后再次启动 httpd 时由于上次的 httpd.pid 文件依然造成的识别未 httpd 运行中的误判 
-【解决方案】 
-如果重启容器后 web 管理系统无法访问 
-只需要进入容器并执行下面的命令重新启动 httpd 服务即可 
-/usr/sbin/httpd 
-后面会考虑更换更方便的解决方案
-```
-
-##### 5.10 如果配置了多个仓库模板，如何在创建仓库时指定使用某个仓库模板？
+##### 5.9 如果配置了多个仓库模板，如何在创建仓库时指定使用某个仓库模板？
 
 ```
 例如： 
@@ -391,7 +377,7 @@ select * from admin_users;
 可以通过修改 config/svn.php 中的 templete_init_struct_01 值来修改
 ```
 
-##### 5.11 配置了自定义仓库模板但是创建仓库时没有生效
+##### 5.10 配置了自定义仓库模板但是创建仓库时没有生效
 
 ```
 注意配置自定义仓库模板的位置 
@@ -399,7 +385,7 @@ select * from admin_users;
 而不是在项目代码相关的位置
 ```
 
-##### 5.12 数据长度超过8192 请向上调整参数：SOCKET_READ_LENGTH
+##### 5.11 数据长度超过8192 请向上调整参数：SOCKET_READ_LENGTH
 
 ```
 【出现问题原因】
