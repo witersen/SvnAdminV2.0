@@ -438,7 +438,7 @@ class Base
                                     'checked' => false,
                                     'disabled' => true,
                                     'necessary_functions' => [
-                                        'Svnrep/GetRepHooks'
+                                        'Svnrep/GetRepDetail'
                                     ],
                                     'children' => []
                                 ],
