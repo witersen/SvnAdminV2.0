@@ -108,7 +108,7 @@ class Svnrep extends Base
 
         //创建空仓库
         //解决创建中文仓库乱码问题
-        $cmd = sprintf("export LC_CTYPE=en_US.UTF-8 &&  '%s' create " . $repPath, $this->configBin['svnadmin']);
+        $cmd = sprintf("'%s' create " . $repPath, $this->configBin['svnadmin']);
         funShellExec($cmd);
 
         //关闭selinux
