@@ -62,6 +62,7 @@ docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.4.3 /usr/s
 cd /home/
 docker cp svnadmintemp:/home/svnadmin ./
 docker cp svnadmintemp:/etc/httpd/conf.d ./svnadmin/
+docker cp svnadmintemp:/etc/sasl2 ./svnadmin/
 ```
 
 - 删除掉临时容器
@@ -76,6 +77,7 @@ docker stop svnadmintemp && docker rm svnadmintemp
 docker run -d -p 80:80 -p 3690:3690 \
 -v /home/svnadmin/:/home/svnadmin/ \
 -v /home/svnadmin/conf.d/:/etc/httpd/conf.d/ \
+-v /home/svnadmin/sasl2/:/etc/sasl2/ \
 --privileged \
 --name svnadmin \
 witersencom/svnadmin:2.4.3
