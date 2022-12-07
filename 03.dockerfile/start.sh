@@ -12,8 +12,9 @@ source /etc/profile
 
 /usr/bin/php /var/www/html/server/svnadmind.php start &
 
-/usr/sbin/httpd
-rm -f /run/httpd/httpd.pid
+rm -rf /run/httpd
+mkdir -p /run/httpd
+chown -R apache:apache /run/httpd
 /usr/sbin/httpd
 
 while [[ true ]]; do
