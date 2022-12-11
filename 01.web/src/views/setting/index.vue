@@ -1,7 +1,7 @@
 <template>
   <div>
     <Card :bordered="false" :dis-hover="true">
-      <Tabs v-model="currentAdvanceTab" @on-click="SetCurrentAdvanceTab">
+      <Tabs v-model="curTabSettingAdvance" @on-click="SetCurrentAdvanceTab">
         <TabPane label="主机配置" name="1">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert>该信息主要用于仓库检出地址的拼接</Alert>
@@ -1573,7 +1573,7 @@ export default {
       /**
        * tab
        */
-      currentAdvanceTab: "1",
+      curTabSettingAdvance: "1",
 
       /**
        * 版本信息
@@ -1793,10 +1793,10 @@ export default {
   computed: {},
   created() {},
   mounted() {
-    if (!sessionStorage.currentAdvanceTab) {
-      sessionStorage.setItem("currentAdvanceTab", "1");
+    if (!sessionStorage.curTabSettingAdvance) {
+      sessionStorage.setItem("curTabSettingAdvance", "1");
     } else {
-      this.currentAdvanceTab = sessionStorage.currentAdvanceTab;
+      this.curTabSettingAdvance = sessionStorage.curTabSettingAdvance;
     }
     this.GetDcokerHostInfo();
     this.GetSvnInfo();
@@ -1811,8 +1811,8 @@ export default {
      * 设置选中的标签
      */
     SetCurrentAdvanceTab(name) {
-      sessionStorage.setItem("currentAdvanceTab", name);
-      this.currentAdvanceTab = name;
+      sessionStorage.setItem("curTabSettingAdvance", name);
+      this.curTabSettingAdvance = name;
     },
     /**
      * 获取 svnserve 的详细信息

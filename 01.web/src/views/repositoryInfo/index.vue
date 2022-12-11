@@ -119,11 +119,6 @@
             >浏览</Button
           >
         </template>
-        <template slot-scope="{ row }" slot="repBackup">
-          <Button type="info" size="small" @click="ModalRepDump(row.rep_name)"
-            >管理</Button
-          >
-        </template>
         <template slot-scope="{ row }" slot="repPri">
           <Button type="info" size="small" @click="ModalRepPri(row.rep_name)"
             >配置</Button
@@ -326,11 +321,7 @@
       </div>
     </Modal>
     <!-- 对话框-备份仓库 -->
-    <Modal
-      v-model="modalRepDump"
-      :draggable="true"
-      :title="titleModalRepBackup"
-    >
+    <Modal :draggable="true" fullscreen>
       <Row style="margin-bottom: 15px">
         <Col span="18">
           <Button
@@ -362,9 +353,6 @@
           >
         </template>
       </Table>
-      <div slot="footer">
-        <Button type="primary" ghost @click="modalRepDump = false">取消</Button>
-      </div>
     </Modal>
     <!-- 对话框-仓库钩子 -->
     <Modal
@@ -675,20 +663,16 @@
       </div>
     </Modal>
     <!-- 对话框-高级 -->
-    <Modal
-      v-model="modalRepAdvance"
-      :draggable="true"
-      :title="titleModalRepAdvance"
-    >
-      <Tabs type="card">
-        <TabPane label="属性">
+    <Modal v-model="modalRepAdvance" :title="titleModalRepAdvance" fullscreen>
+      <Tabs type="card" v-model="curTabRepAdvance" @on-click="ClickTabAdvance">
+        <TabPane label="仓库属性" name="attribute">
           <Table
             :show-header="false"
             :columns="tableColumnRepDetail"
             :data="tableDataRepDetail"
             :loading="loadingRepDetail"
             size="small"
-            height="350"
+            height="450"
           >
             <template slot-scope="{ index }" slot="copy">
               <Button
@@ -708,103 +692,75 @@
             </template>
           </Table>
         </TabPane>
-        <TabPane label="恢复">
-          <Alert>可以将通过svnadmin dump方式生成的备份文件导入到当前仓库</Alert>
-          <Form :model="formRepImport" :label-width="100">
-            <FormItem label="备份文件位置">
-              <RadioGroup
-                vertical
-                @on-change="ChangeRadioUploadType"
-                v-model="formUploadBackup.selectType"
-              >
-                <Radio label="1">
-                  <span>从本地上传</span>
-                </Radio>
-                <Alert type="warning" show-icon
-                  >1、大文件建议通过FTP等方式上传<br />
-                  2、PHP上传限制参数如下：<br /><br />
-                  file_uploads：{{
-                    uploadLimit.file_uploads == true ? "开启" : "关闭"
-                  }}<br />
-                  upload_max_filesize：{{ uploadLimit.upload_max_filesize
-                  }}<br />
-                  post_max_size：{{ uploadLimit.post_max_size }}<br /><br />
-                  3、还要注意web服务器的限制<br /><br />
-                  如Nginx需考虑 client_max_body_size 等参数
-                </Alert>
-                <Radio label="2">
-                  <span>从服务器选择</span>
-                </Radio>
-              </RadioGroup>
-            </FormItem>
-            <FormItem v-if="formUploadBackup.selectType == '1'">
-              <Upload
-                multiple
-                :on-success="UploadSuccess"
-                :before-upload="BeforeUpload"
-                action="/api.php?c=Svnrep&a=UploadBackup&t=web"
-                name="file"
-                :headers="{ token: token }"
+        <TabPane label="仓库备份/恢复" name="backup">
+          <Alert type="error" show-icon v-if="!uploadOn"
+            >当前环境PHP未开启文件上传功能
+          </Alert>
+          <Row style="margin-bottom: 15px">
+            <Col
+              type="flex"
+              justify="space-between"
+              :xs="21"
+              :sm="20"
+              :md="19"
+              :lg="18"
+            >
+              <Tooltip
+                max-width="250"
+                content="svnadmin dump方式"
+                placement="bottom"
+                :transfer="true"
               >
                 <Button
-                  icon="ios-cloud-upload-outline"
-                  :loading="loadingUploadBackup"
-                  >上传文件</Button
+                  type="primary"
+                  ghost
+                  @click="SvnadminDump"
+                  :loading="loadingRepDump"
+                  >立即备份仓库</Button
                 >
-              </Upload>
-            </FormItem>
-            <FormItem
-              label="备份文件夹"
-              v-if="formUploadBackup.selectType == '2'"
-            >
-              <Table
-                height="200"
-                border
-                highlight-row
-                :loading="loadingRepBackupList"
-                :columns="tableColumnBackup1"
-                :data="tableDataBackup"
+              </Tooltip>
+              <Button type="primary" ghost @click="ModalUploadBackup"
+                >上传备份文件</Button
+              >
+            </Col>
+          </Row>
+          <Table
+            height="450"
+            border
+            :columns="tableColumnBackup2"
+            :data="tableDataBackup"
+            size="small"
+            :loading="loadingRepBackupList"
+          >
+            <template slot-scope="{ row }" slot="action">
+              <Button
+                type="success"
                 size="small"
-                @on-row-click="ClickRowUploadBackup"
-              ></Table>
-            </FormItem>
-            <FormItem label="已选择" v-if="formUploadBackup.selectType == '2'">
-              <Input readonly v-model="formUploadBackup.fileName"></Input>
-            </FormItem>
-            <FormItem
-              label="执行结果"
-              v-if="formUploadBackup.selectType == '2'"
-            >
-              <Input
-                readonly
-                type="textarea"
-                :rows="4"
-                placeholder="如果导入失败 错误信息会显示在此处"
-                v-model="formUploadBackup.errorInfo"
-              ></Input>
-            </FormItem>
-            <FormItem v-if="formUploadBackup.selectType == '2'">
-              <Alert type="warning" show-icon
-                >不了解svnadmin
-                dump指令的用户建议将备份文件只导入到空仓库而不是已经包含修订版本的非空仓库</Alert
+                :loading="loadingLoadBackup"
+                @click="SvnadminLoad(row.fileName)"
+                >恢复</Button
               >
               <Button
-                type="primary"
-                :loading="loadingImportBackup"
-                @click="SvnadminLoad"
-                ghost
-                >导入</Button
+                type="success"
+                size="small"
+                @click="DownloadRepBackup(row.fileUrl)"
+                >下载</Button
               >
-            </FormItem>
-          </Form>
+              <Button
+                type="error"
+                size="small"
+                @click="DelRepBackup(row.fileName)"
+                >删除</Button
+              >
+            </template>
+          </Table>
         </TabPane>
         <!-- <TabPane label="从仓库导出权限">
           <Alert
             >即：将本仓库原有配置的权限导入到本系统<br /><br />
             由于本系统采用多仓库对应一个配置文件的形式，而不是传统的一个仓库对应一个配置文件的形式<br /><br />
             因此您将之前的仓库通过本系统管理后，原有仓库的人员和分组权限信息不再生效，但是他们依然存在于配置文件中<br /><br />
-            因此您可通过识别功能将原来的人员和分组信息识别并导入到本系统以使原仓库的角色配置信息依然生效<br /><br />
-            此处只支持识别 authz 和 未加密的 passwd 文件
+            因此您可通过识别功能将原来的分组信息和路径权限配置识别并导入到本系统以使原仓库的配置信息依然生效<br /><br />
           </Alert>
         </TabPane> -->
         <!-- <TabPane label="向仓库导入权限">
@@ -812,7 +768,6 @@
             即：将本系统配置的角色和分组信息单独写入到本仓库中<br /><br />
             由于本系统采用多仓库对应一个配置文件的形式，而不是传统的一个仓库对应一个配置文件的形式<br /><br />
             因此本操作适合于您不再使用本系统管理仓库并想回归一个仓库对应一个配置文件的形式
-            此处支持将内容写入到 authz 和 passwd 文件
           </Alert>
         </TabPane> -->
       </Tabs>
@@ -881,6 +836,48 @@
         >
       </div>
     </Modal>
+    <!-- 对话框-仓库导入错误 -->
+    <Modal v-model="modalRepLoad" :draggable="true" title="仓库导入错误">
+      <Input
+        v-model="tempRepLoadError"
+        readonly
+        :rows="15"
+        show-word-limit
+        type="textarea"
+      />
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalRepLoad = false">取消</Button>
+      </div>
+    </Modal>
+    <!-- 对话框-备份文件上传 -->
+    <Modal v-model="modalRepUpload" :draggable="true" title="仓库备份文件上传">
+      <Form :label-width="80">
+        <FormItem label="上传文件">
+          <Button
+            type="primary"
+            icon="ios-cloud-upload-outline"
+            ghost
+            @click="ClickRepUpload"
+            >选择文件</Button
+          >
+          <input type="file" id="myfile" name="myfile" style="display: none" />
+        </FormItem>
+        <FormItem label="上传进度">
+          <Progress
+            :percent="repUploadPercent"
+            :stroke-width="20"
+            status="active"
+          />
+        </FormItem>
+        <FormItem label="上传体积"> {{ repUploadSize }} </FormItem>
+        <FormItem label="剩余时间"> {{ repUploadTime }} </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalRepUpload = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
     <!-- 对话框-仓库权限配置 -->
     <ModalRepPri
       :propCurrentRepName="currentRepName"
@@ -918,12 +915,14 @@ export default {
       modalCreateRep: false,
       //浏览仓库
       modalViewRep: false,
-      //仓库备份
-      modalRepDump: false,
       //仓库钩子配置
       modalRepHooks: false,
       //高级
       modalRepAdvance: false,
+      //仓库导入错误
+      modalRepLoad: false,
+      //仓库备份上传
+      modalRepUpload: false,
       //编辑仓库信息
       modalEditRepName: false,
       //编辑仓库钩子内容
@@ -997,7 +996,7 @@ export default {
       //上传备份文件
       loadingUploadBackup: false,
       //导入备份文件
-      loadingImportBackup: false,
+      loadingLoadBackup: false,
       //修改仓库名称
       loadingEditRepName: false,
       //获取仓库钩子信息
@@ -1016,6 +1015,20 @@ export default {
       currentRepPath: "",
       //选中的id
       svnn_user_pri_path_id: -1,
+      //仓库导入错误信息
+      tempRepLoadError: "",
+      //高级选项tab
+      curTabRepAdvance: "attribute",
+      //文件上传进度
+      repUploadCurrent: 0,
+      repUploadTotal: 0,
+      repUploadPercent: 0,
+      //文件体积
+      repUploadSize: "",
+      //预估时间
+      repUploadTime: "",
+      //是否停止上传
+      stopUplaod: false,
 
       //检出路径
       tempCheckout: "",
@@ -1050,8 +1063,6 @@ export default {
        */
       //浏览仓库内容
       titleModalViewRep: "",
-      //仓库备份
-      titleModalRepBackup: "",
       //仓库钩子
       titleModalRepHooks: "",
       //编辑仓库名称
@@ -1067,7 +1078,7 @@ export default {
        * 表单
        */
       //上传限制
-      uploadLimit: {
+      uploadOn: {
         file_uploads: true,
         upload_max_filesize: 0,
         post_max_size: 0,
@@ -1083,8 +1094,6 @@ export default {
         old_rep_name: "",
         new_rep_name: "",
       },
-      //导入仓库
-      formRepImport: {},
       //钩子结构
       formRepHooks: {
         start_commit: { fileName: "", hasFile: false, con: "", tmpl: "" },
@@ -1111,12 +1120,6 @@ export default {
       checkInfo: {
         protocal: "",
         prefix: "",
-      },
-      //上传状态
-      formUploadBackup: {
-        selectType: "1",
-        fileName: "",
-        errorInfo: "",
       },
 
       /**
@@ -1165,11 +1168,6 @@ export default {
         {
           title: "仓库内容",
           slot: "repScan",
-          minWidth: 120,
-        },
-        {
-          title: "仓库备份",
-          slot: "repBackup",
           minWidth: 120,
         },
         {
@@ -1270,24 +1268,6 @@ export default {
       ],
       tableDataRepCon: [],
       //备份文件夹
-      //导入仓库文件浏览用
-      tableColumnBackup1: [
-        {
-          title: "文件名",
-          key: "fileName",
-          tooltip: true,
-        },
-        {
-          title: "文件大小",
-          key: "fileSize",
-          tooltip: true,
-        },
-        {
-          title: "修改时间",
-          key: "fileEditTime",
-          tooltip: true,
-        },
-      ],
       //仓库备份管理用
       tableColumnBackup2: [
         {
@@ -1308,7 +1288,7 @@ export default {
         {
           title: "其它",
           slot: "action",
-          width: 130,
+          // width: 130,
         },
       ],
       tableDataBackup: [],
@@ -1375,6 +1355,13 @@ export default {
     this.GetSvnserveStatus();
     if (this.user_role_id == 1 || this.user_role_id == 3) {
       this.GetRepList();
+
+      //高级选项
+      if (!sessionStorage.curTabRepAdvance) {
+        sessionStorage.setItem("curTabRepAdvance", "attribute");
+      } else {
+        this.curTabRepAdvance = sessionStorage.curTabRepAdvance;
+      }
     } else if (this.user_role_id == 2) {
       this.GetSvnUserRepList();
     }
@@ -1391,6 +1378,35 @@ export default {
      */
     ChangeCurrentRepPath(value) {
       this.currentRepPath = value;
+    },
+
+    FormatTime(seconds) {
+      // 转换为时分秒
+      let h = parseInt((seconds / 60 / 60) % 24);
+      h = h < 10 ? "0" + h : h;
+      let m = parseInt((seconds / 60) % 60);
+      m = m < 10 ? "0" + m : m;
+      let s = parseInt(seconds % 60);
+      s = s < 10 ? "0" + s : s;
+      // 作为返回值返回
+      return [h, m, s];
+    },
+
+    //高级选项切换
+    ClickTabAdvance(name) {
+      sessionStorage.setItem("curTabRepAdvance", name);
+
+      switch (name) {
+        case "attribute":
+          this.GetRepDetail();
+          break;
+        case "backup":
+          this.IsUploadOn();
+          this.GetBackupList();
+          break;
+        default:
+          break;
+      }
     },
 
     /**
@@ -1827,20 +1843,6 @@ export default {
         }
       );
     },
-
-    /**
-     * 备份仓库
-     */
-    ModalRepDump(rep_name) {
-      //设置标题
-      this.titleModalRepBackup = "仓库备份 - " + rep_name;
-      //显示对话框
-      this.modalRepDump = true;
-      //设置当前选中的仓库名
-      this.currentRepName = rep_name;
-      //请求数据
-      this.GetBackupList();
-    },
     /**
      * 获取备份文件夹下的文件列表
      */
@@ -1889,6 +1891,105 @@ export default {
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
+    },
+    //点击按钮 触发隐藏 input 的 click 事件
+    ClickRepUpload() {
+      let myfile = document.getElementById("myfile");
+      myfile.click();
+    },
+    //文件上传
+    ModalUploadBackup() {
+      var that = this;
+
+      let myfile = document.getElementById("myfile");
+
+      //重置进度条
+      that.repUploadPercent = 0;
+      //展示对话框
+      that.modalRepUpload = true;
+
+      //定义事件
+      myfile.onchange = async function () {
+        // 这里可以得到上传的文件对象
+        let file = myfile.files[0];
+        // 这里是每一个分片的大小
+        let length = 1024 * 1024 * 1;
+        // 使用进一法，来确定分片的个数
+        let numBlobTotal = Math.ceil(file.size / length);
+        that.repUploadTotal = numBlobTotal;
+        that.repUploadSize = (file.size / (1024 * 1024)).toFixed(1) + " MB";
+        // 分片的初始位置
+        let start = 0;
+        // 分片的结束位置
+        let end = length;
+        for (let i = 1; i <= numBlobTotal; i++) {
+          if (that.stopUplaod) {
+            break;
+          }
+          that.repUploadCurrent = i;
+          // 得到一个分片
+          let blob = file.slice(start, end);
+          // 调整下一个分片的起始位置
+          start = end;
+          // 调整下一个分片的结束位置
+          end = start + length;
+          if (end > file.size) {
+            // 这里对最后的一个分片结束位置进行调整
+            end = file.size;
+          }
+          //FormData对象
+          let formdata = new FormData();
+          formdata.append("file", blob);
+          formdata.append("filename", file.name);
+          formdata.append("numBlobTotal", numBlobTotal);
+          formdata.append("numBlobCurrent", i);
+          await that
+            .UploadBackup(formdata)
+            .then(function (response) {
+              var result = response.data;
+              if (result.status == 1) {
+                //进度条百分比
+                that.repUploadPercent = Math.trunc(
+                  (that.repUploadCurrent / that.repUploadTotal) * 100
+                );
+                //剩余时间
+                var formateTime = that.FormatTime(
+                  that.repUploadTotal - that.repUploadCurrent
+                );
+                that.repUploadTime = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+                //完成提示
+                if (result.data.complete) {
+                  that.$Message.success(result.message);
+                }
+              } else {
+                that.stopUplaod = true;
+                that.$Message.error({ content: result.message, duration: 2 });
+              }
+            })
+            .catch(function (error) {
+              that.stopUplaod = true;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        }
+      };
+    },
+    //文件上传
+    UploadBackup(data) {
+      var that = this;
+      var config = {
+        headers: { "Content-Type": "multipart/form-data" },
+      };
+      return new Promise(function (resolve, reject) {
+        that.$axios
+          .post("/api.php?c=Svnrep&a=UploadBackup&t=web", data, config)
+          .then(function (response) {
+            resolve(response);
+          })
+          .catch(function (error) {
+            reject(error);
+          });
+      });
     },
     /**
      * 下载备份文件
@@ -2115,16 +2216,9 @@ export default {
       this.currentRepName = rep_name;
       //设置标题
       this.titleModalRepAdvance = "高级 - " + rep_name;
-      //重置
-      this.formUploadBackup.selectType = "1";
-      this.formUploadBackup.fileName = "";
-      this.formUploadBackup.errorInfo = "";
       //显示对话框
       this.modalRepAdvance = true;
-      //请求数据
-      this.GetRepDetail();
-      //获取上传限制
-      this.GetUploadSize();
+      this.ClickTabAdvance(sessionStorage.curTabRepAdvance);
     },
     /**
      * 获取仓库的属性内容（key-vlaue的形式）
@@ -2205,28 +2299,16 @@ export default {
           that.$Message.error("出错了 请联系管理员！");
         });
     },
-    /**
-     * 单选按钮 选择导入
-     */
-    ChangeRadioUploadType(value) {
-      this.formUploadBackup.selectType = value;
-      if (value == "1") {
-        //获取php上传限制信息
-        this.GetUploadSize();
-      } else if (value == "2") {
-        this.GetBackupList();
-      }
-    },
-    //获取上传限制
-    GetUploadSize() {
+    //获取php文件上传开启状态
+    IsUploadOn() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Svnrep&a=GetUploadLimit&t=web", data)
+        .post("/api.php?c=Svnrep&a=IsUploadOn&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            that.uploadLimit = result.data;
+            that.uploadOn = result.data;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -2250,40 +2332,30 @@ export default {
       } else {
         this.$Message.error({ content: result.message, duration: 2 });
       }
+      this.GetBackupList();
     },
-    /**
-     * 选中文件进行导入
-     */
-    ClickRowUploadBackup(currentRow, oldCurrentRow) {
-      //当前选中的文件
-      this.formUploadBackup.fileName = currentRow.fileName;
-    },
-    SvnadminLoad() {
+    SvnadminLoad(fileName) {
       var that = this;
-      if (that.formUploadBackup.fileName == "") {
-        that.$Message.error("请先选择文件");
-        return;
-      }
-      that.loadingImportBackup = true;
+      that.loadingLoadBackup = true;
       var data = {
         rep_name: that.currentRepName,
-        fileName: that.formUploadBackup.fileName,
+        fileName: fileName,
       };
       that.$axios
         .post("/api.php?c=Svnrep&a=SvnadminLoad&t=web", data)
         .then(function (response) {
-          that.loadingImportBackup = false;
+          that.loadingLoadBackup = false;
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
-            that.formUploadBackup.errorInfo = result.data;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
-            that.formUploadBackup.errorInfo = result.data;
+            that.modalRepLoad = true;
+            that.tempRepLoadError = result.data;
           }
         })
         .catch(function (error) {
-          that.loadingImportBackup = false;
+          that.loadingLoadBackup = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -2488,4 +2560,7 @@ export default {
     color: #515a6e;
   }
 }
+</style>
+
+<style>
 </style>

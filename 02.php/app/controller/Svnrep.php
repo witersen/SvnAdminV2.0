@@ -259,11 +259,11 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取上传限制
+     * 获取php文件上传开启状态
      */
-    public function GetUploadLimit()
+    public function IsUploadOn()
     {
-        $result = $this->ServiceSvnrep->GetUploadLimit();
+        $result = $this->ServiceSvnrep->IsUploadOn();
         json2($result);
     }
 

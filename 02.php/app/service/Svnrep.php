@@ -11,6 +11,7 @@ namespace app\service;
 
 use app\service\Svn as ServiceSvn;
 use app\service\Logs as ServiceLogs;
+use Witersen\Upload;
 
 class Svnrep extends Base
 {
@@ -1849,27 +1850,18 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取上传限制
+     * 获取php文件上传开启状态
      */
-    public function GetUploadLimit()
+    public function IsUploadOn()
     {
-        $file_uploads = ini_get('file_uploads');
-        if ($file_uploads == 0 || $file_uploads == false || strtolower($file_uploads) == 'off') {
-            $file_uploads = false;
+        $status = ini_get('file_uploads');
+        if ($status == 0 || $status == false || strtolower($status) == 'off') {
+            $status = false;
         } else {
-            $file_uploads = true;
+            $status = true;
         }
 
-        // $webServer = strtolower($_SERVER['SERVER_SOFTWARE']);
-        // if (strpos($webServer, 'nginx')) {
-        //     $client_max_body_size = '';
-        // }
-
-        return message(200, 1, '成功', [
-            'file_uploads' => $file_uploads,
-            'upload_max_filesize' => ini_get('upload_max_filesize'),
-            'post_max_size' => ini_get('post_max_size'),
-        ]);
+        return message(200, 1, '成功', $status);
     }
 
     /**
@@ -1877,27 +1869,52 @@ class Svnrep extends Base
      */
     public function UploadBackup()
     {
+        //检查表单
+        $checkResult = funCheckForm($_POST, [
+            'filename' => ['type' => 'string', 'notNull' => true],
+            // 'numBlobTotal' => ['type' => 'integer', 'notNull' => true],
+            // 'numBlobCurrent' => ['type' => 'integer', 'notNull' => true]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
         $file_uploads = ini_get('file_uploads');
         if ($file_uploads == 0 || $file_uploads == false || strtolower($file_uploads) == 'off') {
             return message(200, 0, '文件上传功能关闭');
         }
 
         if (array_key_exists('file', $_FILES)) {
-            //扩展名
+            $file = $_FILES['file'];
+            if ($file["error"] > 0) {
+                return message(200, 0, $file["error"]);
+            }
+
+            $nameDirTempSave = $this->configSvn['home_path'] . '/temp/';
+            if (!is_dir($nameDirTempSave)) {
+                mkdir($nameDirTempSave);
+                if (!is_dir($nameDirTempSave)) {
+                    return message(200, 0, sprintf('目录[%s]不存在且无法创建', $nameDirTempSave));
+                }
+            }
+            if (!is_writable($nameDirTempSave)) {
+                return message(200, 0, sprintf('目录[%s]无法写入', $nameDirTempSave));
+            }
+
+            //限制拓展名 todo
             $fileType =  substr(strrchr($_FILES['file']['name'], '.'), 1);
 
-            //文件名
-            $fileName = $_FILES['file']['name'];
+            $nameDirSave = $this->configSvn['backup_base_path'];
+            $nameFileSave = $_POST['filename'];
+            $nameFileCurrent = $_FILES['file']['tmp_name'];
+            $numBlobCurrent = (int)$_POST['numBlobCurrent'];
+            $numBlobTotal = (int)$_POST['numBlobTotal'];
 
-            //备份文件夹
-            $localFilePath = $this->configSvn['backup_base_path'] .  $fileName;
+            $upload = new Upload($nameDirTempSave, $nameDirSave, $nameFileSave, $nameFileCurrent, $numBlobCurrent, $numBlobTotal);
 
-            //保存
-            $cmd = sprintf("mv '%s' '%s'", $_FILES['file']['tmp_name'], $localFilePath);
-            funShellExec($cmd);
-            // move_uploaded_file($_FILES['file']['tmp_name'], $localFilePath);
+            $result = $upload->message();
 
-            return message();
+            return message(200, $result['status'], $result['message'], $result['data']);
         } else {
             return message(200, 0, '参数不完整');
         }

@@ -33,6 +33,8 @@ auto_require(BASE_PATH . '/extension/Verifycode/Verifycode.php');
 
 auto_require(BASE_PATH . '/extension/Witersen/SVNAdmin.php');
 
+auto_require(BASE_PATH . '/extension/Witersen/File/Upload.php');
+
 function auto_require($path, $recursively = false)
 {
     if (is_file($path)) {
@@ -60,6 +62,7 @@ use Check;
 use Config;
 use Medoo\Medoo;
 use Witersen\SVNAdmin;
+use Witersen\Upload;
 
 class Base
 {
@@ -452,12 +455,12 @@ class Base
                                     ],
                                     'children' => [
                                         [
-                                            'title' => '获取当前上传限制',
+                                            'title' => '获取php文件上传开启状态',
                                             'expand' => false,
                                             'checked' => false,
                                             'disabled' => true,
                                             'necessary_functions' => [
-                                                'Svnrep/GetUploadLimit'
+                                                'Svnrep/IsUploadOn'
                                             ],
                                             'children' => []
                                         ],
