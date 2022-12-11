@@ -173,9 +173,17 @@
     </Modal>
     <!-- 对话框-子管理员权限配置 -->
     <Modal v-model="modalPriTree" title="子管理员权限配置">
-      <Form :model="formCreateSubadmin" :label-width="80">
+      <Alert type="error" v-if="needUpdateTree"
+        >由于版本升级-权限节点调整-请参考旧权限树-重新为子管理员授权</Alert
+      >
+      <Form :model="formCreateSubadmin" :label-width="110">
+        <FormItem label="旧权限树" v-if="needUpdateTree">
+          <Scroll>
+            <Tree :data="dataPriTreeOld" show-checkbox></Tree>
+            <Spin size="large" fix v-if="loadingPriTree"></Spin>
+          </Scroll>
+        </FormItem>
         <FormItem label="权限树">
-          <!-- <Scroll :height="550"> -->
           <Scroll>
             <Tree :data="dataPriTree" show-checkbox></Tree>
             <Spin size="large" fix v-if="loadingPriTree"></Spin>
@@ -241,6 +249,8 @@ export default {
       tempPasswdContent: "",
       //当前选中子管理员id
       currentSubadminId: -1,
+      //当前子管理员是否需要重设权限树
+      needUpdateTree: false,
 
       /**
        * 对话框
@@ -331,6 +341,7 @@ export default {
       tableDataSubadmin: [],
       //子管理员权限信息
       dataPriTree: [],
+      dataPriTreeOld: [],
     };
   },
   computed: {},
@@ -668,7 +679,9 @@ export default {
           that.loadingPriTree = false;
           var result = response.data;
           if (result.status == 1) {
-            that.dataPriTree = result.data;
+            that.dataPriTree = result.data.tree;
+            that.dataPriTreeOld = result.data.treeOld;
+            that.needUpdateTree = result.data.needUpdateTree;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }

@@ -295,22 +295,98 @@ class Subadmin extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
-        $subadminTree = $this->database->get('subadmin', 'subadmin_tree', [
+        $tree = $this->database->get('subadmin', 'subadmin_tree', [
             'subadmin_id' => $this->payload['subadmin_id']
         ]);
+        $tree = json_decode($tree, true);
 
-        $subadminTree = json_decode($subadminTree, true);
-
-        if (empty($subadminTree)) {
-            $subadminTree = $this->subadminTree;
+        if (empty($tree)) {
             $this->database->update('subadmin', [
                 'subadmin_tree' => json_encode($this->subadminTree)
             ], [
                 'subadmin_id' => $this->payload['subadmin_id']
             ]);
+
+            return message(200, 1, '成功', [
+                'tree' => $this->subadminTree,
+                'treeOld' => [],
+                'needUpdateTree' => false
+            ]);
         }
 
-        return message(200, 1, '成功', $subadminTree);
+        $needUpdateTree = $this->SubadminTreeFormat($this->subadminTree) != $this->SubadminTreeFormat($tree);
+
+        $treeOld = [];
+        if ($needUpdateTree) {
+            $treeOld = $this->SubadminTreeDisable($tree);
+            $tree = $this->subadminTree;
+        }
+
+        return message(200, 1, '成功', [
+            'tree' => $tree,
+            'treeOld' => $treeOld,
+            'needUpdateTree' => $needUpdateTree
+        ]);
+    }
+
+    /**
+     * 统一权限树
+     *
+     * @param array $tree
+     * @return array
+     */
+    private function SubadminTreeFormat($tree)
+    {
+        if (empty($tree)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($tree as $node) {
+            $temp = [];
+            $temp['title'] = $node['title'];
+            $temp['expand'] = true;
+            $temp['checked'] = true;
+            $temp['disabled'] = true;
+            if (isset($node['router_name'])) {
+                $temp['router_name'] = $node['router_name'];
+            }
+            $temp['necessary_functions'] = $node['necessary_functions'];
+            $temp['children'] = $this->SubadminTreeFormat($node['children']);
+            $result[] = $temp;
+        }
+
+        return $result;
+    }
+
+    /**
+     * 统一禁用权限树
+     *
+     * @param array $tree
+     * @return array
+     */
+    private function SubadminTreeDisable($tree)
+    {
+        if (empty($tree)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($tree as $node) {
+            $temp = [];
+            $temp['title'] = $node['title'];
+            $temp['expand'] = $node['expand'];
+            $temp['checked'] = $node['checked'];
+            $temp['disabled'] = true;
+            if (isset($node['router_name'])) {
+                $temp['router_name'] = $node['router_name'];
+            }
+            $temp['necessary_functions'] = $node['necessary_functions'];
+            $temp['children'] = $this->SubadminTreeDisable($node['children']);
+            $result[] = $temp;
+        }
+
+        return $result;
     }
 
     /**
