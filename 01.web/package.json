@@ -19,6 +19,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-polyfill": "^6.26.0",
     "file-saver": "^2.0.5",
+    "spark-md5": "^3.0.2",
     "view-design": "^4.7.0",
     "vue": "^2.5.16",
     "vue-clipboard2": "^0.3.3",

@@ -455,12 +455,12 @@ class Base
                                     ],
                                     'children' => [
                                         [
-                                            'title' => '获取php文件上传开启状态',
+                                            'title' => '获取php文件上传相关参数',
                                             'expand' => false,
                                             'checked' => false,
                                             'disabled' => true,
                                             'necessary_functions' => [
-                                                'Svnrep/IsUploadOn'
+                                                'Svnrep/GetUploadInfo'
                                             ],
                                             'children' => []
                                         ],

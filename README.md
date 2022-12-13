@@ -163,6 +163,7 @@ unzip v2.4.3.zip
 
 ```
 cd /var/www/html/server/
+chown -R apache:apache /var/www/html/
 #选项1
 php install.php
 ```
@@ -200,7 +201,7 @@ chown -R apache:apache /home/svnadmin
 
 - 通过系统管理启动后台进程（启动方式二）
 
-  - 新建系统服务文件 svnserve.service（centos一般为 /usr/lib/systemd/system/svnserve.service、ubuntu 一般为 /lib/systemd/system/svnserve.service）
+  - 新建系统服务文件 svnserve.service（centos一般为 /usr/lib/systemd/system/svnadmind.service、ubuntu 一般为 /lib/systemd/system/svnadmind.service）
     - 写入以下内容（注意根据自己的代码部署路径调整）
 
   ```
@@ -421,6 +422,9 @@ svn的用户量和权限配置数量增加，超过了默认值
 | gitee@tango_zhu   | Gitee  | 2022-11-18 |
 | qq@三多～(๑°3°๑)  | 支付宝 | 2022-11-28 |
 | wechat@Z*h        | 微信   | 2022-11-30 |
+| qq@三多～(๑°3°๑)  | 支付宝 | 2022-12-06 |
+| qq@ArtOfTerRan。  | 微信   | 2022-12-07 |
+| Captcha           | 支付宝 | 2022-12-12 |
 
 <img src="00.static/wechat.png" alt="" width="40%" height="40%" />
 

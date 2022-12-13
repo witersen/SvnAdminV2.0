@@ -693,7 +693,7 @@
           </Table>
         </TabPane>
         <TabPane label="仓库备份/恢复" name="backup">
-          <Alert type="error" show-icon v-if="!uploadOn"
+          <Alert type="error" show-icon v-if="!file.on"
             >当前环境PHP未开启文件上传功能
           </Alert>
           <Row style="margin-bottom: 15px">
@@ -864,13 +864,45 @@
         </FormItem>
         <FormItem label="上传进度">
           <Progress
-            :percent="repUploadPercent"
+            :percent="file.percent"
             :stroke-width="20"
             status="active"
           />
         </FormItem>
-        <FormItem label="上传体积"> {{ repUploadSize }} </FormItem>
-        <FormItem label="剩余时间"> {{ repUploadTime }} </FormItem>
+        <FormItem label="文件名称"
+          ><span style="color: #2d8cf0">{{ file.name }}</span>
+        </FormItem>
+        <FormItem label="上传体积">
+          <span style="color: #2d8cf0">{{ file.size }}</span></FormItem
+        >
+        <FormItem label="当前阶段">
+          <span style="color: #2d8cf0">{{ file.desc }}</span>
+        </FormItem>
+        <FormItem label="分片大小">
+          <span style="color: #2d8cf0">{{ file.sliceSize }} MB</span>
+        </FormItem>
+        <FormItem label="剩余时间">
+          <span style="color: #2d8cf0">{{ file.left }}</span></FormItem
+        >
+        <FormItem label="分片清理">
+          <span style="color: #2d8cf0">{{
+            file.deleteOnMerge == 1
+              ? "合并完成后服务器自动删除分片"
+              : "合并完成后服务器不自动删除分片"
+          }}</span>
+        </FormItem>
+        <FormItem label="上传控制">
+          <Button
+            type="primary"
+            ghost
+            v-if="!file.stop"
+            @click="file.stop = true"
+            >暂停</Button
+          >
+          <span v-else style="color: red"
+            >暂停后需要重新选择文件-已上传分片依然有效</span
+          >
+        </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalRepUpload = false"
@@ -893,6 +925,8 @@
 <script>
 //SVN对象列表组件
 import ModalRepPri from "@/components/modalRepPri.vue";
+
+import SparkMD5 from "spark-md5";
 
 export default {
   data() {
@@ -1019,17 +1053,6 @@ export default {
       tempRepLoadError: "",
       //高级选项tab
       curTabRepAdvance: "attribute",
-      //文件上传进度
-      repUploadCurrent: 0,
-      repUploadTotal: 0,
-      repUploadPercent: 0,
-      //文件体积
-      repUploadSize: "",
-      //预估时间
-      repUploadTime: "",
-      //是否停止上传
-      stopUplaod: false,
-
       //检出路径
       tempCheckout: "",
       //单选 仓库路径的用户权限列表
@@ -1077,12 +1100,6 @@ export default {
       /**
        * 表单
        */
-      //上传限制
-      uploadOn: {
-        file_uploads: true,
-        upload_max_filesize: 0,
-        post_max_size: 0,
-      },
       //新建SVN仓库
       formRepAdd: {
         rep_name: "",
@@ -1120,6 +1137,31 @@ export default {
       checkInfo: {
         protocal: "",
         prefix: "",
+      },
+      //文件上传相关
+      file: {
+        //文件上传功能开启状态
+        on: true,
+        // 分片上传大小 MB
+        sliceSize: 1,
+        // 分片合并后删除分片
+        deleteOnMerge: 1,
+        //文件上传进度条
+        current: 0,
+        total: 0,
+        percent: 0,
+        //文件名称
+        name: "",
+        //上传状态
+        desc: "",
+        //文件体积
+        size: "",
+        //文件md5
+        md5: "",
+        //预估时间
+        left: "",
+        //是否停止上传
+        stop: false,
       },
 
       /**
@@ -1392,6 +1434,24 @@ export default {
       return [h, m, s];
     },
 
+    FormatFileSize(fileSize) {
+      if (fileSize < 1024) {
+        return fileSize + "B";
+      } else if (fileSize < 1024 * 1024) {
+        var temp = fileSize / 1024;
+        temp = temp.toFixed(2);
+        return temp + "KB";
+      } else if (fileSize < 1024 * 1024 * 1024) {
+        var temp = fileSize / (1024 * 1024);
+        temp = temp.toFixed(2);
+        return temp + "MB";
+      } else {
+        var temp = fileSize / (1024 * 1024 * 1024);
+        temp = temp.toFixed(2);
+        return temp + "GB";
+      }
+    },
+
     //高级选项切换
     ClickTabAdvance(name) {
       sessionStorage.setItem("curTabRepAdvance", name);
@@ -1401,7 +1461,7 @@ export default {
           this.GetRepDetail();
           break;
         case "backup":
-          this.IsUploadOn();
+          this.GetUploadInfo();
           this.GetBackupList();
           break;
         default:
@@ -1904,74 +1964,159 @@ export default {
       let myfile = document.getElementById("myfile");
 
       //重置进度条
-      that.repUploadPercent = 0;
+      that.file.percent = 0;
       //展示对话框
       that.modalRepUpload = true;
 
       //定义事件
-      myfile.onchange = async function () {
-        // 这里可以得到上传的文件对象
-        let file = myfile.files[0];
-        // 这里是每一个分片的大小
-        let length = 1024 * 1024 * 1;
-        // 使用进一法，来确定分片的个数
-        let numBlobTotal = Math.ceil(file.size / length);
-        that.repUploadTotal = numBlobTotal;
-        that.repUploadSize = (file.size / (1024 * 1024)).toFixed(1) + " MB";
-        // 分片的初始位置
-        let start = 0;
-        // 分片的结束位置
-        let end = length;
-        for (let i = 1; i <= numBlobTotal; i++) {
-          if (that.stopUplaod) {
-            break;
-          }
-          that.repUploadCurrent = i;
-          // 得到一个分片
-          let blob = file.slice(start, end);
-          // 调整下一个分片的起始位置
-          start = end;
-          // 调整下一个分片的结束位置
-          end = start + length;
-          if (end > file.size) {
-            // 这里对最后的一个分片结束位置进行调整
-            end = file.size;
-          }
-          //FormData对象
-          let formdata = new FormData();
-          formdata.append("file", blob);
-          formdata.append("filename", file.name);
-          formdata.append("numBlobTotal", numBlobTotal);
-          formdata.append("numBlobCurrent", i);
-          await that
-            .UploadBackup(formdata)
-            .then(function (response) {
-              var result = response.data;
-              if (result.status == 1) {
-                //进度条百分比
-                that.repUploadPercent = Math.trunc(
-                  (that.repUploadCurrent / that.repUploadTotal) * 100
-                );
-                //剩余时间
-                var formateTime = that.FormatTime(
-                  that.repUploadTotal - that.repUploadCurrent
-                );
-                that.repUploadTime = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
-                //完成提示
-                if (result.data.complete) {
-                  that.$Message.success(result.message);
-                }
-              } else {
-                that.stopUplaod = true;
-                that.$Message.error({ content: result.message, duration: 2 });
+      myfile.onchange = function () {
+        //重置进度条
+        that.file.percent = 0;
+        that.file.current = 0;
+        //允许上传
+        that.file.stop = false;
+
+        var blobSlice =
+            File.prototype.slice ||
+            File.prototype.mozSlice ||
+            File.prototype.webkitSlice,
+          file = myfile.files[0],
+          chunkSize = 1024 * 1024 * that.file.sliceSize,
+          chunks = Math.ceil(file.size / chunkSize),
+          currentChunk = 0,
+          spark = new SparkMD5.ArrayBuffer(),
+          fileReader = new FileReader();
+
+        //总进度 = 分片 + 上传合并
+        that.file.total = chunks * 2;
+
+        //文件体积
+        that.file.size = that.FormatFileSize(file.size);
+
+        //文件名
+        that.file.name = file.name;
+
+        fileReader.onload = async function (e) {
+          spark.append(e.target.result); // Append array buffer
+          currentChunk++;
+
+          if (currentChunk < chunks) {
+            if (!that.file.stop) {
+              loadNext();
+            }
+          } else {
+            that.file.md5 = spark.end();
+            // 分片的初始位置
+            var start = 0;
+            // 分片的结束位置
+            var end = chunkSize;
+            for (var i = 1; i <= chunks; i++) {
+              // 得到一个分片
+              var blob = file.slice(start, end);
+              // 调整下一个分片的起始位置
+              start = end;
+              // 调整下一个分片的结束位置
+              end = start + chunkSize;
+              if (end > file.size) {
+                // 这里对最后的一个分片结束位置进行调整
+                end = file.size;
               }
-            })
-            .catch(function (error) {
-              that.stopUplaod = true;
-              console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
-            });
+              //FormData对象
+              var formdata = new FormData();
+              formdata.append("file", blob);
+              formdata.append("md5", that.file.md5);
+              formdata.append("filename", file.name);
+              formdata.append("numBlobTotal", chunks);
+              formdata.append("numBlobCurrent", i);
+              formdata.append("deleteOnMerge", that.file.deleteOnMerge);
+
+              if (!that.file.stop) {
+                await that
+                  .UploadBackup(formdata)
+                  .then(function (response) {
+                    var result = response.data;
+                    if (result.status == 1) {
+                      if (
+                        result.data.completeCount ==
+                        that.file.total / 2 - 1
+                      ) {
+                        that.file.desc = "分片合并中";
+                      } else if (
+                        result.data.completeCount ==
+                        that.file.total / 2
+                      ) {
+                        that.file.desc = "分片合并完成";
+                      } else {
+                        that.file.desc = "分片上传中";
+                      }
+                      if (result.data.complete) {
+                        //进度条百分比
+                        that.file.percent = 100;
+                        //剩余时间
+                        var formateTime = that.FormatTime(0);
+                        that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+                        that.$Message.success(result.message);
+                        that.GetBackupList();
+                        that.file.stop = true;
+                      } else {
+                        //进度条百分比
+                        that.file.current++;
+                        that.file.percent = Math.trunc(
+                          (that.file.current / that.file.total) * 100
+                        );
+                        //剩余时间
+                        var formateTime = that.FormatTime(
+                          that.file.total - that.file.current
+                        );
+                        that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+                      }
+                    } else {
+                      that.file.stop = true;
+                      that.$Message.error({
+                        content: result.message,
+                        duration: 2,
+                      });
+                    }
+                  })
+                  .catch(function (error) {
+                    that.file.stop = true;
+                    console.log(error);
+                    that.$Message.error("出错了 请联系管理员！");
+                  });
+              }
+              if (that.file.stop) {
+                break;
+              }
+            }
+          }
+        };
+
+        fileReader.onerror = function () {
+          console.warn("oops, something went wrong.");
+        };
+
+        function loadNext() {
+          var start = currentChunk * chunkSize,
+            end =
+              start + chunkSize >= file.size ? file.size : start + chunkSize;
+
+          fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+
+          //进度条百分比
+          that.file.current++;
+          that.file.percent = Math.trunc(
+            (that.file.current / that.file.total) * 100
+          );
+          //剩余时间
+          var formateTime = that.FormatTime(
+            that.file.total - that.file.current
+          );
+          that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+          //当前状态
+          that.file.desc = `${that.file.total} 个分片md5计算中`;
         }
+
+        loadNext();
       };
     },
     //文件上传
@@ -2299,16 +2444,18 @@ export default {
           that.$Message.error("出错了 请联系管理员！");
         });
     },
-    //获取php文件上传开启状态
-    IsUploadOn() {
+    //获取php文件上传相关参数
+    GetUploadInfo() {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Svnrep&a=IsUploadOn&t=web", data)
+        .post("/api.php?c=Svnrep&a=GetUploadInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
-            that.uploadOn = result.data;
+            that.file.on = result.data.upload;
+            that.file.sliceSize = result.data.sliceSize;
+            that.file.deleteOnMerge = result.data.deleteOnMerge;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }

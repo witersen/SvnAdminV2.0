@@ -35,6 +35,13 @@ class Upload
     private $nameFileSave = '';
 
     /**
+     * 完整文件的md5
+     *
+     * @var string
+     */
+    private $nameFileMd5 = '';
+
+    /**
      * php临时文件路径
      *
      * @var string
@@ -42,18 +49,32 @@ class Upload
     private $nameFileCurrent = '';
 
     /**
-     * 第几个文件块
+     * 第几个文件分片
      *
      * @var integer
      */
     private $numBlobCurrent = 0;
 
     /**
-     * 文件块总数
+     * 文件分片总数
      *
      * @var integer
      */
     private $numBlobTotal = 0;
+
+    /**
+     * 已经上传完成的文件分片数量
+     *
+     * @var integer
+     */
+    private $completeCount = 0;
+
+    /**
+     * 是否合并完成
+     *
+     * @var boolean
+     */
+    private $complete = false;
 
     /**
      * 工作状态
@@ -70,13 +91,11 @@ class Upload
     private $message = '上传完成';
 
     /**
-     * 分片上传进度
+     * 文件分片合并后是否立即删除
      *
      * @var boolean
      */
-    private $complete = false;
-
-    //不可上传无后缀文件 todo
+    private $deleteOnMerge = true;
 
     /**
      * Upload
@@ -84,21 +103,23 @@ class Upload
      * @param string $nameDirTempSave   文件分片的临时保存目录
      * @param string $nameDirSave       最终文件的正式保存目录
      * @param string $nameFileSave      最终文件的正式文件名
+     * @param string $nameFileMd5       要上传文件的md5值
      * @param string $nameFileCurrent   当前文件分片的路径
      * @param integer $numBlobCurrent   当前是第几个文件分片
      * @param integer $numBlobTotal     一共有几个文件分片
+     * @param integer $deleteOnMerge    文件合并完成后是否删除所有分片
      * @return void
      */
-    public function __construct($nameDirTempSave, $nameDirSave, $nameFileSave, $nameFileCurrent, $numBlobCurrent, $numBlobTotal)
+    public function __construct($nameDirTempSave, $nameDirSave, $nameFileSave, $nameFileMd5, $nameFileCurrent, $numBlobCurrent, $numBlobTotal, $deleteOnMerge = true)
     {
         $this->nameDirTempSave = $nameDirTempSave;
         $this->nameDirSave = $nameDirSave;
+        $this->nameFileSave = $nameFileSave;
+        $this->nameFileMd5 = $nameFileMd5;
         $this->nameFileCurrent = $nameFileCurrent;
         $this->numBlobCurrent = $numBlobCurrent;
         $this->numBlobTotal = $numBlobTotal;
-        $this->nameFileSave = $nameFileSave;
-        $this->fileMove();
-        $this->fileMerge();
+        $this->deleteOnMerge = $deleteOnMerge;
     }
 
     /**
@@ -106,10 +127,33 @@ class Upload
      *
      * @return void
      */
-    private function fileMove()
+    public function fileUpload()
     {
-        $filename = $this->nameDirTempSave . '/' . $this->nameFileSave . '_' . $this->numBlobCurrent;
-        move_uploaded_file($this->nameFileCurrent, $filename);
+        if (!file_exists($this->nameFileCurrent, $this->nameDirTempSave . '/' . $this->nameFileMd5 . '_' . $this->numBlobTotal . '_' . $this->numBlobCurrent)) {
+            move_uploaded_file($this->nameFileCurrent, $this->nameDirTempSave . '/' . $this->nameFileMd5 . '_' . $this->numBlobTotal . '_' . $this->numBlobCurrent);
+        }
+
+        $count = 0;
+        clearstatcache();
+        $files = scandir($this->nameDirTempSave);
+        foreach ($files as $file) {
+            if ($file == '.' && $file == '..') {
+                continue;
+            }
+            if (is_dir($this->nameDirTempSave . '/' . $file)) {
+                continue;
+            }
+            if (!preg_match(sprintf('/^%s_%s_[0-9]+$/', $this->nameFileMd5, $this->numBlobTotal), $file, $match)) {
+                continue;
+            }
+            $count++;
+        }
+
+        $this->completeCount = $count;
+
+        if ($count == $this->numBlobTotal) {
+            $this->fileMerge();
+        }
     }
 
     /**
@@ -119,33 +163,42 @@ class Upload
      */
     private function fileMerge()
     {
-        if ($this->numBlobCurrent == $this->numBlobTotal) {
-            $filename = $this->nameDirSave . '/' . $this->nameFileSave;
-            $fwrite = fopen($filename, 'ab');
+        $fwrite = fopen($this->nameDirSave . '/' . $this->nameFileSave, 'ab');
 
-            for ($i = 1; $i <= $this->numBlobTotal; $i++) {
-                $blobname = $this->nameDirTempSave . '/' . $this->nameFileSave . '_' . $i;
-                clearstatcache();
-                if (!file_exists($blobname)) {
-                    $this->status = false;
-                    $this->message = '分片文件不存在';
-                    return;
-                }
+        for ($i = 1; $i <= $this->numBlobTotal; $i++) {
+            $slicename = $this->nameDirTempSave . '/' . $this->nameFileMd5 . '_' . $this->numBlobTotal . '_' . $i;
+            clearstatcache();
+            if (!file_exists($slicename)) {
+                $this->status = false;
+                $this->message = sprintf('第[%s]个分片文件[%s]不存在', $i, $slicename);
+                return;
+            }
+        }
 
-                //文件块合并
-                $fread = fopen($blobname, 'rb');
-                fwrite($fwrite, fread($fread, filesize($blobname)));
-                fclose($fread);
-                unset($fread);
-
-                //文件块删除
-                @unlink($blobname);
+        for ($i = 1; $i <= $this->numBlobTotal; $i++) {
+            $slicename = $this->nameDirTempSave . '/' . $this->nameFileMd5 . '_' . $this->numBlobTotal . '_' . $i;
+            clearstatcache();
+            if (!file_exists($slicename)) {
+                $this->status = false;
+                $this->message = sprintf('第[%s]个分片文件[%s]不存在', $i, $slicename);
+                return;
             }
 
-            fclose($fwrite);
+            //文件分片合并
+            $fread = fopen($slicename, 'rb');
+            fwrite($fwrite, fread($fread, filesize($slicename)));
+            fclose($fread);
+            unset($fread);
 
-            $this->complete = true;
+            //文件分片删除
+            if ($this->deleteOnMerge) {
+                @unlink($slicename);
+            }
         }
+
+        fclose($fwrite);
+
+        $this->complete = true;
     }
 
     /**
@@ -159,11 +212,9 @@ class Upload
             'status' => $this->status,
             'message' => $this->message,
             'data' => [
+                'completeCount' => $this->completeCount,
                 'complete' => $this->complete
             ]
         ];
     }
 }
-
-
-// new Upload($_FILES['file']['tmp_name'], $_POST['blob_num'], $_POST['total_blob_num'], $_POST['file_name'], $_POST['md5_file_name']);

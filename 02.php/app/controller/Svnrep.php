@@ -259,11 +259,11 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取php文件上传开启状态
+     * 获取php文件上传相关参数
      */
-    public function IsUploadOn()
+    public function GetUploadInfo()
     {
-        $result = $this->ServiceSvnrep->IsUploadOn();
+        $result = $this->ServiceSvnrep->GetUploadInfo();
         json2($result);
     }
 

@@ -95,7 +95,14 @@ function funCheckForm($form, $columns)
             }
         }
         //检查变量类型是否正确
-        if ($columnCheck['type'] != gettype($form[$column])) {
+        $types = explode('|', $columnCheck['type']);
+        $typeStatus = false;
+        foreach ($types as $types) {
+            if ($types == gettype($form[$column])) {
+                $typeStatus = true;
+            }
+        }
+        if (!$typeStatus) {
             return message(200, 0, '参数类型错误', [
                 'column' =>  sprintf('参数[%s]-需要[%s]-实际为[%s]', $column, $columnCheck['type'], gettype($form[$column]))
             ]);

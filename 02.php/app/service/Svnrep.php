@@ -929,6 +929,7 @@ class Svnrep extends Base
             if (substr($value, -1) == '/') {
                 array_push($data, [
                     'expand' => false,
+                    'contextmenu' => true,
                     'loading' => false,
                     'resourceType' => 2,
                     'title' => end($pathArray) . '/',
@@ -1850,18 +1851,25 @@ class Svnrep extends Base
     }
 
     /**
-     * 获取php文件上传开启状态
+     * 获取php文件上传相关参数
      */
-    public function IsUploadOn()
+    public function GetUploadInfo()
     {
-        $status = ini_get('file_uploads');
-        if ($status == 0 || $status == false || strtolower($status) == 'off') {
-            $status = false;
+        $upload = ini_get('file_uploads');
+        if ($upload == 0 || $upload == false || strtolower($upload) == 'off') {
+            $upload = false;
         } else {
-            $status = true;
+            $upload = true;
         }
 
-        return message(200, 1, '成功', $status);
+        return message(200, 1, '成功', [
+            //文件上传功能开启状态
+            'upload' => $upload,
+            //分片上传大小
+            'sliceSize' => 1,
+            //分片合并后删除分片
+            'deleteOnMerge' => 1,
+        ]);
     }
 
     /**
@@ -1869,19 +1877,21 @@ class Svnrep extends Base
      */
     public function UploadBackup()
     {
-        //检查表单
-        $checkResult = funCheckForm($_POST, [
-            'filename' => ['type' => 'string', 'notNull' => true],
-            // 'numBlobTotal' => ['type' => 'integer', 'notNull' => true],
-            // 'numBlobCurrent' => ['type' => 'integer', 'notNull' => true]
-        ]);
-        if ($checkResult['status'] == 0) {
-            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
-        }
-
         $file_uploads = ini_get('file_uploads');
         if ($file_uploads == 0 || $file_uploads == false || strtolower($file_uploads) == 'off') {
             return message(200, 0, '文件上传功能关闭');
+        }
+
+        //检查表单
+        $checkResult = funCheckForm($_POST, [
+            'filename' => ['type' => 'string', 'notNull' => true],
+            'md5' => ['type' => 'string', 'notNull' => true],
+            'numBlobTotal' => ['type' => 'integer|string', 'notNull' => true],
+            'numBlobCurrent' => ['type' => 'integer|string', 'notNull' => true],
+            'deleteOnMerge' => ['type' => 'boolean|string', 'notNull' => true],
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
         if (array_key_exists('file', $_FILES)) {
@@ -1902,16 +1912,17 @@ class Svnrep extends Base
             }
 
             //限制拓展名 todo
-            $fileType =  substr(strrchr($_FILES['file']['name'], '.'), 1);
 
             $nameDirSave = $this->configSvn['backup_base_path'];
             $nameFileSave = $_POST['filename'];
+            $nameFileMd5 = $_POST['md5'];
             $nameFileCurrent = $_FILES['file']['tmp_name'];
             $numBlobCurrent = (int)$_POST['numBlobCurrent'];
             $numBlobTotal = (int)$_POST['numBlobTotal'];
+            $deleteOnMerge = (int)$_POST['deleteOnMerge'] == 1;
 
-            $upload = new Upload($nameDirTempSave, $nameDirSave, $nameFileSave, $nameFileCurrent, $numBlobCurrent, $numBlobTotal);
-
+            $upload = new Upload($nameDirTempSave, $nameDirSave, $nameFileSave, $nameFileMd5, $nameFileCurrent, $numBlobCurrent, $numBlobTotal, $deleteOnMerge);
+            $upload->fileUpload();
             $result = $upload->message();
 
             return message(200, $result['status'], $result['message'], $result['data']);
@@ -2186,6 +2197,15 @@ class Svnrep extends Base
     private function InitRepStruct($templetePath, $repPath, $initUser = 'SVNAdmin', $initPass = 'SVNAdmin', $message = 'Initial structure')
     {
         $cmd = sprintf("'%s' import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $this->configBin['svn'], $templetePath, $repPath, $initUser, $initPass, $message);
+        funShellExec($cmd);
+    }
+
+    /**
+     * 创建目录
+     */
+    private function CreateFolder($templetePath, $repPath, $user = 'SVNAdmin', $pass = 'SVNAdmin', $message = 'Create folder')
+    {
+        $cmd = sprintf("'%s' import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $this->configBin['svn'], $templetePath, $repPath, $user, $pass, $message);
         funShellExec($cmd);
     }
 
