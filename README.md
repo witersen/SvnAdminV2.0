@@ -96,11 +96,8 @@ chown -R apache:apache /home/svnadmin
   - 进入容器内
   - yum install -y unzip
   - cd /var/www/html/server && php install.php
-  - yum install -y unzip cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain mod_dav_svn mod_ldap mod_php php-ldap cronie at
-  - httpd -k graceful
-  - chown -R apache:apache /home/svnadmin/
-  - php svnadmind.php stop
-  - nohup svnadmind.php start &
+  - 退出容器
+  - 停止旧的容器，拉取新容器，挂载本地的数据目录到新版本的容器即可
 - 2.4.x 之前的用户升级到2.4.x （不可联网的用户）
   - 在有网络的环境下下载升级包，注意下载 update.tar.gz 而不是 update.zip
   - 提前下载好升级包并复制到容器中 /var/www/html/server/ 目录下
