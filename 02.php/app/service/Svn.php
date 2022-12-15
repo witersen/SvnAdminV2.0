@@ -154,11 +154,27 @@ class Svn extends Base
             $ldap_bind_dn = $ldap['ldap_bind_dn'];
             $ldap_bind_pw = $ldap['ldap_bind_password'];
             $ldap_search_base = $ldap['user_base_dn'];
-            $ldap_filter =  '(&(' . explode(',', $ldap['user_attributes'])[0] . '=%U)(' . $ldap['user_search_filter'] . '))';
+            
+            if (substr($ldap['user_search_filter'], 0, 1) == '(' && substr($ldap['user_search_filter'], -1) == ')') {
+                $ldap_filter = $ldap['user_search_filter'];
+            } else {
+                $ldap_filter = '(' . $ldap['user_search_filter'] . ')';
+            }
+
+            $ldap_filter =  '(&(' . explode(',', $ldap['user_attributes'])[0] . '=%U)(' . $ldap_filter . '))';
             $ldap_version = $ldap['ldap_version'];
             $ldap_password_attr = 'userPassword';
 
-            $new = sprintf($new, $ldap_servers, $ldap_bind_dn, $ldap_bind_pw, $ldap_search_base, $ldap_filter, '%U', $ldap_version, $ldap_password_attr);
+            $new = sprintf(
+                $new,
+                $ldap_servers,
+                $ldap_bind_dn,
+                $ldap_bind_pw,
+                $ldap_search_base,
+                $ldap_filter,
+                $ldap_version,
+                $ldap_password_attr
+            );
 
             if (!is_writable($this->configSvn['ldap_config_file'])) {
                 return message(200, 0, sprintf('文件[%s]不可写或不存在', $this->configSvn['ldap_config_file']));

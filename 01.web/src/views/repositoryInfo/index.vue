@@ -685,13 +685,21 @@
                   >立即备份</Button
                 >
               </Tooltip> -->
-              <Button
-                type="primary"
-                ghost
-                icon="ios-cloud-upload-outline"
-                @click="ModalUploadBackup"
-                >上传备份</Button
+              <Tooltip
+                max-width="250"
+                content="请等待下个版本优化"
+                placement="bottom"
+                :transfer="true"
               >
+                <Button
+                  type="primary"
+                  ghost
+                  icon="ios-cloud-upload-outline"
+                  @click="ModalUploadBackup"
+                  disabled
+                  >上传备份</Button
+                >
+              </Tooltip>
             </Col>
           </Row>
           <Table
@@ -1954,7 +1962,7 @@ export default {
         //文件名
         that.file.name = file.name;
 
-        fileReader.onload = async (e) =>{
+        fileReader.onload = function (e) {
           spark.append(e.target.result); // Append array buffer
           currentChunk++;
 
@@ -1989,7 +1997,7 @@ export default {
               formdata.append("deleteOnMerge", that.file.deleteOnMerge);
 
               if (!that.file.stop) {
-                await that
+                that
                   .UploadBackup(formdata)
                   .then(function (response) {
                     var result = response.data;
