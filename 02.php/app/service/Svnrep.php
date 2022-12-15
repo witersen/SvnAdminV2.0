@@ -11,6 +11,7 @@ namespace app\service;
 
 use app\service\Svn as ServiceSvn;
 use app\service\Logs as ServiceLogs;
+use tidy;
 use Witersen\Upload;
 
 class Svnrep extends Base
@@ -108,7 +109,6 @@ class Svnrep extends Base
         }
 
         //创建空仓库
-        //解决创建中文仓库乱码问题
         $cmd = sprintf("'%s' create " . $repPath, $this->configBin['svnadmin']);
         funShellExec($cmd);
 
@@ -952,6 +952,7 @@ class Svnrep extends Base
             return message(200, 1, '', [
                 [
                     'expand' => true,
+                    'contextmenu' => true,
                     'loading' => false,
                     'resourceType' => 2,
                     'title' => $repName . '/',
@@ -1128,6 +1129,51 @@ class Svnrep extends Base
         ];
 
         return $data;
+    }
+
+    /**
+     * 在线创建目录
+     */
+    public function CreateRepFolder()
+    {
+        //检查表单
+        $checkResult = funCheckForm($this->payload, [
+            'rep_name' => ['type' => 'string', 'notNull' => true],
+            'folder_name' => ['type' => 'string', 'notNull' => true],
+            'path' => ['type' => 'string', 'notNull' => true]
+        ]);
+        if ($checkResult['status'] == 0) {
+            return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
+        }
+
+        $repPath = $this->configSvn['rep_base_path'] . $this->payload['rep_name'] . '/' . $this->payload['path'];
+
+        $prefix = uniqid('create_');
+
+        $templetePath = $this->configSvn['home_path'] . 'temp/' . $prefix;
+
+        $folderPath = $this->configSvn['home_path'] . 'temp/' . $prefix . '/' . $this->payload['folder_name'];
+
+        mkdir($folderPath, 0755, true);
+
+        clearstatcache();
+        if (!is_dir($folderPath)) {
+            return message(200, 0, sprintf('无法创建路径[%s]', $folderPath));
+        }
+
+        $user = 'SVNAdmin';
+        $pass = 'SVNAdmin';
+        $message = 'Create folder';
+
+        $cmd = sprintf("'%s' import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $this->configBin['svn'], $templetePath, $repPath, $user, $pass, $message);
+        $result = funShellExec($cmd);
+        if ($result['code'] != 0) {
+            return message(200, 0, $result['error']);
+        }
+
+        @unlink($templetePath);
+
+        return message(200, 1, '请刷新页面查看效果');
     }
 
     /**
@@ -1760,6 +1806,8 @@ class Svnrep extends Base
 
     /**
      * 立即备份当前仓库
+     * 
+     * 前端暂时不提供该方法 因为通过 php 脚本执行存在最大执行时间问题 后续会通过任务队列重新放开
      */
     public function SvnadminDump()
     {
@@ -1949,7 +1997,7 @@ class Svnrep extends Base
 
         //使用 svnadmin load 导入仓库
         $cmd = sprintf("'%s' load --quiet '%s' < '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $this->configSvn['backup_base_path'] .  $this->payload['fileName']);
-        $result = funShellExec($cmd);
+        $result = funShellExec($cmd, true);
 
         //更新仓库的版本 todo
 
@@ -2197,15 +2245,6 @@ class Svnrep extends Base
     private function InitRepStruct($templetePath, $repPath, $initUser = 'SVNAdmin', $initPass = 'SVNAdmin', $message = 'Initial structure')
     {
         $cmd = sprintf("'%s' import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $this->configBin['svn'], $templetePath, $repPath, $initUser, $initPass, $message);
-        funShellExec($cmd);
-    }
-
-    /**
-     * 创建目录
-     */
-    private function CreateFolder($templetePath, $repPath, $user = 'SVNAdmin', $pass = 'SVNAdmin', $message = 'Create folder')
-    {
-        $cmd = sprintf("'%s' import '%s' 'file:///%s' --quiet --username '%s' --password '%s' --message '%s'", $this->configBin['svn'], $templetePath, $repPath, $user, $pass, $message);
         funShellExec($cmd);
     }
 

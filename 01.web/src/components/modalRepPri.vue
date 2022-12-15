@@ -15,7 +15,14 @@
               :load-data="ExpandRepTree"
               :render="renderContent"
               @on-select-change="ChangeSelectTreeNode"
-            ></Tree>
+              @on-contextmenu="handleContextMenu"
+            >
+              <template slot="contextMenu">
+                <DropdownItem @click.native="modalCreateRepFolder = true"
+                  >新建文件夹</DropdownItem
+                >
+              </template>
+            </Tree>
             <Spin size="large" fix v-if="loadingRepTree"></Spin>
           </Scroll>
         </Col>
@@ -154,6 +161,30 @@
       :propShowSvnAuthenticatedTab="showModalSvnObjectTab"
       :propShowSvnAnonymousTab="showModalSvnObjectTab"
     />
+    <!-- 对话框-新建文件夹 -->
+    <Modal v-model="modalCreateRepFolder" :draggable="true" title="新建文件夹">
+      <Form :label-width="80">
+        <FormItem label="父目录">
+          <Input v-model="currentRepPath" readonly></Input>
+        </FormItem>
+        <FormItem label="文件夹">
+          <Input v-model="folderName"></Input>
+        </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            :loading="loadingCreateRepFolder"
+            @click="CreateRepFolder"
+            >确定</Button
+          >
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" ghost @click="modalCreateRepFolder = false"
+          >取消</Button
+        >
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -195,6 +226,11 @@ export default {
   },
   data() {
     return {
+      //临时
+      contextData: null,
+      //新建文件夹名称
+      folderName: "",
+
       /**
        * 对话框
        */
@@ -202,6 +238,8 @@ export default {
       modalRepPri: this.propModalRepPri,
       //SVN对象列表组件
       modalSvnObject: false,
+      //创建文件夹
+      modalCreateRepFolder: false,
 
       /**
        * 组件
@@ -218,6 +256,8 @@ export default {
       loadingRepTree: true,
       //某个仓库路径的所有对象的权限列表
       loadingRepPathAllPri: true,
+      //新建文件夹
+      loadingCreateRepFolder: false,
 
       /**
        * 临时变量
@@ -465,6 +505,41 @@ export default {
         h("span", data.title),
       ]);
     },
+    //目录树右键
+    handleContextMenu(data, event, position) {
+      this.ChangeSelectTreeNode([], data);
+    },
+    CreateRepFolder() {
+      var that = this;
+      that.loadingCreateRepFolder = true;
+      var data = {
+        rep_name: that.currentRepName,
+        path: that.currentRepPath,
+        folder_name: that.folderName,
+      };
+      that.$axios
+        .post("/api.php?c=Svnrep&a=CreateRepFolder&t=web", data)
+        .then(function (response) {
+          that.loadingCreateRepFolder = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            //重新请求目录树 todo
+            that.modalCreateRepFolder = false;
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingCreateRepFolder = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    /**
+     * 创建目录
+     */
+    CreateFolder() {},
     /**
      * 管理员获取目录树
      */

@@ -46,6 +46,7 @@ function funShellExec($shell, $daemon = false)
         //将标准错误重定向到文件
         //使用状态码来标识错误信息
         ob_start();
+        //解决中文乱码问题
         passthru('export LC_CTYPE=en_US.UTF-8 && '.$shell . " 2>$stderrFile", $code);
         $buffer = ob_get_contents();
         ob_end_clean();

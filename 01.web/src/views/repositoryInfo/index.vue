@@ -320,40 +320,6 @@
         <Button type="primary" ghost @click="modalViewRep = false">取消</Button>
       </div>
     </Modal>
-    <!-- 对话框-备份仓库 -->
-    <Modal :draggable="true" fullscreen>
-      <Row style="margin-bottom: 15px">
-        <Col span="18">
-          <Button
-            type="primary"
-            ghost
-            @click="SvnadminDump"
-            :loading="loadingRepDump"
-            >备份(dump)</Button
-          >
-        </Col>
-      </Row>
-      <Table
-        height="200"
-        border
-        :columns="tableColumnBackup2"
-        :data="tableDataBackup"
-        size="small"
-        :loading="loadingRepBackupList"
-      >
-        <template slot-scope="{ row }" slot="action">
-          <Button
-            type="success"
-            size="small"
-            @click="DownloadRepBackup(row.fileUrl)"
-            >下载</Button
-          >
-          <Button type="error" size="small" @click="DelRepBackup(row.fileName)"
-            >删除</Button
-          >
-        </template>
-      </Table>
-    </Modal>
     <!-- 对话框-仓库钩子 -->
     <Modal
       v-model="modalRepHooks"
@@ -692,7 +658,7 @@
             </template>
           </Table>
         </TabPane>
-        <TabPane label="仓库备份/恢复" name="backup">
+        <TabPane label="仓库备份" name="backup">
           <Alert type="error" show-icon v-if="!file.on"
             >当前环境PHP未开启文件上传功能
           </Alert>
@@ -705,7 +671,7 @@
               :md="19"
               :lg="18"
             >
-              <Tooltip
+              <!-- <Tooltip
                 max-width="250"
                 content="svnadmin dump方式"
                 placement="bottom"
@@ -714,30 +680,34 @@
                 <Button
                   type="primary"
                   ghost
-                  @click="SvnadminDump"
+                  icon="ios-cafe-outline"
                   :loading="loadingRepDump"
-                  >立即备份仓库</Button
+                  >立即备份</Button
                 >
-              </Tooltip>
-              <Button type="primary" ghost @click="ModalUploadBackup"
-                >上传备份文件</Button
+              </Tooltip> -->
+              <Button
+                type="primary"
+                ghost
+                icon="ios-cloud-upload-outline"
+                @click="ModalUploadBackup"
+                >上传备份</Button
               >
             </Col>
           </Row>
           <Table
             height="450"
             border
-            :columns="tableColumnBackup2"
+            :columns="tableColumnBackup"
             :data="tableDataBackup"
             size="small"
             :loading="loadingRepBackupList"
           >
-            <template slot-scope="{ row }" slot="action">
+            <template slot-scope="{ index, row }" slot="action">
               <Button
                 type="success"
                 size="small"
-                :loading="loadingLoadBackup"
-                @click="SvnadminLoad(row.fileName)"
+                :loading="loadingLoadBackup[index]"
+                @click="SvnadminLoad(row.fileName, index)"
                 >恢复</Button
               >
               <Button
@@ -876,7 +846,7 @@
           <span style="color: #2d8cf0">{{ file.size }}</span></FormItem
         >
         <FormItem label="当前阶段">
-          <span style="color: #2d8cf0">{{ file.desc }}</span>
+          <span style="color: red">{{ file.desc }}</span>
         </FormItem>
         <FormItem label="分片大小">
           <span style="color: #2d8cf0">{{ file.sliceSize }} MB</span>
@@ -905,9 +875,7 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalRepUpload = false"
-          >取消</Button
-        >
+        <Button type="primary" ghost @click="ClickModalRepLoad">取消</Button>
       </div>
     </Modal>
     <!-- 对话框-仓库权限配置 -->
@@ -1030,7 +998,7 @@ export default {
       //上传备份文件
       loadingUploadBackup: false,
       //导入备份文件
-      loadingLoadBackup: false,
+      loadingLoadBackup: [],
       //修改仓库名称
       loadingEditRepName: false,
       //获取仓库钩子信息
@@ -1309,9 +1277,8 @@ export default {
         },
       ],
       tableDataRepCon: [],
-      //备份文件夹
-      //仓库备份管理用
-      tableColumnBackup2: [
+      //备份文件
+      tableColumnBackup: [
         {
           title: "文件名",
           key: "fileName",
@@ -1422,8 +1389,10 @@ export default {
       this.currentRepPath = value;
     },
 
+    /**
+     * 秒单位格式化
+     */
     FormatTime(seconds) {
-      // 转换为时分秒
       let h = parseInt((seconds / 60 / 60) % 24);
       h = h < 10 ? "0" + h : h;
       let m = parseInt((seconds / 60) % 60);
@@ -1433,7 +1402,9 @@ export default {
       // 作为返回值返回
       return [h, m, s];
     },
-
+    /**
+     * 文件体积单位格式化
+     */
     FormatFileSize(fileSize) {
       if (fileSize < 1024) {
         return fileSize + "B";
@@ -1450,6 +1421,14 @@ export default {
         temp = temp.toFixed(2);
         return temp + "GB";
       }
+    },
+
+    /**
+     * 退出文件上传对话框
+     */
+    ClickModalRepLoad() {
+      this.modalRepUpload = false;
+      this.file.stop = true;
     },
 
     //高级选项切换
@@ -1918,36 +1897,15 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.tableDataBackup = result.data;
+            for (var i = 0; i < result.data.length; i++) {
+              that.loadingLoadBackup[i] = false;
+            }
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
           that.loadingRepBackupList = false;
-          console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
-        });
-    },
-    SvnadminDump() {
-      var that = this;
-      that.loadingRepDump = true;
-      var data = {
-        rep_name: that.currentRepName,
-      };
-      that.$axios
-        .post("/api.php?c=Svnrep&a=SvnadminDump&t=web", data)
-        .then(function (response) {
-          that.loadingRepDump = false;
-          var result = response.data;
-          if (result.status == 1) {
-            that.$Message.success(result.message);
-            that.GetBackupList();
-          } else {
-            that.$Message.error({ content: result.message, duration: 2 });
-          }
-        })
-        .catch(function (error) {
-          that.loadingRepDump = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -1996,7 +1954,7 @@ export default {
         //文件名
         that.file.name = file.name;
 
-        fileReader.onload = async function (e) {
+        fileReader.onload = async (e) =>{
           spark.append(e.target.result); // Append array buffer
           currentChunk++;
 
@@ -2481,9 +2439,12 @@ export default {
       }
       this.GetBackupList();
     },
-    SvnadminLoad(fileName) {
+    SvnadminLoad(fileName, index) {
       var that = this;
-      that.loadingLoadBackup = true;
+      that.loadingLoadBackup[index] = true;
+      that.loadingLoadBackup = JSON.parse(
+        JSON.stringify(that.loadingLoadBackup)
+      );
       var data = {
         rep_name: that.currentRepName,
         fileName: fileName,
@@ -2491,7 +2452,10 @@ export default {
       that.$axios
         .post("/api.php?c=Svnrep&a=SvnadminLoad&t=web", data)
         .then(function (response) {
-          that.loadingLoadBackup = false;
+          that.loadingLoadBackup[index] = false;
+          that.loadingLoadBackup = JSON.parse(
+            JSON.stringify(that.loadingLoadBackup)
+          );
           var result = response.data;
           if (result.status == 1) {
             that.$Message.success(result.message);
@@ -2502,7 +2466,10 @@ export default {
           }
         })
         .catch(function (error) {
-          that.loadingLoadBackup = false;
+          that.loadingLoadBackup[index] = true;
+          that.loadingLoadBackup = JSON.parse(
+            JSON.stringify(that.loadingLoadBackup)
+          );
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });

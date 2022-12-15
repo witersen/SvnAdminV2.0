@@ -277,11 +277,13 @@ class Daemon
     {
         file_put_contents($this->pidFile, getmypid());
         $this->UpdateSign();
-        echo '启动成功' . PHP_EOL;
-        echo '可进行网站访问' . PHP_EOL;
-        echo '检出SVN仓库前请注意放行协议端口（默认3690）' . PHP_EOL;
+        
+        echo PHP_EOL;
+        echo '----------------------------------------' . PHP_EOL;
+        echo '守护进程(svnadmind)启动成功' . PHP_EOL;
         echo '已自动更改系统加密密钥，在线用户会退出登录' . PHP_EOL;
-        echo '建议将本程序通过nohup启动或加入系统管理' . PHP_EOL;
+        echo '----------------------------------------' . PHP_EOL;
+        echo PHP_EOL;
 
         chdir('/');
         umask(0);

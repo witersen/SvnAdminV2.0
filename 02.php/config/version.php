@@ -16,5 +16,5 @@ return [
         'lowest' => '5.5.0',
         'highest' => ''
     ],
-    'version' => '2.4.3'
+    'version' => '2.4.4'
 ];

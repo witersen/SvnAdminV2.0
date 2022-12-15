@@ -210,16 +210,16 @@ class Base
                             ],
                             'children' => []
                         ],
-                        [
-                            'title' => '生成仓库备份文件(svnadmin dump)',
-                            'expand' => false,
-                            'checked' => false,
-                            'disabled' => true,
-                            'necessary_functions' => [
-                                'Svnrep/SvnadminDump',
-                            ],
-                            'children' => []
-                        ],
+                        // [
+                        //     'title' => '生成仓库备份文件(svnadmin dump)',
+                        //     'expand' => false,
+                        //     'checked' => false,
+                        //     'disabled' => true,
+                        //     'necessary_functions' => [
+                        //         'Svnrep/SvnadminDump',
+                        //     ],
+                        //     'children' => []
+                        // ],
                         [
                             'title' => '删除仓库备份文件',
                             'expand' => false,
@@ -267,6 +267,16 @@ class Base
                                             ],
                                             'children' => []
                                         ],
+                                        [
+                                            'title' => '在线创建文件夹',
+                                            'expand' => false,
+                                            'checked' => false,
+                                            'disabled' => true,
+                                            'necessary_functions' => [
+                                                'Svnrep/CreateRepFolder',
+                                            ],
+                                            'children' => []
+                                        ]
                                     ]
                                 ],
                                 [

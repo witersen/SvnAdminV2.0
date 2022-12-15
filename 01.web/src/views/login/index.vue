@@ -5,7 +5,7 @@
 <template>
   <div class="login">
     <div class="login-con">
-      <Card icon="log-in" title="SVNAdmin V2.4.3" :bordered="false">
+      <Card icon="log-in" title="SVNAdmin V2.4.4" :bordered="false">
         <div class="form-con">
           <Form
             ref="formUserLogin"

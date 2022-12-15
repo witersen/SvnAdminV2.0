@@ -150,6 +150,15 @@ class Svnrep extends Base
     }
 
     /**
+     * 在线创建目录
+     */
+    public function CreateRepFolder()
+    {
+        $result = $this->ServiceSvnrep->CreateRepFolder();
+        json2($result);
+    }
+
+    /**
      * 获取某个仓库路径下的权限
      */
     public function GetRepPathAllPri()
