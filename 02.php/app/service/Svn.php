@@ -209,6 +209,16 @@ class Svn extends Base
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
+
+            $this->database->update('options', [
+                'option_value' => serialize([
+                    'user_source' => 'passwd',
+                    'group_source' => 'authz',
+                    'ldap' => $dataSource['ldap']
+                ])
+            ], [
+                'option_name' => '24_svn_datasource'
+            ]);
         }
 
         //重启 svnserve
