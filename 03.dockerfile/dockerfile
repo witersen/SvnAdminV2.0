@@ -40,8 +40,8 @@ RUN cd /home/svnadmin/ \
 RUN chown -R apache:apache /home/svnadmin/ && mkdir -p /run/php-fpm/
 
 # 源码
-ADD https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.4/2.4.4.zip /var/www/html/
-RUN cd /var/www/html && unzip 2.4.4.zip && rm -f 2.4.4.zip
+ADD https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.5/2.4.5.zip /var/www/html/
+RUN cd /var/www/html && unzip 2.4.5.zip && rm -f 2.4.5.zip
 
 ADD start.sh /root/start.sh
 RUN chmod +x /root/start.sh
