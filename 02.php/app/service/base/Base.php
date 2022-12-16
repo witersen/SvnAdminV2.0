@@ -1050,7 +1050,7 @@ class Base
                         'Setting/UpdSvnEnable',
 
                         'Setting/UpdSvnserveStatusStop',
-                        'Setting/UpdSvnserveStatusSart',
+                        'Setting/UpdSvnserveStatusStart',
 
                         'Setting/UpdSvnservePort',
                         'Setting/UpdSvnserveHost',

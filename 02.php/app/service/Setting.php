@@ -117,7 +117,7 @@ class Setting extends Base
         sleep(1);
 
         //启动
-        $resultStart = $this->ServiceSvn->UpdSvnserveStatusSart();
+        $resultStart = $this->ServiceSvn->UpdSvnserveStatusStart();
         if ($resultStart['status'] != 1) {
             return $resultStart;
         }
@@ -167,7 +167,7 @@ class Setting extends Base
         sleep(1);
 
         //启动
-        $resultStart = $this->ServiceSvn->UpdSvnserveStatusSart();
+        $resultStart = $this->ServiceSvn->UpdSvnserveStatusStart();
         if ($resultStart['status'] != 1) {
             return $resultStart;
         }

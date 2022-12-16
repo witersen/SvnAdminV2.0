@@ -80,9 +80,9 @@ class Setting extends Base
     /**
      * 启动SVN
      */
-    public function UpdSvnserveStatusSart()
+    public function UpdSvnserveStatusStart()
     {
-        $result = $this->ServiceSvn->UpdSvnserveStatusSart();
+        $result = $this->ServiceSvn->UpdSvnserveStatusStart();
         json2($result);
     }
 

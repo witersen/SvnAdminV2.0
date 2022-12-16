@@ -45,7 +45,7 @@ Subversion：1.8+
 此方式可快速部署程序体验效果，数据不存储在宿主机，生产环境慎用
 
 ```
-docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.4.4
+docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.4.6
 ```
 
 ##### 3.2 适用于：新用户正式使用
@@ -53,7 +53,7 @@ docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom
 - 启动一个临时的容器用于复制配置文件出来
 
 ```
-docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.4.4 /usr/sbin/init
+docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.4.6 /usr/sbin/init
 ```
 
 - 把配置文件复制到本机的 `/home/svnadmin` 目录
@@ -80,7 +80,7 @@ docker run -d -p 80:80 -p 3690:3690 \
 -v /home/svnadmin/sasl2/:/etc/sasl2/ \
 --privileged \
 --name svnadmin \
-witersencom/svnadmin:2.4.4
+witersencom/svnadmin:2.4.6
 ```
 
 - 进入容器内进行文件授权
@@ -151,9 +151,9 @@ yum install -y cronie at
 - 下载解压代码包
 
 ```
-cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.4/2.4.4.zip
+cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.6/2.4.6.zip
 
-unzip v2.4.4.zip
+unzip v2.4.6.zip
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）（注意需要Subversion >= 1.8）
@@ -421,7 +421,8 @@ svn的用户量和权限配置数量增加，超过了默认值
 | wechat@Z*h        | 微信   | 2022-11-30 |
 | qq@三多～(๑°3°๑)  | 支付宝 | 2022-12-06 |
 | qq@ArtOfTerRan。  | 微信   | 2022-12-07 |
-| Captcha           | 支付宝 | 2022-12-12 |
+| qq@Captcha        | 支付宝 | 2022-12-12 |
+| alipay@**龙       | 支付宝 | 2022-12-16 |
 
 <img src="00.static/wechat.png" alt="" width="40%" height="40%" />
 

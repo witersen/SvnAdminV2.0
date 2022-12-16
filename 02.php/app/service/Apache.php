@@ -471,6 +471,16 @@ class Apache extends Base
             ], [
                 'option_name' => '24_http_datasource'
             ]);
+        } else {
+            $this->database->update('options', [
+                'option_value' => serialize([
+                    'user_source' => 'httpPasswd',
+                    'group_source' => 'authz',
+                    'ldap' => $dataSource['ldap']
+                ])
+            ], [
+                'option_name' => '24_http_datasource'
+            ]);
         }
 
         parent::ReloadDatasource();

@@ -172,7 +172,7 @@
                       :loading="loadingSvnserveStart"
                       type="success"
                       v-if="!formSvn.status"
-                      @click="UpdSvnserveStatusSart"
+                      @click="UpdSvnserveStatusStart"
                       >启动</Button
                     >
                     <Button
@@ -1579,7 +1579,7 @@ export default {
        * 版本信息
        */
       version: {
-        current_verson: "2.4.5",
+        current_verson: "2.4.6",
         php_version: "5.5+",
         database: "MYSQL、SQLite",
         github: "https://github.com/witersen/SvnAdminV2.0",
@@ -2120,7 +2120,7 @@ export default {
     /**
      * 启动SVN
      */
-    UpdSvnserveStatusSart() {
+    UpdSvnserveStatusStart() {
       var that = this;
       that.$Modal.confirm({
         title: "以daomen方式启动svnserve服务",
@@ -2129,7 +2129,7 @@ export default {
           that.loadingSvnserveStart = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSvnserveStatusSart&t=web", data)
+            .post("/api.php?c=Setting&a=UpdSvnserveStatusStart&t=web", data)
             .then(function (response) {
               that.loadingSvnserveStart = false;
               var result = response.data;

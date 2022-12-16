@@ -227,7 +227,7 @@ class Svn extends Base
         //     return message($result['code'], $result['status'], $result['message'], $result['data']);
         // }
         sleep(1);
-        $result = $this->UpdSvnserveStatusSart();
+        $result = $this->UpdSvnserveStatusStart();
         if ($result['status'] != 1) {
             return message($result['code'], $result['status'], $result['message'], $result['data']);
         }
@@ -394,7 +394,7 @@ class Svn extends Base
     /**
      * 启动 svnserve
      */
-    public function UpdSvnserveStatusSart()
+    public function UpdSvnserveStatusStart()
     {
         $cmdStart = sprintf(
             "'%s' --daemon --pid-file '%s' -r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s",
@@ -456,7 +456,7 @@ class Svn extends Base
      *
      * @return void
      */
-    public function UpdSvnSaslStart()
+    private function UpdSvnSaslStart()
     {
         $con = file_get_contents($this->configSvn['svn_conf_file']);
 
@@ -480,7 +480,7 @@ class Svn extends Base
      *
      * @return void
      */
-    public function UpdSvnSaslStop()
+    private function UpdSvnSaslStop()
     {
         $con = file_get_contents($this->configSvn['svn_conf_file']);
 
@@ -553,7 +553,7 @@ class Svn extends Base
         //     return message($result['code'], $result['status'], $result['message'], $result['data']);
         // }
         sleep(1);
-        $result = $this->UpdSvnserveStatusSart();
+        $result = $this->UpdSvnserveStatusStart();
         if ($result['status'] != 1) {
             return message($result['code'], $result['status'], $result['message'], $result['data']);
         }
