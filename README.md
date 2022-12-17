@@ -137,7 +137,7 @@ yum install -y php php-common php-cli php-fpm php-mysqlnd php-mysql php-pdo php-
 - 安装web服务器（推荐 apache 可使用http协议检出）
 
 ```
-yum install -y httpd mod_dav_svn
+yum install -y httpd mod_dav_svn mod_ldap
 systemctl start httpd
 systemctl enable httpd
 ```
@@ -405,6 +405,44 @@ svn的用户量和权限配置数量增加，超过了默认值
 2.1.0+
 ```
 
+##### 5.12 提示无法连接到LDAP服务器
+
+```
+确定以下两点
+1、你的 ldap 服务器地址和端口真实有效
+2、安装 svnadmin2 的机器确实可以通过 ldap 端口与你的 ldap 服务所在服务器通信
+
+然后检查 svnadmin2 所在机器的 selinux 配置，通常 selinux 会禁止 http 连接 ldap
+执行：
+getsebool -a | grep ldap
+如果得到以下结果：
+httpd_can_connect_ldap --> off
+证明需要我们手动开启 httpd_can_connect_ldap 这个选项
+执行以下指令允许连接即可
+setsebool -P httpd_can_connect_ldap=1
+
+以上情况为 selinux 开启可能出现的，当关闭 selinux 后以上配置不再起作用
+```
+
+##### 5.13 LDAP启用状态下用户已授权但是无权限浏览仓库
+
+```
+这种情况通常是因为源码安装过程中，少装了有关ldap 的模块或依赖，建议详细看文档
+```
+
+##### 5.14 LDAP状态下用户列表同步成功但是无法登录
+
+```
+这种情况下通常是因为你的 Base DN 配置问题
+假设
+你的 base dn 填写为：dc=witersen,dc=com
+你的 Attributes 填写为： cn
+然后你过滤出用户：blue
+那么 blue 作为一个 SVN 用户来登录系统的时候，系统会将 cn=blue,dc=witersen,dc=com 来作为用户 blue 的完整 dn 并且结合用户输入的密来一起请求 ldap 服务器进行校验，所以如果 blue 用户的真实 dn 是 cn=blue,ou=devGroup,dc=witersen,dc=com 就会造成同步成功登录失败的情况
+```
+
+
+
 ### 6. :heart: 捐赠感谢
 
 - 本人工作之余大部分的时间精力都投入在了 SVNAdmin2
@@ -422,7 +460,7 @@ svn的用户量和权限配置数量增加，超过了默认值
 | qq@三多～(๑°3°๑)  | 支付宝 | 2022-12-06 |
 | qq@ArtOfTerRan。  | 微信   | 2022-12-07 |
 | qq@Captcha        | 支付宝 | 2022-12-12 |
-| alipay@**龙       | 支付宝 | 2022-12-16 |
+| qq@Start          | 支付宝 | 2022-12-16 |
 
 <img src="00.static/wechat.png" alt="" width="40%" height="40%" />
 
