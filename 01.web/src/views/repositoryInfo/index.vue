@@ -74,6 +74,21 @@
               >authz检测</Button
             >
           </Tooltip>
+          <!-- <Tooltip
+            max-width="250"
+            content="权限迁移"
+            placement="bottom"
+            :transfer="true"
+          >
+            <Button
+              icon="ios-swap"
+              type="error"
+              ghost
+              @click="GetRepList(true)"
+              v-if="user_role_id == 1 || user_role_id == 3"
+              >权限迁移</Button
+            >
+          </Tooltip> -->
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
           <Input
@@ -685,21 +700,13 @@
                   >立即备份</Button
                 >
               </Tooltip> -->
-              <Tooltip
-                max-width="250"
-                content="请等待下个版本优化"
-                placement="bottom"
-                :transfer="true"
+              <Button
+                type="primary"
+                ghost
+                icon="ios-cloud-upload-outline"
+                @click="ModalUploadBackup"
+                >上传备份</Button
               >
-                <Button
-                  type="primary"
-                  ghost
-                  icon="ios-cloud-upload-outline"
-                  @click="ModalUploadBackup"
-                  disabled
-                  >上传备份</Button
-                >
-              </Tooltip>
             </Col>
           </Row>
           <Table
@@ -733,21 +740,6 @@
             </template>
           </Table>
         </TabPane>
-        <!-- <TabPane label="从仓库导出权限">
-          <Alert
-            >即：将本仓库原有配置的权限导入到本系统<br /><br />
-            由于本系统采用多仓库对应一个配置文件的形式，而不是传统的一个仓库对应一个配置文件的形式<br /><br />
-            因此您将之前的仓库通过本系统管理后，原有仓库的人员和分组权限信息不再生效，但是他们依然存在于配置文件中<br /><br />
-            因此您可通过识别功能将原来的分组信息和路径权限配置识别并导入到本系统以使原仓库的配置信息依然生效<br /><br />
-          </Alert>
-        </TabPane> -->
-        <!-- <TabPane label="向仓库导入权限">
-          <Alert>
-            即：将本系统配置的角色和分组信息单独写入到本仓库中<br /><br />
-            由于本系统采用多仓库对应一个配置文件的形式，而不是传统的一个仓库对应一个配置文件的形式<br /><br />
-            因此本操作适合于您不再使用本系统管理仓库并想回归一个仓库对应一个配置文件的形式
-          </Alert>
-        </TabPane> -->
       </Tabs>
       <div slot="footer">
         <Button type="primary" ghost @click="modalRepAdvance = false"
@@ -828,7 +820,12 @@
       </div>
     </Modal>
     <!-- 对话框-备份文件上传 -->
-    <Modal v-model="modalRepUpload" :draggable="true" title="仓库备份文件上传">
+    <Modal
+      v-model="modalRepUpload"
+      :draggable="true"
+      title="仓库备份文件上传"
+      @on-visible-change="ChangeModalVisible"
+    >
       <Form :label-width="80">
         <FormItem label="上传文件">
           <Button
@@ -857,7 +854,7 @@
           <span style="color: red">{{ file.desc }}</span>
         </FormItem>
         <FormItem label="分片大小">
-          <span style="color: #2d8cf0">{{ file.sliceSize }} MB</span>
+          <span style="color: #2d8cf0">{{ file.chunkSize }} MB</span>
         </FormItem>
         <FormItem label="剩余时间">
           <span style="color: #2d8cf0">{{ file.left }}</span></FormItem
@@ -1119,7 +1116,9 @@ export default {
         //文件上传功能开启状态
         on: true,
         // 分片上传大小 MB
-        sliceSize: 1,
+        chunkSize: 1,
+        // 分片总数
+        chunkCount: 0,
         // 分片合并后删除分片
         deleteOnMerge: 1,
         //文件上传进度条
@@ -1434,6 +1433,12 @@ export default {
     /**
      * 退出文件上传对话框
      */
+    ChangeModalVisible(value) {
+      if (!value) {
+        this.modalRepUpload = false;
+        this.file.stop = true;
+      }
+    },
     ClickModalRepLoad() {
       this.modalRepUpload = false;
       this.file.stop = true;
@@ -1925,167 +1930,116 @@ export default {
     },
     //文件上传
     ModalUploadBackup() {
-      var that = this;
-
-      let myfile = document.getElementById("myfile");
-
       //重置进度条
-      that.file.percent = 0;
-      //展示对话框
-      that.modalRepUpload = true;
+      this.file.percent = 0;
+      this.file.current = 0;
+      //重置允许上传
+      this.file.stop = false;
 
-      //定义事件
-      myfile.onchange = function () {
+      this.modalRepUpload = true;
+      myfile.onchange = () => {
         //重置进度条
-        that.file.percent = 0;
-        that.file.current = 0;
-        //允许上传
-        that.file.stop = false;
+        this.file.percent = 0;
+        this.file.current = 0;
+        //重置允许上传
+        this.file.stop = false;
 
-        var blobSlice =
-            File.prototype.slice ||
-            File.prototype.mozSlice ||
-            File.prototype.webkitSlice,
-          file = myfile.files[0],
-          chunkSize = 1024 * 1024 * that.file.sliceSize,
-          chunks = Math.ceil(file.size / chunkSize),
-          currentChunk = 0,
-          spark = new SparkMD5.ArrayBuffer(),
-          fileReader = new FileReader();
-
-        //总进度 = 分片 + 上传合并
-        that.file.total = chunks * 2;
-
-        //文件体积
-        that.file.size = that.FormatFileSize(file.size);
-
-        //文件名
-        that.file.name = file.name;
-
-        fileReader.onload = function (e) {
-          spark.append(e.target.result); // Append array buffer
-          currentChunk++;
-
-          if (currentChunk < chunks) {
-            if (!that.file.stop) {
-              loadNext();
-            }
-          } else {
-            that.file.md5 = spark.end();
-            // 分片的初始位置
-            var start = 0;
-            // 分片的结束位置
-            var end = chunkSize;
-            for (var i = 1; i <= chunks; i++) {
-              // 得到一个分片
-              var blob = file.slice(start, end);
-              // 调整下一个分片的起始位置
-              start = end;
-              // 调整下一个分片的结束位置
-              end = start + chunkSize;
-              if (end > file.size) {
-                // 这里对最后的一个分片结束位置进行调整
-                end = file.size;
-              }
-              //FormData对象
-              var formdata = new FormData();
-              formdata.append("file", blob);
-              formdata.append("md5", that.file.md5);
-              formdata.append("filename", file.name);
-              formdata.append("numBlobTotal", chunks);
-              formdata.append("numBlobCurrent", i);
-              formdata.append("deleteOnMerge", that.file.deleteOnMerge);
-
-              if (!that.file.stop) {
-                that
-                  .UploadBackup(formdata)
-                  .then(function (response) {
-                    var result = response.data;
-                    if (result.status == 1) {
-                      if (
-                        result.data.completeCount ==
-                        that.file.total / 2 - 1
-                      ) {
-                        that.file.desc = "分片合并中";
-                      } else if (
-                        result.data.completeCount ==
-                        that.file.total / 2
-                      ) {
-                        that.file.desc = "分片合并完成";
-                      } else {
-                        that.file.desc = "分片上传中";
-                      }
-                      if (result.data.complete) {
-                        //进度条百分比
-                        that.file.percent = 100;
-                        //剩余时间
-                        var formateTime = that.FormatTime(0);
-                        that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
-                        that.$Message.success(result.message);
-                        that.GetBackupList();
-                        that.file.stop = true;
-                      } else {
-                        //进度条百分比
-                        that.file.current++;
-                        that.file.percent = Math.trunc(
-                          (that.file.current / that.file.total) * 100
-                        );
-                        //剩余时间
-                        var formateTime = that.FormatTime(
-                          that.file.total - that.file.current
-                        );
-                        that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
-                      }
-                    } else {
-                      that.file.stop = true;
-                      that.$Message.error({
-                        content: result.message,
-                        duration: 2,
-                      });
-                    }
-                  })
-                  .catch(function (error) {
-                    that.file.stop = true;
-                    console.log(error);
-                    that.$Message.error("出错了 请联系管理员！");
-                  });
-              }
-              if (that.file.stop) {
-                break;
-              }
-            }
-          }
-        };
-
-        fileReader.onerror = function () {
-          console.warn("oops, something went wrong.");
-        };
-
-        function loadNext() {
-          var start = currentChunk * chunkSize,
-            end =
-              start + chunkSize >= file.size ? file.size : start + chunkSize;
-
-          fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
-
-          //进度条百分比
-          that.file.current++;
-          that.file.percent = Math.trunc(
-            (that.file.current / that.file.total) * 100
-          );
-          //剩余时间
-          var formateTime = that.FormatTime(
-            that.file.total - that.file.current
-          );
-          that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
-          //当前状态
-          that.file.desc = `${that.file.total} 个分片md5计算中`;
-        }
-
-        loadNext();
+        let myfile = document.getElementById("myfile");
+        let file = myfile.files[0];
+        this.ChangeUpload(file);
       };
     },
-    //文件上传
+    //文件上传统筹
+    async ChangeUpload(file) {
+      var that = this;
+      //文件大小
+      const fileSize = file.size;
+      //单个分片大小 1MB
+      const chunkSize = 1024 * 1024 * 1;
+      //分片数量
+      const chunkCount = Math.ceil(fileSize / chunkSize);
+      //总进度 = 分片 + 上传合并
+      that.file.total = chunkCount * 2;
+      // 分片总数
+      that.file.chunkCount = chunkCount;
+      //文件体积
+      that.file.size = that.FormatFileSize(fileSize);
+      //文件名
+      that.file.name = file.name;
+      //获取文件md5
+      const md5 = await that.GetFileMd5(file, chunkSize);
+      console.log(md5);
+      //循环调用上传
+      for (var i = 1; i <= chunkCount; i++) {
+        //分片开始位置
+        let start = i * chunkSize;
+        //分片结束位置
+        let end = Math.min(fileSize, start + chunkSize);
+        let _chunkFile = file.slice(start, end);
+        let formdata = new FormData();
+        formdata.append("file", _chunkFile);
+        formdata.append("md5", md5);
+        formdata.append("filename", file.name);
+        formdata.append("numBlobTotal", chunkCount);
+        formdata.append("numBlobCurrent", i);
+        formdata.append("deleteOnMerge", that.file.deleteOnMerge);
+
+        if (!that.file.stop) {
+          // 通过await实现顺序上传
+          await that
+            .UploadBackup(formdata)
+            .then(function (response) {
+              var result = response.data;
+              if (result.status == 1) {
+                if (result.data.completeCount == that.file.total / 2 - 1) {
+                  that.file.desc = "分片合并中";
+                } else if (result.data.completeCount == that.file.total / 2) {
+                  that.file.desc = "分片合并完成（上传成功）";
+                } else {
+                  that.file.desc = "分片上传中";
+                }
+                if (result.data.complete) {
+                  //进度条百分比
+                  that.file.percent = 100;
+                  //剩余时间
+                  var formateTime = that.FormatTime(0);
+                  that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+                  that.$Message.success(result.message);
+                  that.GetBackupList();
+                  that.file.stop = true;
+                } else {
+                  //进度条百分比
+                  that.file.current++;
+                  that.file.percent = Math.trunc(
+                    (that.file.current / that.file.total) * 100
+                  );
+                  //剩余时间
+                  var formateTime = that.FormatTime(
+                    that.file.total - that.file.current
+                  );
+                  that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+                }
+              } else {
+                that.file.stop = true;
+                that.$Message.error({
+                  content: result.message,
+                  duration: 2,
+                });
+              }
+            })
+            .catch(function (error) {
+              that.file.stop = true;
+              console.log(error);
+              that.$Message.error("出错了 请联系管理员！");
+            });
+        }
+
+        if (that.file.stop) {
+          break;
+        }
+      }
+    },
+    //分片上传接口
     UploadBackup(data) {
       var that = this;
       var config = {
@@ -2100,6 +2054,62 @@ export default {
           .catch(function (error) {
             reject(error);
           });
+      });
+    },
+    //计算md5
+    GetFileMd5(file, chunkSize) {
+      let that = this;
+      return new Promise((resolve, reject) => {
+        let blobSlice =
+          File.prototype.slice ||
+          File.prototype.mozSlice ||
+          File.prototype.webkitSlice;
+        let chunks = Math.ceil(file.size / chunkSize);
+        let currentChunk = 0;
+        let spark = new SparkMD5.ArrayBuffer();
+        let fileReader = new FileReader();
+
+        fileReader.onload = function (e) {
+          spark.append(e.target.result);
+          currentChunk++;
+          //开关控制
+          if (that.file.stop) {
+            return;
+          }
+          if (currentChunk < chunks) {
+            loadNext();
+          } else {
+            // 返回十六进制结果
+            let md5 = spark.end();
+            resolve(md5);
+          }
+        };
+
+        fileReader.onerror = function (e) {
+          reject(e);
+        };
+
+        function loadNext() {
+          let start = currentChunk * chunkSize;
+          let end = start + chunkSize;
+          end > file.size && (end = file.size);
+          fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+
+          //进度条百分比
+          that.file.current++;
+          that.file.percent = Math.trunc(
+            (that.file.current / that.file.total) * 100
+          );
+          //剩余时间
+          var formateTime = that.FormatTime(
+            that.file.total - that.file.current
+          );
+          that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+          //当前状态
+          that.file.desc = `${that.file.chunkCount} 个分片md5计算中`;
+        }
+
+        loadNext();
       });
     },
     /**
@@ -2420,7 +2430,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.file.on = result.data.upload;
-            that.file.sliceSize = result.data.sliceSize;
+            that.file.chunkSize = result.data.chunkSize;
             that.file.deleteOnMerge = result.data.deleteOnMerge;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });

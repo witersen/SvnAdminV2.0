@@ -80,7 +80,7 @@
         <TabPane label="路径信息" name="2">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert
-              >可在命令行模式下执行 server/insta.php 进行目录更换操作
+              >可在命令行模式下执行 server/install.php 进行目录更换操作
             </Alert>
             <Form :label-width="160" label-position="left">
               <FormItem

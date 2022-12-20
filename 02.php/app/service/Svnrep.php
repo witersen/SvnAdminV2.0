@@ -1914,7 +1914,7 @@ class Svnrep extends Base
             //文件上传功能开启状态
             'upload' => $upload,
             //分片上传大小
-            'sliceSize' => 1,
+            'chunkSize' => 1,
             //分片合并后删除分片
             'deleteOnMerge' => 1,
         ]);
