@@ -205,6 +205,8 @@ class Statistics extends Base
         $aliaseCount = $this->SVNAdmin->GetAliaseInfo($this->authzContent);
         if (is_numeric($aliaseCount)) {
             $aliaseCount = -1;
+        } else {
+            $aliaseCount = count($aliaseCount);
         }
 
         $backupCount = 0;
@@ -216,7 +218,6 @@ class Statistics extends Base
                 }
             }
         }
-
 
         return message(200, 1, '成功', [
             'os' => trim($os),
@@ -233,7 +234,7 @@ class Statistics extends Base
             'subadminCount' => $this->database->count('subadmin'),
             'userCount' => $this->database->count('svn_users'),
             'groupCount' => $this->database->count('svn_groups'),
-            'aliaseCount' => count($aliaseCount),
+            'aliaseCount' => $aliaseCount,
         ]);
     }
 }
