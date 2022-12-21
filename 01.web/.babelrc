@@ -1,6 +1,16 @@
 {
   "presets": [
-    ["es2015", { "modules": false }]
+    [
+      "es2015",
+      {
+        "modules": false
+      }
+    ]
   ],
-  "plugins": ["transform-object-rest-spread"]
+  "plugins": [
+    "transform-runtime",
+    "babel-plugin-transform-regenerator", 
+    "babel-plugin-transform-es2015-modules-commonjs",
+    "transform-object-rest-spread"
+  ]
 }
