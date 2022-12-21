@@ -11,14 +11,17 @@ import 'view-design/dist/styles/iview.css';
  * 通过 Vue.prototype.$name 的方式 使$name在所有的Vue实例中可用
  */
 //安装babel-polyfill进行ES6转ES5来兼容ie8+
-import "babel-polyfill"
+import "babel-polyfill";
 
 //http请求 -> axios
 import axios from 'axios';
 Vue.prototype.$axios = axios;
 
-import VueClipboard from 'vue-clipboard2'
-Vue.use(VueClipboard)
+import VueClipboard from 'vue-clipboard2';
+Vue.use(VueClipboard);
+
+import JsonExcel from 'vue-json-excel';
+Vue.component('downloadExcel', JsonExcel);
 
 Vue.use(VueRouter);
 Vue.use(ViewUI);

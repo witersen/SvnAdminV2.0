@@ -18,13 +18,17 @@
             @click="DelLogs"
             >清空日志</Button
           >
-          <Button
-            icon="ios-cloud-download-outline"
-            type="success"
-            ghost
-            @click="ExportLog"
-            >导出日志</Button
+          <download-excel
+            style="display: inline-block"
+            class="export-excel-wrapper"
+            :data="tableDataLog"
+            :fields="excelLogFields"
+            name="SVNAdmin2-系统日志"
           >
+            <Button icon="ios-cloud-download-outline" type="success" ghost
+              >导出日志</Button
+            >
+          </download-excel>
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
           <Input
@@ -71,6 +75,16 @@ export default {
       pageCurrentLog: 1,
       pageSizeLog: 10,
       totalLog: 0,
+
+      /**
+       * 表格
+       */
+      excelLogFields: {
+        操作人: "log_add_user_name",
+        日志类型: "log_type_name",
+        详细信息: "log_content",
+        操作时间: "log_add_time",
+      },
 
       /**
        * 搜索关键词
@@ -172,7 +186,7 @@ export default {
             that.tableDataLog = result.data.data;
             that.totalLog = result.data.total;
           } else {
-            that.$Message.error({content: result.message,duration: 2,});
+            that.$Message.error({ content: result.message, duration: 2 });
           }
         })
         .catch(function (error) {
@@ -201,7 +215,7 @@ export default {
                 that.$Message.success(result.message);
                 that.GetLogList();
               } else {
-                that.$Message.error({content: result.message,duration: 2,});
+                that.$Message.error({ content: result.message, duration: 2 });
               }
             })
             .catch(function (error) {
@@ -211,45 +225,6 @@ export default {
             });
         },
       });
-    },
-    /**
-     * 导出日志
-     */
-    ExportLog() {
-      require.ensure([], () => {
-        //引入Export2Excel
-        const {
-          export_json_to_excel,
-        } = require("@/libs/export/Export2Excel");
-
-        //这个是表头名称 可以是iveiw表格中表头属性的title的数组
-        const tHeader = ["序号", "操作人", "日志类型", "详细信息", "操作时间"];
-
-        //与表格数据配合 可以是iview表格中的key的数组
-        const filterVal = [
-          "index",
-          "log_add_user_name",
-          "log_type_name",
-          "log_content",
-          "log_add_time",
-        ];
-
-        //表格数据，iview中表单数据也是这种格式
-        var list = this.tableDataLog;
-
-        //处理下标
-        for (const i in list) {
-          list[i].index = parseInt(i) + 1;
-        }
-
-        const data = this.FormatJson(filterVal, list);
-
-        //列表excel  这个是导出表单的名称
-        export_json_to_excel(tHeader, data, "logs-" + new Date());
-      });
-    },
-    FormatJson(filterVal, jsonData) {
-      return jsonData.map((v) => filterVal.map((j) => v[j]));
     },
   },
 };

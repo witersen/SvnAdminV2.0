@@ -2,7 +2,7 @@ let util = {
 
 };
 util.title = function (title) {
-    title = title ? title + ' - SVNAdmin' : 'SVNAdmin';
+    title = title ? title + ' - SVNAdmin2' : 'SVNAdmin2';
     window.document.title = title;
 };
 
