@@ -51,7 +51,6 @@ module.exports = {
                 // exclude: /node_modules/,
                 include: [
                     resolve('src'),
-                    resolve('node_modules/webpack-dev-server/client'),
                     resolve('node_modules/vue-json-excel')
                 ]
             },
