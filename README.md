@@ -106,6 +106,7 @@ chown -R apache:apache /home/svnadmin
   - php update/index.php
   - 退出容器
   - 停止旧的容器，拉取新容器，挂载本地的数据目录到新版本的容器即可
+- 2.4.3 及之前的用户升级到 2.4.x 要注意目录挂载多了 conf.d sasl2 升级之前要提前复制出来
 
 
 ### 4. 源码安装
