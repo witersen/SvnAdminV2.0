@@ -45,10 +45,15 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: 'babel-loader',
-                options:{
-                    presets:["env"]
+                options: {
+                    presets: ["env"]
                 },
-                exclude: /node_modules/
+                // exclude: /node_modules/,
+                include: [
+                    resolve('src'),
+                    resolve('node_modules/webpack-dev-server/client'),
+                    resolve('node_modules/vue-json-excel')
+                ]
             },
             {
                 test: /\.css$/,
