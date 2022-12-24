@@ -89,7 +89,7 @@ class SVNAdmin
     /**
      * @var string 匹配 %skey=[rw] 形式
      */
-    private $reg_4 = "/^[ \t]*%s([A-Za-z0-9-_.]+)[ \t]*=[ \t]*([rw]%s)[ \t]*$/m";
+    private $reg_4 = "/^[ \t]*%s([A-Za-z0-9-_.一-龥]+)[ \t]*=[ \t]*([rw]%s)[ \t]*$/m";
 
     /**
      * @var string 匹配 %s=value 形式
@@ -927,7 +927,7 @@ class SVNAdmin
             return preg_last_error();
         }
         if (array_key_exists(0, $authzContentPreg[0])) {
-            preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.]+'), $authzContentPreg[1][0], $resultPreg);
+            preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.一-龥]+'), $authzContentPreg[1][0], $resultPreg);
             if (preg_last_error() != 0) {
                 return preg_last_error();
             }
@@ -1032,7 +1032,7 @@ class SVNAdmin
             return preg_last_error();
         }
         if (array_key_exists(0, $authzContentPreg2[0])) {
-            preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.]+'), $authzContentPreg2[1][0], $resultPreg2);
+            preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.一-龥]+'), $authzContentPreg2[1][0], $resultPreg2);
             if (preg_last_error() != 0) {
                 return preg_last_error();
             }
@@ -1093,7 +1093,7 @@ class SVNAdmin
                 return $groupName == '' ? [] : 720;
             } else {
                 $list = [];
-                preg_match_all(sprintf($this->reg_5, $groupName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($groupName)), $authzContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->reg_5, $groupName == '' ? '[A-Za-z0-9-_.一-龥]+' : preg_quote($groupName)), $authzContentPreg[1][0], $resultPreg);
                 if (preg_last_error() != 0) {
                     return preg_last_error();
                 }
@@ -1188,7 +1188,7 @@ class SVNAdmin
             if (empty($temp1)) {
                 return [];
             } else {
-                preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.]+'), $authzContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->reg_5, '[A-Za-z0-9-_.一-龥]+'), $authzContentPreg[1][0], $resultPreg);
                 if (preg_last_error() != 0) {
                     return preg_last_error();
                 }
@@ -1504,12 +1504,12 @@ class SVNAdmin
         //非捕获分组减少开销
         $pregArray = [
             '(?:' . preg_quote($userName) . ')',
-            '(?:~[A-Za-z0-9-_.]+)',
+            '(?:~[A-Za-z0-9-_.一-龥]+)',
             '(?:\*)',
             '(?:~\$authenticated)',
             '(?:\$anonymous)',
             '(?:\$authenticated)',
-            '(?:~&[A-Za-z0-9-_.]+)',
+            '(?:~&[A-Za-z0-9-_.一-龥]+)',
         ];
 
         //获取 user1 所在的所有分组列表
@@ -1582,7 +1582,7 @@ class SVNAdmin
             if (empty($temp1)) {
                 return preg_replace(sprintf($this->reg_2, 'users'), trim($passwdContentPreg[0][0]) . "\n$userName=$userPass\n", $passwdContent);
             } else {
-                preg_match_all(sprintf($this->reg_5, '(' . $this->reg_1 . ')*[A-Za-z0-9-_.]+'), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->reg_5, '(' . $this->reg_1 . ')*[A-Za-z0-9-_.一-龥]+'), $passwdContentPreg[1][0], $resultPreg);
                 if (preg_last_error() != 0) {
                     return preg_last_error();
                 }
@@ -1627,7 +1627,7 @@ class SVNAdmin
                 return 710;
             } else {
                 //检查目标用户是否已经存在
-                preg_match_all(sprintf($this->reg_5, '(' . $this->reg_1 . ')*[A-Za-z0-9-_.]+'), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->reg_5, '(' . $this->reg_1 . ')*[A-Za-z0-9-_.一-龥]+'), $passwdContentPreg[1][0], $resultPreg);
                 if (preg_last_error() != 0) {
                     return preg_last_error();
                 }
@@ -1714,7 +1714,7 @@ class SVNAdmin
             if (empty($temp1)) {
                 return $userName == '' ? [] : 710;
             } else {
-                preg_match_all(sprintf($this->reg_5, "($this->reg_1)*" . ($userName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($userName))), $passwdContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->reg_5, "($this->reg_1)*" . ($userName == '' ? '[A-Za-z0-9-_.一-龥]+' : preg_quote($userName))), $passwdContentPreg[1][0], $resultPreg);
                 if (preg_last_error() != 0) {
                     return preg_last_error();
                 }
@@ -1759,7 +1759,7 @@ class SVNAdmin
         if (empty($passwdContent)) {
             return $userName == '' ? [] : 710;
         } else {
-            preg_match_all(sprintf($this->reg_8, "($this->reg_1)*" . ($userName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($userName))), $passwdContent, $resultPreg);
+            preg_match_all(sprintf($this->reg_8, "($this->reg_1)*" . ($userName == '' ? '[A-Za-z0-9-_.一-龥]+' : preg_quote($userName))), $passwdContent, $resultPreg);
             if (preg_last_error() != 0) {
                 return preg_last_error();
             }
@@ -1993,7 +1993,7 @@ class SVNAdmin
             if (empty($temp1)) {
                 return $aliaseName == '' ? [] : 730;
             } else {
-                preg_match_all(sprintf($this->reg_5, ($aliaseName == '' ? '[A-Za-z0-9-_.]+' : preg_quote($aliaseName))), $authzContentPreg[1][0], $resultPreg);
+                preg_match_all(sprintf($this->reg_5, ($aliaseName == '' ? '[A-Za-z0-9-_.一-龥]+' : preg_quote($aliaseName))), $authzContentPreg[1][0], $resultPreg);
                 if (preg_last_error() != 0) {
                     return preg_last_error();
                 }
