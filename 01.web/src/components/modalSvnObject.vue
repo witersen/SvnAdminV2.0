@@ -743,7 +743,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=GetUserList&t=web", data)
+        .post("api.php?c=Svnuser&a=GetUserList&t=web", data)
         .then(function (response) {
           that.loadingAllUsers = false;
           var result = response.data;
@@ -777,7 +777,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=GetGroupList&t=web", data)
+        .post("api.php?c=Svngroup&a=GetGroupList&t=web", data)
         .then(function (response) {
           that.loadingAllGroups = false;
           var result = response.data;
@@ -808,7 +808,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svnaliase&a=GetAliaseList&t=web", data)
+        .post("api.php?c=Svnaliase&a=GetAliaseList&t=web", data)
         .then(function (response) {
           that.loadingAllAliases = false;
           var result = response.data;
@@ -851,7 +851,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=GetGroupMember&t=web", data)
+        .post("api.php?c=Svngroup&a=GetGroupMember&t=web", data)
         .then(function (response) {
           var result = response.data;
           that.loadingGetGroupMember = false;

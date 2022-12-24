@@ -483,7 +483,7 @@ export default {
         page: page,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=GetGroupList&t=web", data)
+        .post("api.php?c=Svngroup&a=GetGroupList&t=web", data)
         .then(function (response) {
           that.loadingGroup = false;
           var result = response.data;
@@ -511,7 +511,7 @@ export default {
         svn_group_note: that.tableGroupData[index].svn_group_note,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=UpdGroupNote&t=web", data)
+        .post("api.php?c=Svngroup&a=UpdGroupNote&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -539,7 +539,7 @@ export default {
         svn_group_note: that.formCreateGroup.svn_group_note,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=CreateGroup&t=web", data)
+        .post("api.php?c=Svngroup&a=CreateGroup&t=web", data)
         .then(function (response) {
           that.loadingCreateGroup = false;
           var result = response.data;
@@ -570,7 +570,7 @@ export default {
         passwdContent: that.tempPasswdContent,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=ScanPasswd&t=web", data)
+        .post("api.php?c=Svnuser&a=ScanPasswd&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -607,7 +607,7 @@ export default {
         groupNameNew: that.formEditGroupName.groupNameNew,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=UpdGroupName&t=web", data)
+        .post("api.php?c=Svngroup&a=UpdGroupName&t=web", data)
         .then(function (response) {
           that.loadingEditGroupName = false;
           var result = response.data;
@@ -728,7 +728,7 @@ export default {
             svn_group_name: svn_group_name,
           };
           that.$axios
-            .post("/api.php?c=Svngroup&a=DelGroup&t=web", data)
+            .post("api.php?c=Svngroup&a=DelGroup&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
@@ -770,7 +770,7 @@ export default {
         svn_group_name: that.currentSelectGroupName,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=GetGroupMember&t=web", data)
+        .post("api.php?c=Svngroup&a=GetGroupMember&t=web", data)
         .then(function (response) {
           var result = response.data;
           that.loadingGetGroupMember = false;
@@ -799,7 +799,7 @@ export default {
         actionType: actionType,
       };
       that.$axios
-        .post("/api.php?c=Svngroup&a=UpdGroupMember&t=web", data)
+        .post("api.php?c=Svngroup&a=UpdGroupMember&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

@@ -153,7 +153,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Common&a=Logout&t=web", data)
+        .post("api.php?c=Common&a=Logout&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -238,7 +238,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=CheckUpdate&t=web", data)
+        .post("api.php?c=Setting&a=CheckUpdate&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

@@ -310,7 +310,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Statistics&a=GetDiskInfo&t=web", data)
+        .post("api.php?c=Statistics&a=GetDiskInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -332,7 +332,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Statistics&a=GetLoadInfo&t=web", data)
+        .post("api.php?c=Statistics&a=GetLoadInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -354,7 +354,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Statistics&a=GetStatisticsInfo&t=web", data)
+        .post("api.php?c=Statistics&a=GetStatisticsInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

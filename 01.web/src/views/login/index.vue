@@ -163,7 +163,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetVerifyOption&t=web", data)
+        .post("api.php?c=Setting&a=GetVerifyOption&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -191,7 +191,7 @@ export default {
       that.loadingGetVerifyCode = "loading......";
       var data = {};
       that.$axios
-        .post("/api.php?c=Common&a=GetVerifyCode&t=web", data)
+        .post("api.php?c=Common&a=GetVerifyCode&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -218,7 +218,7 @@ export default {
         code: that.formUserLogin.code,
       };
       that.$axios
-        .post("/api.php?c=Common&a=Login&t=web", data)
+        .post("api.php?c=Common&a=Login&t=web", data)
         .then(function (response) {
           that.loadingLogin = false;
           var result = response.data;

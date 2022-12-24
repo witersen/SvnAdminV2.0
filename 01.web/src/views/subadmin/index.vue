@@ -389,7 +389,7 @@ export default {
         sortType: that.sortTypeGetSubadminList,
       };
       that.$axios
-        .post("/api.php?c=Subadmin&a=GetSubadminList&t=web", data)
+        .post("api.php?c=Subadmin&a=GetSubadminList&t=web", data)
         .then(function (response) {
           that.loadingSubadmin = false;
           var result = response.data;
@@ -417,7 +417,7 @@ export default {
         status: status,
       };
       that.$axios
-        .post("/api.php?c=Subadmin&a=UpdSubadminStatus&t=web", data)
+        .post("api.php?c=Subadmin&a=UpdSubadminStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
           that.GetSubadminList();
@@ -442,7 +442,7 @@ export default {
         subadmin_note: that.tableDataSubadmin[index].subadmin_note,
       };
       that.$axios
-        .post("/api.php?c=Subadmin&a=UpdSubadminNote&t=web", data)
+        .post("api.php?c=Subadmin&a=UpdSubadminNote&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -481,7 +481,7 @@ export default {
         subadmin_note: that.formCreateSubadmin.subadmin_note,
       };
       that.$axios
-        .post("/api.php?c=Subadmin&a=CreateSubadmin&t=web", data)
+        .post("api.php?c=Subadmin&a=CreateSubadmin&t=web", data)
         .then(function (response) {
           that.loadingCreateSubadmin = false;
           var result = response.data;
@@ -518,7 +518,7 @@ export default {
         subadmin_password: that.formUpdSubadmin.subadmin_password,
       };
       that.$axios
-        .post("/api.php?c=Subadmin&a=UpdSubadminPass&t=web", data)
+        .post("api.php?c=Subadmin&a=UpdSubadminPass&t=web", data)
         .then(function (response) {
           that.loadingUpdSubadminPass = false;
           var result = response.data;
@@ -638,7 +638,7 @@ export default {
             subadmin_id: subadmin_id,
           };
           that.$axios
-            .post("/api.php?c=Subadmin&a=DelSubadmin&t=web", data)
+            .post("api.php?c=Subadmin&a=DelSubadmin&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
@@ -674,7 +674,7 @@ export default {
         subadmin_id: that.currentSubadminId,
       };
       that.$axios
-        .post("/api.php?c=Subadmin&a=GetSubadminTree&t=web", data)
+        .post("api.php?c=Subadmin&a=GetSubadminTree&t=web", data)
         .then(function (response) {
           that.loadingPriTree = false;
           var result = response.data;
@@ -703,7 +703,7 @@ export default {
         subadmin_tree: that.dataPriTree,
       };
       that.$axios
-        .post("/api.php?c=Subadmin&a=UpdSubadminTree&t=web", data)
+        .post("api.php?c=Subadmin&a=UpdSubadminTree&t=web", data)
         .then(function (response) {
           that.loadingUpdSubadminTree = false;
           var result = response.data;

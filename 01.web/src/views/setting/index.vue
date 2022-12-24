@@ -1821,7 +1821,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetSvnInfo&t=web", data)
+        .post("api.php?c=Setting&a=GetSvnInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1866,7 +1866,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetMailInfo&t=web", data)
+        .post("api.php?c=Setting&a=GetMailInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1913,7 +1913,7 @@ export default {
         timeout: that.formMailSmtp.timeout,
       };
       that.$axios
-        .post("/api.php?c=Setting&a=UpdMailInfo&t=web", data)
+        .post("api.php?c=Setting&a=UpdMailInfo&t=web", data)
         .then(function (response) {
           that.loadingEditEmail = false;
           var result = response.data;
@@ -1949,7 +1949,7 @@ export default {
         timeout: that.formMailSmtp.timeout,
       };
       that.$axios
-        .post("/api.php?c=Setting&a=SendMailTest&t=web", data)
+        .post("api.php?c=Setting&a=SendMailTest&t=web", data)
         .then(function (response) {
           that.loadingSendTest = false;
           var result = response.data;
@@ -1972,7 +1972,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetDirInfo&t=web", data)
+        .post("api.php?c=Setting&a=GetDirInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1993,7 +1993,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetMailPushInfo&t=web", data)
+        .post("api.php?c=Setting&a=GetMailPushInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -2014,7 +2014,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetSafeInfo&t=web", data)
+        .post("api.php?c=Setting&a=GetSafeInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -2073,7 +2073,7 @@ export default {
         listPush: that.listPush,
       };
       that.$axios
-        .post("/api.php?c=Setting&a=UpdPushInfo&t=web", data)
+        .post("api.php?c=Setting&a=UpdPushInfo&t=web", data)
         .then(function (response) {
           that.loadingEditPush = false;
           var result = response.data;
@@ -2100,7 +2100,7 @@ export default {
         listSafe: that.listSafe,
       };
       that.$axios
-        .post("/api.php?c=Setting&a=UpdSafeInfo&t=web", data)
+        .post("api.php?c=Setting&a=UpdSafeInfo&t=web", data)
         .then(function (response) {
           that.loadingEditSafe = false;
           var result = response.data;
@@ -2129,7 +2129,7 @@ export default {
           that.loadingSvnserveStart = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSvnserveStatusStart&t=web", data)
+            .post("api.php?c=Setting&a=UpdSvnserveStatusStart&t=web", data)
             .then(function (response) {
               that.loadingSvnserveStart = false;
               var result = response.data;
@@ -2160,7 +2160,7 @@ export default {
           that.loadingSvnserveStop = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSvnserveStatusStop&t=web", data)
+            .post("api.php?c=Setting&a=UpdSvnserveStatusStop&t=web", data)
             .then(function (response) {
               that.loadingSvnserveStop = false;
               var result = response.data;
@@ -2194,7 +2194,7 @@ export default {
             listen_port: that.tempSvnservePort,
           };
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSvnservePort&t=web", data)
+            .post("api.php?c=Setting&a=UpdSvnservePort&t=web", data)
             .then(function (response) {
               that.loadingUpdSvnservePort = false;
               var result = response.data;
@@ -2229,7 +2229,7 @@ export default {
             listen_host: that.tempSvnserveHost,
           };
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSvnserveHost&t=web", data)
+            .post("api.php?c=Setting&a=UpdSvnserveHost&t=web", data)
             .then(function (response) {
               that.loadingUpdSvnserveHost = false;
               var result = response.data;
@@ -2254,7 +2254,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetDcokerHostInfo&t=web", data)
+        .post("api.php?c=Setting&a=GetDcokerHostInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -2276,7 +2276,7 @@ export default {
         dockerHost: that.formDockerHost,
       };
       that.$axios
-        .post("/api.php?c=Setting&a=UpdDockerHostInfo&t=web", data)
+        .post("api.php?c=Setting&a=UpdDockerHostInfo&t=web", data)
         .then(function (response) {
           that.loadingUpdDockerHostInfo = false;
           var result = response.data;
@@ -2301,7 +2301,7 @@ export default {
       that.loadingCheckUpdate = true;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=CheckUpdate&t=web", data)
+        .post("api.php?c=Setting&a=CheckUpdate&t=web", data)
         .then(function (response) {
           that.loadingCheckUpdate = false;
           var result = response.data;
@@ -2338,7 +2338,7 @@ export default {
         data_source: source == "svn" ? that.formSvn.ldap : that.formHttp.ldap,
       };
       that.$axios
-        .post("/api.php?c=Setting&a=LdapTest&t=web", data)
+        .post("api.php?c=Setting&a=LdapTest&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (type == "connection") {
@@ -2391,7 +2391,7 @@ export default {
             data_source: that.formSvn,
           };
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSvnUsersource&t=web", data)
+            .post("api.php?c=Setting&a=UpdSvnUsersource&t=web", data)
             .then(function (response) {
               var result = response.data;
               that.loadingUpdSvnUsersource = false;
@@ -2423,7 +2423,7 @@ export default {
             data_source: that.formHttp,
           };
           that.$axios
-            .post("/api.php?c=Setting&a=UpdHttpUsersource&t=web", data)
+            .post("api.php?c=Setting&a=UpdHttpUsersource&t=web", data)
             .then(function (response) {
               var result = response.data;
               that.loadingUpdHttpUsersource = false;
@@ -2466,7 +2466,7 @@ export default {
           that.loadingUpdSaslStatusStart = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSaslStatusStart&t=web", data)
+            .post("api.php?c=Setting&a=UpdSaslStatusStart&t=web", data)
             .then(function (response) {
               that.loadingUpdSaslStatusStart = false;
               var result = response.data;
@@ -2497,7 +2497,7 @@ export default {
           that.loadingUpdSaslStatusStop = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSaslStatusStop&t=web", data)
+            .post("api.php?c=Setting&a=UpdSaslStatusStop&t=web", data)
             .then(function (response) {
               that.loadingUpdSaslStatusStop = false;
               var result = response.data;
@@ -2523,7 +2523,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Setting&a=GetApacheInfo&t=web", data)
+        .post("api.php?c=Setting&a=GetApacheInfo&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -2560,7 +2560,7 @@ export default {
           that.loadingUpdSubversionEnable = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSubversionEnable&t=web", data)
+            .post("api.php?c=Setting&a=UpdSubversionEnable&t=web", data)
             .then(function (response) {
               var result = response.data;
               that.loadingUpdSubversionEnable = false;
@@ -2599,7 +2599,7 @@ export default {
           that.loadingUpdSvnEnable = true;
           var data = {};
           that.$axios
-            .post("/api.php?c=Setting&a=UpdSvnEnable&t=web", data)
+            .post("api.php?c=Setting&a=UpdSvnEnable&t=web", data)
             .then(function (response) {
               var result = response.data;
               that.loadingUpdSvnEnable = false;
@@ -2627,7 +2627,7 @@ export default {
         port: that.tempPort,
       };
       that.$axios
-        .post("/api.php?c=Setting&a=UpdPort&t=web", data)
+        .post("api.php?c=Setting&a=UpdPort&t=web", data)
         .then(function (response) {
           var result = response.data;
           that.loadingUpdPort = false;
@@ -2652,7 +2652,7 @@ export default {
         port: that.tempHttpPort,
       };
       that.$axios
-        .post("/api.php?c=Setting&a=UpdHttpPort&t=web", data)
+        .post("api.php?c=Setting&a=UpdHttpPort&t=web", data)
         .then(function (response) {
           that.loadingUpdHttpPort = false;
           var result = response.data;
@@ -2681,7 +2681,7 @@ export default {
             prefix: that.tempHttpPrefix,
           };
           that.$axios
-            .post("/api.php?c=Setting&a=UpdHttpPrefix&t=web", data)
+            .post("api.php?c=Setting&a=UpdHttpPrefix&t=web", data)
             .then(function (response) {
               var result = response.data;
               that.loadingUpdHttpPrefix = false;

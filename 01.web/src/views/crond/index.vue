@@ -625,7 +625,7 @@ export default {
         status: status,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=UpdCrontabStatus&t=web", data)
+        .post("api.php?c=Crond&a=UpdCrontabStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
           that.GetCrontabList();
@@ -647,7 +647,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Crond&a=GetRepList&t=web", data)
+        .post("api.php?c=Crond&a=GetRepList&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -677,7 +677,7 @@ export default {
         sortType: that.sortTypeGetCrondList,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=GetCrontabList&t=web", data)
+        .post("api.php?c=Crond&a=GetCrontabList&t=web", data)
         .then(function (response) {
           that.loadingGetCrondList = false;
           var result = response.data;
@@ -761,7 +761,7 @@ export default {
         cycle: that.cycle,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=CreateCrontab&t=web", data)
+        .post("api.php?c=Crond&a=CreateCrontab&t=web", data)
         .then(function (response) {
           that.loadingAddCrond = false;
           var result = response.data;
@@ -794,7 +794,7 @@ export default {
         crond_id: crond_id,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=GetCrontabLog&t=web", data)
+        .post("api.php?c=Crond&a=GetCrontabLog&t=web", data)
         .then(function (response) {
           that.laodingGetLog = false;
           var result = response.data;
@@ -827,7 +827,7 @@ export default {
         cycle: that.cycle,
       };
       that.$axios
-        .post("/api.php?c=Crond&a=UpdCrontab&t=web", data)
+        .post("api.php?c=Crond&a=UpdCrontab&t=web", data)
         .then(function (response) {
           that.loadingUpdCrond = false;
           var result = response.data;
@@ -858,7 +858,7 @@ export default {
             crond_id: crond_id,
           };
           that.$axios
-            .post("/api.php?c=Crond&a=DelCrontab&t=web", data)
+            .post("api.php?c=Crond&a=DelCrontab&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
@@ -889,7 +889,7 @@ export default {
             crond_id: crond_id,
           };
           that.$axios
-            .post("/api.php?c=Crond&a=TriggerCrontab&t=web", data)
+            .post("api.php?c=Crond&a=TriggerCrontab&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
@@ -913,7 +913,7 @@ export default {
       var that = this;
       var data = {};
       that.$axios
-        .post("/api.php?c=Crond&a=GetCronStatus&t=web", data)
+        .post("api.php?c=Crond&a=GetCronStatus&t=web", data)
         .then(function (response) {
           that.loadingAddCrond = false;
           var result = response.data;

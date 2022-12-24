@@ -518,7 +518,7 @@ export default {
         folder_name: that.folderName,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=CreateRepFolder&t=web", data)
+        .post("api.php?c=Svnrep&a=CreateRepFolder&t=web", data)
         .then(function (response) {
           that.loadingCreateRepFolder = false;
           var result = response.data;
@@ -551,7 +551,7 @@ export default {
       };
       return new Promise(function (resolve, reject) {
         that.$axios
-          .post("/api.php?c=Svnrep&a=GetRepTree&t=web", data)
+          .post("api.php?c=Svnrep&a=GetRepTree&t=web", data)
           .then(function (response) {
             resolve(response);
           })
@@ -574,7 +574,7 @@ export default {
       };
       return new Promise(function (resolve, reject) {
         that.$axios
-          .post("/api.php?c=Svnrep&a=GetRepTree2&t=web", data)
+          .post("api.php?c=Svnrep&a=GetRepTree2&t=web", data)
           .then(function (response) {
             resolve(response);
           })
@@ -680,7 +680,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=GetRepPathAllPri&t=web", data)
+        .post("api.php?c=Svnrep&a=GetRepPathAllPri&t=web", data)
         .then(function (response) {
           that.loadingRepPathAllPri = false;
           var result = response.data;
@@ -710,7 +710,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=CreateRepPathPri&t=web", data)
+        .post("api.php?c=Svnrep&a=CreateRepPathPri&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -742,7 +742,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=UpdRepPathPri&t=web", data)
+        .post("api.php?c=Svnrep&a=UpdRepPathPri&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -770,7 +770,7 @@ export default {
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=DelRepPathPri&t=web", data)
+        .post("api.php?c=Svnrep&a=DelRepPathPri&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {

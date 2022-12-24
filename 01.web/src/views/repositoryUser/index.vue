@@ -806,7 +806,7 @@ export default {
         page: page,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=GetUserList&t=web", data)
+        .post("api.php?c=Svnuser&a=GetUserList&t=web", data)
         .then(function (response) {
           that.loadingUser = false;
           var result = response.data;
@@ -834,7 +834,7 @@ export default {
         status: status,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=UpdUserStatus&t=web", data)
+        .post("api.php?c=Svnuser&a=UpdUserStatus&t=web", data)
         .then(function (response) {
           var result = response.data;
           that.GetUserList();
@@ -859,7 +859,7 @@ export default {
         svn_user_note: that.tableDataUser[index].svn_user_note,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=UpdUserNote&t=web", data)
+        .post("api.php?c=Svnuser&a=UpdUserNote&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -898,7 +898,7 @@ export default {
         svn_user_note: that.formCreateUser.svn_user_note,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=CreateUser&t=web", data)
+        .post("api.php?c=Svnuser&a=CreateUser&t=web", data)
         .then(function (response) {
           that.loadingCreateUser = false;
           var result = response.data;
@@ -929,7 +929,7 @@ export default {
         passwd: that.tempPasswdContent,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=UserScan&t=web", data)
+        .post("api.php?c=Svnuser&a=UserScan&t=web", data)
         .then(function (response) {
           that.loadingUserScan = false;
           var result = response.data;
@@ -962,7 +962,7 @@ export default {
         users: that.tableDataUserScanResult,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=UserImport&t=web", data)
+        .post("api.php?c=Svnuser&a=UserImport&t=web", data)
         .then(function (response) {
           that.loadingUserImport = false;
           var result = response.data;
@@ -1004,7 +1004,7 @@ export default {
           that.tableDataUser[that.formEditUser.index].svn_user_status,
       };
       that.$axios
-        .post("/api.php?c=Svnuser&a=UpdUserPass&t=web", data)
+        .post("api.php?c=Svnuser&a=UpdUserPass&t=web", data)
         .then(function (response) {
           that.loadingEditUserPass = false;
           var result = response.data;
@@ -1126,7 +1126,7 @@ export default {
             svn_user_status: that.tableDataUser[index].svn_user_status,
           };
           that.$axios
-            .post("/api.php?c=Svnuser&a=DelUser&t=web", data)
+            .post("api.php?c=Svnuser&a=DelUser&t=web", data)
             .then(function (response) {
               var result = response.data;
               if (result.status == 1) {
@@ -1168,7 +1168,7 @@ export default {
         userName: that.currentSvnUserName,
       };
       that.$axios
-        .post("/api.php?c=Svnrep&a=GetSvnUserRepList2&t=web", data)
+        .post("api.php?c=Svnrep&a=GetSvnUserRepList2&t=web", data)
         .then(function (response) {
           that.loadingUserRep = false;
           var result = response.data;
@@ -1205,7 +1205,7 @@ export default {
         type: type ? 1 : 0,
       };
       that.$axios
-        .post("/api.php?c=Secondpri&a=UpdSecondpri&t=web", data)
+        .post("api.php?c=Secondpri&a=UpdSecondpri&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1240,7 +1240,7 @@ export default {
         svnn_user_pri_path_id: that.currentSvnUserPriPathId,
       };
       that.$axios
-        .post("/api.php?c=Secondpri&a=GetSecondpriObjectList&t=web", data)
+        .post("api.php?c=Secondpri&a=GetSecondpriObjectList&t=web", data)
         .then(function (response) {
           that.loadingGetSecondpriObject = false;
           var result = response.data;
@@ -1268,7 +1268,7 @@ export default {
         objectName: objectName,
       };
       that.$axios
-        .post("/api.php?c=Secondpri&a=CreateSecondpriObject&t=web", data)
+        .post("api.php?c=Secondpri&a=CreateSecondpriObject&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
@@ -1293,7 +1293,7 @@ export default {
         svn_second_pri_id: svn_second_pri_id,
       };
       that.$axios
-        .post("/api.php?c=Secondpri&a=DelSecondpriObject&t=web", data)
+        .post("api.php?c=Secondpri&a=DelSecondpriObject&t=web", data)
         .then(function (response) {
           var result = response.data;
           if (result.status == 1) {
