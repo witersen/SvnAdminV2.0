@@ -116,7 +116,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="svn协议检出和http协议检出可同时提供服务-只是管理系统同一时间只建议管理一套用户数据-因此通过此按钮进行管理切换"
+                      content="为了仓库数据安全-svn协议检出和http协议检出不建议同时提供服务-因此同时只可启用一种服务"
                     >
                       <Button
                         :loading="loadingUpdSvnEnable"
@@ -2555,7 +2555,7 @@ export default {
       that.$Modal.confirm({
         title: "警告",
         content:
-          "启用 http 协议检出将会使用另外的用户密码文件。并且会清空数据库中目前的用户信息。是否继续？",
+          "启用 http 协议检出将会使用另外的用户密码文件、会清空数据库中目前的用户信息、会停止 svn 协议检出。是否继续？",
         onOk: () => {
           that.loadingUpdSubversionEnable = true;
           var data = {};
@@ -2594,7 +2594,7 @@ export default {
       that.$Modal.confirm({
         title: "警告",
         content:
-          "启用 svn 协议检出将会使用另外的用户密码文件。并且会清空数据库中目前的用户信息。是否继续？",
+          "启用 svn 协议检出将会使用另外的用户密码文件、会清空数据库中目前的用户信息、会停止 http 协议检出。是否继续？",
         onOk: () => {
           that.loadingUpdSvnEnable = true;
           var data = {};
@@ -2614,7 +2614,13 @@ export default {
             .catch(function (error) {
               that.loadingUpdSvnEnable = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.timer = window.setInterval(() => {
+                setTimeout(function () {
+                  that.GetApacheInfo();
+                  that.GetSvnInfo();
+                }, 0);
+              }, 1000);
+              that.$Message.success("等待httpd服务重启");
             });
         },
       });

@@ -70,6 +70,7 @@ function funShellExec($shell, $daemon = false)
 function funFilePutContents($filename, $data, $daemon = false)
 {
     if ($daemon) {
+        funShellExec(sprintf("touch '%s'", $filename), true);
         funShellExec(sprintf("chmod 777 '%s'", $filename), true);
     }
     @file_put_contents($filename, $data);

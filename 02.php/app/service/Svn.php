@@ -396,16 +396,29 @@ class Svn extends Base
      */
     public function UpdSvnserveStatusStart()
     {
-        $cmdStart = sprintf(
-            "'%s' --daemon --pid-file '%s' -r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s",
-            $this->configBin['svnserve'],
-            $this->configSvn['svnserve_pid_file'],
-            $this->configSvn['rep_base_path'],
-            $this->configSvn['svn_conf_file'],
-            $this->configSvn['svnserve_log_file'],
-            $this->localSvnPort,
-            $this->localSvnHost
-        );
+        $svnserveLog = false;
+        if ($svnserveLog) {
+            $cmdStart = sprintf(
+                "'%s' --daemon --pid-file '%s' -r '%s' --config-file '%s' --log-file '%s' --listen-port %s --listen-host %s",
+                $this->configBin['svnserve'],
+                $this->configSvn['svnserve_pid_file'],
+                $this->configSvn['rep_base_path'],
+                $this->configSvn['svn_conf_file'],
+                $this->configSvn['svnserve_log_file'],
+                $this->localSvnPort,
+                $this->localSvnHost
+            );
+        } else {
+            $cmdStart = sprintf(
+                "'%s' --daemon --pid-file '%s' -r '%s' --config-file '%s' --listen-port %s --listen-host %s",
+                $this->configBin['svnserve'],
+                $this->configSvn['svnserve_pid_file'],
+                $this->configSvn['rep_base_path'],
+                $this->configSvn['svn_conf_file'],
+                $this->localSvnPort,
+                $this->localSvnHost
+            );
+        }
 
         $result = funShellExec($cmdStart, true);
 
@@ -569,6 +582,24 @@ class Svn extends Base
         ], [
             'option_name' => '24_enable_checkout',
         ]);
+
+        //禁用 http 协议检出
+        $result = $this->ServiceApache->UpdSubversionDisable();
+
+        //重启 httpd
+        funShellExec(sprintf("'%s' -k graceful", $this->configBin['httpd']), true);
+
+        return message();
+    }
+
+    /**
+     * 禁用 svn 协议检出
+     *
+     * @return void
+     */
+    public function UpdSvnDisable()
+    {
+        $this->UpdSvnserveStatusStop();
 
         return message();
     }

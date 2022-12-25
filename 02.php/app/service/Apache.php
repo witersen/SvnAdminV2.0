@@ -9,11 +9,22 @@
 
 namespace app\service;
 
+use app\service\Svn as ServiceSvn;
+
 class Apache extends Base
 {
+    /**
+     * 其它服务层对象
+     *
+     * @var object
+     */
+    private $ServiceSvn;
+
     function __construct($parm = [])
     {
         parent::__construct($parm);
+
+        $this->ServiceSvn = new ServiceSvn($parm);
     }
 
     /**
@@ -198,8 +209,29 @@ class Apache extends Base
             'option_name' => '24_enable_checkout',
         ]);
 
+        //禁用 svn 协议检出
+        $this->ServiceSvn->UpdSvnDisable();
+
         //重启 httpd
         funShellExec(sprintf("'%s' -k graceful", $this->configBin['httpd']), true);
+
+        return message();
+    }
+
+    /**
+     * 禁用 http 协议检出
+     *
+     * @return void
+     */
+    public function UpdSubversionDisable()
+    {
+        funShellExec(sprintf("rm -f '%s'", $this->configSvn['apache_subversion_file']), true);
+
+        clearstatcache();
+
+        if (file_exists($this->configSvn['apache_subversion_file'])) {
+            return message(200, 0, sprintf("无法移除文件[%s]", $this->configSvn['apache_subversion_file']));
+        }
 
         return message();
     }
