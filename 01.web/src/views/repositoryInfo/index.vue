@@ -644,7 +644,11 @@
       </div>
     </Modal>
     <!-- 对话框-高级 -->
-    <Modal v-model="modalRepAdvance" :title="titleModalRepAdvance" fullscreen>
+    <Modal
+      v-model="modalRepAdvance"
+      :draggable="true"
+      :title="titleModalRepAdvance"
+    >
       <Tabs type="card" v-model="curTabRepAdvance" @on-click="ClickTabAdvance">
         <TabPane label="仓库属性" name="attribute">
           <Table
@@ -653,7 +657,7 @@
             :data="tableDataRepDetail"
             :loading="loadingRepDetail"
             size="small"
-            height="450"
+            height="350"
           >
             <template slot-scope="{ index }" slot="copy">
               <Button
@@ -678,17 +682,10 @@
             >当前环境PHP未开启文件上传功能
           </Alert>
           <Row style="margin-bottom: 15px">
-            <Col
-              type="flex"
-              justify="space-between"
-              :xs="21"
-              :sm="20"
-              :md="19"
-              :lg="18"
-            >
-              <!-- <Tooltip
+            <Col span="15">
+              <Tooltip
                 max-width="250"
-                content="svnadmin dump方式"
+                content="以svnadmin dump的方式加入后台任务进行备份"
                 placement="bottom"
                 :transfer="true"
               >
@@ -697,9 +694,10 @@
                   ghost
                   icon="ios-cafe-outline"
                   :loading="loadingRepDump"
+                  @click="SvnadminDump"
                   >立即备份</Button
                 >
-              </Tooltip> -->
+              </Tooltip>
               <Button
                 type="primary"
                 ghost
@@ -710,7 +708,7 @@
             </Col>
           </Row>
           <Table
-            height="450"
+            height="300"
             border
             :columns="tableColumnBackup"
             :data="tableDataBackup"
@@ -1304,7 +1302,7 @@ export default {
         {
           title: "其它",
           slot: "action",
-          // width: 130,
+          width: 200,
         },
       ],
       tableDataBackup: [],
@@ -1919,6 +1917,31 @@ export default {
         })
         .catch(function (error) {
           that.loadingRepBackupList = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    //立即备份
+    SvnadminDump() {
+      var that = this;
+      that.loadingRepDump = true;
+      var data = {
+        rep_name: that.currentRepName,
+      };
+      that.$axios
+        .post("api.php?c=Svnrep&a=SvnadminDump&t=web", data)
+        .then(function (response) {
+          that.loadingRepDump = false;
+          var result = response.data;
+          if (result.status == 1) {
+            that.$Message.success(result.message);
+            that.GetBackupList();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.loadingRepDump = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });

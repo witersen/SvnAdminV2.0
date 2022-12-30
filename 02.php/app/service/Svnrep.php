@@ -1806,8 +1806,6 @@ class Svnrep extends Base
 
     /**
      * 立即备份当前仓库
-     * 
-     * 前端暂时不提供该方法 因为通过 php 脚本执行存在最大执行时间问题 后续会通过任务队列重新放开
      */
     public function SvnadminDump()
     {
@@ -1817,17 +1815,28 @@ class Svnrep extends Base
             return message(200, 0, '仓库不存在');
         }
 
-        $backupName = $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . uniqid() . funGetRandStr() . '.dump';
+        $task_unique = uniqid('task_svnadmin_dump_');
 
-        //使用 svnadmin dump 备份仓库
-        $cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $this->configSvn['backup_base_path'] .  $backupName);
-        $result = funShellExec($cmd);
+        $task_log_file = $this->configSvn['log_base_path'] . $task_unique . '.log';
 
-        if ($result['code'] != 0) {
-            return message(200, 0, $result['error'], []);
-        }
+        $backupName = $this->payload['rep_name'] . '_' . date('YmdHis') . '_' . $task_unique . '.dump';
 
-        return message();
+        $task_cmd = sprintf("'%s' dump '%s' --quiet  > '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $this->configSvn['backup_base_path'] .  $backupName);
+
+        $this->database->insert('tasks', [
+            'task_name' => sprintf('仓库[%s]备份文件生成', $this->payload['rep_name']),
+            'task_status' => 1,
+            'task_cmd' => $task_cmd,
+            'task_unique' => $task_unique,
+            'task_log_file' => $task_log_file,
+            'task_optional' => '',
+            'task_create_time' => date('Y-m-d H:i:s'),
+            'task_update_time' => ''
+        ]);
+
+        return message(200, 1, '已加入后台任务执行', [
+            'task_unique' => $task_unique
+        ]);
     }
 
     /**
@@ -1995,17 +2004,28 @@ class Svnrep extends Base
             return message(200, 0, '仓库不存在');
         }
 
-        //使用 svnadmin load 导入仓库
-        $cmd = sprintf("'%s' load --quiet '%s' < '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $this->configSvn['backup_base_path'] .  $this->payload['fileName']);
-        $result = funShellExec($cmd, true);
+        $task_unique = uniqid('task_svnadmin_load_');
+
+        $task_log_file = $this->configSvn['log_base_path'] . $task_unique . '.log';
+
+        $task_cmd = sprintf("'%s' load --quiet '%s' < '%s'", $this->configBin['svnadmin'], $this->configSvn['rep_base_path'] .  $this->payload['rep_name'], $this->configSvn['backup_base_path'] .  $this->payload['fileName'], $task_log_file);
+
+        $this->database->insert('tasks', [
+            'task_name' => sprintf('仓库[%s]导入备份文件[%s]', $this->payload['rep_name'], $this->payload['fileName']),
+            'task_status' => 1,
+            'task_cmd' => $task_cmd,
+            'task_unique' => $task_unique,
+            'task_log_file' => $task_log_file,
+            'task_optional' => '',
+            'task_create_time' => date('Y-m-d H:i:s'),
+            'task_update_time' => ''
+        ]);
 
         //更新仓库的版本 todo
 
-        if ($result['error'] == '') {
-            return message();
-        } else {
-            return message(200, 0, '导入错误', $result['error']);
-        }
+        return message(200, 1, '已加入后台任务执行', [
+            'task_unique' => $task_unique
+        ]);
     }
 
     /**

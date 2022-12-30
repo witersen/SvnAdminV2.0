@@ -25,10 +25,14 @@ define('BASE_PATH', __DIR__ . '/..');
 define('IPC_SVNADMIN', BASE_PATH . '/server/svnadmind.socket');
 
 require_once BASE_PATH . '/app/util/Config.php';
+require_once BASE_PATH . '/extension/Medoo-1.7.10/src/Medoo.php';
+
+use Medoo\Medoo;
 
 class Daemon
 {
-    private $pidFile;
+    private $masterPidFile;
+    private $taskPidFile;
     private $workMode;
     private $scripts = [
         'start',
@@ -40,7 +44,8 @@ class Daemon
 
     function __construct()
     {
-        $this->pidFile = dirname(__FILE__) . '/svnadmind.pid';
+        $this->masterPidFile = dirname(__FILE__) . '/svnadmind.pid';
+        $this->taskPidFile = dirname(__FILE__) . '/task_svnadmind.pid';
 
         Config::load(BASE_PATH . '/config/');
         $this->configDaemon = Config::get('daemon');
@@ -68,6 +73,21 @@ class Daemon
         //使其它用户可用
         shell_exec('chmod 777 ' . IPC_SVNADMIN);
 
+        // 创建任务进程 用于处理任务
+        $pid = pcntl_fork();
+        if ($pid == -1) {
+            die(sprintf('pcntl_fork失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
+        } else if ($pid == 0) {
+            file_put_contents($this->taskPidFile, getmypid());
+
+            $this->ClearTask();
+            while (true) {
+                $this->HandleTask();
+                sleep(3);
+            }
+            exit();
+        }
+
         while (true) {
             //非阻塞式回收僵尸进程
             pcntl_wait($status, WNOHANG);
@@ -84,6 +104,147 @@ class Daemon
                 $this->HandleRequest($client);
             } else {
             }
+        }
+    }
+
+    /**
+     * 清理垃圾任务
+     *
+     * @return void
+     */
+    private function ClearTask()
+    {
+        $log = $this->configSvn['log_base_path'] . 'task_error.log';
+
+        $configDatabase = Config::get('database');
+        $configSvn = Config::get('svn');
+        if (array_key_exists('database_file', $configDatabase)) {
+            $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
+        }
+        try {
+            $database = new Medoo($configDatabase);
+        } catch (\Exception $e) {
+            $message = sprintf('[%s][任务清理守护进程异常][%s]%s', date('Y-m-d H:i:s'), $e->getMessage(), PHP_EOL);
+            file_put_contents($log, $message, FILE_APPEND);
+            return;
+        }
+
+        $tasks = $database->select('tasks', [
+            'task_id [Int]',
+            'task_name',
+            'task_status [Int]',
+            'task_cmd',
+            'task_unique',
+            'task_log_file',
+            'task_optional',
+            'task_create_time',
+            'task_update_time'
+        ], [
+            'OR' => [
+                'task_status' => [
+                    2
+                ]
+            ],
+            'ORDER' => [
+                'task_id'  => 'ASC'
+            ]
+        ]);
+
+        foreach ($tasks as $task) {
+            $pid = trim(shell_exec(sprintf("ps aux | grep -v grep | grep %s | awk 'NR==1' | awk '{print $2}'", $task['task_unique'])));
+
+            if (empty($pid)) {
+                $database->update('tasks', [
+                    'task_status' => 5
+                ], [
+                    'task_id' => $task['task_id']
+                ]);
+
+                continue;
+            }
+
+            clearstatcache();
+            if (!is_dir("/proc/$pid")) {
+                $database->update('tasks', [
+                    'task_status' => 4
+                ], [
+                    'task_id' => $task['task_id']
+                ]);
+
+                continue;
+            }
+
+            shell_exec(sprintf("kill -15 %s && kill -9 %s", $pid, $pid));
+
+            $database->update('tasks', [
+                'task_status' => 5
+            ], [
+                'task_id' => $task['task_id']
+            ]);
+        }
+    }
+
+    /**
+     * 处理任务
+     */
+    private function HandleTask()
+    {
+        $log = $this->configSvn['log_base_path'] . 'task_error.log';
+
+        $configDatabase = Config::get('database');
+        $configSvn = Config::get('svn');
+        if (array_key_exists('database_file', $configDatabase)) {
+            $configDatabase['database_file'] = sprintf($configDatabase['database_file'], $configSvn['home_path']);
+        }
+        try {
+            $database = new Medoo($configDatabase);
+        } catch (\Exception $e) {
+            $message = sprintf('[%s][任务处理守护进程异常][120s后重试][%s]', date('Y-m-d H:i:s'), $e->getMessage(), PHP_EOL);
+            file_put_contents($log, $message, FILE_APPEND);
+            sleep(120);
+            return;
+        }
+
+        $tasks = $database->select('tasks', [
+            'task_id',
+            'task_name',
+            'task_status',
+            'task_cmd',
+            'task_unique',
+            'task_log_file',
+            'task_optional',
+            'task_create_time',
+            'task_update_time'
+        ], [
+            'task_status' => 1
+        ]);
+
+        foreach ($tasks as $task) {
+            //开始执行
+            $database->update('tasks', [
+                'task_status' => 2
+            ], [
+                'task_id' => $task['task_id']
+            ]);
+
+            file_put_contents($task['task_log_file'], sprintf('%s%s', $task['task_name'], PHP_EOL), FILE_APPEND);
+            file_put_contents($task['task_log_file'], sprintf('%s------------------任务执行中------------------%s', PHP_EOL, PHP_EOL), FILE_APPEND);
+
+            ob_start();
+            passthru(sprintf("%s &>> '%s'", $task['task_cmd'], $task['task_log_file']));
+            $buffer = ob_get_contents();
+            ob_end_clean();
+            file_put_contents($log, $buffer, FILE_APPEND);
+
+            //执行结束
+            $database->update('tasks', [
+                'task_status' => 3,
+                'task_update_time' => date('Y-m-d H:i:s')
+            ], [
+                'task_id' => $task['task_id']
+            ]);
+
+            file_put_contents($task['task_log_file'], sprintf('%s------------------任务结束------------------%s', PHP_EOL, PHP_EOL), FILE_APPEND);
         }
     }
 
@@ -250,10 +411,18 @@ class Daemon
      */
     private function Stop()
     {
-        if (file_exists($this->pidFile)) {
-            $pid = file_get_contents($this->pidFile);
+        clearstatcache();
+
+        if (file_exists($this->masterPidFile)) {
+            $pid = file_get_contents($this->masterPidFile);
             posix_kill((int)$pid, 9);
-            unlink($this->pidFile);
+            @unlink($this->masterPidFile);
+        }
+
+        if (file_exists($this->taskPidFile)) {
+            $pid = file_get_contents($this->taskPidFile);
+            posix_kill((int)$pid, 9);
+            @unlink($this->taskPidFile);
         }
 
         //如果为 Linux 平台，且安装了 ps 程序，检测是否正确关闭了相关程序
@@ -275,9 +444,9 @@ class Daemon
      */
     private function Start()
     {
-        file_put_contents($this->pidFile, getmypid());
+        file_put_contents($this->masterPidFile, getmypid());
         $this->UpdateSign();
-        
+
         echo PHP_EOL;
         echo '----------------------------------------' . PHP_EOL;
         echo '守护进程(svnadmind)启动成功' . PHP_EOL;
@@ -304,8 +473,8 @@ class Daemon
      */
     private function Console()
     {
-        if (file_exists($this->pidFile)) {
-            $pid = file_get_contents($this->pidFile);
+        if (file_exists($this->masterPidFile)) {
+            $pid = file_get_contents($this->masterPidFile);
             $result = trim(shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
             if (strstr($result, $pid)) {
                 exit('无法进入调试模式，请先停止后台程序' . PHP_EOL);

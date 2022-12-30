@@ -16,8 +16,8 @@ use Medoo\Medoo;
 /**
  * 开启错误信息 如需要调试 可取消注释
  */
-// ini_set('display_errors', '1');
-// error_reporting(E_ALL);
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
 
 set_time_limit(0);
 
