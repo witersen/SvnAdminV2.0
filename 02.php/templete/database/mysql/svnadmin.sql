@@ -330,6 +330,36 @@ LOCK TABLES `svn_users` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `tasks`
+--
+
+DROP TABLE IF EXISTS `tasks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tasks` (
+  `task_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `task_name` varchar(1000) NOT NULL,
+  `task_status` tinyint(1) NOT NULL COMMENT '1 待执行\r\n2 执行中\r\n3 已完成\r\n4 已取消\r\n5 意外中断',
+  `task_cmd` varchar(5000) NOT NULL,
+  `task_unique` varchar(255) NOT NULL,
+  `task_log_file` varchar(5000) DEFAULT NULL,
+  `task_optional` varchar(5000) DEFAULT NULL,
+  `task_create_time` varchar(45) NOT NULL,
+  `task_update_time` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`task_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tasks`
+--
+
+LOCK TABLES `tasks` WRITE;
+/*!40000 ALTER TABLE `tasks` DISABLE KEYS */;
+/*!40000 ALTER TABLE `tasks` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `verification_code`
 --
 
@@ -373,4 +403,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-11-20 21:15:39
+-- Dump completed on 2022-12-31  0:35:18
