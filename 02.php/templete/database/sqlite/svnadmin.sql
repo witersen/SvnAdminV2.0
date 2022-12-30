@@ -238,6 +238,26 @@ CREATE TABLE "svn_users" (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for tasks
+-- ----------------------------
+DROP TABLE IF EXISTS "tasks";
+CREATE TABLE "tasks" (
+  "task_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "task_name" TEXT NOT NULL,
+  "task_status" integer NOT NULL,
+  "task_cmd" TEXT NOT NULL,
+  "task_unique" TEXT NOT NULL,
+  "task_log_file" TEXT,
+  "task_optional" TEXT,
+  "task_create_time" TEXT NOT NULL,
+  "task_update_time" TEXT
+);
+
+-- ----------------------------
+-- Records of tasks
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for verification_code
 -- ----------------------------
 DROP TABLE IF EXISTS "verification_code";
