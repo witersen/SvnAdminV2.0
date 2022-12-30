@@ -129,7 +129,7 @@ class Upload
      */
     public function fileUpload()
     {
-        if (!file_exists($this->nameFileCurrent, $this->nameDirTempSave . '/' . $this->nameFileMd5 . '_' . $this->numBlobTotal . '_' . $this->numBlobCurrent)) {
+        if (!file_exists($this->nameDirTempSave . '/' . $this->nameFileMd5 . '_' . $this->numBlobTotal . '_' . $this->numBlobCurrent)) {
             move_uploaded_file($this->nameFileCurrent, $this->nameDirTempSave . '/' . $this->nameFileMd5 . '_' . $this->numBlobTotal . '_' . $this->numBlobCurrent);
         }
 
@@ -185,10 +185,13 @@ class Upload
             }
 
             //文件分片合并
-            $fread = fopen($slicename, 'rb');
-            fwrite($fwrite, fread($fread, filesize($slicename)));
-            fclose($fread);
-            unset($fread);
+            $fsize = filesize($slicename);
+            if ($fsize > 0) {
+                $fread = fopen($slicename, 'rb');
+                fwrite($fwrite, fread($fread, $fsize));
+                fclose($fread);
+                unset($fread);
+            }
 
             //文件分片删除
             if ($this->deleteOnMerge) {

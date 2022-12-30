@@ -129,6 +129,104 @@ class Base
      */
     public $subadminTree = [
         [
+            'title' => '后台任务',
+            'expand' => false,
+            'checked' => true,
+            'disabled' => true,
+            'necessary_functions' => [],
+            'children' => [
+                [
+                    'title' => '当前任务',
+                    'expand' => false,
+                    'checked' => true,
+                    'disabled' => true,
+                    'necessary_functions' => [],
+                    'children' => [
+                        [
+                            'title' => '获取后台任务实时日志',
+                            'expand' => false,
+                            'checked' => true,
+                            'disabled' => true,
+                            'necessary_functions' => [
+                                'Tasks/GetTaskRun',
+                            ],
+                            'children' => []
+                        ],
+                    ]
+                ],
+                [
+                    'title' => '排队任务',
+                    'expand' => false,
+                    'checked' => true,
+                    'disabled' => true,
+                    'necessary_functions' => [],
+                    'children' => [
+                        [
+                            'title' => '获取后台任务队列',
+                            'expand' => false,
+                            'checked' => true,
+                            'disabled' => true,
+                            'necessary_functions' => [
+                                'Tasks/GetTaskQueue',
+                            ],
+                            'children' => [
+                                [
+                                    'title' => '停止后台任务',
+                                    'expand' => false,
+                                    'checked' => true,
+                                    'disabled' => true,
+                                    'necessary_functions' => [
+                                        'Tasks/UpdTaskStop',
+                                    ],
+                                    'children' => []
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                [
+                    'title' => '历史任务',
+                    'expand' => false,
+                    'checked' => true,
+                    'disabled' => true,
+                    'necessary_functions' => [],
+                    'children' => [
+                        [
+                            'title' => '获取后台任务执行历史',
+                            'expand' => false,
+                            'checked' => true,
+                            'disabled' => true,
+                            'necessary_functions' => [
+                                'Tasks/GetTaskHistory',
+                            ],
+                            'children' => [
+                                [
+                                    'title' => '获取历史任务日志',
+                                    'expand' => false,
+                                    'checked' => true,
+                                    'disabled' => true,
+                                    'necessary_functions' => [
+                                        'Tasks/GetTaskHistoryLog',
+                                    ],
+                                    'children' => []
+                                ],
+                                [
+                                    'title' => '删除历史执行任务',
+                                    'expand' => false,
+                                    'checked' => true,
+                                    'disabled' => true,
+                                    'necessary_functions' => [
+                                        'Tasks/DelTaskHistory',
+                                    ],
+                                    'children' => []
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ],
+        [
             'title' => '信息统计',
             'expand' => false,
             'checked' => false,
@@ -446,7 +544,7 @@ class Base
                             'necessary_functions' => [],
                             'children' => [
                                 [
-                                    'title' => '属性(仓库详情)',
+                                    'title' => '仓库属性',
                                     'expand' => false,
                                     'checked' => false,
                                     'disabled' => true,
@@ -456,7 +554,7 @@ class Base
                                     'children' => []
                                 ],
                                 [
-                                    'title' => '恢复(仓库备份恢复)',
+                                    'title' => '仓库备份',
                                     'expand' => false,
                                     'checked' => false,
                                     'disabled' => true,
@@ -464,6 +562,16 @@ class Base
                                         'Svnrep/GetRepHooks'
                                     ],
                                     'children' => [
+                                        [
+                                            'title' => '立即备份仓库',
+                                            'expand' => false,
+                                            'checked' => false,
+                                            'disabled' => true,
+                                            'necessary_functions' => [
+                                                'Svnrep/SvnadminDump'
+                                            ],
+                                            'children' => []
+                                        ],
                                         [
                                             'title' => '获取php文件上传相关参数',
                                             'expand' => false,
