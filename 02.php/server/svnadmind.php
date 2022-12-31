@@ -114,7 +114,7 @@ class Daemon
      */
     private function ClearTask()
     {
-        $log = $this->configSvn['log_base_path'] . 'task_error.log';
+        $task_error_log_file = $this->configSvn['log_base_path'] . 'task_error.log';
 
         $configDatabase = Config::get('database');
         $configSvn = Config::get('svn');
@@ -125,7 +125,7 @@ class Daemon
             $database = new Medoo($configDatabase);
         } catch (\Exception $e) {
             $message = sprintf('[%s][任务清理守护进程异常][%s]%s', date('Y-m-d H:i:s'), $e->getMessage(), PHP_EOL);
-            file_put_contents($log, $message, FILE_APPEND);
+            file_put_contents($task_error_log_file, $message, FILE_APPEND);
             return;
         }
 
@@ -189,7 +189,7 @@ class Daemon
      */
     private function HandleTask()
     {
-        $log = $this->configSvn['log_base_path'] . 'task_error.log';
+        $task_error_log_file = $this->configSvn['log_base_path'] . 'task_error.log';
 
         $configDatabase = Config::get('database');
         $configSvn = Config::get('svn');
@@ -200,7 +200,7 @@ class Daemon
             $database = new Medoo($configDatabase);
         } catch (\Exception $e) {
             $message = sprintf('[%s][任务处理守护进程异常][120s后重试][%s]', date('Y-m-d H:i:s'), $e->getMessage(), PHP_EOL);
-            file_put_contents($log, $message, FILE_APPEND);
+            file_put_contents($task_error_log_file, $message, FILE_APPEND);
             sleep(120);
             return;
         }
@@ -210,6 +210,7 @@ class Daemon
             'task_name',
             'task_status',
             'task_cmd',
+            'task_type',
             'task_unique',
             'task_log_file',
             'task_optional',
@@ -231,10 +232,15 @@ class Daemon
             file_put_contents($task['task_log_file'], sprintf('%s------------------任务执行中------------------%s', PHP_EOL, PHP_EOL), FILE_APPEND);
 
             ob_start();
-            passthru(sprintf("%s &>> '%s'", $task['task_cmd'], $task['task_log_file']));
+            if ($task['task_type'] == 'svnadmin:load') {
+                passthru(sprintf("%s &>> '%s'", $task['task_cmd'], $task['task_log_file']));
+            } else {
+                passthru(sprintf("%s", $task['task_cmd'], $task['task_log_file']));
+            }
             $buffer = ob_get_contents();
             ob_end_clean();
-            file_put_contents($log, $buffer, FILE_APPEND);
+            file_put_contents($task_error_log_file, $buffer, FILE_APPEND);
+            file_put_contents($task['task_log_file'], $buffer, FILE_APPEND);
 
             //执行结束
             $database->update('tasks', [

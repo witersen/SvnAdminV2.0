@@ -126,8 +126,9 @@
     <!-- 对话框-实时后台任务 -->
     <Modal v-model="modalTasks" :draggable="true" title="实时后台任务">
       <div style="height: 350px">
-        <Tabs value="current" @on-click="ClickTaskTab">
+        <Tabs v-model="tabsTaskCurrent" @on-click="ClickTaskTab">
           <TabPane label="当前任务" icon="ios-loading" name="current">
+            <Spin size="large" v-if="loadingTask" fix></Spin>
             <Alert v-if="!formTasks.task_running"
               >当前没有后台任务运行（如遇任务堆积不执行可重启守护进程解决）</Alert
             >
@@ -260,6 +261,8 @@ export default {
        */
       //历史任务日志
       tempTaskLog: "",
+      //后台任务标签
+      tabsTaskCurrent: "current",
 
       /**
        * 分页数据
@@ -473,7 +476,7 @@ export default {
     //后台任务列表
     ModalTasks() {
       this.modalTasks = true;
-      this.GetTaskRun();
+      this.ClickTaskTab(this.tabsTaskCurrent);
     },
     //后台任务切换
     ClickTaskTab(name) {

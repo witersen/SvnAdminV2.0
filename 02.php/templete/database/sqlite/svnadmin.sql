@@ -246,6 +246,7 @@ CREATE TABLE "tasks" (
   "task_name" TEXT NOT NULL,
   "task_status" integer NOT NULL,
   "task_cmd" TEXT NOT NULL,
+  "task_type" TEXT NOT NULL,
   "task_unique" TEXT NOT NULL,
   "task_log_file" TEXT,
   "task_optional" TEXT,

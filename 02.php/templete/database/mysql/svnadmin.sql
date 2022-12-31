@@ -341,6 +341,7 @@ CREATE TABLE `tasks` (
   `task_name` varchar(1000) NOT NULL,
   `task_status` tinyint(1) NOT NULL COMMENT '1 待执行\r\n2 执行中\r\n3 已完成\r\n4 已取消\r\n5 意外中断',
   `task_cmd` varchar(5000) NOT NULL,
+  `task_type` varchar(255) NOT NULL,
   `task_unique` varchar(255) NOT NULL,
   `task_log_file` varchar(5000) DEFAULT NULL,
   `task_optional` varchar(5000) DEFAULT NULL,
