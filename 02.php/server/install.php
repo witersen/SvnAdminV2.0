@@ -725,7 +725,7 @@ CON;
 
         //修改配置文件 svn.php
         $con = file_get_contents(BASE_PATH . '/../config/svn.php');
-        $con  = preg_replace("/\\\$home_path[\s]*=[\s]*(['\"])(.*)\\1[;]/", sprintf("\$home_path = '%s';", $newHomePath), $con);
+        $con  = preg_replace("/\\\$home[\s]*=[\s]*(['\"])(.*)\\1[;]/", sprintf("\$home = '%s';", $newHomePath), $con);
         //判断是否匹配成功
         file_put_contents(BASE_PATH . '/../config/svn.php', $con);
 
