@@ -93,8 +93,8 @@ class Crond extends Base
         ]);
 
         foreach ($list as $key => $value) {
-            // 5 6 类型不需要 count 字段
-            if (in_array($value['task_type'], [5, 6])) {
+            // 5 6 7 8 9 类型不需要 count 字段
+            if (in_array($value['task_type'], [5, 6, 7, 8, 9])) {
                 $list[$key]['save_count'] = '-';
             }
 

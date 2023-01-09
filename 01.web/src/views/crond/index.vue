@@ -128,7 +128,7 @@
         <FormItem label="任务类型">
           <Select
             :disabled="statusCrond == 'upd'"
-            style="width: 200px"
+            style="width: 250px"
             v-model="cycle.task_type"
             @on-change="ChangeCrondType"
           >
@@ -143,7 +143,7 @@
         <FormItem label="任务名称">
           <Input
             v-model="cycle.task_name"
-            :readonly="[1, 2, 3, 4, 5].indexOf(cycle.task_type) != -1"
+            :readonly="[1, 2, 3, 4, 5, 7, 8, 9].indexOf(cycle.task_type) != -1"
           ></Input>
         </FormItem>
         <FormItem label="执行周期">
@@ -240,7 +240,7 @@
         </FormItem>
         <FormItem
           label="消息通知"
-          v-if="[1, 2, 3, 4, 5, 6].indexOf(cycle.task_type) != -1"
+          v-if="[1, 2, 3, 4, 5, 6, 7, 8, 9].indexOf(cycle.task_type) != -1"
         >
           <CheckboxGroup v-model="cycle.notice">
             <Checkbox label="success">成功通知</Checkbox>
@@ -419,6 +419,18 @@ export default {
         {
           key: 6,
           value: "shell脚本",
+        },
+        {
+          key: 7,
+          value: "同步SVN用户",
+        },
+        {
+          key: 8,
+          value: "同步SVN分组",
+        },
+        {
+          key: 9,
+          value: "同步SVN仓库",
         },
       ],
       //周期类型
@@ -717,6 +729,14 @@ export default {
         case 6:
           //修改任务名称
           this.cycle.task_name = "";
+          break;
+        case 7:
+        case 8:
+        case 9:
+          //修改任务名称
+          this.cycle.task_name = this.taskType.find(
+            (item) => item.key === this.cycle.task_type
+          ).value;
           break;
       }
     },

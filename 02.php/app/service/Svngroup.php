@@ -37,7 +37,7 @@ class Svngroup extends Base
      *
      * @return array
      */
-    private function SyncGroup()
+    public function SyncGroup()
     {
         if ($this->enableCheckout == 'svn') {
             $dataSource = $this->svnDataSource;

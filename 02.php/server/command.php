@@ -41,6 +41,11 @@ function auto_require($path, $recursively = false)
 use app\service\Mail;
 use Medoo\Medoo;
 
+use app\service\Svnuser as ServiceSvnuser;
+use app\service\Svngroup as ServiceSvngroup;
+use app\service\Svnrep as ServiceSvnrep;
+
+
 class Command
 {
     private $database;
@@ -68,6 +73,9 @@ class Command
         '4' => '仓库备份[hotcopy-增量]',
         '5' => '仓库检查',
         '6' => 'shell脚本',
+        '7' => '同步SVN用户',
+        '8' => '同步SVN分组',
+        '9' => '同步SVN仓库'
     ];
 
     function __construct($argc, $argv)
@@ -394,6 +402,36 @@ class Command
 
         $this->SendMail();
     }
+
+    /**
+     * 同步用户
+     *
+     * @return void
+     */
+    public function SyncUser()
+    {
+        (new ServiceSvnuser())->SyncUser();
+    }
+
+    /**
+     * 同步分组
+     *
+     * @return void
+     */
+    public function SyncGroup()
+    {
+        (new ServiceSvngroup())->SyncGroup();
+    }
+
+    /**
+     * 同步仓库
+     *
+     * @return void
+     */
+    public function SyncRep()
+    {
+        (new ServiceSvnrep())->SyncRep();
+    }
 }
 
 $command = new Command($argc, $argv);
@@ -416,6 +454,15 @@ switch ($argv[1]) {
         break;
     case 6: //shell脚本
         $command->Shell();
+        break;
+    case 7: //同步SVN用户
+        $command->SyncUser();
+        break;
+    case 8: //同步SVN分组
+        $command->SyncGroup();
+        break;
+    case 9: //同步SVN仓库
+        $command->SyncRep();
         break;
     default:
         break;

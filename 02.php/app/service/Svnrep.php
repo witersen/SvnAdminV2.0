@@ -230,7 +230,7 @@ class Svnrep extends Base
     /**
      * SVN仓库 => authz文件
      */
-    private function SyncRepAndAuthz()
+    public function SyncRep()
     {
         $svnRepList = $this->GetSimpleRepList();
 
@@ -396,7 +396,7 @@ class Svnrep extends Base
              * 1、将物理仓库已经删除但是authz文件中依然存在的从authz文件删除
              * 2、将在物理仓库存在但是authz文件中不存在的向authz文件写入
              */
-            $this->SyncRepAndAuthz();
+            $this->SyncRep();
 
             /**
              * 物理仓库 => svn_reps数据表
@@ -520,7 +520,7 @@ class Svnrep extends Base
              * 1、将物理仓库已经删除但是authz文件中依然存在的从authz文件删除
              * 2、将在物理仓库存在但是authz文件中不存在的向authz文件写入
              */
-            $this->SyncRepAndAuthz();
+            $this->SyncRep();
 
             /**
              * 及时更新

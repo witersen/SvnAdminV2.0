@@ -462,6 +462,7 @@ setsebool -P httpd_can_connect_ldap=1
 | qq@ArtOfTerRan。  | 微信   | 2022-12-07 |
 | qq@Captcha        | 支付宝 | 2022-12-12 |
 | qq@Start          | 支付宝 | 2022-12-16 |
+| alipay@*通        | 支付宝 | 2023-01-06 |
 
 <img src="00.static/wechat.png" alt="" width="40%" height="40%" />
 
