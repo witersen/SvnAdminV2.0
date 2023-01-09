@@ -161,7 +161,7 @@ class Svnrep extends Base
     /**
      * SVN仓库 => 数据库
      */
-    private function SyncRepAndDb()
+    public function SyncRep2Db()
     {
         /**
          * 删除数据表重复插入的项
@@ -230,7 +230,7 @@ class Svnrep extends Base
     /**
      * SVN仓库 => authz文件
      */
-    public function SyncRep()
+    public function SyncRep2Authz()
     {
         $svnRepList = $this->GetSimpleRepList();
 
@@ -396,7 +396,7 @@ class Svnrep extends Base
              * 1、将物理仓库已经删除但是authz文件中依然存在的从authz文件删除
              * 2、将在物理仓库存在但是authz文件中不存在的向authz文件写入
              */
-            $this->SyncRep();
+            $this->SyncRep2Authz();
 
             /**
              * 物理仓库 => svn_reps数据表
@@ -404,7 +404,7 @@ class Svnrep extends Base
              * 1、将物理仓库存在而没有写入数据库的记录写入数据库
              * 2、将物理仓库已经删除但是数据库依然存在的从数据库删除
              */
-            $syncResult = $this->SyncRepAndDb();
+            $syncResult = $this->SyncRep2Db();
             if ($syncResult['status'] != 1) {
                 return message($syncResult['code'], $syncResult['status'], $syncResult['message'], $syncResult['data']);
             }
@@ -520,7 +520,7 @@ class Svnrep extends Base
              * 1、将物理仓库已经删除但是authz文件中依然存在的从authz文件删除
              * 2、将在物理仓库存在但是authz文件中不存在的向authz文件写入
              */
-            $this->SyncRep();
+            $this->SyncRep2Authz();
 
             /**
              * 及时更新

@@ -430,7 +430,12 @@ class Command
      */
     public function SyncRep()
     {
-        (new ServiceSvnrep())->SyncRep();
+        $serviceSvnrep = new ServiceSvnrep();
+        $serviceSvnrep->SyncRep2Authz();
+        $result = $serviceSvnrep->SyncRep2Db();
+        if ($result['status'] != 1) {
+            print_r($result['message']);
+        }
     }
 }
 
