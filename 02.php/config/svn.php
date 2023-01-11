@@ -7,9 +7,12 @@
  * @Description: QQ:1801168257
  */
 
-/**
- * 如果要修改安装路径 ，可通过执行 server/install.php 来实现
- */
+ /**
+  * 源码安装 - 修改数据存储主目录
+  * 
+  * 如果系统运行产生数据后 -> 修改安装路径 -> 需要执行 server/install.php
+  * 如果系统未执行安装  -> 直接修改代码包的 config/svna.php 中的 $home 值后执行正常即可
+  */
 
 $home = '/home/svnadmin/';
 
