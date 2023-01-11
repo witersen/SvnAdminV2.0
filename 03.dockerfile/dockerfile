@@ -39,6 +39,9 @@ RUN cd /home/svnadmin/ \
     && mkdir -p templete/initStruct/01/trunk 
 RUN chown -R apache:apache /home/svnadmin/ && mkdir -p /run/php-fpm/
 
+# 关闭PHP彩蛋
+RUN sed -i 's/expose_php = On/expose_php = Off/g' /etc/php.ini
+
 # 源码
 ADD https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.7/2.4.7.zip /var/www/html/
 RUN cd /var/www/html && unzip 2.4.7.zip && rm -f 2.4.7.zip
