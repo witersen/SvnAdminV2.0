@@ -189,6 +189,8 @@ chown -R apache:apache /home/svnadmin
   
   #后台运行
   nohup php svnadmind.php start >/dev/null 2>&1 &
+  #后台运行后exit退出一下 保证后台稳定运行
+  exit
   
   #停止后台
   php svnandmind.php stop
