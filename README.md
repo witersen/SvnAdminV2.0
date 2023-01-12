@@ -191,10 +191,10 @@ chown -R apache:apache /home/svnadmin
   nohup php svnadmind.php start >/dev/null 2>&1 &
   
   #停止后台
-  php svnandmin.php stop
+  php svnandmind.php stop
   
   #调试模式
-  php svnadmin.php console
+  php svnadmind.php console
   ```
 
 - 通过系统管理启动后台进程（启动方式二）
