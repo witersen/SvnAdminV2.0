@@ -55,12 +55,15 @@ class Ldap extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
-        $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
+        $connection = ldap_connect(rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/');
         if (!$connection) {
             return message(200, 0, '连接失败');
         }
 
         ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, $dataSource['ldap_version']);
+
+        // todo
+        // ldap_set_option($connection, LDAP_OPT_NETWORK_TIMEOUT, 10);
 
         $result = @ldap_bind($connection, $dataSource['ldap_bind_dn'], $dataSource['ldap_bind_password']);
         if (!$result) {
