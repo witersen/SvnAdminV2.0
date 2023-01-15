@@ -306,7 +306,7 @@ class Ldap extends Base
         }
         $dataSource = $dataSource['ldap'];
 
-        $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
+        $connection = ldap_connect(rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/');
         if (!$connection) {
             return false;
         }
@@ -337,7 +337,7 @@ class Ldap extends Base
         }
         $dataSource = $dataSource['ldap'];
 
-        $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
+        $connection = ldap_connect(rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/');
         if (!$connection) {
             return message(200, 0, '连接失败');
         }
@@ -390,7 +390,7 @@ class Ldap extends Base
         }
         $dataSource = $dataSource['ldap'];
 
-        $connection = ldap_connect($dataSource['ldap_host'], $dataSource['ldap_port']);
+        $connection = ldap_connect(rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/');
         if (!$connection) {
             return message(200, 0, '连接失败');
         }

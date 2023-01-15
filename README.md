@@ -108,8 +108,9 @@ chown -R apache:apache /home/svnadmin
   - 停止旧的容器，拉取新容器，挂载本地的数据目录到新版本的容器即可
 - 2.4.3 及之前的用户升级到 2.4.x 要注意目录挂载多了 conf.d sasl2 升级之前要提前复制出来
 
-
 ### 4. 源码安装
+
+svnadmin = web系统 + 后台进程，因此安装注意噢
 
 ##### 4.1 适用于：CentOS7、Rocky等
 
@@ -465,6 +466,7 @@ setsebool -P httpd_can_connect_ldap=1
 | qq@Captcha        | 支付宝 | 2022-12-12 |
 | qq@Start          | 支付宝 | 2022-12-16 |
 | alipay@*通        | 支付宝 | 2023-01-06 |
+| qq@面壁人         | 微信   | 2023-01-13 |
 
 <img src="00.static/wechat.png" alt="" width="40%" height="40%" />
 
