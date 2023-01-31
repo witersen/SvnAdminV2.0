@@ -156,10 +156,12 @@ class Svn extends Base
             $ldap_search_base = $ldap['user_base_dn'];
 
             if (substr($ldap['user_search_filter'], 0, 1) == '(' && substr($ldap['user_search_filter'], -1) == ')') {
-                $ldap_filter = ltrim(rtrim($ldap['user_search_filter'], ')'), '(');
+                $ldap_filter = $ldap['user_search_filter'];
+            } else {
+                $ldap_filter = '(' . $ldap['user_search_filter'] . ')';
             }
 
-            $ldap_filter =  '(&(' . explode(',', $ldap['user_attributes'])[0] . '=%U)(' . $ldap_filter . '))';
+            $ldap_filter =  '(&(' . explode(',', $ldap['user_attributes'])[0] . '=%U)' . $ldap_filter . ')';
             $ldap_version = $ldap['ldap_version'];
             $ldap_password_attr = 'userPassword';
 
