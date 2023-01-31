@@ -9,11 +9,22 @@
 
 namespace app\service;
 
+use app\service\Apache as ServiceApache;
+
 class Svn extends Base
 {
+    /**
+     * 其它服务层对象
+     *
+     * @var object
+     */
+    private $ServiceApache;
+
     function __construct($parm = [])
     {
         parent::__construct($parm);
+
+        $this->ServiceApache = new ServiceApache($parm);
     }
 
     /**
