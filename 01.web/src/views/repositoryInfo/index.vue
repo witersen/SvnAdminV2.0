@@ -1991,9 +1991,8 @@ export default {
       that.file.name = file.name;
       //获取文件md5
       const md5 = await that.GetFileMd5(file, chunkSize);
-      console.log(md5);
       //循环调用上传
-      for (var i = 1; i <= chunkCount; i++) {
+      for (var i = 0; i < chunkCount; i++) {
         //分片开始位置
         let start = i * chunkSize;
         //分片结束位置
@@ -2004,7 +2003,7 @@ export default {
         formdata.append("md5", md5);
         formdata.append("filename", file.name);
         formdata.append("numBlobTotal", chunkCount);
-        formdata.append("numBlobCurrent", i);
+        formdata.append("numBlobCurrent", i+1);
         formdata.append("deleteOnMerge", that.file.deleteOnMerge);
 
         if (!that.file.stop) {
