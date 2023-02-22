@@ -24,8 +24,6 @@ class Setting extends Base
     function __construct($parm = [])
     {
         parent::__construct($parm);
-
-        $this->ServiceSvn = new ServiceSvn();
     }
 
     /**
@@ -97,7 +95,7 @@ class Setting extends Base
         }
 
         //停止
-        $this->ServiceSvn->UpdSvnserveStatusStop();
+        (new ServiceSvn())->UpdSvnserveStatusStop();
 
         //重新构建配置文件内容
         $config = sprintf(
@@ -117,7 +115,7 @@ class Setting extends Base
         sleep(1);
 
         //启动
-        $resultStart = $this->ServiceSvn->UpdSvnserveStatusStart();
+        $resultStart = (new ServiceSvn())->UpdSvnserveStatusStart();
         if ($resultStart['status'] != 1) {
             return $resultStart;
         }
@@ -147,7 +145,7 @@ class Setting extends Base
         }
 
         //停止
-        $this->ServiceSvn->UpdSvnserveStatusStop();
+        (new ServiceSvn())->UpdSvnserveStatusStop();
 
         //重新构建配置文件内容
         $config = sprintf(
@@ -167,7 +165,7 @@ class Setting extends Base
         sleep(1);
 
         //启动
-        $resultStart = $this->ServiceSvn->UpdSvnserveStatusStart();
+        $resultStart = (new ServiceSvn())->UpdSvnserveStatusStart();
         if ($resultStart['status'] != 1) {
             return $resultStart;
         }

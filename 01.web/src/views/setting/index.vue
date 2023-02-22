@@ -376,7 +376,7 @@
                 <FormItem label="LDAP 主机地址">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formSvn.ldap.ldap_host"></Input>
+                      <Input v-model="formSvn.ldap.ldap_host" placeholder="ldap://127.0.0.1/"></Input>
                     </Col>
                   </Row>
                 </FormItem>
@@ -488,7 +488,7 @@
                           <Tooltip
                             :transfer="true"
                             max-width="250"
-                            content="如: sAMAccountName"
+                            content="如: sAMAccountName（注意如果没有过滤到结果可切换本属性为全部小写进行测试）"
                           >
                             <Button type="info">说明</Button>
                           </Tooltip>
@@ -832,7 +832,7 @@
                 <FormItem label="LDAP 主机地址">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formHttp.ldap.ldap_host"></Input>
+                      <Input v-model="formHttp.ldap.ldap_host" placeholder="ldap://127.0.0.1/"></Input>
                     </Col>
                   </Row>
                 </FormItem>
@@ -944,7 +944,7 @@
                           <Tooltip
                             :transfer="true"
                             max-width="250"
-                            content="如: sAMAccountName"
+                            content="如: sAMAccountName（注意如果没有过滤到结果可切换本属性为全部小写进行进行测试）"
                           >
                             <Button type="info">说明</Button>
                           </Tooltip>
@@ -2353,12 +2353,12 @@ export default {
               that.$Message.success(result.message);
             } else if (type == "user") {
               that.titleLdapUsersGroups =
-                "过滤到 " + result.data.count + " 个ldap用户(逗号分隔)";
+                "LDAP用户共 " + result.data.count + " 个：成功 " + result.data.success + " 个，失败 " + result.data.fail + " 个";
               that.tempLdapUsersGroups = result.data.users;
               that.modalLdapUsersGroups = true;
             } else if (type == "group") {
               that.titleLdapUsersGroups =
-                "过滤到 " + result.data.count + " 个ldap分组(逗号分隔)";
+              "LDAP分组共 " + result.data.count + " 个：成功 " + result.data.success + " 个，失败 " + result.data.fail + " 个";
               that.tempLdapUsersGroups = result.data.groups;
               that.modalLdapUsersGroups = true;
             }

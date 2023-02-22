@@ -92,6 +92,15 @@ class Svn extends Base
         $dataSource = $this->payload['data_source'];
 
         if ($dataSource['user_source'] == 'ldap') {
+
+            if (substr($dataSource['ldap']['ldap_host'], 0, strlen('ldap://')) != 'ldap://' && substr($dataSource['ldap']['ldap_host'], 0, strlen('ldaps://')) != 'ldaps://') {
+                return message(200, 0, 'ldap主机名必须以 ldap:// 或者 ldaps:// 开始');
+            }
+
+            if (preg_match('/\:[0-9]+/', $dataSource['ldap']['ldap_host'], $matches)) {
+                return message(200, 0, 'ldap主机名不可携带端口');
+            }
+
             if ($dataSource['group_source'] == 'ldap') {
                 $checkResult = funCheckForm($dataSource['ldap'], [
                     'ldap_host' => ['type' => 'string', 'notNull' => true],

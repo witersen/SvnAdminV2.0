@@ -43,8 +43,8 @@ RUN chown -R apache:apache /home/svnadmin/ && mkdir -p /run/php-fpm/
 RUN sed -i 's/expose_php = On/expose_php = Off/g' /etc/php.ini
 
 # 源码
-ADD https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.7/2.4.7.zip /var/www/html/
-RUN cd /var/www/html && unzip 2.4.7.zip && rm -f 2.4.7.zip
+ADD https://gitee.com/witersen/SvnAdminV2.0/releases/download/2.5.1/2.5.1.zip /var/www/html/
+RUN cd /var/www/html && unzip 2.5.1.zip && rm -f 2.5.1.zip
 
 ADD start.sh /root/start.sh
 RUN chmod +x /root/start.sh

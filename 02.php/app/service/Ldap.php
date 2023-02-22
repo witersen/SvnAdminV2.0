@@ -55,6 +55,14 @@ class Ldap extends Base
             return message($checkResult['code'], $checkResult['status'], $checkResult['message'] . ': ' . $checkResult['data']['column']);
         }
 
+        if (substr($dataSource['ldap_host'], 0, strlen('ldap://')) != 'ldap://' && substr($dataSource['ldap_host'], 0, strlen('ldaps://')) != 'ldaps://') {
+            return message(200, 0, 'ldap主机名必须以 ldap:// 或者 ldaps:// 开始');
+        }
+
+        if (preg_match('/\:[0-9]+/', $dataSource['ldap_host'], $matches)) {
+            return message(200, 0, 'ldap主机名不可携带端口');
+        }
+
         $connection = ldap_connect(rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/');
         if (!$connection) {
             return message(200, 0, '连接失败');
@@ -64,6 +72,7 @@ class Ldap extends Base
 
         // todo
         // ldap_set_option($connection, LDAP_OPT_NETWORK_TIMEOUT, 10);
+        // ldap_set_option($connection, LDAP_OPT_REFERRALS, false);
 
         $result = @ldap_bind($connection, $dataSource['ldap_bind_dn'], $dataSource['ldap_bind_password']);
         if (!$result) {
@@ -113,7 +122,9 @@ class Ldap extends Base
 
             return message(200, 1, '成功', [
                 'count' => $ldapUsersLen,
-                'users' => implode(',', $users)
+                'users' => implode(',', $users),
+                'success' => count($users),
+                'fail' => $ldapUsersLen - count($users)
             ]);
         } else if ($type == 'group') {
             $checkResult = funCheckForm($dataSource, [
@@ -155,7 +166,9 @@ class Ldap extends Base
 
             return message(200, 1, '成功', [
                 'count' => $ldapGroupsLen,
-                'groups' => implode(',', $groups)
+                'groups' => implode(',', $groups),
+                'success' => count($groups),
+                'fail' => $ldapGroupsLen - count($groups)
             ]);
         }
     }
@@ -313,9 +326,22 @@ class Ldap extends Base
 
         ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, $dataSource['ldap_version']);
 
+        $result = @ldap_bind($connection, $dataSource['ldap_bind_dn'], $dataSource['ldap_bind_password']);
+        if (!$result) {
+            return false;
+        }
+
         $attributes = explode(',', $dataSource['user_attributes']);
 
-        $result = @ldap_bind($connection, sprintf('%s=%s,%s', $attributes[0], $username, $dataSource['user_base_dn']), $password);
+        $result = ldap_search($connection, $dataSource['user_base_dn'], sprintf('%s=%s', $attributes[0], $username));
+
+        $entry = ldap_first_entry($connection, $result);
+
+        $attrs = ldap_get_attributes($connection, $entry);
+
+        $user_dn = ldap_get_dn($connection, $entry);
+
+        $result = @ldap_bind($connection, $user_dn, $password);
         if (!$result) {
             return false;
         }

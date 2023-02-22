@@ -2,6 +2,7 @@
 
 REPOS="$1"
 TXN="$2"
+SVNLOOK="svnlook"
 
 # SVN 提交必须填写备注钩子
 LOGMSG=`$SVNLOOK log -t "$TXN" "$REPOS" | grep "[a-zA-Z0-9]" | wc -c`  
