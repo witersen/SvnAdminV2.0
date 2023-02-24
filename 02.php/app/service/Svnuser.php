@@ -449,7 +449,7 @@ class Svnuser extends Base
         }
 
         return message(200, 1, '成功', [
-            'data' => $result,
+            'data' => array_values($result),
             'total' => $total
         ]);
     }
