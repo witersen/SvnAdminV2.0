@@ -194,7 +194,7 @@ chown -R apache:apache /home/svnadmin
   exit
   
   #停止后台
-  php svnandmind.php stop
+  php svnadmind.php stop
   
   #调试模式
   php svnadmind.php console
