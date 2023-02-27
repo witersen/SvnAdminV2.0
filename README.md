@@ -45,7 +45,7 @@ Subversion：1.8+
 此方式可快速部署程序体验效果，数据不存储在宿主机，生产环境慎用
 
 ```
-docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.4.7
+docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.5.2
 ```
 
 ##### 3.2 适用于：新用户正式使用
@@ -53,7 +53,7 @@ docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom
 - 启动一个临时的容器用于复制配置文件出来
 
 ```
-docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.4.7 /usr/sbin/init
+docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.5.2 /usr/sbin/init
 ```
 
 - 把配置文件复制到本机的 `/home/svnadmin` 目录
@@ -80,7 +80,7 @@ docker run -d -p 80:80 -p 3690:3690 \
 -v /home/svnadmin/sasl2/:/etc/sasl2/ \
 --privileged \
 --name svnadmin \
-witersencom/svnadmin:2.4.7
+witersencom/svnadmin:2.5.2
 ```
 
 - 进入容器内进行文件授权
@@ -107,6 +107,10 @@ chown -R apache:apache /home/svnadmin
   - 退出容器
   - 停止旧的容器，拉取新容器，挂载本地的数据目录到新版本的容器即可
 - 2.4.3 及之前的用户升级到 2.4.x 要注意目录挂载多了 conf.d sasl2 升级之前要提前复制出来
+- 2.4.x之前的用户升级到2.5.x
+  - 请等作者闲了做升级包。。。。。。
+- 2.4.x 升级到 2.5.x
+  - 请等作者闲了做升级包。。。。。。。
 
 ### 4. 源码安装
 
@@ -153,9 +157,9 @@ yum install -y cronie at
 - 下载解压代码包
 
 ```
-cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.4.7/2.4.7.zip
+cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.5.2/2.5.2.zip
 
-unzip v2.4.7.zip
+unzip v2.5.2.zip
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）（注意需要Subversion >= 1.8）
@@ -304,6 +308,10 @@ nohup php server/svnadmind.php start &
     - 数据库配置信息`web/config/database.php`
     - 主目录配置信息 `web/config/svn.php`
     - 二进制文件配置文件 `web/config/bin.php`
+- 2.4.x之前升级到2.5.x
+  - 请等作者闲了做升级包。。。。。。
+- 2.4.x升级到2.5.x
+  - 请等作者闲了做升级包。。。。。。
 
 ### 5. 常见问题解答
 
@@ -434,7 +442,7 @@ setsebool -P httpd_can_connect_ldap=1
 这种情况通常是因为源码安装过程中，少装了有关ldap 的模块或依赖，建议详细看文档
 ```
 
-##### 5.14 LDAP状态下用户列表同步成功但是无法登录
+##### 5.14 LDAP状态下用户列表同步成功但是无法登录（2.4.x版本之前的问题）
 
 ```
 这种情况下通常是因为你的 Base DN 配置问题
