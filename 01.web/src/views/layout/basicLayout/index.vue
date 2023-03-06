@@ -28,7 +28,15 @@
       >
         <img
           :src="require('@/assets/images/logo.png')"
-          style="line-height: 64px; position: absolute; top: 12px; left: 1%"
+          style="
+            line-height: 64px;
+            position: absolute;
+            top: 12px;
+            left: 1%;
+            cursor: pointer;
+          "
+          draggable="false"
+          @click="toMyIndex"
         />
         <!-- 实时任务 -->
         <span style="cursor: pointer" @click="ModalTasks">后台任务</span>
@@ -362,6 +370,10 @@ export default {
     };
   },
   methods: {
+    //点击logo回到当前用户有权限第一个页面
+    toMyIndex() {
+      this.$router.push({ name: sessionStorage.firstRoute });
+    },
     //退出登录
     Logout() {
       var that = this;

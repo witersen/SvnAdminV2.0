@@ -45,7 +45,7 @@ Subversion：1.8+
 此方式可快速部署程序体验效果，数据不存储在宿主机，生产环境慎用
 
 ```
-docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.5.2
+docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.5.3
 ```
 
 ##### 3.2 适用于：新用户正式使用
@@ -53,7 +53,7 @@ docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom
 - 启动一个临时的容器用于复制配置文件出来
 
 ```
-docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.5.2 /usr/sbin/init
+docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.5.3 /usr/sbin/init
 ```
 
 - 把配置文件复制到本机的 `/home/svnadmin` 目录
@@ -80,7 +80,7 @@ docker run -d -p 80:80 -p 3690:3690 \
 -v /home/svnadmin/sasl2/:/etc/sasl2/ \
 --privileged \
 --name svnadmin \
-witersencom/svnadmin:2.5.2
+witersencom/svnadmin:2.5.3
 ```
 
 - 进入容器内进行文件授权
@@ -111,6 +111,8 @@ chown -R apache:apache /home/svnadmin
   - 请等作者闲了做升级包。。。。。。
 - 2.4.x 升级到 2.5.x
   - 请等作者闲了做升级包。。。。。。。
+- 2.5.x 版本之间升级
+  - 只需要停掉老容器，按照之前的文件、端口映射配置，拉取新容器启动即可
 
 ### 4. 源码安装
 
@@ -157,9 +159,9 @@ yum install -y cronie at
 - 下载解压代码包
 
 ```
-cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.5.2/2.5.2.zip
+cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.5.3/2.5.3.zip
 
-unzip v2.5.2.zip
+unzip v2.5.3.zip
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）（注意需要Subversion >= 1.8）
@@ -312,6 +314,8 @@ nohup php server/svnadmind.php start &
   - 请等作者闲了做升级包。。。。。。
 - 2.4.x升级到2.5.x
   - 请等作者闲了做升级包。。。。。。
+- 2.5.x之间升级
+  - 只需要重新覆盖代码即可
 
 ### 5. 常见问题解答
 
@@ -475,6 +479,8 @@ setsebool -P httpd_can_connect_ldap=1
 | qq@Start          | 支付宝 | 2022-12-16 |
 | alipay@*通        | 支付宝 | 2023-01-06 |
 | qq@面壁人         | 微信   | 2023-01-13 |
+| qq@☆星雨星辰☆     | 微信   | 2023-03-02 |
+| qq@东方启示录     | 微信   | 2023-03-06 |
 
 <img src="00.static/wechat.png" alt="" width="40%" height="40%" />
 

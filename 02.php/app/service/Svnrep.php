@@ -2162,7 +2162,7 @@ class Svnrep extends Base
             return message(200, 0, sprintf('文件[%s]不可写', $hooksPath));
         }
 
-        funFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
+        funFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content'] , true);
 
         return message();
     }

@@ -196,14 +196,7 @@ class Crond extends Base
         $nameCrondLog = $nameCrond . '.log';
 
         $conCrond = sprintf(
-            "#!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
-export PATH
-startDate=`date +%s`
-echo ----------starTime:[\$startDate]--------------------------------------------
-php %s %s %s
-endDate=`date +%s`
-echo ----------endTime:[\$endDate]--------------------------------------------",
+            "#!/bin/bash\nPATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin\nexport PATH\nstartDate=`date +%s`\necho ----------starTime:[\$startDate]--------------------------------------------\nphp %s %s %s\nendDate=`date +%s`\necho ----------endTime:[\$endDate]--------------------------------------------",
             "\"%Y-%m-%d %H:%M:%S\"",
             BASE_PATH . '/server/command.php',
             $cycle['task_type'],

@@ -342,6 +342,9 @@
       class-name="hooks"
       :draggable="true"
     >
+      <Alert type="info" show-icon
+        >如果SVN客户端正在触发相关的钩子，则更新动作可能会持续阻塞或失败，直至客户端结束相关进程</Alert
+      >
       <Tabs type="card">
         <TabPane label="仓库钩子">
           <Card :bordered="false" :dis-hover="true" class="my-modal">
@@ -2003,7 +2006,7 @@ export default {
         formdata.append("md5", md5);
         formdata.append("filename", file.name);
         formdata.append("numBlobTotal", chunkCount);
-        formdata.append("numBlobCurrent", i+1);
+        formdata.append("numBlobCurrent", i + 1);
         formdata.append("deleteOnMerge", that.file.deleteOnMerge);
 
         if (!that.file.stop) {
