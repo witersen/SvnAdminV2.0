@@ -192,7 +192,7 @@ chown -R apache:apache /home/svnadmin
 
   ```
   #pwd
-  /var/www/html
+  /var/www/html/server/
   
   #后台运行
   nohup php svnadmind.php start >/dev/null 2>&1 &
