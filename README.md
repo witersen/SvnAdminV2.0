@@ -159,9 +159,9 @@ yum install -y cronie at
 - 下载解压代码包
 
 ```
-cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/v2.5.3/2.5.3.zip
+cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/2.5.3/2.5.3.zip
 
-unzip v2.5.3.zip
+unzip 2.5.3.zip
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）（注意需要Subversion >= 1.8）
