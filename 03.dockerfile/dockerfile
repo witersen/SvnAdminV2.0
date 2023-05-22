@@ -16,7 +16,7 @@ RUN localedef -c -i en_US -f UTF-8 C.UTF-8 \
     && echo 'export LANG="C.UTF-8"' >> /etc/profile \
     && echo 'export LC_ALL="C.UTF-8"' >> /etc/profile
 
-RUN echo -e "[WandiscoSVN]\nname=Wandisco SVN Repo\nbaseurl=http://opensource.wandisco.com/centos/\$releasever/svn-1.10/RPMS/\$basearch/\nenabled=1\ngpgcheck=0" > /etc/yum.repos.d/wandisco-svn.repo \
+RUN echo -e "[WandiscoSVN]\nname=Wandisco SVN Repo\nbaseurl=http://opensource.wandisco.com/centos/\$releasever/svn-1.9/RPMS/\$basearch/\nenabled=1\ngpgcheck=0" > /etc/yum.repos.d/wandisco-svn.repo \
     && yum install -y epel-release yum-utils \
     && rpm -Uvh https://mirrors.aliyun.com/remi/enterprise/remi-release-7.rpm \
     && yum-config-manager --enable remi-php74 \
@@ -36,7 +36,7 @@ RUN cd /home/svnadmin/ \
     && mkdir -p temp \
     && mkdir -p templete/initStruct/01/branches \
     && mkdir -p templete/initStruct/01/tags \
-    && mkdir -p templete/initStruct/01/trunk 
+    && mkdir -p templete/initStruct/01/trunk
 RUN chown -R apache:apache /home/svnadmin/ && mkdir -p /run/php-fpm/
 
 # 关闭PHP彩蛋

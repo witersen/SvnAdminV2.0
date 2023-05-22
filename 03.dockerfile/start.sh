@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if [ $APACHE_PUID ]; then
+    usermod -u $APACHE_PUID apache
+fi
+
+if [ $APACHE_PGID ]; then
+    groupmod -g $APACHE_PGID apache
+fi
+
 source /etc/profile
 
 /usr/sbin/php-fpm
