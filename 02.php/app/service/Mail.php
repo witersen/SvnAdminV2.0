@@ -75,12 +75,12 @@ class Mail extends Base
                 $this->mail->SMTPSecure = "";
                 //是否配置自动启用TLS
                 $this->mail->SMTPAutoTLS = $autotls;
-            } else if ($encryption == 'SSL') {
+            } elseif ($encryption == 'SSL') {
                 //加密方式为SSL
                 $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                 //是否配置自动启用TLS
                 $this->mail->SMTPAutoTLS = $autotls;
-            } else if ($encryption == 'TLS') {
+            } elseif ($encryption == 'TLS') {
                 //加密方式为TLS
                 $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             }

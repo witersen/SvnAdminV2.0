@@ -268,17 +268,17 @@ class Install
             if (strstr($readhat_release, 'centos')) {
                 if (strstr($readhat_release, '8.')) {
                     return 'centos 8';
-                } else if (strstr($readhat_release, '7.')) {
+                } elseif (strstr($readhat_release, '7.')) {
                     return 'centos 7';
                 } else {
                     return false;
                 }
-            } else if (strstr($readhat_release, 'rocky')) {
+            } elseif (strstr($readhat_release, 'rocky')) {
                 return 'rocky';
             } else {
                 return false;
             }
-        } else if (file_exists('/etc/lsb-release')) {
+        } elseif (file_exists('/etc/lsb-release')) {
             return 'ubuntu';
         } else {
             return false;
@@ -606,9 +606,9 @@ CON;
         $con_svnserve_service_file = sprintf($con_svnserve_service_file, $this->configSvn['svnserve_env_file'], $needBin['svnserve'], $this->configSvn['svnserve_pid_file']);
         if ($os == 'centos 7' || $os == 'centos 8') {
             file_put_contents($this->configSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
-        } else if ($os == 'ubuntu') {
+        } elseif ($os == 'ubuntu') {
             file_put_contents($this->configSvn['svnserve_service_file']['ubuntu'], $con_svnserve_service_file);
-        } else if ($os == 'rocky') {
+        } elseif ($os == 'rocky') {
             file_put_contents($this->configSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
         } else {
             file_put_contents($this->configSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
@@ -764,9 +764,9 @@ CON;
         $con_svnserve_service_file = sprintf($con_svnserve_service_file, $newConfigSvn['svnserve_env_file'], $this->configBin['svnserve'], $newConfigSvn['svnserve_pid_file']);
         if ($os == 'centos 7' || $os == 'centos 8') {
             file_put_contents($newConfigSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
-        } else if ($os == 'ubuntu') {
+        } elseif ($os == 'ubuntu') {
             file_put_contents($newConfigSvn['svnserve_service_file']['ubuntu'], $con_svnserve_service_file);
-        } else if ($os == 'rocky') {
+        } elseif ($os == 'rocky') {
             file_put_contents($newConfigSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
         } else {
             file_put_contents($newConfigSvn['svnserve_service_file']['centos'], $con_svnserve_service_file);
@@ -895,13 +895,13 @@ CON;
             passthru('sh ' . $shellPath . 'subversion_installer_' . $answer . '.sh');
 
             $this->ConfigSubversion();
-        } else if ($answer == 2) {
+        } elseif ($answer == 2) {
             //按照本系统的要求初始化Subversion（针对以其它方式安装的Subversion）
             $this->ConfigSubversion();
-        } else if ($answer == 3) {
+        } elseif ($answer == 3) {
             //检测SVNAdmin的新版本
             $this->DetectUpdate();
-        } else if ($answer == 4) {
+        } elseif ($answer == 4) {
             //修改当前的数据存储主目录
             $this->MoveHome();
         }

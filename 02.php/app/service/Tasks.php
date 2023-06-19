@@ -326,7 +326,7 @@ class Tasks extends Base
             ]);
 
             return message();
-        } else if ($result['task_status'] == 1) {
+        } elseif ($result['task_status'] == 1) {
             // 如果是待执行的后台任务则直接从数据库中标记为已删除
             $result = $this->database->update('tasks', [
                 'task_status' => 4
@@ -335,11 +335,11 @@ class Tasks extends Base
             ]);
 
             return message();
-        } else if ($result['task_status'] == 3) {
+        } elseif ($result['task_status'] == 3) {
             return message();
-        } else if ($result['task_status'] == 4) {
+        } elseif ($result['task_status'] == 4) {
             return message();
-        } else if ($result['task_status'] == 5) {
+        } elseif ($result['task_status'] == 5) {
             return message();
         }
 

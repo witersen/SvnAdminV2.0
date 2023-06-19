@@ -26,7 +26,7 @@ class Statistics extends Base
     public function GetLoadInfo()
     {
         /**
-         * ----------负载计算开始----------
+         * ----------1、负载计算开始----------
          */
         $laodavgArray = sys_getloadavg();
 
@@ -39,9 +39,6 @@ class Statistics extends Base
             $percent = 100;
         }
 
-        /**
-         * ----------负载计算结束----------
-         */
         $data['load'] = [
             'cpuLoad15Min' => $laodavgArray[2],
             'cpuLoad5Min' => $laodavgArray[1],
@@ -52,71 +49,85 @@ class Statistics extends Base
         ];
 
         /**
-         * ----------cpu计算开始----------
+         * ----------2、cpu利率用开始----------
          */
-        /**
-         * cpu使用率
-         * 
-         * %Cpu(s):  0.0 us,  3.2 sy,  0.0 ni, 96.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-         * 
-         * us user CPU time     用户空间占用CPU百分比
-         * sy system CPU time   内核空间占用CPU百分比
-         * ni nice CPU          用户进程空间内改变过优先级的进程占用CPU百分比 
-         * id idle              空闲CPU百分比
-         * wa iowait            等待输入输出的CPU时间百分比
-         * hi hardware          硬件中断
-         * si software          软件中断 
-         * st steal             实时
-         */
-        $topResult = funShellExec('top -b -n 1 | grep Cpu');
-        $topResult = $topResult['result'];
-        preg_match('/ni,(.*?)id/', $topResult, $matches);
-        $id = 100 - (float)trim($matches[1]);
 
-        //cpu型号
-        $cpuModelArray = [];
-        $cpuModelName = explode("\n", file_get_contents('/proc/cpuinfo'));
-        foreach ($cpuModelName as $value) {
-            if (strstr($value, 'model name')) {
-                $tempArray = explode(':', $value);
-                in_array(trim($tempArray[1]), $cpuModelArray) ? '' : array_push($cpuModelArray, trim($tempArray[1]));
-            }
+        $cpuUsage1 = $this->getCpuUsage();
+        sleep(1);
+        $cpuUsage2 = $this->getCpuUsage();
+
+        // 计算每个 CPU 核心的使用率差值
+        $cpuDiff = [];
+        foreach ($cpuUsage1 as $core => $usage1) {
+            $usage2 = $cpuUsage2[$core];
+            $diff = [
+                'user' => $usage2['user'] - $usage1['user'],
+                'nice' => $usage2['nice'] - $usage1['nice'],
+                'system' => $usage2['system'] - $usage1['system'],
+                'idle' => $usage2['idle'] - $usage1['idle'],
+                'iowait' => $usage2['iowait'] - $usage1['iowait'],
+                'irq' => $usage2['irq'] - $usage1['irq'],
+                'softirq' => $usage2['softirq'] - $usage1['softirq'],
+                'steal' => $usage2['steal'] - $usage1['steal'],
+                'guest' => $usage2['guest'] - $usage1['guest'],
+                'guest_nice' => $usage2['guest_nice'] - $usage1['guest_nice'],
+            ];
+            $cpuDiff[$core] = array_sum($diff);
         }
 
-        $cpuPhysical = 0;
-        $cpuPhysicalCore = 0;
-        $cpuProcessor = 0;
-        $cpuInfo = explode("\n", file_get_contents('/proc/cpuinfo'));
+        // 计算平均 CPU 使用率
+        $cpuTotalUsage = 0;
+        foreach ($cpuDiff as $core => $usage) {
+            // 排除idle状态
+            if ($core !== 'cpu') {
+                $cpuTotalUsage += $usage;
+            }
+        }
+        $cpuAvgUsage = 100 - ($cpuTotalUsage / count($cpuDiff));
+        $cpuAvgUsage = $cpuAvgUsage > 100 ? 100 : $cpuAvgUsage;
+        $cpuAvgUsage = $cpuAvgUsage < 0 ? 0 : $cpuAvgUsage;
+
+        /**
+         * ----------3、cpu信息开始----------
+         */
+        $cpuModelArray = [];
         $cpuPhysicalArray = [];
-        foreach ($cpuInfo as $value) {
-            if (strstr($value, 'physical id')) {
-                in_array($value, $cpuPhysicalArray) ? '' : array_push($cpuPhysicalArray, $value);
-            } else if (strstr($value, 'cpu cores')) {
-                $cpuPhysicalCore++;
-            } else if (strstr($value, 'processor')) {
+        $cpuProcessor = 0;
+        $physicalId = -1;
+        $proc_cpuinfo_array = explode("\n", file_get_contents('/proc/cpuinfo'));
+        foreach ($proc_cpuinfo_array as $value) {
+            if (strstr($value, 'model name')) {
+                $modelName = trim(substr($value, strpos($value, ':') + 1));
+                if (!in_array($modelName, $cpuModelArray)) {
+                    $cpuModelArray[] = $modelName;
+                }
+            } elseif (strstr($value, 'physical id')) {
+                $physicalId = trim(substr($value, strpos($value, ':') + 1));
+                $cpuPhysicalArray[$physicalId] = 0;
+            } elseif (strstr($value, 'cpu cores')) {
+                $cpuPhysicalArray[$physicalId] = intval(trim(substr($value, strpos($value, ':') + 1)));
+            } elseif (strstr($value, 'processor')) {
                 $cpuProcessor++;
             }
         }
-        $cpuPhysical = count($cpuPhysicalArray);
 
-        //总物理核心数 = 物理cpu个数 * 每个物理cpu的物理核心数（每个物理cpu的物理核心数都一样吗？）
-        $cpuCore = $cpuPhysical * $cpuPhysicalCore;
+        //物理cpu个数
+        $cpuPhysical = count(array_keys($cpuPhysicalArray));
 
-        /**
-         * ----------cpu计算结束----------
-         */
+        //总物理核心数 = 每个物理cpu的物理核心数相加
+        $cpuCore = array_sum(array_values($cpuPhysicalArray));
+
         $data['cpu'] = [
-            'percent' => round($id, 1),
+            'percent' => round($cpuAvgUsage, 1),
             'cpu' => $cpuModelArray,
-            'cpuPhysical' => $cpuPhysical,
-            'cpuPhysicalCore' => $cpuPhysicalCore,
-            'cpuCore' => $cpuCore,
-            'cpuProcessor' => $cpuProcessor,
-            'color' => funGetColor($id)['color']
+            'cpuPhysical' => $cpuPhysical, //物理CPU个数
+            'cpuCore' => $cpuCore, //物理CPU的总核心数
+            'cpuProcessor' => $cpuProcessor, //物理CPU的线程总数/逻辑核心总数
+            'color' => funGetColor($cpuAvgUsage)['color']
         ];
 
         /**
-         * ----------内存计算开始----------
+         * ----------4、内存计算开始----------
          */
         $meminfo = file_get_contents('/proc/meminfo');
 
@@ -129,9 +140,6 @@ class Statistics extends Base
 
         $percent = round($memUsed / $memTotal * 100, 1);
 
-        /**
-         * ----------内存计算结束----------
-         */
         $data['mem'] = [
             'memTotal' => round($memTotal / 1024),
             'memUsed' => round($memUsed / 1024),
@@ -144,40 +152,126 @@ class Statistics extends Base
     }
 
     /**
-     * 获取硬盘
-     * 
-     * 获取硬盘数量和每个硬盘的详细信息
+     * 获取系统每个 CPU 核心的使用情况
+     */
+    private function getCpuUsage()
+    {
+        $cpuUsage = [];
+        $procStat = file_get_contents('/proc/stat');
+        preg_match_all('/cpu\d+/', $procStat, $matches);
+        $cores = $matches[0];
+        foreach ($cores as $core) {
+            preg_match_all('/\d+/', trim(substr(strstr($procStat, $core), strlen($core))), $matches);
+            $usage = $matches[0];
+            $cpuUsage[$core] = [
+                'user' => $usage[0],
+                'nice' => $usage[1],
+                'system' => $usage[2],
+                'idle' => $usage[3],
+                'iowait' => $usage[4],
+                'irq' => $usage[5],
+                'softirq' => $usage[6],
+                'steal' => $usage[7],
+                'guest' => $usage[8],
+                'guest_nice' => $usage[9],
+            ];
+        }
+        return $cpuUsage;
+    }
+
+    /**
+     * 获取磁盘信息
      */
     public function GetDiskInfo()
     {
-        $rs = funShellExec('df -lh | grep -E "^(/)"');
-        $rs = $rs['result'];
+        $diskArray = [];
 
-        //将多个连续的空格换为一个
-        $result = preg_replace("/\s{2,}/", ' ', $rs);
+        $diskStats = file_get_contents('/proc/mounts');
+        $diskLines = explode("\n", $diskStats);
 
-        //多个硬盘
-        $diskArray = explode("\n", $result);
+        $mountedPoints = [];
 
-        $data = [];
+        foreach ($diskLines as $line) {
+            if (!empty($line) && strpos($line, '/') === 0) {
+                $diskInfo = explode(" ", $line);
+                $mountedOn = trim($diskInfo[1]);
+                $filesystem = trim($diskInfo[0]);
 
-        //处理
-        foreach ($diskArray as $value) {
-            if (trim($value) != '') {
-                $diskInfo = explode(" ", $value);
-                array_push($data, [
-                    'fileSystem' => $diskInfo[0],
-                    'size' => $diskInfo[1],
-                    'used' => $diskInfo[2],
-                    'avail' => $diskInfo[3],
-                    'percent' => (int)str_replace('%', '', $diskInfo[4]),
-                    'mountedOn' => $diskInfo[5],
-                    'color' => funGetColor((int)str_replace('%', '', $diskInfo[4]))['color']
-                ]);
+                if (!in_array($filesystem, $mountedPoints)) {
+                    $mountedPoints[] = $filesystem;
+                    $diskUsage = $this->GetDiskUsage($mountedOn);
+                    if ($diskUsage) {
+                        $diskArray[] = [
+                            'fileSystem' => $filesystem,
+                            'mountedOn' => $mountedOn,
+                            'size' => $diskUsage['size'],
+                            'used' => $diskUsage['used'],
+                            'avail' => $diskUsage['avail'],
+                            'percent' => $diskUsage['percent'],
+                            'color' => funGetColor($diskUsage['percent'])['color']
+                        ];
+                    }
+                }
             }
         }
 
-        return message(200, 1, '成功', $data);
+
+        return message(200, 1, '成功', $diskArray);
+    }
+
+    /**
+     * 获取磁盘信息
+     */
+    private function GetDiskUsage($path)
+    {
+        $diskTotalSpace = disk_total_space($path);
+        $diskFreeSpace = disk_free_space($path);
+
+        if ($diskTotalSpace == 0) {
+            return null;
+        }
+
+        $reservedSpace = $this->getReservedSpace($path);
+
+        $diskUsage = $diskTotalSpace - $diskFreeSpace - $reservedSpace;
+
+        $totalSize = funFormatSize($diskTotalSpace);
+        $used = funFormatSize($diskUsage);
+        $free = funFormatSize($diskFreeSpace);
+        $percent = round(($diskUsage / $diskTotalSpace) * 100, 1);
+
+        return [
+            'size' => $totalSize,
+            'used' => $used,
+            'avail' => $free,
+            'percent' => $percent
+        ];
+    }
+
+    /**
+     * 获取系统保留空间
+     * 
+     * php5有效
+     */
+    private function GetReservedSpace($path)
+    {
+        if (!function_exists('statvfs')) {
+            return 0;
+        }
+
+        $stat = @statvfs($path);
+
+        if ($stat !== false) {
+            $blockSize = $stat['bsize'];
+            $blocks = $stat['blocks'];
+            $freeBlocks = $stat['bfree'];
+            $reservedBlocks = $stat['breserved'];
+
+            $reservedSpace = $reservedBlocks * $blockSize;
+            return $reservedSpace;
+        }
+
+        return 0;
     }
 
     /**
@@ -193,13 +287,20 @@ class Statistics extends Base
      */
     public function GetStatisticsInfo()
     {
-        //操作系统类型和版本
-        if (file_exists('/etc/redhat-release')) {
-            $os = file_get_contents('/etc/redhat-release');
-        } else if (file_exists('/etc/lsb-release')) {
-            $os = file_get_contents('/etc/lsb-release');
-        } else {
-            $os = 'Linux';
+        $os = 'Unknown';
+        $versionFiles = [
+            '/etc/redhat-release',  // CentOS, RHEL
+            '/etc/lsb-release',     // Ubuntu
+            '/etc/debian_version',  // Debian
+            '/etc/fedora-release',  // Fedora
+            '/etc/SuSE-release',    // OpenSUSE
+            '/etc/arch-release'     // Arch Linux
+        ];
+        foreach ($versionFiles as $file) {
+            if (file_exists($file)) {
+                $os = trim(file_get_contents($file));
+                break;
+            }
         }
 
         $aliaseCount = $this->SVNAdmin->GetAliaseInfo($this->authzContent);

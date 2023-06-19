@@ -289,9 +289,9 @@ class Svnrep extends Base
         if (is_numeric($userRepList)) {
             if ($userRepList == 612) {
                 json1(200, 0, '文件格式错误(不存在[groups]标识)');
-            } else if ($userRepList == 700) {
+            } elseif ($userRepList == 700) {
                 json1(200, 0, '对象不存在');
-            } else if ($userRepList == 901) {
+            } elseif ($userRepList == 901) {
                 json1(200, 0, '不支持的授权对象类型');
             } else {
                 json1(200, 0, "错误码$userRepList");
@@ -328,9 +328,9 @@ class Svnrep extends Base
         if (is_numeric($userRepList)) {
             if ($userRepList == 612) {
                 json1(200, 0, '文件格式错误(不存在[groups]标识)');
-            } else if ($userRepList == 700) {
+            } elseif ($userRepList == 700) {
                 json1(200, 0, '对象不存在');
-            } else if ($userRepList == 901) {
+            } elseif ($userRepList == 901) {
                 json1(200, 0, '不支持的授权对象类型');
             } else {
                 json1(200, 0, "错误码$userRepList");
@@ -431,7 +431,7 @@ class Svnrep extends Base
         //     ], [
         //         '[_]',
         //     ], $searchKeyword);
-        // } else if ($configDatabase['database_type'] == 'sqlite') {
+        // } elseif ($configDatabase['database_type'] == 'sqlite') {
         //     $searchKeyword = str_replace([
         //         '/', "'", '[', ']', '%', '&', '_', '(', ')'
         //     ], [
@@ -1051,7 +1051,7 @@ class Svnrep extends Base
                         'children' => $data
                     ]
                 ];
-            } else if (substr($repPath, -1) == '/') {
+            } elseif (substr($repPath, -1) == '/') {
                 $pathArray = explode('/', $repPath);
                 $pathArray = array_values(array_filter($pathArray, 'funArrayValueFilter'));
                 $result = [
@@ -1111,9 +1111,9 @@ class Svnrep extends Base
         $recursion = $this->GetRepTreeChildren($pathArray, $pathHistoryArray, $last);
         if (empty($recursion)) {
             $children = [];
-        } else if (array_key_exists('expand', $recursion)) {
+        } elseif (array_key_exists('expand', $recursion)) {
             $children = [$recursion];
-        } else if (array_key_exists('resourceType', $recursion)) {
+        } elseif (array_key_exists('resourceType', $recursion)) {
             $children = [$recursion];
         } else {
             $children = $recursion;
@@ -1261,7 +1261,7 @@ class Svnrep extends Base
                     //正常 无记录
                     return message();
                 }
-            } else if ($result == 752) {
+            } elseif ($result == 752) {
                 return message(200, 0, '仓库路径需以/开始');
             } else {
                 return message(200, 0, "错误码$result");
@@ -1289,6 +1289,7 @@ class Svnrep extends Base
                         unset($result[$key]);
                     }
                 }
+                $result = array_values($result);
             }
             return message(200, 1, '成功', $result);
         }
@@ -1389,7 +1390,7 @@ class Svnrep extends Base
                     } else {
                         return message(200, 0, "错误码$result");
                     }
-                } else if ($result == 752) {
+                } elseif ($result == 752) {
                     return message(200, 0, '仓库路径需以/开始');
                 } else {
                     //重新写入权限
@@ -1398,9 +1399,9 @@ class Svnrep extends Base
                         return message(200, 0, "错误码$result");
                     }
                 }
-            } else if ($result == 801) {
+            } elseif ($result == 801) {
                 return message(200, 0, '对象已有授权记录');
-            } else if ($result == 901) {
+            } elseif ($result == 901) {
                 return message(200, 0, '不支持的授权对象类型');
             } else {
                 return message(200, 0, "错误码$result");
@@ -1502,11 +1503,11 @@ class Svnrep extends Base
         if (is_numeric($result)) {
             if ($result == 751) {
                 return message(200, 0, '不存在该仓库路径');
-            } else if ($result == 752) {
+            } elseif ($result == 752) {
                 return message(200, 0, '仓库路径需以/开始');
-            } else if ($result == 901) {
+            } elseif ($result == 901) {
                 return message(200, 0, '不支持的授权对象类型');
-            } else if ($result == 701) {
+            } elseif ($result == 701) {
                 return message(200, 0, '仓库路径下不存在该对象的权限记录');
             } else {
                 return message(200, 0, "错误码$result");
@@ -1599,11 +1600,11 @@ class Svnrep extends Base
         if (is_numeric($result)) {
             if ($result == 751) {
                 return message(200, 0, '不存在该仓库路径的记录');
-            } else if ($result == 752) {
+            } elseif ($result == 752) {
                 return message(200, 0, '仓库路径需以/开始');
-            } else if ($result == 901) {
+            } elseif ($result == 901) {
                 return message(200, 0, '不支持的授权对象类型');
-            } else if ($result == 701) {
+            } elseif ($result == 701) {
                 return message(200, 0, '已删除');
             } else {
                 return message(200, 0, "错误码$result");
@@ -1798,7 +1799,7 @@ class Svnrep extends Base
 
         foreach ($result as $key => $value) {
             $result[$key]['fileToken'] = hash_hmac('md5', $value['fileName'], $this->configSign['signature']);
-            $result[$key]['fileUrl'] = sprintf('/api.php?c=Svnrep&a=DownloadRepBackup&t=web&fileName=%s&token=%s', $value['fileName'], $result[$key]['fileToken']);
+            $result[$key]['fileUrl'] = sprintf('api.php?c=Svnrep&a=DownloadRepBackup&t=web&fileName=%s&token=%s', $value['fileName'], $result[$key]['fileToken']);
         }
 
         return message(200, 1, '成功', $result);

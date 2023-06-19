@@ -116,7 +116,7 @@ class Personal extends Base
             if (is_numeric($result)) {
                 if ($result == 621) {
                     return message(200, 0, '文件格式错误(不存在[users]标识)');
-                } else if ($result == 710) {
+                } elseif ($result == 710) {
                     return message(200, 0, '用户不存在 请管理员同步用户后重试');
                 } else {
                     return message(200, 0, "错误码$result");

@@ -616,7 +616,7 @@ class SVNAdmin
                          */
                         return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n" . trim(preg_replace($regArray['quote_hasInvert'], $objectKey['noInvert'] . "=$privilege", $authzContentPreg[1][0])), $authzContent);
                     }
-                } else if (array_key_exists(0, $resultPreg2[0])) {
+                } elseif (array_key_exists(0, $resultPreg2[0])) {
                     /**
                      * 现在为非反转状态
                      * 如果传入反转状态则需要修改状态为反转
@@ -704,7 +704,7 @@ class SVNAdmin
 
                 if (array_key_exists(0, $resultPreg1[0])) {
                     return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n" . trim(preg_replace($regArray['quote_hasInvert'], '', $authzContentPreg[1][0])), $authzContent);
-                } else if (array_key_exists(0, $resultPreg2[0])) {
+                } elseif (array_key_exists(0, $resultPreg2[0])) {
                     return str_replace($authzContentPreg[0][0], "[$repName:$repPath]\n" . trim(preg_replace($regArray['quote_noInvert'], '', $authzContentPreg[1][0])), $authzContent);
                 }
             }
@@ -910,9 +910,9 @@ class SVNAdmin
         $objectName = trim($objectName);
 
         if ($objectType == 'user') {
-        } else if ($objectType == 'group') {
+        } elseif ($objectType == 'group') {
             $objectName = "@$objectName";
-        } else if ($objectType == 'aliase') {
+        } elseif ($objectType == 'aliase') {
             $objectName = "&$objectName";
         } else {
             return 901;
@@ -981,10 +981,10 @@ class SVNAdmin
         $newObjectName = trim($newObjectName);
 
         if ($objectType == 'user') {
-        } else if ($objectType == 'group') {
+        } elseif ($objectType == 'group') {
             $oldObjectName = "@$oldObjectName";
             $newObjectName = "@$newObjectName";
-        } else if ($objectType == 'aliase') {
+        } elseif ($objectType == 'aliase') {
             $oldObjectName = "&$oldObjectName";
             $newObjectName = "&$newObjectName";
         } else {
@@ -1126,7 +1126,7 @@ class SVNAdmin
                         if ($prefix == '@') {
                             $item['include']['groups']['list'][] = substr($value, 1);
                             $item['include']['groups']['count'] = $item['include']['groups']['count'] + 1;
-                        } else if ($prefix == '&') {
+                        } elseif ($prefix == '&') {
                             $item['include']['aliases']['list'][] = substr($value, 1);
                             $item['include']['aliases']['count'] = $item['include']['aliases']['count'] + 1;
                         } else {
@@ -1195,9 +1195,9 @@ class SVNAdmin
 
                 if ($objectType == 'user') {
                     //无操作
-                } else if ($objectType == 'group') {
+                } elseif ($objectType == 'group') {
                     $objectName = "@$objectName";
-                } else if ($objectType == 'aliase') {
+                } elseif ($objectType == 'aliase') {
                     $objectName = "&$objectName";
                 } else {
                     return 901;
@@ -1377,9 +1377,9 @@ class SVNAdmin
 
                         if ($objectType == 'user') {
                             //无操作
-                        } else if ($objectType == 'group') {
+                        } elseif ($objectType == 'group') {
                             $objectName = "@$objectName";
-                        } else if ($objectType == 'aliase') {
+                        } elseif ($objectType == 'aliase') {
                             $objectName = "&$objectName";
                         } else {
                             return 901;
@@ -1396,7 +1396,7 @@ class SVNAdmin
                                 //替换和返回
                                 return preg_replace(sprintf($this->reg_2, 'groups'), "[groups]\n" . trim(preg_replace(sprintf($this->reg_5, preg_quote($groupName)), $groupContent, $authzContentPreg[1][0])) . "\n", $authzContent);
                             }
-                        } else if ($actionType == 'delete') {
+                        } elseif ($actionType == 'delete') {
                             if (in_array($objectName, $userGroupArray)) {
                                 //删除操作
                                 unset($userGroupArray[array_search($objectName, $userGroupArray)]);

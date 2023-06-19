@@ -77,7 +77,7 @@ class Daemon
         $pid = pcntl_fork();
         if ($pid == -1) {
             die(sprintf('pcntl_fork失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
-        } else if ($pid == 0) {
+        } elseif ($pid == 0) {
             file_put_contents($this->taskPidFile, getmypid());
 
             $this->ClearTask();
@@ -100,7 +100,7 @@ class Daemon
             $pid = pcntl_fork();
             if ($pid == -1) {
                 die(sprintf('pcntl_fork失败[%s]%s', socket_strerror(socket_last_error()), PHP_EOL));
-            } else if ($pid == 0) {
+            } elseif ($pid == 0) {
                 $this->HandleRequest($client);
             } else {
             }
@@ -340,21 +340,21 @@ class Daemon
             if (strstr($readhat_release, 'centos')) {
                 if (strstr($readhat_release, '8.')) {
                     // return 'centos 8';
-                } else if (strstr($readhat_release, '7.')) {
+                } elseif (strstr($readhat_release, '7.')) {
                     // return 'centos 7';
                 } else {
                     echo '===============================================' . PHP_EOL;
                     echo '警告！当前操作系统版本未测试，使用过程中可能会遇到问题！' . PHP_EOL;
                     echo '===============================================' . PHP_EOL;
                 }
-            } else if (strstr($readhat_release, 'rocky')) {
+            } elseif (strstr($readhat_release, 'rocky')) {
                 // return 'rocky';
             } else {
                 echo '===============================================' . PHP_EOL;
                 echo '警告！当前操作系统版本未测试，使用过程中可能会遇到问题！' . PHP_EOL;
                 echo '===============================================' . PHP_EOL;
             }
-        } else if (file_exists('/etc/lsb-release')) {
+        } elseif (file_exists('/etc/lsb-release')) {
             // return 'ubuntu';
         } else {
             echo '===============================================' . PHP_EOL;
@@ -504,7 +504,7 @@ class Daemon
                 $this->CheckDisabledFun();
                 if ($this->workMode == 'console') {
                     $this->Console();
-                } else if ($this->workMode == 'start') {
+                } elseif ($this->workMode == 'start') {
                     $this->Start();
                 }
             }

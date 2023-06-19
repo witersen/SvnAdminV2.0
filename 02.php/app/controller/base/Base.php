@@ -112,7 +112,7 @@ class Base
                 if (!in_array($parm['controller_prefix'] . '/' . $parm['action'], array_merge($configRouters['svn_user_routers'], $configRouters['public'][$parm['type']]))) {
                     json1(401, 0, '无权限');
                 }
-            } else if ($userRoleId == 3) {
+            } elseif ($userRoleId == 3) {
                 $subadminFunctions = $database->get('subadmin', 'subadmin_functions', [
                     'subadmin_name' => $userName
                 ]);
@@ -129,11 +129,11 @@ class Base
                 $status = $database->get('admin_users', 'admin_user_token', [
                     'admin_user_name' => $userName,
                 ]);
-            } else if ($userRoleId == 2) {
+            } elseif ($userRoleId == 2) {
                 $status = $database->get('svn_users', 'svn_user_token', [
                     'svn_user_name' => $userName,
                 ]);
-            } else if ($userRoleId == 3) {
+            } elseif ($userRoleId == 3) {
                 $status = $database->get('subadmin', 'subadmin_token', [
                     'subadmin_name' => $userName,
                 ]);
@@ -173,7 +173,7 @@ class Base
                     if (!is_writable($value)) {
                         json1(200, 0, sprintf('目录[%s]不存在或不可写', $value));
                     }
-                } else if (substr($key, -5) == '_file') {
+                } elseif (substr($key, -5) == '_file') {
                     if (!is_writable($value)) {
                         json1(200, 0, sprintf('文件[%s]不存在或不可写', $value));
                     }

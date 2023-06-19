@@ -43,7 +43,7 @@
                   >{{ statusInfo.load.percent }}%</span
                 >
               </Circle>
-              <div slot="content">
+              <div slot="content" style="font-size:11px">
                 <p>最近1分钟平均负载：{{ statusInfo.load.cpuLoad1Min }}</p>
                 <p>最近5分钟平均负载：{{ statusInfo.load.cpuLoad5Min }}</p>
                 <p>最近15分钟平均负载：{{ statusInfo.load.cpuLoad15Min }}</p>
@@ -65,11 +65,11 @@
                   >{{ statusInfo.cpu.percent }}%</span
                 >
               </Circle>
-              <div slot="content">
+              <div slot="content" style="font-size:11px">
                 <p v-for="item in statusInfo.cpu.cpu" :key="item">{{ item }}</p>
-                <p>物理CPU个数：{{ statusInfo.cpu.cpuPhysical }}</p>
-                <p>物理CPU的总核心数：{{ statusInfo.cpu.cpuCore }}</p>
-                <p>物理CPU的线程总数：{{ statusInfo.cpu.cpuProcessor }}</p>
+                <p>{{ statusInfo.cpu.cpuPhysical }}个物理CPU</p>
+                <p>{{ statusInfo.cpu.cpuCore }}个物理核心</p>
+                <p>{{ statusInfo.cpu.cpuProcessor }}个逻辑核心/线程</p>
               </div>
             </Tooltip>
             <div class="statusBottom">{{ statusInfo.cpu.cpuCore }}核心</div>
@@ -94,10 +94,10 @@
           <Col span="4" v-for="(item, index) in diskList" :key="index">
             <div class="statusTop">{{ item.mountedOn }}</div>
             <Tooltip placement="bottom" max-width="200">
-              <div slot="content">
+              <div slot="content" style="font-size:11px">
                 <p>文件系统：{{ item.fileSystem }}</p>
                 <p>容量：{{ item.size }}</p>
-                <p>已使用：{{ item.used }}</p>
+                <p>已使用+系统占用：{{ item.used }}</p>
                 <p>可使用：{{ item.avail }}</p>
                 <p>使用率：{{ item.percent }}%</p>
                 <p>挂载点：{{ item.mountedOn }}</p>

@@ -37,19 +37,13 @@ function funGetDirSize($dir)
  */
 function funFormatSize($size)
 {
-    if ($size == 0) {
-        return 0;
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    $i = 0;
+    while ($size >= 1024 && $i < count($units) - 1) {
+        $size /= 1024;
+        $i++;
     }
-    if ($size > 1073741824) {
-        $size = round($size / 1073741824, 3) . 'GB';
-    } else if ($size > 1048576) {
-        $size = round($size / 1048576, 2) . 'MB';
-    } else if ($size > 1024) {
-        $size = round($size / 1024, 1) . 'KB';
-    } else {
-        $size = $size . 'B';
-    }
-    return $size;
+    return round($size, 2) . ' ' . $units[$i];
 }
 
 /**

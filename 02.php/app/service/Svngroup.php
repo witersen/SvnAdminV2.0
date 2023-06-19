@@ -321,7 +321,7 @@ class Svngroup extends Base
         if (is_numeric($result)) {
             if ($result == 612) {
                 return message(200, 0, '文件格式错误(不存在[groups]标识)');
-            } else if ($result == 820) {
+            } elseif ($result == 820) {
                 return message(200, 0, '分组已存在');
             } else {
                 return message(200, 0, "错误码$result");
@@ -373,7 +373,7 @@ class Svngroup extends Base
         if (is_numeric($result)) {
             if ($result == 612) {
                 return message(200, 0, '文件格式错误(不存在[groups]标识)');
-            } else if ($result == 901) {
+            } elseif ($result == 901) {
                 return message(200, 0, '不支持的授权对象类型');
             } else {
                 return message(200, 0, "错误码$result");
@@ -428,15 +428,15 @@ class Svngroup extends Base
         if (is_numeric($result)) {
             if ($result == 611) {
                 return message(200, 0, 'authz文件格式错误(不存在[aliases]标识)');
-            } else if ($result == 612) {
+            } elseif ($result == 612) {
                 return message(200, 0, 'authz文件格式错误(不存在[groups]标识)');
-            } else if ($result == 901) {
+            } elseif ($result == 901) {
                 return message(200, 0, '不支持的授权对象类型');
-            } else if ($result == 821) {
+            } elseif ($result == 821) {
                 return message(200, 0, '要修改的新分组已经存在');
-            } else if ($result == 831) {
+            } elseif ($result == 831) {
                 return message(200, 0, '要修改的新别名已经存在');
-            } else if ($result == 731) {
+            } elseif ($result == 731) {
                 return message(200, 0, '要修改的别名不存在');
             } else {
                 return message(200, 0, "错误码$result");
@@ -495,7 +495,7 @@ class Svngroup extends Base
         if (is_numeric($list)) {
             if ($list == 612) {
                 return message(200, 0, '文件格式错误(不存在[groups]标识)');
-            } else if ($list == 720) {
+            } elseif ($list == 720) {
                 return message(200, 0, '指定的分组不存在');
             } else {
                 return message(200, 0, "错误码$list");
@@ -551,17 +551,17 @@ class Svngroup extends Base
         if (is_numeric($result)) {
             if ($result == 612) {
                 return message(200, 0, '文件格式错误(不存在[groups]标识)');
-            } else if ($result == 720) {
+            } elseif ($result == 720) {
                 return message(200, 0, '分组不存在');
-            } else if ($result == 803) {
+            } elseif ($result == 803) {
                 return message(200, 0, '要添加的对象已存在该分组');
-            } else if ($result == 703) {
+            } elseif ($result == 703) {
                 return message(200, 0, '要删除的对象不存在该分组');
-            } else if ($result == 901) {
+            } elseif ($result == 901) {
                 return message(200, 0, '无效的对象类型 user|group|aliase');
-            } else if ($result == 902) {
+            } elseif ($result == 902) {
                 return message(200, 0, '无效的操作类型 add|delete');
-            } else if ($result == 802) {
+            } elseif ($result == 802) {
                 return message(200, 0, '不能操作相同名称的分组');
             } else {
                 return message(200, 0, "错误码$result");

@@ -126,7 +126,7 @@ class Ldap extends Base
                 'success' => count($users),
                 'fail' => $ldapUsersLen - count($users)
             ]);
-        } else if ($type == 'group') {
+        } elseif ($type == 'group') {
             $checkResult = funCheckForm($dataSource, [
                 'ldap_host' => ['type' => 'string', 'notNull' => true],
                 'ldap_port' => ['type' => 'integer'],
@@ -281,7 +281,7 @@ class Ldap extends Base
     {
         if ($protocolVersion >= 3) {
             $str = if_ensure_utf8_encoding($str);
-        } else if ($protocolVersion <= 2) {
+        } elseif ($protocolVersion <= 2) {
             $str = if_ensure_utf8_decoding($str);
         }
         return $str;
@@ -299,7 +299,7 @@ class Ldap extends Base
     {
         if ($protocolVersion >= 3) {
             $str = if_ensure_utf8_encoding($str);
-        } else if ($protocolVersion <= 2) {
+        } elseif ($protocolVersion <= 2) {
             $str = if_ensure_utf8_encoding($str);
         }
         return $str;
@@ -523,7 +523,7 @@ class Ldap extends Base
             if (is_numeric($result)) {
                 if ($result == 612) {
                     return message(200, 0, '文件格式错误(不存在[groups]标识)');
-                } else if ($result == 820) {
+                } elseif ($result == 820) {
                     //分组已存在
                     continue;
                 } else {
@@ -548,7 +548,7 @@ class Ldap extends Base
                             if (is_numeric($result)) {
                                 if ($result == 612) {
                                     return message(200, 0, '文件格式错误(不存在[groups]标识)');
-                                } else if ($result == 803) {
+                                } elseif ($result == 803) {
                                 } else {
                                     return message(200, 0, "错误码$result");
                                 }
@@ -569,7 +569,7 @@ class Ldap extends Base
                         if (is_numeric($result)) {
                             if ($result == 612) {
                                 return message(200, 0, '文件格式错误(不存在[groups]标识)');
-                            } else if ($result == 803) {
+                            } elseif ($result == 803) {
                             } else {
                                 return message(200, 0, "错误码$result");
                             }

@@ -16,8 +16,8 @@ use Medoo\Medoo;
 /**
  * 开启错误信息 如需要调试 可取消注释
  */
-// ini_set('display_errors', '1');
-// error_reporting(E_ALL);
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
 
 set_time_limit(0);
 
@@ -78,7 +78,7 @@ foreach ($disable_functions as $disable) {
 $state = funDetectState();
 if ($state == 0) {
     json1(401, 0, '守护进程响应超时');
-} else if ($state == 2) {
+} elseif ($state == 2) {
     json1(401, 0, '后台程序未启动');
 }
 

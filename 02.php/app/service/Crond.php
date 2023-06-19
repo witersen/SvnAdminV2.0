@@ -104,11 +104,11 @@ class Crond extends Base
             //数字到数组
             if ($value['notice'] == 0) {
                 $list[$key]['notice'] = [];
-            } else if ($value['notice'] == 1) {
+            } elseif ($value['notice'] == 1) {
                 $list[$key]['notice'] = ['success'];
-            } else if ($value['notice'] == 2) {
+            } elseif ($value['notice'] == 2) {
                 $list[$key]['notice'] = ['fail'];
-            } else if ($value['notice'] == 3) {
+            } elseif ($value['notice'] == 3) {
                 $list[$key]['notice'] = ['success', 'fail'];
             } else {
                 $list[$key]['notice'] = [];
@@ -143,9 +143,9 @@ class Crond extends Base
         //notice 处理
         if (in_array('success', (array)$cycle['notice']) && in_array('fail', (array)$cycle['notice'])) {
             $cycle['notice'] = 3;
-        } else if (in_array('fail', (array)$cycle['notice'])) {
+        } elseif (in_array('fail', (array)$cycle['notice'])) {
             $cycle['notice'] = 2;
-        } else if (in_array('success', (array)$cycle['notice'])) {
+        } elseif (in_array('success', (array)$cycle['notice'])) {
             $cycle['notice'] = 1;
         } else {
             $cycle['notice'] = 0;
@@ -262,9 +262,9 @@ class Crond extends Base
         //notice 处理
         if (in_array('success', (array)$cycle['notice']) && in_array('fail', (array)$cycle['notice'])) {
             $cycle['notice'] = 3;
-        } else if (in_array('fail', (array)$cycle['notice'])) {
+        } elseif (in_array('fail', (array)$cycle['notice'])) {
             $cycle['notice'] = 2;
-        } else if (in_array('success', (array)$cycle['notice'])) {
+        } elseif (in_array('success', (array)$cycle['notice'])) {
             $cycle['notice'] = 1;
         } else {
             $cycle['notice'] = 0;

@@ -110,8 +110,8 @@ function funCheckForm($form, $columns)
         //检查是否可以为空
         if (isset($columnCheck['notNull']) && $columnCheck['notNull']) {
             if ($columnCheck['type'] == 'integer') {
-            } else if ($columnCheck['type'] == 'boolean') {
-            } else if (empty($form[$column])) {
+            } elseif ($columnCheck['type'] == 'boolean') {
+            } elseif (empty($form[$column])) {
                 return message(200, 0, '参数值不能为空', [
                     'column' => $column
                 ]);

@@ -110,7 +110,7 @@ class Common extends Base
             ], [
                 'admin_user_name' => $userName
             ]);
-        } else if ($userRole == 2) {
+        } elseif ($userRole == 2) {
             if ($this->enableCheckout == 'svn') {
                 $dataSource = $this->svnDataSource;
             } else {
@@ -193,7 +193,7 @@ class Common extends Base
             ], [
                 'svn_user_name' => $userName
             ]);
-        } else if ($userRole == 3) {
+        } elseif ($userRole == 3) {
             $result = $this->database->get('subadmin', [
                 'subadmin_id',
                 'subadmin_name',
@@ -284,13 +284,13 @@ class Common extends Base
             ], [
                 'admin_user_name' => $this->userName
             ]);
-        } else if ($this->userRoleId == 2) {
+        } elseif ($this->userRoleId == 2) {
             $this->database->update('svn_users', [
                 'svn_user_token' => '-'
             ], [
                 'svn_user_name' => $this->userName
             ]);
-        } else if ($this->userRoleId == 3) {
+        } elseif ($this->userRoleId == 3) {
             $this->database->update('subadmin', [
                 'subadmin_token' => '-'
             ], [

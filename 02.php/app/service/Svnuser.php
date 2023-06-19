@@ -51,7 +51,7 @@ class Svnuser extends Base
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
             }
-        } else if ($this->enableCheckout == 'svn') {
+        } elseif ($this->enableCheckout == 'svn') {
             $result = $this->SyncPasswdToDb();
             if ($result['status'] != 1) {
                 return message($result['code'], $result['status'], $result['message'], $result['data']);
@@ -108,7 +108,7 @@ class Svnuser extends Base
         if (is_numeric($svnUserList)) {
             if ($svnUserList == 621) {
                 return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($svnUserList == 710) {
+            } elseif ($svnUserList == 710) {
                 return message(200, 0, '用户不存在');
             } else {
                 return message(200, 0, "错误码$svnUserList");
@@ -482,7 +482,7 @@ class Svnuser extends Base
             if (is_numeric($svnUserPassList)) {
                 if ($svnUserPassList == 621) {
                     return message(200, 0, '文件格式错误(不存在[users]标识)');
-                } else if ($svnUserPassList == 710) {
+                } elseif ($svnUserPassList == 710) {
                     return message(200, 0, '用户不存在');
                 } else {
                     return message(200, 0, "错误码$svnUserPassList");
@@ -555,7 +555,7 @@ class Svnuser extends Base
                 if (is_numeric($result)) {
                     if ($result == 621) {
                         return message(200, 0, '文件格式错误(不存在[users]标识)');
-                    } else if ($result == 810) {
+                    } elseif ($result == 810) {
                         $all[] = [
                             'userName' => $user['userName'],
                             'status' => 0,
@@ -580,7 +580,7 @@ class Svnuser extends Base
                     if (is_numeric($result)) {
                         if ($result == 621) {
                             return message(200, 0, '文件格式错误(不存在[users]标识)');
-                        } else if ($result == 710) {
+                        } elseif ($result == 710) {
                             return message(200, 0, '用户不存在');
                         } else {
                             return message(200, 0, "错误码$result");
@@ -659,7 +659,7 @@ class Svnuser extends Base
                     if (is_numeric($result)) {
                         if ($result == 621) {
                             return message(200, 0, '文件格式错误(不存在[users]标识)');
-                        } else if ($result == 710) {
+                        } elseif ($result == 710) {
                             return message(200, 0, '用户不存在');
                         } else {
                             return message(200, 0, "错误码$result");
@@ -721,7 +721,7 @@ class Svnuser extends Base
             if (is_numeric($result)) {
                 if ($result == 621) {
                     return message(200, 0, '文件格式错误(不存在[users]标识)');
-                } else if ($result == 710) {
+                } elseif ($result == 710) {
                     return message(200, 0, '用户不存在');
                 } else {
                     return message(200, 0, "错误码$result");
@@ -798,7 +798,7 @@ class Svnuser extends Base
             if (is_numeric($result)) {
                 if ($result == 621) {
                     return message(200, 0, '文件格式错误(不存在[users]标识)');
-                } else if ($result == 810) {
+                } elseif ($result == 810) {
                     return message(200, 0, '用户已存在');
                 } else {
                     return message(200, 0, "错误码$result");
@@ -869,7 +869,7 @@ class Svnuser extends Base
             if (is_numeric($result)) {
                 if ($result == 621) {
                     return message(200, 0, '文件格式错误(不存在[users]标识)');
-                } else if ($result == 710) {
+                } elseif ($result == 710) {
                     return message(200, 0, '用户不存在 请管理员同步用户后重试');
                 } else {
                     return message(200, 0, "错误码$result");
@@ -916,7 +916,7 @@ class Svnuser extends Base
             if (is_numeric($resultPasswd)) {
                 if ($resultPasswd == 621) {
                     return message(200, 0, '文件格式错误(不存在[users]标识)');
-                } else if ($resultPasswd == 710) {
+                } elseif ($resultPasswd == 710) {
                     return message(200, 0, '用户不存在');
                 } else {
                     return message(200, 0, "错误码$resultPasswd");
@@ -936,7 +936,7 @@ class Svnuser extends Base
         if (is_numeric($resultAuthz)) {
             if ($resultAuthz == 621) {
                 return message(200, 0, '文件格式错误(不存在[users]标识)');
-            } else if ($resultAuthz == 901) {
+            } elseif ($resultAuthz == 901) {
                 return message(200, 0, '不支持的授权对象类型');
             } else {
                 return message(200, 0, "错误码$resultAuthz");

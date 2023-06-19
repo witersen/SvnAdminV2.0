@@ -42,7 +42,7 @@ class Secondpri extends Base
             ], [
                 'svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
             ]);
-        } else if ($this->payload['type'] == 0) {
+        } elseif ($this->payload['type'] == 0) {
             $this->database->update('svn_user_pri_paths', [
                 'second_pri' => 0
             ], [
