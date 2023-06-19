@@ -310,6 +310,50 @@ class Crond extends Base
                 break;
         }
 
+        //写入 /home/svnadmin/crond/xxx
+        $nameCrond = $this->configSvn['crond_base_path'] . $sign;
+        $nameCrondLog = $nameCrond . '.log';
+
+        $conCrond = sprintf(
+            "#!/bin/bash\nPATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin\nexport PATH\nstartDate=`date +%s`\necho ----------starTime:[\$startDate]--------------------------------------------\nphp %s %s %s\nendDate=`date +%s`\necho ----------endTime:[\$endDate]--------------------------------------------",
+            "\"%Y-%m-%d %H:%M:%S\"",
+            BASE_PATH . '/server/command.php',
+            $cycle['task_type'],
+            $sign,
+            "\"%Y-%m-%d %H:%M:%S\""
+        );
+
+        file_put_contents($nameCrond, $conCrond);
+        funShellExec(sprintf("chmod 755 '%s'", $nameCrond), true);
+
+        //crontab -l 获取原有的任务计划列表
+        $result = funShellExec('crontab -l', true);
+        $crontabs = trim($result['result']);
+
+        //查询标识并删除标识所在行
+        $contabArray = explode("\n", $crontabs);
+        foreach ($contabArray as $key => $value) {
+            if (strstr($value, $sign . '.log')) {
+                unset($contabArray[$key]);
+                break;
+            }
+        }
+
+        if ($contabArray == explode("\n", $crontabs)) {
+            //无改动 删除的为已暂停的记录
+        } else {
+            $crontabs = trim(implode("\n", $contabArray));
+            //crontab file 写入新的任务计划列表
+            $tempFile = tempnam($this->configSvn['crond_base_path'], 'svnadmin_crond_');
+            file_put_contents($tempFile, (empty($crontabs) ? '' : $crontabs . "\n") . sprintf("%s %s >> %s 2>&1\n", $code, $nameCrond, $nameCrondLog));
+            $result = funShellExec(sprintf("crontab %s", $tempFile), true);
+            @unlink($tempFile);
+            if ($result['code'] != 0) {
+                @unlink($nameCrond);
+                return message(200, 0, $result['error']);
+            }
+        }
+
         $this->database->update('crond', [
             'task_type' => $cycle['task_type'],
             'task_name' => $cycle['task_name'], //有机会为空 不可为空
