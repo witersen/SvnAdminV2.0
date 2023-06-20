@@ -2163,7 +2163,11 @@ class Svnrep extends Base
             return message(200, 0, sprintf('文件[%s]不可写', $hooksPath));
         }
 
-        funFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content'] , true);
+        funFilePutContents($hooksPath . $this->payload['fileName'], $this->payload['content']);
+        $result = funShellExec(sprintf("chmod +x '%s'", $hooksPath . $this->payload['fileName']));
+        if ($result['code'] != 0) {
+            return message(200, 0, $result['error']);
+        }
 
         return message();
     }

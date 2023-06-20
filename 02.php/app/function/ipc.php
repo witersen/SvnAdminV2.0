@@ -47,7 +47,7 @@ function funShellExec($shell, $daemon = false)
         //使用状态码来标识错误信息
         ob_start();
         //解决中文乱码问题
-        passthru('export LC_CTYPE=en_US.UTF-8 && '.$shell . " 2>$stderrFile", $code);
+        passthru('export LC_CTYPE=en_US.UTF-8 && ' . $shell . " 2>$stderrFile", $code);
         $buffer = ob_get_contents();
         ob_end_clean();
 
@@ -67,11 +67,11 @@ function funShellExec($shell, $daemon = false)
 /**
  * file_put_contents
  */
-function funFilePutContents($filename, $data, $daemon = false)
+function funFilePutContents($filename, $data, $daemon = false, $chmod = '777')
 {
     if ($daemon) {
         funShellExec(sprintf("touch '%s'", $filename), true);
-        funShellExec(sprintf("chmod 777 '%s'", $filename), true);
+        funShellExec(sprintf("chmod %s '%s'", $chmod, $filename), true);
     }
     @file_put_contents($filename, $data);
 }
