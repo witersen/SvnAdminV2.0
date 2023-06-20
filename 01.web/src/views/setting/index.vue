@@ -196,13 +196,19 @@
                   </Col>
                   <Col span="1"> </Col>
                   <Col span="6">
-                    <Button
-                      type="warning"
-                      @click="UpdSvnservePort"
-                      :disabled="disableUpdSvnservePort"
-                      :loading="loadingUpdSvnservePort"
-                      >修改</Button
+                    <Tooltip
+                      :transfer="true"
+                      max-width="360"
+                      content="若您的应用以容器方式部署，则无需修改此值，只需要修改宿主机到容器的端口映射即可"
                     >
+                      <Button
+                        type="warning"
+                        @click="UpdSvnservePort"
+                        :disabled="disableUpdSvnservePort"
+                        :loading="loadingUpdSvnservePort"
+                        >修改</Button
+                      >
+                    </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
@@ -220,7 +226,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="请注意，此值默认为 0.0.0.0 ，是 svnserve 服务器的实际的默认的绑定地址。如果无特殊原因无需修改此默认值。如果你要更换为公网IP地址，且你的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。"
+                      content="（1）请注意，此值默认为 0.0.0.0 ，是 svnserve 服务器的实际的默认的绑定地址。如果无特殊原因无需修改此默认值。如果你要更换为公网IP地址，且你的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。（2）若您的应用以容器方式部署，则无需修改此值"
                     >
                       <Button
                         type="warning"
@@ -376,7 +382,10 @@
                 <FormItem label="LDAP 主机地址">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formSvn.ldap.ldap_host" placeholder="ldap://127.0.0.1/"></Input>
+                      <Input
+                        v-model="formSvn.ldap.ldap_host"
+                        placeholder="ldap://127.0.0.1/"
+                      ></Input>
                     </Col>
                   </Row>
                 </FormItem>
@@ -712,7 +721,7 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="此值仅通过数据库维护-不影响业务运行-由于实际情况复杂不便监控和管理apache服务器的运行端口-因此当本系统apache实际配置何端口值此处则填写何端口值-填写不正确则会影响http协议检出模式下的本系统内用户在线仓库浏览功能"
+                      content="（1）此值仅通过数据库维护-不影响业务运行-由于实际情况复杂不便监控和管理apache服务器的运行端口-因此当本系统apache实际配置何端口值此处则填写何端口值-填写不正确则会影响http协议检出模式下的本系统内用户在线仓库浏览功能（2）若您的应用以容器方式部署，则无需修改此值"
                     >
                       <Button
                         type="warning"
@@ -832,7 +841,10 @@
                 <FormItem label="LDAP 主机地址">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formHttp.ldap.ldap_host" placeholder="ldap://127.0.0.1/"></Input>
+                      <Input
+                        v-model="formHttp.ldap.ldap_host"
+                        placeholder="ldap://127.0.0.1/"
+                      ></Input>
                     </Col>
                   </Row>
                 </FormItem>
@@ -2353,12 +2365,24 @@ export default {
               that.$Message.success(result.message);
             } else if (type == "user") {
               that.titleLdapUsersGroups =
-                "LDAP用户共 " + result.data.count + " 个：成功 " + result.data.success + " 个，失败 " + result.data.fail + " 个";
+                "LDAP用户共 " +
+                result.data.count +
+                " 个：成功 " +
+                result.data.success +
+                " 个，失败 " +
+                result.data.fail +
+                " 个";
               that.tempLdapUsersGroups = result.data.users;
               that.modalLdapUsersGroups = true;
             } else if (type == "group") {
               that.titleLdapUsersGroups =
-              "LDAP分组共 " + result.data.count + " 个：成功 " + result.data.success + " 个，失败 " + result.data.fail + " 个";
+                "LDAP分组共 " +
+                result.data.count +
+                " 个：成功 " +
+                result.data.success +
+                " 个，失败 " +
+                result.data.fail +
+                " 个";
               that.tempLdapUsersGroups = result.data.groups;
               that.modalLdapUsersGroups = true;
             }

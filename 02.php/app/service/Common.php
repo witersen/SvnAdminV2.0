@@ -228,12 +228,12 @@ class Common extends Base
         //日志
         $this->Logs->InsertLog(
             '用户登录',
-            sprintf("账号:%s IP地址:%s", $userName, $_SERVER["REMOTE_ADDR"]),
+            sprintf("账号:%s IP地址:%s", $userName, funGetCip()),
             $userName
         );
 
         //邮件
-        $this->Mail->SendMail('Common/Login', '用户登录成功通知', '账号：' . $userName . ' ' . 'IP地址：' . $_SERVER["REMOTE_ADDR"] . ' ' . '时间：' . date('Y-m-d H:i:s'));
+        $this->Mail->SendMail('Common/Login', '用户登录成功通知', '账号：' . $userName . ' ' . 'IP地址：' . funGetCip() . ' ' . '时间：' . date('Y-m-d H:i:s'));
 
         $info = $this->GetDynamicRouting($userName, $userRole);
         return message(200, 1, '登陆成功', [
@@ -304,7 +304,7 @@ class Common extends Base
         //日志
         $this->Logs->InsertLog(
             '用户注销',
-            sprintf("账号:%s IP地址:%s", $this->userName, $_SERVER["REMOTE_ADDR"]),
+            sprintf("账号:%s IP地址:%s", $this->userName, funGetCip()),
             $this->userName
         );
 
