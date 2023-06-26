@@ -107,7 +107,7 @@ class Ldap extends Base
                 $attributes[] = $dataSource['groups_to_user_attribute_value'];
             }
 
-            $ldapUsers = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['user_base_dn'], $dataSource['user_search_filter'], $attributes, 0);
+            $ldapUsers = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['user_base_dn'], $dataSource['user_search_filter'], $attributes);
 
             $ldapUsersLen = count($ldapUsers);
 
@@ -151,7 +151,7 @@ class Ldap extends Base
                 $attributes[] = $dataSource['groups_to_user_attribute'];
             }
 
-            $ldapGroups = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['group_base_dn'], $dataSource['group_search_filter'], $attributes, 0);
+            $ldapGroups = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['group_base_dn'], $dataSource['group_search_filter'], $attributes);
 
             $ldapGroupsLen = count($ldapGroups);
 
@@ -188,27 +188,34 @@ class Ldap extends Base
      *
      * @return array of stdClass objects with property values defined by $return_attributes+"dn"
      */
-    protected function objectSearch($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $limit)
+    protected function objectSearch($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $limit = 100, $oid = '1.2.840.113556.1.4.319')
     {
         $base_dn = $this->prepareQueryString($base_dn, $protocolVersion);
         $search_filter = $this->prepareQueryString($search_filter, $protocolVersion);
 
-        $ret = array();
-        $pageCookie = "";
+        $ret = [];
+
+        $cookie = '';
         do {
-            // if (function_exists("ldap_control_paged_result") && function_exists("ldap_control_paged_result_response")) {
-            //     ldap_control_paged_result($conn, $this->ldapSearchPageSize, true, $pageCookie);
-            // }
+            $controls = [
+                [
+                    'oid' => $oid,
+                    // 'iscritical' => false,
+                    'value' => ['size' => $limit, 'cookie' => $cookie]
+                ]
+            ];
 
             // Start search in LDAP directory.
-            $sr = @ldap_search($conn, $base_dn, $search_filter, $return_attributes, 0, $limit);
-            if (!$sr)
+            $sr = ldap_search($conn, $base_dn, $search_filter, $return_attributes, 0, $limit, 0, 0, $controls);
+            if (!$sr) {
                 break;
+            }
 
             // Get the found entries as array.
             $entries = ldap_get_entries($conn, $sr);
-            if (!$entries)
+            if (!$entries) {
                 break;
+            }
 
             $count = $entries["count"];
             for ($i = 0; $i < $count; ++$i) {
@@ -221,10 +228,15 @@ class Ldap extends Base
                 $ret[] = $o;
             }
 
-            // if (function_exists("ldap_control_paged_result") && function_exists("ldap_control_paged_result_response")) {
-            //     ldap_control_paged_result_response($conn, $sr, $pageCookie);
-            // }
-        } while ($pageCookie !== null && $pageCookie != "");
+            ldap_parse_result($conn, $sr, $resultCode, $matchedDN, $errorMessage, $referrals, $serverControls);
+            if (isset($controls[$oid]['value']['cookie'])) {
+                // You need to pass the cookie from the last call to the next one
+                $cookie = $controls[$oid]['value']['cookie'];
+            } else {
+                $cookie = '';
+            }
+        } while (!empty($cookie));
+
         return $ret;
     }
 
@@ -383,7 +395,7 @@ class Ldap extends Base
             $attributes[] = $dataSource['groups_to_user_attribute_value'];
         }
 
-        $ldapUsers = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['user_base_dn'], $dataSource['user_search_filter'], $attributes, 0);
+        $ldapUsers = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['user_base_dn'], $dataSource['user_search_filter'], $attributes);
 
         $ldapUsersLen = count($ldapUsers);
 
@@ -434,7 +446,7 @@ class Ldap extends Base
             $attributes[] = $dataSource['groups_to_user_attribute'];
         }
 
-        $ldapGroups = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['group_base_dn'], $dataSource['group_search_filter'], $attributes, 0);
+        $ldapGroups = $this->objectSearch($connection, $dataSource['ldap_version'], $dataSource['group_base_dn'], $dataSource['group_search_filter'], $attributes);
 
         $ldapGroupsLen = count($ldapGroups);
 
