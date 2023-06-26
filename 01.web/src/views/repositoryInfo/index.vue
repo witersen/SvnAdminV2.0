@@ -836,7 +836,7 @@
             @click="ClickRepUpload"
             >选择文件</Button
           >
-          <input type="file" id="myfile" name="myfile" style="display: none" />
+          <input type="file" id="myfile" name="myfile" accept=".dump" style="display: none" />
         </FormItem>
         <FormItem label="上传进度">
           <Progress

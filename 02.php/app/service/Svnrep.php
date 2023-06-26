@@ -1883,6 +1883,8 @@ class Svnrep extends Base
             json1(200, 0, '文件不存在');
         }
 
+        set_time_limit(0);
+
         $fp = @fopen($filePath, 'rb');
         if ($fp) {
             $file_size = filesize($filePath);
@@ -1979,6 +1981,17 @@ class Svnrep extends Base
             $numBlobCurrent = (int)$_POST['numBlobCurrent'];
             $numBlobTotal = (int)$_POST['numBlobTotal'];
             $deleteOnMerge = (int)$_POST['deleteOnMerge'] == 1;
+
+            $endfix = strtolower(substr(strrchr($nameFileSave, '.'), 1));
+            if (!in_array(strtolower($endfix), [
+                'dump'
+            ])) {
+                return json1(200, 0, '为了安全请将备份文件后缀改为dump后再试');
+            }
+
+            if (preg_match('/^[a-zA-Z0-9]+$/', $nameFileMd5, $matches) === false) {
+                return message(200, 0, 'md5值需要由数字和大小写字母组成');
+            }
 
             $upload = new Upload($nameDirTempSave, $nameDirSave, $nameFileSave, $nameFileMd5, $nameFileCurrent, $numBlobCurrent, $numBlobTotal, $deleteOnMerge);
             $upload->fileUpload();
