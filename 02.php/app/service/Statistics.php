@@ -51,39 +51,23 @@ class Statistics extends Base
         /**
          * ----------2、cpu利率用开始----------
          */
+        // 获取第一次采样的 CPU 统计信息
+        $procStat1 = file_get_contents('/proc/stat');
+        preg_match('/cpu\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/', $procStat1, $matches1);
+        $totalCpuTime1 = array_sum(array_slice($matches1, 1));
 
-        $cpuUsage1 = $this->getCpuUsage();
+        // 等待一段时间
         sleep(1);
-        $cpuUsage2 = $this->getCpuUsage();
 
-        // 计算每个 CPU 核心的使用率差值
-        $cpuDiff = [];
-        foreach ($cpuUsage1 as $core => $usage1) {
-            $usage2 = $cpuUsage2[$core];
-            $diff = [
-                'user' => $usage2['user'] - $usage1['user'],
-                'nice' => $usage2['nice'] - $usage1['nice'],
-                'system' => $usage2['system'] - $usage1['system'],
-                'idle' => $usage2['idle'] - $usage1['idle'],
-                'iowait' => $usage2['iowait'] - $usage1['iowait'],
-                'irq' => $usage2['irq'] - $usage1['irq'],
-                'softirq' => $usage2['softirq'] - $usage1['softirq'],
-                'steal' => $usage2['steal'] - $usage1['steal'],
-                'guest' => $usage2['guest'] - $usage1['guest'],
-                'guest_nice' => $usage2['guest_nice'] - $usage1['guest_nice'],
-            ];
-            $cpuDiff[$core] = array_sum($diff);
-        }
+        // 获取第二次采样的 CPU 统计信息
+        $procStat2 = file_get_contents('/proc/stat');
+        preg_match('/cpu\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/', $procStat2, $matches2);
+        $totalCpuTime2 = array_sum(array_slice($matches2, 1));
 
-        // 计算平均 CPU 使用率
-        $cpuTotalUsage = 0;
-        foreach ($cpuDiff as $core => $usage) {
-            // 排除idle状态
-            if ($core !== 'cpu') {
-                $cpuTotalUsage += $usage;
-            }
-        }
-        $cpuAvgUsage = 100 - ($cpuTotalUsage / count($cpuDiff));
+        // 计算 CPU 利用率
+        $totalDiff = $totalCpuTime2 - $totalCpuTime1;
+        $idleDiff = $matches2[4] - $matches1[4];
+        $cpuAvgUsage = 100 * (1 - ($idleDiff / $totalDiff));
         $cpuAvgUsage = $cpuAvgUsage > 100 ? 100 : $cpuAvgUsage;
         $cpuAvgUsage = $cpuAvgUsage < 0 ? 0 : $cpuAvgUsage;
 
@@ -135,7 +119,7 @@ class Statistics extends Base
 
         $meminfos = array_combine($meminfos[1], $meminfos[2]);
         $memTotal = (int)$meminfos['MemTotal'];
-        $memUsed = $memTotal - (int)$meminfos['MemFree'] - (int)$meminfos['Cached'] - (int)$meminfos['Buffers'];
+        $memUsed = $memTotal - (int)$meminfos['MemFree'] - (int)$meminfos['Cached'] - (int)$meminfos['Buffers'] -  (int)$meminfos['SReclaimable'];
         $memFree = $memTotal - $memUsed;
 
         $percent = round($memUsed / $memTotal * 100, 1);
@@ -149,34 +133,6 @@ class Statistics extends Base
         ];
 
         return message(200, 1, '成功', $data);
-    }
-
-    /**
-     * 获取系统每个 CPU 核心的使用情况
-     */
-    private function getCpuUsage()
-    {
-        $cpuUsage = [];
-        $procStat = file_get_contents('/proc/stat');
-        preg_match_all('/cpu\d+/', $procStat, $matches);
-        $cores = $matches[0];
-        foreach ($cores as $core) {
-            preg_match_all('/\d+/', trim(substr(strstr($procStat, $core), strlen($core))), $matches);
-            $usage = $matches[0];
-            $cpuUsage[$core] = [
-                'user' => $usage[0],
-                'nice' => $usage[1],
-                'system' => $usage[2],
-                'idle' => $usage[3],
-                'iowait' => $usage[4],
-                'irq' => $usage[5],
-                'softirq' => $usage[6],
-                'steal' => $usage[7],
-                'guest' => $usage[8],
-                'guest_nice' => $usage[9],
-            ];
-        }
-        return $cpuUsage;
     }
 
     /**
