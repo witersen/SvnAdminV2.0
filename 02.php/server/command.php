@@ -388,6 +388,7 @@ class Command
 
         $shellFile = tempnam(sys_get_temp_dir(), 'svnadmin_');
         file_put_contents($shellFile, $this->crond['shell']);
+        shell_exec(sprintf("chmod 755 '%s'", $shellFile));
 
         passthru($shellFile . " 2>$stderrFile", $this->code);
 

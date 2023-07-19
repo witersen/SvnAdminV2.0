@@ -1,0 +1,165 @@
+properties ([
+    //disableConcurrentBuilds 不允许并发构建
+    //abortPrevious 停止先前的构建
+    disableConcurrentBuilds(abortPrevious: true)
+])
+
+pipeline {
+    agent any
+
+    options {
+        //不执行默认的代码检出
+        // skipDefaultCheckout true
+
+        //构建过程中打印时间戳
+        timestamps ()
+
+        //不允许并发构建
+        // disableConcurrentBuilds()
+    }
+
+    environment {
+        // 流水线级别环境变量
+        // 注意不是大写会无效
+
+        MY_PROJECT_NAME = sh (script: 'echo ${JOB_NAME}|awk -F \'/\' \'{print $1}\'', returnStdout: true).trim()
+
+        MY_SONAR_SCANNER = '/usr/local/sonar-scanner-4.7.0.2747-linux/bin/sonar-scanner';
+        MY_SONAR_HOST = 'http://192.168.31.203:9000'
+        MY_SONAR_KEY = "${MY_PROJECT_NAME}-${GIT_BRANCH}"
+        MY_SONAR_TOKEN = '88d156dacb283f707bb852526819297c71ad1914'
+        // . 表示扫描整个代码目录
+        MY_SONAR_SOURCES = '.'
+
+        //harbor 机器人账户 永不过期 具有所有项目的操作权限 无法登录 harbor 界面
+        MY_HARBOR_HOST = '192.168.31.204'
+        MY_HARBOR_USER = 'robot@cicd'
+        MY_HARBOR_PASS = 'eL3sWf3D9dxh5gZYv5pW7x7ygg4Y23DH'
+
+        GIT_MESSAGE = sh (script: 'git show -s --format=%s ${GIT_COMMIT}', returnStdout: true).trim()
+
+        TAG = '2.5.4'
+    }
+
+    stages {
+        // 已有默认检出行为
+        // stage('代码检出') {
+        //     when {
+        //         anyOf {
+        //             branch 'master'
+        //             allOf {
+        //                 expression { GIT_MESSAGE ==~ /.*\[ci\].*/ }
+        //                 branch 'develop'
+        //             }
+        //         }
+        //     }
+        //     steps {
+        //         git branch: sh (script: "echo ${GIT_BRANCH}", returnStdout: true).trim(), url: sh (script: "echo ${GIT_URL}", returnStdout: true).trim()
+        //     }
+        // }
+        stage('jenkins-代码质量检查') {
+            when {
+                anyOf {
+                    expression { GIT_MESSAGE ==~ /.*\[test\].*/ }
+                }
+            }
+            steps {
+                sh "${MY_SONAR_SCANNER} -Dsonar.host.url=${MY_SONAR_HOST} -Dsonar.projectKey=${MY_SONAR_KEY} -Dsonar.login=${MY_SONAR_TOKEN} -Dsonar.sources=${MY_SONAR_SOURCES}"
+            }
+        }
+        stage('jenkins-构建发行包') {
+            when {
+                anyOf {
+                    expression { GIT_MESSAGE ==~ /.*\[ci\].*/ }
+                    expression { GIT_MESSAGE ==~ /^Merge.*/ }
+                }
+            }
+            steps {
+                sh "bash -ex ${WORKSPACE}/03.cicd/local_build.sh ${MY_HARBOR_HOST} ${MY_HARBOR_USER} ${ MY_HARBOR_PASS} ${JOB_NAME} ${TAG} ${WORKSPACE} ${GIT_BRANCH}"
+            }
+        }
+        stage('jenkins-清理镜像垃圾') {
+            when {
+                anyOf {
+                    expression { GIT_MESSAGE ==~ /.*\[ci\].*/ }
+                    expression { GIT_MESSAGE ==~ /^Merge.*/ }
+                }
+            }
+            steps {
+                sh "bash -x ${WORKSPACE}/03.cicd/local_clean.sh ${JOB_NAME} ${TAG} ${GIT_BRANCH}"
+            }
+        }
+        stage('远程-清理旧容器') {
+            when {
+                anyOf {
+                    expression { GIT_MESSAGE ==~ /.*\[ci\].*/ }
+                    expression { GIT_MESSAGE ==~ /^Merge.*/ }
+                }
+            }
+            steps {
+                sshPublisher(
+                    publishers: [
+                        sshPublisherDesc(
+                            configName: '192.168.31.205', 
+                            transfers: [
+                                sshTransfer(
+                                    cleanRemote: false, 
+                                    excludes: '', 
+                                    execCommand: "bash -ex ${JOB_NAME}/03.cicd/remote_clean.sh ${JOB_NAME} ${GIT_BRANCH} ${TAG}", 
+                                    execTimeout: 0, 
+                                    flatten: false, 
+                                    makeEmptyDirs: false, 
+                                    noDefaultExcludes: false, 
+                                    patternSeparator: '[, ]+', 
+                                    remoteDirectory: "${JOB_NAME}", 
+                                    remoteDirectorySDF: false, 
+                                    removePrefix: '', 
+                                    sourceFiles: '03.cicd/remote_clean.sh'
+                                )
+                            ], 
+                            usePromotionTimestamp: false, 
+                            useWorkspaceInPromotion: false, 
+                            verbose: true
+                        )
+                    ]
+                )
+            }
+        }
+        stage('远程-部署新容器') {
+            when {
+                anyOf {
+                    expression { GIT_MESSAGE ==~ /.*\[ci\].*/ }
+                    expression { GIT_MESSAGE ==~ /^Merge.*/ }
+                }
+            }
+            steps {
+                sshPublisher(
+                    publishers: [
+                        sshPublisherDesc(
+                            configName: '192.168.31.205', 
+                            transfers: [
+                                sshTransfer(
+                                    cleanRemote: false, 
+                                    excludes: '', 
+                                    execCommand: "bash -ex ${JOB_NAME}/03.cicd/remote_pull.sh ${MY_HARBOR_HOST} ${MY_HARBOR_USER} ${MY_HARBOR_PASS} ${JOB_NAME} ${TAG} ${GIT_BRANCH}", 
+                                    execTimeout: 0, 
+                                    flatten: false, 
+                                    makeEmptyDirs: false, 
+                                    noDefaultExcludes: false, 
+                                    patternSeparator: '[, ]+', 
+                                    remoteDirectory: "${JOB_NAME}", 
+                                    remoteDirectorySDF: false, 
+                                    removePrefix: '', 
+                                    sourceFiles: '03.cicd/remote_pull.sh'
+                                )
+                            ], 
+                            usePromotionTimestamp: false, 
+                            useWorkspaceInPromotion: false, 
+                            verbose: true
+                        )
+                    ]
+                )
+            }
+        }
+    }
+}

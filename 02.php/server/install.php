@@ -368,7 +368,7 @@ class Install
         echo '===============================================' . PHP_EOL;
 
         foreach ($needBin as $key => $value) {
-            echo "请输入 $key 程序位置：" . PHP_EOL;
+            echo "请输入[$key]程序位置：" . PHP_EOL;
             if ($key == 'svnauthz-validate') {
                 echo 'CentOS 下 svnauthz-validate 的位置通常为 /usr/bin/svn-tools/svnauthz-validate' . PHP_EOL;
             }
@@ -447,7 +447,7 @@ CON;
 
         //创建推荐钩子目录
         is_dir($this->configSvn['recommend_hook_path']) ? '' : mkdir($this->configSvn['recommend_hook_path'], 0754, true);
-        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/hooks', $this->configSvn['home_path']));
+        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . 'hooks', $this->configSvn['home_path']));
 
         //创建备份目录
         is_dir($this->configSvn['backup_base_path']) ? '' : mkdir($this->configSvn['backup_base_path'], 0754, true);
@@ -455,12 +455,10 @@ CON;
         //创建日志目录
         is_dir($this->configSvn['log_base_path']) ? '' : mkdir($this->configSvn['log_base_path'], 0754, true);
 
-        //创建模板文件目录
-        is_dir($this->configSvn['templete_base_path']) ? '' : mkdir($this->configSvn['templete_base_path'], 0754, true);
-
         //创建仓库结构模板目录
-        // is_dir($this->configSvn['templete_init_path']) ? '' : mkdir($this->configSvn['templete_init_path'], 0754, true);
-        shell_exec(sprintf("cp -r '%s' '%s'", $templete_path . '/initStruct', $this->configSvn['templete_base_path']));
+        is_dir($this->configSvn['templete_base_path'] . 'initStruct/01/branches') ? '' : mkdir($this->configSvn['templete_base_path'].'initStruct/01/branches', 0754, true);
+        is_dir($this->configSvn['templete_base_path'] . 'initStruct/01/tags') ? '' : mkdir($this->configSvn['templete_base_path'].'initStruct/01/tags', 0754, true);
+        is_dir($this->configSvn['templete_base_path'] . 'initStruct/01/trunk') ? '' : mkdir($this->configSvn['templete_base_path'].'initStruct/01/trunk', 0754, true);
 
         //创建sasl目录
         is_dir($this->configSvn['sasl_home']) ? '' : mkdir($this->configSvn['sasl_home'], 0754, true);
@@ -580,10 +578,10 @@ CON;
                 //备份
                 copy($this->configSvn['home_path'] . 'svnadmin.db', $this->configSvn['home_path'] . time() . 'svnadmin.db');
                 //操作
-                copy($templete_path . '/database/sqlite/svnadmin.db', $this->configSvn['home_path'] . 'svnadmin.db');
+                copy($templete_path . 'database/sqlite/svnadmin.db', $this->configSvn['home_path'] . 'svnadmin.db');
             }
         } else {
-            copy($templete_path . '/database/sqlite/svnadmin.db', $this->configSvn['home_path'] . 'svnadmin.db');
+            copy($templete_path . 'database/sqlite/svnadmin.db', $this->configSvn['home_path'] . 'svnadmin.db');
         }
 
         echo '===============================================' . PHP_EOL;

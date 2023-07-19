@@ -525,6 +525,7 @@ class Crond extends Base
         $tempFile = tempnam($this->configSvn['crond_base_path'], 'svnadmin_crond_');
 
         file_put_contents($tempFile, sprintf("%s >> %s 2>&1\n", $nameCrond, $nameCrondLog));
+        shell_exec(sprintf("chmod 755 '%s'", $tempFile));
 
         $result = funShellExec(sprintf("at -f '%s' now", $tempFile), true);
 

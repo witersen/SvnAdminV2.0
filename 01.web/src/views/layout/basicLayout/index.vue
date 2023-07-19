@@ -39,9 +39,14 @@
           @click="toMyIndex"
         />
         <!-- 实时任务 -->
-        <span style="cursor: pointer" @click="ModalTasks">后台任务</span>
+        <span
+          style="cursor: pointer"
+          @click="ModalTasks"
+          v-if="currentRoleId != 2"
+          >后台任务</span
+        >
         <!-- 分割线 -->
-        <Divider type="vertical" />
+        <Divider type="vertical" v-if="currentRoleId != 2" />
         <!-- 用户身份 -->
         <a style="margin-left: 8px; color: #fff; cursor: default">{{
           currentRoleName
@@ -259,6 +264,7 @@ export default {
       //用户名和角色
       currentUsername: sessionStorage.user_name,
       currentRoleName: sessionStorage.user_role_name,
+      currentRoleId: sessionStorage.user_role_id,
       // 过滤后的导航
       navList: [],
       //面包屑

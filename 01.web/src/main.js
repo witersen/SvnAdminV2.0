@@ -81,8 +81,8 @@ router.afterEach((to, from, next) => {
  */
 axios.interceptors.request.use(function (config) {
     if (window.sessionStorage.token) {
-        //将token加入到请求头
-        config.headers.common['token'] = window.sessionStorage.token;
+        const encodedToken = encodeURIComponent(window.sessionStorage.token);
+        config.headers.common['token'] = encodedToken;
     }
     return config
 }, function (error) {

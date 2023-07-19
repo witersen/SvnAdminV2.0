@@ -35,7 +35,10 @@ require_once BASE_PATH . '/app/controller/base/Base.php';
 
 Config::load(BASE_PATH . '/config/');
 
-$token = empty($_SERVER['HTTP_TOKEN']) ? '' : $_SERVER['HTTP_TOKEN'];
+$token = '';
+if (isset($_SERVER['HTTP_TOKEN'])) {
+    $token = urldecode($_SERVER['HTTP_TOKEN']);
+}
 
 $controller_prefix = empty($_GET['c']) ? '' : $_GET['c'];
 !strstr($controller_prefix, '/') or json1(401, 0, '包含特殊字符');

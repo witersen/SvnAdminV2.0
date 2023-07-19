@@ -40,9 +40,11 @@ Subversion：1.8+
 
 ### 3. docker安装
 
+[nas用户的docker部署教程在这里](https://www.bilibili.com/video/BV1QM4y147b3/)
+
 ##### 3.1 适用于：快速部署看效果
 
-此方式可快速部署程序体验效果，数据不存储在宿主机，生产环境慎用
+此方式可快速部署程序体验效果，数据不存储在宿主机，生产环境使用请看3.2
 
 ```
 docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.5.3
@@ -154,6 +156,12 @@ systemctl enable httpd
 
 ```
 yum install -y cronie at
+
+#启动atd（如果 ps aux | grep -v 'grep' | grep atd 的结果为空需要执行）
+atd
+
+#启动crond（如果 ps aux | grep -v 'grep' | grep crond 的结果为空需要执行）
+crond
 ```
 
 - 下载解压代码包
@@ -173,7 +181,7 @@ chown -R apache:apache /var/www/html/
 php install.php
 ```
 
-- 修改Subversion的配置使其支持被本系统管理
+- 修改Subversion的配置使其支持被本系统管理（如果你安装过Subversion，本步骤要执行）
 
 ```
 cd /var/www/html/server
@@ -192,11 +200,11 @@ chown -R apache:apache /home/svnadmin
 
   ```
   #pwd
-  /var/www/html/server/
+  #/var/www/html/server/
   
   #后台运行
   nohup php svnadmind.php start >/dev/null 2>&1 &
-  #后台运行后exit退出一下 保证后台稳定运行
+  #后台运行后输入exit退出一下 保证后台稳定运行
   exit
   
   #停止后台
