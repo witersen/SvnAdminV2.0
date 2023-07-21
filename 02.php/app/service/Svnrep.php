@@ -68,13 +68,23 @@ class Svnrep extends Base
                 'prefix' => $checkoutHost
             ]);
         } else {
-            $checkoutHost = ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHttpPort) . ($this->httpPrefix == '/' ? '' : $this->httpPrefix);
+            $checkoutHost = $this->dockerHost;
+
+            if ($this->dockerHttpPort != 80 && $this->dockerHttpPort != 443) {
+                $checkoutHost .= ':' . $this->dockerHttpPort;
+            }
+
+            if ($this->httpPrefix != '/') {
+                $checkoutHost .= $this->httpPrefix;
+            }
+
+            $protocal = $this->dockerHttpPort == 443 ? 'https://' : 'http://';
 
             return message(200, 1, '成功', [
-                'protocal' => 'http://',
+                'protocal' => $protocal,
                 'prefix' => $checkoutHost
             ]);
-        }
+       }
     }
 
     /**
