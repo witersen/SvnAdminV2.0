@@ -44,10 +44,12 @@ Subversion：1.8+
 
 ##### 3.1 适用于：快速部署看效果
 
+*ps:镜像默认托管在docerhub，如果速度不佳，可以选择国内路线（docker pull registry.cn-hangzhou.aliyuncs.com/witersencom/svnadmin:[镜像版本号]）*
+
 此方式可快速部署程序体验效果，数据不存储在宿主机，生产环境使用请看3.2
 
 ```
-docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.5.3
+docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.5.4
 ```
 
 ##### 3.2 适用于：新用户正式使用
@@ -55,7 +57,7 @@ docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom
 - 启动一个临时的容器用于复制配置文件出来
 
 ```
-docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.5.3 /usr/sbin/init
+docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.5.4 /usr/sbin/init
 ```
 
 - 把配置文件复制到本机的 `/home/svnadmin` 目录
@@ -82,7 +84,7 @@ docker run -d -p 80:80 -p 3690:3690 \
 -v /home/svnadmin/sasl2/:/etc/sasl2/ \
 --privileged \
 --name svnadmin \
-witersencom/svnadmin:2.5.3
+witersencom/svnadmin:2.5.4
 ```
 
 - 进入容器内进行文件授权
@@ -109,10 +111,10 @@ chown -R apache:apache /home/svnadmin
   - 退出容器
   - 停止旧的容器，拉取新容器，挂载本地的数据目录到新版本的容器即可
 - 2.4.3 及之前的用户升级到 2.4.x 要注意目录挂载多了 conf.d sasl2 升级之前要提前复制出来
-- 2.4.x之前的用户升级到2.5.x
-  - 请等作者闲了做升级包。。。。。。
-- 2.4.x 升级到 2.5.x
-  - 请等作者闲了做升级包。。。。。。。
+- 2.4.x之前的用户升级到2.5.4
+  - 升级包测试中，稍后发布..................................................................
+- 2.4.x 升级到 2.5.4
+  - 升级包测试中，稍后发布..................................................................
 - 2.5.x 版本之间升级
   - 只需要停掉老容器，按照之前的文件、端口映射配置，拉取新容器启动即可
 
@@ -141,7 +143,7 @@ yum install -y epel-release yum-utils
 rpm -Uvh https://mirrors.aliyun.com/remi/enterprise/remi-release-7.rpm
 yum-config-manager --enable remi-php74
 
-yum install -y php php-common php-cli php-fpm php-mysqlnd php-mysql php-pdo php-process php-json php-gd php-bcmath php-ldap
+yum install -y php php-common php-cli php-fpm php-mysqlnd php-mysql php-pdo php-process php-json php-gd php-bcmath php-ldap php-mbstring
 ```
 
 - 安装web服务器（推荐 apache 可使用http协议检出）
@@ -167,9 +169,9 @@ crond
 - 下载解压代码包
 
 ```
-cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/2.5.3/2.5.3.zip
+cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/2.5.4/2.5.4.zip
 
-unzip 2.5.3.zip
+unzip 2.5.4.zip
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）（注意需要Subversion >= 1.8）
