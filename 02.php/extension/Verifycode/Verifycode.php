@@ -60,7 +60,7 @@ class Verifycode
             $x = ($i * 150 / 4) + rand(5, 10);
             $y = rand(5, 10);
 
-            imagestring($image, $fontsize, $x, $y, $fontcontent, $fontcolor);
+            imagestring($image, $fontsize, (int)$x, (int)$y, $fontcontent, $fontcolor);
         }
 
         //设置干扰元素，设置雪花点

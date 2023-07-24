@@ -92,7 +92,11 @@ function funDetectState()
 
     socket_set_block($sock);
 
-    $state = @socket_select($r = [$sock], $w = [$sock], $f = [$sock], 5);
+    $read_socks = [$sock];
+    $write_socks = [$sock];
+    $except_socks = [$sock];
+
+    $state = @socket_select($read_socks, $write_socks, $except_socks, 5);
 
     socket_close($sock);
 

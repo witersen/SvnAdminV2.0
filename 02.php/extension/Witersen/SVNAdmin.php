@@ -470,7 +470,7 @@ class SVNAdmin
      * 801      仓库路径下已经存在该对象的权限记录
      * string   正常
      */
-    public function AddRepPathPri($authzContent, $repName, $repPath, $objectType, $invert = false, $objectName, $privilege)
+    public function AddRepPathPri($authzContent, $repName, $repPath, $objectType, $objectName, $privilege, $invert = false)
     {
         //不以/开始
         if (substr($repPath, 0, 1) != '/') {
@@ -547,7 +547,7 @@ class SVNAdmin
      * 701      仓库路径下不存在该对象的权限记录
      * string   正常
      */
-    public function EditRepPathPri($authzContent, $repName, $repPath, $objectType, $invert = false, $objectName, $privilege)
+    public function EditRepPathPri($authzContent, $repName, $repPath, $objectType, $objectName, $privilege, $invert = false)
     {
         //不以/开始
         if (substr($repPath, 0, 1) != '/') {

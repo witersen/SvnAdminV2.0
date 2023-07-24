@@ -37,6 +37,7 @@ function funGetDirSize($dir)
  */
 function funFormatSize($size)
 {
+    $size = empty($size) ? 0 : $size;
     $units = ['B', 'KB', 'MB', 'GB', 'TB'];
     $i = 0;
     while ($size >= 1024 && $i < count($units) - 1) {

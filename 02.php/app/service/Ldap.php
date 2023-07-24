@@ -19,6 +19,251 @@ class Ldap extends Base
     }
 
     /**
+     * 输入一个字符串 确保不以 UTF-8 输出
+     *
+     * @param string $input_string
+     * @return string
+     */
+    private function ensure_not_utf8($input_string)
+    {
+        if (mb_detect_encoding($input_string, 'UTF-8', true) === 'UTF-8') {
+            return mb_convert_encoding($input_string, 'ISO-8859-1', 'UTF-8');
+        }
+        return $input_string;
+    }
+
+    /**
+     * 输入一个字符串 确保以 UTF-8 输出
+     *
+     * @param string $input_string
+     * @return string
+     */
+    private function ensure_utf8($input_string)
+    {
+        if (mb_detect_encoding($input_string, 'UTF-8', true) !== 'UTF-8') {
+            return mb_convert_encoding($input_string, 'UTF-8', 'auto');
+        }
+        return $input_string;
+    }
+
+    /**
+     * 对将要发送到 LDAP 服务器的所有DN和属性进行编码处理
+     *
+     * @param string $str
+     *
+     * @return string
+     */
+    private function prepareQueryString($str, $protocolVersion)
+    {
+        if ($protocolVersion >= 3) {
+            $str = $this->ensure_utf8($str);
+        } elseif ($protocolVersion <= 2) {
+            $str = $this->ensure_not_utf8($str);
+        }
+        return $str;
+    }
+
+    /**
+     * 处理从 LDAP 服务器接收的字符串
+     *
+     * @param string $str
+     *
+     * @return string
+     */
+    private function prepareResultString($str, $protocolVersion)
+    {
+        if ($protocolVersion >= 3) {
+            $str = $this->ensure_utf8($str);
+        } elseif ($protocolVersion <= 2) {
+            $str = $this->ensure_utf8($str);
+        }
+        return $str;
+    }
+
+    /**
+     * Searches for entries in the ldap.
+     * 
+     * Using PHP version < 5.4 will never return more than 1001 items.
+     *
+     * @param \LDAP\Connection $conn
+     * @param string $protocolVersion
+     * @param string $base_dn
+     * @param string $search_filter
+     * @param string $return_attributes
+     * @param integer $pageSize
+     * @return array of stdClass objects with property values defined by $return_attributes+"dn"
+     */
+    private function objectSearch($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100, $oid = '1.2.840.113556.1.4.319')
+    {
+        $current_version = PHP_VERSION;
+
+        $range1 = '5.4.0';
+        $range2 = '7.4.0';
+
+        if (version_compare($current_version, $range1, '>=') && version_compare($current_version, $range2, '<')) {
+            return $this->objectSearch_54_to_74($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100);
+        } elseif (version_compare($current_version, $range2, '>=')) {
+            return $this->objectSearch_74_to_80($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100, $oid = '1.2.840.113556.1.4.319');
+        } else {
+            return $this->objectSearch_74_to_80($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100, $oid = '1.2.840.113556.1.4.319');
+        }
+    }
+
+    /**
+     * [5.4   , 7.4.0)
+     *
+     * @param \LDAP\Connection $conn
+     * @param string $protocolVersion
+     * @param string $base_dn
+     * @param string $search_filter
+     * @param string $return_attributes
+     * @param integer $pageSize
+     * @return array of stdClass objects with property values defined by $return_attributes+"dn"
+     */
+    private function objectSearch_54_to_74($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100)
+    {
+        $base_dn = $this->prepareQueryString($base_dn, $protocolVersion);
+        $search_filter = $this->prepareQueryString($search_filter, $protocolVersion);
+
+        $ret = array();
+        $pageCookie = "";
+        do {
+            ldap_control_paged_result($conn, $pageSize, true, $pageCookie);
+
+            // Start search in LDAP directory.
+            $sr = ldap_search($conn, $base_dn, $search_filter, $return_attributes, 0, 0, 0);
+            if (!$sr) {
+                break;
+            }
+
+            // Get the found entries as array.
+            $entries = ldap_get_entries($conn, $sr);
+            if (!$entries) {
+                break;
+            }
+
+            $count = $entries["count"];
+            for ($i = 0; $i < $count; ++$i) {
+                // A $entry (array) contains all attributes of a single dataset from LDAP.
+                $entry = $entries[$i];
+
+                // Create a new object which will hold the attributes.
+                // And add the default attribute "dn".
+                $o = $this->createObjectFromEntry($entry, $protocolVersion);
+                $ret[] = $o;
+            }
+
+            ldap_control_paged_result_response($conn, $sr, $pageCookie);
+        } while ($pageCookie !== null && $pageCookie != "");
+        return $ret;
+    }
+
+    /**
+     * [7.4.0 , 8.0.0+]
+     *
+     * @param \LDAP\Connection $conn
+     * @param string $protocolVersion
+     * @param string $base_dn
+     * @param string $search_filter
+     * @param string $return_attributes
+     * @param integer $pageSize
+     * @param string $oid
+     * @return array of stdClass objects with property values defined by $return_attributes+"dn"
+     */
+    private function objectSearch_74_to_80($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100, $oid = '1.2.840.113556.1.4.319')
+    {
+        $base_dn = $this->prepareQueryString($base_dn, $protocolVersion);
+        $search_filter = $this->prepareQueryString($search_filter, $protocolVersion);
+
+        $ret = [];
+
+        $cookie = '';
+        do {
+            $controls = [
+                [
+                    'oid' => $oid,
+                    // 'iscritical' => false,
+                    'value' => ['size' => $pageSize, 'cookie' => $cookie]
+                ]
+            ];
+
+            // Start search in LDAP directory.
+            $sr = ldap_search($conn, $base_dn, $search_filter, $return_attributes, 0, 0, 0, 0, $controls);
+            if (!$sr) {
+                break;
+            }
+
+            // Get the found entries as array.
+            $entries = ldap_get_entries($conn, $sr);
+            if (!$entries) {
+                break;
+            }
+
+            $count = $entries["count"];
+            for ($i = 0; $i < $count; ++$i) {
+                // A $entry (array) contains all attributes of a single dataset from LDAP.
+                $entry = $entries[$i];
+
+                // Create a new object which will hold the attributes.
+                // And add the default attribute "dn".
+                $o = $this->createObjectFromEntry($entry, $protocolVersion);
+                $ret[] = $o;
+            }
+
+            ldap_parse_result($conn, $sr, $resultCode, $matchedDN, $errorMessage, $referrals, $serverControls);
+            if (isset($serverControls[$oid]['value']['cookie'])) {
+                // You need to pass the cookie from the last call to the next one
+                $cookie = $serverControls[$oid]['value']['cookie'];
+                // $pageSize = $count;
+            } else {
+                $cookie = '';
+            }
+        } while (!empty($cookie));
+
+        return $ret;
+    }
+
+    /**
+     * Creates a stdClass object with a property for each attribute.
+     * For example:
+     *   Entry ( "sn" => "Chuck Norris", "kick" => "Round house kick" )
+     * Will return the stdClass object with following properties:
+     *   stdClass->sn
+     *   stdClass->kick
+     *
+     * @return stdClass
+     */
+    private function createObjectFromEntry(&$entry, $protocolVersion)
+    {
+        // Create a new user object which will hold the attributes.
+        // And add the default attribute "dn".
+        $u = new stdClass();
+        $u->dn = $this->prepareResultString($entry["dn"], $protocolVersion);
+
+        // The number of attributes inside the $entry array.
+        $att_count = $entry["count"];
+
+        for ($j = 0; $j < $att_count; $j++) {
+            $attr_name = $entry[$j];
+            $attr_value = $entry[$attr_name];
+            $attr_value_count = $entry[$attr_name]["count"];
+
+            // Use single scalar object for the attr value.
+            if ($attr_value_count == 1) {
+                $attr_single_value = $this->prepareResultString($attr_value[0], $protocolVersion);
+                $u->$attr_name = $attr_single_value;
+            } else {
+                $attr_multi_value = array();
+                for ($n = 0; $n < $attr_value_count; $n++) {
+                    $attr_multi_value[] = $this->prepareResultString($attr_value[$n], $protocolVersion);
+                }
+                $u->$attr_name = $attr_multi_value;
+            }
+        }
+        return $u;
+    }
+
+    /**
      * 测试连接ldap服务器
      *
      * @return void
@@ -171,150 +416,6 @@ class Ldap extends Base
                 'fail' => $ldapGroupsLen - count($groups)
             ]);
         }
-    }
-
-    /**
-     * Searches for entries in the ldap.
-     * 
-     * <b>Note:</b>
-     * Using PHP version < 5.4 will never return more than 1001 items.
-     * PHP 5.4 is required for large results.
-     *
-     * @param \LDAP\Connection $conn The ldap connection handle.
-     * @param string $base_dn The base DN in which is to search.
-     * @param string $search_filter The filter which is to use.
-     * @param array $return_attributes The attributes of entries which should be fetched.
-     * @param int $limit The maximum number of entries.
-     *
-     * @return array of stdClass objects with property values defined by $return_attributes+"dn"
-     */
-    protected function objectSearch($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $limit = 100, $oid = '1.2.840.113556.1.4.319')
-    {
-        $base_dn = $this->prepareQueryString($base_dn, $protocolVersion);
-        $search_filter = $this->prepareQueryString($search_filter, $protocolVersion);
-
-        $ret = [];
-
-        $cookie = '';
-        do {
-            $controls = [
-                [
-                    'oid' => $oid,
-                    // 'iscritical' => false,
-                    'value' => ['size' => $limit, 'cookie' => $cookie]
-                ]
-            ];
-
-            // Start search in LDAP directory.
-            $sr = ldap_search($conn, $base_dn, $search_filter, $return_attributes, 0, $limit, 0, 0, $controls);
-            if (!$sr) {
-                break;
-            }
-
-            // Get the found entries as array.
-            $entries = ldap_get_entries($conn, $sr);
-            if (!$entries) {
-                break;
-            }
-
-            $count = $entries["count"];
-            for ($i = 0; $i < $count; ++$i) {
-                // A $entry (array) contains all attributes of a single dataset from LDAP.
-                $entry = $entries[$i];
-
-                // Create a new object which will hold the attributes.
-                // And add the default attribute "dn".
-                $o = self::createObjectFromEntry($entry, $protocolVersion);
-                $ret[] = $o;
-            }
-
-            ldap_parse_result($conn, $sr, $resultCode, $matchedDN, $errorMessage, $referrals, $serverControls);
-            if (isset($controls[$oid]['value']['cookie'])) {
-                // You need to pass the cookie from the last call to the next one
-                $cookie = $controls[$oid]['value']['cookie'];
-            } else {
-                $cookie = '';
-            }
-        } while (!empty($cookie));
-
-        return $ret;
-    }
-
-    /**
-     * Creates a stdClass object with a property for each attribute.
-     * For example:
-     *   Entry ( "sn" => "Chuck Norris", "kick" => "Round house kick" )
-     * Will return the stdClass object with following properties:
-     *   stdClass->sn
-     *   stdClass->kick
-     *
-     * @return stdClass
-     */
-    protected function createObjectFromEntry(&$entry, $protocolVersion)
-    {
-        // Create a new user object which will hold the attributes.
-        // And add the default attribute "dn".
-        $u = new stdClass;
-        $u->dn = $this->prepareResultString($entry["dn"], $protocolVersion);
-
-        // The number of attributes inside the $entry array.
-        $att_count = $entry["count"];
-
-        for ($j = 0; $j < $att_count; $j++) {
-            $attr_name = $entry[$j];
-            $attr_value = $entry[$attr_name];
-            $attr_value_count = $entry[$attr_name]["count"];
-
-            // Use single scalar object for the attr value.
-            if ($attr_value_count == 1) {
-                $attr_single_value = $this->prepareResultString($attr_value[0], $protocolVersion);
-                $u->$attr_name = $attr_single_value;
-            } else {
-                $attr_multi_value = array();
-                for ($n = 0; $n < $attr_value_count; $n++) {
-                    $attr_multi_value[] = $this->prepareResultString($attr_value[$n], $protocolVersion);
-                }
-                $u->$attr_name = $attr_multi_value;
-            }
-        }
-        return $u;
-    }
-
-    /**
-     * Prepares the encoding of a string before it is passed via LDAP
-     * protocol to server. This method have to be called on all DN and attribute
-     * string values before passing them to the server.
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    protected function prepareQueryString($str, $protocolVersion)
-    {
-        if ($protocolVersion >= 3) {
-            $str = if_ensure_utf8_encoding($str);
-        } elseif ($protocolVersion <= 2) {
-            $str = if_ensure_utf8_decoding($str);
-        }
-        return $str;
-    }
-
-    /**
-     * Prepares string data which were receive via response from LDAP server
-     * for usage.
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    protected function prepareResultString($str, $protocolVersion)
-    {
-        if ($protocolVersion >= 3) {
-            $str = if_ensure_utf8_encoding($str);
-        } elseif ($protocolVersion <= 2) {
-            $str = if_ensure_utf8_encoding($str);
-        }
-        return $str;
     }
 
     /**

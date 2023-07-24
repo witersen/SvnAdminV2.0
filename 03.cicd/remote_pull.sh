@@ -61,22 +61,34 @@ fi
 
 docker login --username ${MY_HARBOR_USER} --password ${MY_HARBOR_PASS} ${MY_HARBOR_HOST}
 
-# 重新拉取镜像
-image_svnadmin="${MY_HARBOR_HOST}/${project_name}/svnadmin-${GIT_BRANCH}:${TAG}"
-docker pull ${image_svnadmin}
-
 # 清理没有标签的镜像
 image_ids=$(docker images | grep "<none>" | awk "{print \$3}")
 if [ "${image_ids}" != '' ]; then
   docker image rm ${image_ids}
 fi
 
-# 清理本项目的本分支的旧镜像
-image_tags=$(docker images | grep "/${project_name}/" | grep ${GIT_BRANCH} | grep -v ${TAG} | awk '{print $1":"$2}')
-if [ "${image_tags}" != '' ]; then
-  docker image rm ${image_tags}
-fi
+php_version_array=(php55 php56 php70 php71 php72 php73 php74 php80 php81 php82)
+svn_version_array=(1.9 1.10 1.11 1.14)
 
-docker run -d --name ${TAG} -p 80:80 -p 3690:3690 --privileged ${image_svnadmin}
+http_port_start=8000
+svn_port_start=3690
+
+for php_version in "${php_version_array[@]}"; do
+  for svn_version in "${svn_version_array[@]}"; do
+
+    sign=${TAG}-${php_version}-svn${svn_version}
+
+    # 重新拉取镜像
+    image_svnadmin="${MY_HARBOR_HOST}/${project_name}/svnadmin-${GIT_BRANCH}:${sign}"
+
+    docker pull ${image_svnadmin}
+
+    docker run -d --name ${sign} -p ${http_port_start}:80 -p ${svn_port_start}:3690 --privileged ${image_svnadmin}
+
+    http_port_start=$((http_port_start + 1))
+    svn_port_start=$((svn_port_start + 1))
+
+  done
+done
 
 exit 0

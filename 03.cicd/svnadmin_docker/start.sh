@@ -11,6 +11,7 @@ spid=$(uuidgen)
 /usr/sbin/saslauthd -a 'ldap' -O "$spid" -O '/home/svnadmin/sasl/ldap/saslauthd.conf'
 
 ps aux | grep -v grep | grep "$spid" | awk 'NR==1' | awk '{print $2}' > '/home/svnadmin/sasl/saslauthd.pid'
+chmod 777 /home/svnadmin/sasl/saslauthd.pid
 
 /usr/sbin/crond
 

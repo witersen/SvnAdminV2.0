@@ -36,6 +36,25 @@ fi
 
 cd "${JOB_NAME}/03.cicd"
 
-docker stop ${TAG} && docker rm ${TAG}
+php_version_array=(php55 php56 php70 php71 php72 php73 php74 php80 php81 php82)
+svn_version_array=(1.9 1.10 1.11 1.14)
+
+http_port_start=8000
+svn_port_start=3690
+
+#快速停止+删除
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq -f status=exited)
+
+#精准停止+删除
+# for php_version in "${php_version_array[@]}"; do
+#   for svn_version in "${svn_version_array[@]}"; do
+
+#     sign=${TAG}-${php_version}-svn${svn_version}
+
+#     docker stop ${sign} && docker rm ${sign}
+
+#   done
+# done
 
 exit 0

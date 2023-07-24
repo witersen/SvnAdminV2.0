@@ -11,7 +11,6 @@ namespace app\service;
 
 use app\service\Svn as ServiceSvn;
 use app\service\Logs as ServiceLogs;
-use tidy;
 use Witersen\Upload;
 
 class Svnrep extends Base
@@ -84,7 +83,7 @@ class Svnrep extends Base
                 'protocal' => $protocal,
                 'prefix' => $checkoutHost
             ]);
-       }
+        }
     }
 
     /**
@@ -1071,7 +1070,7 @@ class Svnrep extends Base
                         'resourceType' => 2,
                         'title' => $repName . '/',
                         'fullPath' => '/',
-                        'children' => [$this->GetRepTreeChildren($pathArray, [], $data)]
+                        'children' => [$this->GetRepTreeChildren($pathArray, $data, [])]
                     ]
                 ];
             } else {
@@ -1086,7 +1085,7 @@ class Svnrep extends Base
                         'resourceType' => 2,
                         'title' => $repName . '/',
                         'fullPath' => '/',
-                        'children' => [$this->GetRepTreeChildren($pathArray, [], $last)]
+                        'children' => [$this->GetRepTreeChildren($pathArray, $last, [])]
                     ]
                 ];
             }
@@ -1099,7 +1098,7 @@ class Svnrep extends Base
     /**
      * 递归方式拼接单路径目录树
      */
-    private function GetRepTreeChildren($pathArray, $pathHistoryArray = [], $last)
+    private function GetRepTreeChildren($pathArray, $last, $pathHistoryArray = [])
     {
         if (empty($pathArray)) {
             if (is_array($last)) {
@@ -1118,7 +1117,7 @@ class Svnrep extends Base
         array_shift($pathArray);
 
 
-        $recursion = $this->GetRepTreeChildren($pathArray, $pathHistoryArray, $last);
+        $recursion = $this->GetRepTreeChildren($pathArray, $last, $pathHistoryArray);
         if (empty($recursion)) {
             $children = [];
         } elseif (array_key_exists('expand', $recursion)) {
@@ -1388,7 +1387,7 @@ class Svnrep extends Base
          */
         $objectPri = $objectPri == 'no' ? '' : $objectPri;
 
-        $result = $this->SVNAdmin->AddRepPathPri($this->authzContent, $repName, $path, $objectType, false, $objectName, $objectPri);
+        $result = $this->SVNAdmin->AddRepPathPri($this->authzContent, $repName, $path, $objectType, $objectName, $objectPri, false);
 
         if (is_numeric($result)) {
             if ($result == 751) {
@@ -1404,7 +1403,7 @@ class Svnrep extends Base
                     return message(200, 0, '仓库路径需以/开始');
                 } else {
                     //重新写入权限
-                    $result = $this->SVNAdmin->AddRepPathPri($result, $repName, $path, $objectType, false, $objectName, $objectPri);
+                    $result = $this->SVNAdmin->AddRepPathPri($result, $repName, $path, $objectType, $objectName, $objectPri, false);
                     if (is_numeric($result)) {
                         return message(200, 0, "错误码$result");
                     }
@@ -1508,7 +1507,7 @@ class Svnrep extends Base
          */
         $objectPri = $objectPri == 'no' ? '' : $objectPri;
 
-        $result = $this->SVNAdmin->EditRepPathPri($this->authzContent, $repName, $path, $objectType, $invert == 1 ? true : false, $objectName, $objectPri);
+        $result = $this->SVNAdmin->EditRepPathPri($this->authzContent, $repName, $path, $objectType, $objectName, $objectPri, $invert == 1 ? true : false);
 
         if (is_numeric($result)) {
             if ($result == 751) {

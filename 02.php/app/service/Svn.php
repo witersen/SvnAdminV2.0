@@ -340,9 +340,12 @@ class Svn extends Base
             return message(200, 0, '获取进程失败: ' . $result['error']);
         }
 
-        @file_put_contents($this->configSvn['saslauthd_pid_file'], trim($result['result']));
+        funFilePutContents($this->configSvn['saslauthd_pid_file'], trim($result['result']), true);
         if (!file_exists($this->configSvn['saslauthd_pid_file'])) {
-            return message(200, 0, sprintf('无法写入文件[%s]-请为数据目录授权', $this->configSvn['saslauthd_pid_file']));
+            return message(200, 0, sprintf('无法强制写入文件[%s]-请为数据目录授权', $this->configSvn['saslauthd_pid_file']));
+        }
+        if (file_get_contents($this->configSvn['saslauthd_pid_file']) !== trim($result['result'])) {
+            return message(200, 0, '进程启动成功-但是写入pid文件失败-请联系管理员');
         }
 
         return message();

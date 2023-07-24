@@ -145,31 +145,28 @@ class Statistics extends Base
         $diskStats = file_get_contents('/proc/mounts');
         $diskLines = explode("\n", $diskStats);
 
-        $mountedPoints = [];
-
         foreach ($diskLines as $line) {
             if (!empty($line) && strpos($line, '/') === 0) {
                 $diskInfo = explode(" ", $line);
                 $mountedOn = trim($diskInfo[1]);
                 $filesystem = trim($diskInfo[0]);
 
-                if (!in_array($filesystem, $mountedPoints)) {
-                    $mountedPoints[] = $filesystem;
-                    $diskUsage = $this->GetDiskUsage($mountedOn);
-                    if ($diskUsage) {
-                        $diskArray[] = [
-                            'fileSystem' => $filesystem,
-                            'mountedOn' => $mountedOn,
-                            'size' => $diskUsage['size'],
-                            'used' => $diskUsage['used'],
-                            'avail' => $diskUsage['avail'],
-                            'percent' => $diskUsage['percent'],
-                            'color' => funGetColor($diskUsage['percent'])['color']
-                        ];
-                    }
+                $diskUsage = $this->GetDiskUsage($mountedOn);
+                if ($diskUsage) {
+                    $diskArray[$filesystem] = [
+                        'fileSystem' => $filesystem,
+                        'mountedOn' => $mountedOn,
+                        'size' => $diskUsage['size'],
+                        'used' => $diskUsage['used'],
+                        'avail' => $diskUsage['avail'],
+                        'percent' => $diskUsage['percent'],
+                        'color' => funGetColor($diskUsage['percent'])['color']
+                    ];
                 }
             }
         }
+
+        $diskArray = array_values($diskArray);
 
 
         return message(200, 1, '成功', $diskArray);
