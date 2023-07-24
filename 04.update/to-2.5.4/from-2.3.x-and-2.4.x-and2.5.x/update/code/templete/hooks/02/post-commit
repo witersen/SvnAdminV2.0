@@ -1,0 +1,16 @@
+#!/bin/sh
+
+deployPath='/var/www/html/d'
+repName='rep1'
+username='witersen'
+password='123456'
+
+export LANG='zh_CN.UTF-8'
+
+cd "$deployPath"
+
+svn cleanup
+svn checkout "svn://0.0.0.0/${repName}" --username "${username}" --password "${password}" --no-auth-cache --non-interactive --trust-server-cert
+svn revert --recursive .
+svn update .
+chown -R apache:apache "$deployPath"

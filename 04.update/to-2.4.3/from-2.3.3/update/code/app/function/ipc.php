@@ -1,0 +1,98 @@
+<?php
+/*
+ * @Author: witersen
+ * 
+ * @LastEditors: witersen
+ * 
+ * @Description: QQ:1801168257
+ */
+
+/**
+ * 与守护进程通信
+ */
+function funShellExec($shell, $daemon = false)
+{
+    if ($daemon) {
+        $configDaemon = Config::get('daemon');
+
+        $request = [
+            'type' => 'passthru',
+            'content' => $shell
+        ];
+        $request = json_encode($request);
+
+        $length = $configDaemon['socket_data_length'];
+
+        //检测信息长度
+        if (strlen($request) >= $length) {
+            json1(200, 0, '数据长度超过' . $length . ' 请向上调整参数：socket_data_length');
+        }
+
+        $socket = @socket_create(AF_UNIX, SOCK_STREAM, 0) or exit('创建套接字失败：' . socket_strerror(socket_last_error()) . PHP_EOL);
+
+        $server = socket_connect($socket, IPC_SVNADMIN, 0);
+
+        socket_write($socket, $request, strlen($request));
+
+        $reply = @socket_read($socket, $length);
+
+        socket_close($socket);
+
+        return json_decode($reply, true);
+    } else {
+        //定义错误输出文件路径
+        $stderrFile = tempnam(sys_get_temp_dir(), 'svnadmin_');
+
+        //将标准错误重定向到文件
+        //使用状态码来标识错误信息
+        ob_start();
+        passthru($shell . " 2>$stderrFile", $code);
+        $buffer = ob_get_contents();
+        ob_end_clean();
+
+        //将错误信息和正确信息分类收集
+        $result = [
+            'code' => $code,
+            'result' => trim($buffer),
+            'error' => file_get_contents($stderrFile)
+        ];
+
+        @unlink($stderrFile);
+
+        return $result;
+    }
+}
+
+/**
+ * file_put_contents
+ */
+function funFilePutContents($filename, $data, $daemon = false)
+{
+    if ($daemon) {
+        funShellExec(sprintf("chmod 777 '%s'", $filename), true);
+    }
+    @file_put_contents($filename, $data);
+}
+
+/**
+ * 守护进程状态探测
+ * 0 超时
+ * 1 打开
+ * 2 关闭
+ */
+function funDetectState()
+{
+    $sock = @socket_create(AF_UNIX, SOCK_STREAM, 0);
+
+    @socket_connect($sock, IPC_SVNADMIN, 0);
+
+    socket_set_nonblock($sock);
+
+    socket_set_block($sock);
+
+    $state = @socket_select($r = [$sock], $w = [$sock], $f = [$sock], 5);
+
+    socket_close($sock);
+
+    return $state;
+}

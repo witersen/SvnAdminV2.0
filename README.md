@@ -26,15 +26,15 @@
 
 ### 2. 兼容性
 
-**docker > CentOS7 > CentOS8 > Rocky > Ubuntu**
+**docker > CentOS7 > CentOS8 > Rocky > Ubuntu**>...........
 
 Windows下如有需求，可使用 docker 版本
 
-PHP版本：PHP 5.5+ 推荐 PHP 7.0 +
+PHP版本：[php5.5 , php8.2] （开发基于php7.4所以推荐使用php7.4）
 
 数据库：SQLite、MySQL
 
-Subversion：1.8+
+Subversion：1.8+（不包含1.8）
 
 
 
@@ -96,13 +96,15 @@ chown -R apache:apache /home/svnadmin
 
 ##### 3.3 适用于：旧用户升级
 
-- 2.4.x 之前的用户升级到2.4.x （可以联网的用户）
+*ps: 2.4.3 及之前的用户要注意目录挂载多了 conf.d sasl2 升级之前要提前复制出来*
+
+- 2.3.x和2.4.x和2.5.x升级到2.5.4 （可以联网的用户）
   - 进入容器内
   - yum install -y unzip
   - cd /var/www/html/server && php install.php
   - 退出容器
   - 停止旧的容器，拉取新容器，挂载本地的数据目录到新版本的容器即可
-- 2.4.x 之前的用户升级到2.4.x （不可联网的用户）
+- 2.3.x和2.4.x和2.5.x升级到2.5.4 （不可联网的用户）
   - 在有网络的环境下下载升级包，注意下载 update.tar.gz 而不是 update.zip
   - 提前下载好升级包并复制到容器中 /var/www/html/server/ 目录下
   - cd /var/www/html/server/
@@ -110,13 +112,6 @@ chown -R apache:apache /home/svnadmin
   - php update/index.php
   - 退出容器
   - 停止旧的容器，拉取新容器，挂载本地的数据目录到新版本的容器即可
-- 2.4.3 及之前的用户升级到 2.4.x 要注意目录挂载多了 conf.d sasl2 升级之前要提前复制出来
-- 2.4.x之前的用户升级到2.5.4
-  - 升级包测试中，稍后发布..................................................................
-- 2.4.x 升级到 2.5.4
-  - 升级包测试中，稍后发布..................................................................
-- 2.5.x 版本之间升级
-  - 只需要停掉老容器，按照之前的文件、端口映射配置，拉取新容器启动即可
 
 ### 4. 源码安装
 
@@ -305,27 +300,9 @@ nohup php server/svnadmind.php start &
 
 ##### 4.4 适用于：旧用户升级
 
-- 2.4.x 之前的用户升级到2.4.x
+- 2.3.x和2.4.x和2.5.x升级到2.5.4
   - yum install -y unzip
   - cd /var/www/html/server && php install.php
-  - yum install -y unzip cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain mod_dav_svn mod_ldap mod_php php-ldap cronie at
-  - httpd -k graceful （如果web服务器不是apache则不需要重启）
-  - chown -R apache:apache /home/svnadmin/（如果web服务器不是apache可看上方关于 own.php 使用说明）
-  - php svnadmind.php stop
-  - nohup svnadmind.php start & （如果你有自己的启动方式则使用自己的启动方式）
-- 2.4.x 之后的升级
-  - 执行 `php code/server/install.php`，没有升级包则需要手动升级
-  - 手动升级，直接重新下载安装包覆盖之前的代码即可
-  - 由于下载的新代码没有之前的配置信息，所重新修改自己的配置文件
-    - 数据库配置信息`web/config/database.php`
-    - 主目录配置信息 `web/config/svn.php`
-    - 二进制文件配置文件 `web/config/bin.php`
-- 2.4.x之前升级到2.5.x
-  - 请等作者闲了做升级包。。。。。。
-- 2.4.x升级到2.5.x
-  - 请等作者闲了做升级包。。。。。。
-- 2.5.x之间升级
-  - 只需要重新覆盖代码即可
 
 ### 5. 常见问题解答
 
@@ -424,11 +401,7 @@ select * from admin_users;
 【出现问题原因】
 svn的用户量和权限配置数量增加，超过了默认值
 【解决方案】
-修改 config/daemon.php 文件中的 SOCKET_READ_LENGTH 和 SOCKET_WRITE_LENGTH 
-设置到133693415 字节也就是大约小于128M貌似都是可以的，再大没有测试过
-修改后别忘记要重启守护进程，重启守护进程的方式根据安装方式的不同而不同（不重启会出问题）
-【适用版本】
-2.1.0+
+修改 config/daemon.php 文件中的参数
 ```
 
 ##### 5.12 提示无法连接到LDAP服务器
