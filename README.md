@@ -10,8 +10,6 @@
 
 - SVNAdmin2 支持进行**LDAP的接入**，进而达到使用原有的人员架构和分组规则的目的。
 
-- SVNAdmin2 第一个版本（20年初）被开发用来个人管理SVN仓库使用，无意中开源后发现用户渐多，于是开始专门维护迭代。
-
 - [GitHub地址](https://github.com/witersen/SvnAdminV2.0)   [Gitee地址](https://gitee.com/witersen/SvnAdminV2.0)
 
 - 问题求助、功能建议、更新计划、SVN技术讨论，可加QQ群：**633108141**
@@ -34,7 +32,7 @@ PHP版本：[php5.5 , php8.2] （开发基于php7.4所以推荐使用php7.4）
 
 数据库：SQLite、MySQL
 
-Subversion：1.8+（不包含1.8）
+Subversion：1.8+
 
 
 
@@ -439,32 +437,3 @@ setsebool -P httpd_can_connect_ldap=1
 然后你过滤出用户：blue
 那么 blue 作为一个 SVN 用户来登录系统的时候，系统会将 cn=blue,dc=witersen,dc=com 来作为用户 blue 的完整 dn 并且结合用户输入的密来一起请求 ldap 服务器进行校验，所以如果 blue 用户的真实 dn 是 cn=blue,ou=devGroup,dc=witersen,dc=com 就会造成同步成功登录失败的情况
 ```
-
-
-
-### 6. :heart: 捐赠感谢
-
-- 本人工作之余大部分的时间精力都投入在了 SVNAdmin2
-- 如果有可能，希望得到各位使用者的捐赠鼓励，捐赠更多代表的是认可，作者会继续动力更新的！
-
-| 捐赠者            | 渠道   | 时间       |
-| ----------------- | ------ | ---------- |
-| qq@穿裤衩的狐狸   | QQ     | 2021-08-19 |
-| qq@cat            | 微信   | 2022-10-10 |
-| qq@Listen_        | 微信   | 2022-11-16 |
-| qq@小吴飞刀丶mike | 微信   | 2022-11-16 |
-| gitee@tango_zhu   | Gitee  | 2022-11-18 |
-| qq@三多～(๑°3°๑)  | 支付宝 | 2022-11-28 |
-| wechat@Z*h        | 微信   | 2022-11-30 |
-| qq@三多～(๑°3°๑)  | 支付宝 | 2022-12-06 |
-| qq@ArtOfTerRan。  | 微信   | 2022-12-07 |
-| qq@Captcha        | 支付宝 | 2022-12-12 |
-| qq@Start          | 支付宝 | 2022-12-16 |
-| alipay@*通        | 支付宝 | 2023-01-06 |
-| qq@面壁人         | 微信   | 2023-01-13 |
-| qq@☆星雨星辰☆     | 微信   | 2023-03-02 |
-| qq@东方启示录     | 微信   | 2023-03-06 |
-
-<img src="00.static/wechat.png" alt="" width="40%" height="40%" />
-
-<img src="00.static/alipay.jpg" alt="" width="40%" height="40%" />
