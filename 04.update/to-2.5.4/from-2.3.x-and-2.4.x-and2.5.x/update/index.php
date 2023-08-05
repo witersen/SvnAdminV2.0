@@ -285,7 +285,7 @@ class Update
         $daemon = sprintf(
             file_get_contents(BASE_PATH . '/server/update/templete/daemon'),
             isset($configDaemon['SOCKET_READ_LENGTH']) ? $configDaemon['SOCKET_READ_LENGTH'] : $configDaemon['socket_data_length'],
-            isset($configDaemon['SOCKET_LISTEN_BACKLOG']) ? $configDaemon['SOCKET_LISTEN_BACKLOG'] : $configDaemon['socket_listen_backlog'],
+            isset($configDaemon['SOCKET_LISTEN_BACKLOG']) ? $configDaemon['SOCKET_LISTEN_BACKLOG'] : $configDaemon['socket_listen_backlog']
         );
 
         //bin svn svnadmin svnlook svnserve svnversion svnsync svnrdump svndumpfilter svnmucc svnauthz-validate
@@ -304,7 +304,7 @@ class Update
             isset($configBin['svnauthz-validate']) ? $configBin['svnauthz-validate'] : '',
             isset($configBin['saslauthd']) ? $configBin['saslauthd'] : '',
             isset($configBin['httpd']) ? $configBin['httpd'] : '',
-            isset($configBin['htpasswd']) ? $configBin['htpasswd'] : '',
+            isset($configBin['htpasswd']) ? $configBin['htpasswd'] : ''
         );
 
         //database file_get_contents
