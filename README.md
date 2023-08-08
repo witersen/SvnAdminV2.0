@@ -437,3 +437,10 @@ setsebool -P httpd_can_connect_ldap=1
 然后你过滤出用户：blue
 那么 blue 作为一个 SVN 用户来登录系统的时候，系统会将 cn=blue,dc=witersen,dc=com 来作为用户 blue 的完整 dn 并且结合用户输入的密来一起请求 ldap 服务器进行校验，所以如果 blue 用户的真实 dn 是 cn=blue,ou=devGroup,dc=witersen,dc=com 就会造成同步成功登录失败的情况
 ```
+
+##### 5.15 LDAP可以获取到用户、分组，但是无法把用户同步为分组的成员
+
+```
+参考文章：https://www.witersen.com/?p=1844
+其中关于如何对接LDAP作了详细解释
+```
