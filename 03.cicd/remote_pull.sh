@@ -67,8 +67,10 @@ if [ "${image_ids}" != '' ]; then
   docker image rm ${image_ids}
 fi
 
-php_version_array=(php55 php56 php70 php71 php72 php73 php74 php80 php81 php82)
-svn_version_array=(1.9 1.10 1.11 1.14)
+# php_version_array=(php55 php56 php70 php71 php72 php73 php74 php80 php81 php82)
+php_version_array=(php74)
+# svn_version_array=(1.9 1.10 1.11 1.14)
+svn_version_array=(1.10)
 
 http_port_start=8000
 svn_port_start=3690

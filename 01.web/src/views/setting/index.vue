@@ -582,7 +582,7 @@
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="分组下包含多个对象 具备此属性的对象才可被识别为分组的成员 如 member"
+                        content="表示分组中的一个多值属性，这个多值属性包含了0到多个用户"
                       >
                         <Button type="info">说明</Button>
                       </Tooltip>
@@ -603,7 +603,7 @@
                           <Tooltip
                             :transfer="true"
                             max-width="250"
-                            content="表示分组下的成员的唯一标识的属性 如 distinguishedName"
+                            content="一般填写的是dn，即当遍历LDAP用户时，某用户的【Groups to user attribute value】属性对应的值与某组的【Groups to user attribute】对应的多项的某一项相等，该分组才包含该用户"
                           >
                             <Button type="info">说明</Button>
                           </Tooltip>
@@ -1043,7 +1043,7 @@
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="分组下包含多个对象 具备此属性的对象才可被识别为分组的成员 如 member"
+                        content="表示分组中的一个多值属性，这个多值属性包含了0到多个用户"
                       >
                         <Button type="info">说明</Button>
                       </Tooltip>
@@ -1064,7 +1064,7 @@
                           <Tooltip
                             :transfer="true"
                             max-width="250"
-                            content="表示分组下的成员的唯一标识的属性 如 distinguishedName"
+                            content="一般填写的是dn，即当遍历LDAP用户时，某用户的【Groups to user attribute value】属性对应的值与某组的【Groups to user attribute】对应的多项的某一项相等，该分组才包含该用户"
                           >
                             <Button type="info">说明</Button>
                           </Tooltip>
@@ -1591,7 +1591,7 @@ export default {
        * 版本信息
        */
       version: {
-        current_verson: "2.5.4",
+        current_verson: "2.5.5",
         php_version: "5.5+",
         database: "MYSQL、SQLite",
         github: "https://github.com/witersen/SvnAdminV2.0",

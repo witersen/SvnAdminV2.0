@@ -62,8 +62,10 @@ docker login --username ${MY_HARBOR_USER} --password ${MY_HARBOR_PASS} ${MY_HARB
 
 # 构建 php 5.5 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 和 svn 1.9 1.10 1.11 1.14 的组合镜像(php7.4 + svn1.10是最稳定的组合)
 
-php_version_array=(php55 php56 php70 php71 php72 php73 php74 php80 php81 php82)
-svn_version_array=(1.9 1.10 1.11 1.14)
+# php_version_array=(php55 php56 php70 php71 php72 php73 php74 php80 php81 php82)
+php_version_array=(php74)
+# svn_version_array=(1.9 1.10 1.11 1.14)
+svn_version_array=(1.10)
 
 for php_version in "${php_version_array[@]}"; do
     for svn_version in "${svn_version_array[@]}"; do
