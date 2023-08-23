@@ -1,0 +1,24 @@
+<?php
+/*
+ * @Author: witersen
+ * 
+ * @LastEditors: witersen
+ * 
+ * @Description: QQ:1801168257
+ */
+
+return [
+    'svn' => '%s',
+    'svnadmin' => '%s',
+    'svnlook' => '%s',
+    'svnserve' => '%s',
+    'svnversion' => '%s',
+    'svnsync' => '%s',
+    'svnrdump' => '%s',
+    'svndumpfilter' => '%s',
+    'svnmucc' => '%s',
+    'svnauthz-validate' => '%s',
+    'saslauthd' => '%s',
+    'httpd' => '%s',
+    'htpasswd' => '%s'
+];
