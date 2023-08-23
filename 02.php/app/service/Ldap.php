@@ -662,6 +662,7 @@ class Ldap extends Base
                                 if ($result == 612) {
                                     return message(200, 0, '文件格式错误(不存在[groups]标识)');
                                 } elseif ($result == 803) {
+                                    $result = $authzContent;
                                 } else {
                                     return message(200, 0, "错误码$result");
                                 }
@@ -683,6 +684,7 @@ class Ldap extends Base
                             if ($result == 612) {
                                 return message(200, 0, '文件格式错误(不存在[groups]标识)');
                             } elseif ($result == 803) {
+                                $result = $authzContent;
                             } else {
                                 return message(200, 0, "错误码$result");
                             }

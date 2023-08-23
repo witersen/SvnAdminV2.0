@@ -64,7 +64,7 @@ docker login --username ${MY_HARBOR_USER} --password ${MY_HARBOR_PASS} ${MY_HARB
 # 清理没有标签的镜像
 image_ids=$(docker images | grep "<none>" | awk "{print \$3}")
 if [ "${image_ids}" != '' ]; then
-  docker image rm ${image_ids}
+  docker image rm ${image_ids} || true
 fi
 
 # php_version_array=(php55 php56 php70 php71 php72 php73 php74 php80 php81 php82)

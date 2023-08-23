@@ -45,8 +45,8 @@ http_port_start=8000
 svn_port_start=3690
 
 #快速停止+删除
-docker stop $(docker ps -aq)
-docker rm $(docker ps -aq -f status=exited)
+docker stop $(docker ps -aq) || true
+docker rm $(docker ps -aq -f status=exited) || true
 
 #精准停止+删除
 # for php_version in "${php_version_array[@]}"; do
