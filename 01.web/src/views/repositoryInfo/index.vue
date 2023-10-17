@@ -27,17 +27,32 @@
           >
           <Tooltip
             max-width="250"
-            content="同步才可获取最新仓库列表"
+            content="该操作会扫描磁盘上的有效仓库列表"
             placement="bottom"
             :transfer="true"
+            v-if="user_role_id == 1 || user_role_id == 3"
           >
             <Button
               icon="ios-sync"
               type="warning"
               ghost
-              @click="GetRepList(true)"
-              v-if="user_role_id == 1 || user_role_id == 3"
-              >同步列表</Button
+              @click="GetRepList(true, true, false, false)"
+              >同步仓库列表</Button
+            >
+          </Tooltip>
+          <Tooltip
+            max-width="250"
+            content="该操作会扫描磁盘上的有效仓库列表，并批量读取每个仓库的体积和版本信息，为耗时操作"
+            placement="bottom"
+            :transfer="true"
+            v-if="user_role_id == 1 || user_role_id == 3"
+          >
+            <Button
+              icon="ios-sync"
+              type="warning"
+              ghost
+              @click="GetRepList(true, true, true, true)"
+              >同步仓库信息</Button
             >
           </Tooltip>
           <Tooltip
@@ -45,13 +60,13 @@
             content="同步才可获取最新权限列表"
             placement="bottom"
             :transfer="true"
+            v-if="user_role_id == 2"
           >
             <Button
               icon="ios-sync"
               type="warning"
               ghost
               @click="GetSvnUserRepList(true)"
-              v-if="user_role_id == 2"
               >同步列表</Button
             >
           </Tooltip>
@@ -64,13 +79,13 @@
 此功能依赖 svnauthz-validate"
             placement="bottom"
             :transfer="true"
+            v-if="user_role_id == 1 || user_role_id == 3"
           >
             <Button
               icon="ios-hammer-outline"
               type="error"
               ghost
               @click="CheckAuthz"
-              v-if="user_role_id == 1 || user_role_id == 3"
               >authz检测</Button
             >
           </Tooltip>
@@ -121,6 +136,26 @@
       >
         <template slot-scope="{ index }" slot="index">
           {{ pageSizeRep * (pageCurrentRep - 1) + index + 1 }}
+        </template>
+        <template slot-scope="{ row, index }" slot="rep_rev">
+          {{ row.rep_rev
+          }}<Icon
+            type="ios-refresh"
+            size="20"
+            style="float: right"
+            :color="row.loading_rep_rev ? '#ed4014' : '#808695'"
+            @click="SyncRepRev(row.rep_name, index)"
+          />
+        </template>
+        <template slot-scope="{ row, index }" slot="rep_size">
+          {{ row.rep_size
+          }}<Icon
+            type="ios-refresh"
+            size="20"
+            style="float: right"
+            :color="row.loading_rep_size ? '#ed4014' : '#808695'"
+            @click="SyncRepSize(row.rep_name, index)"
+          />
         </template>
         <template slot-scope="{ row, index }" slot="rep_note">
           <Input
@@ -836,7 +871,13 @@
             @click="ClickRepUpload"
             >选择文件</Button
           >
-          <input type="file" id="myfile" name="myfile" accept=".dump" style="display: none" />
+          <input
+            type="file"
+            id="myfile"
+            name="myfile"
+            accept=".dump"
+            style="display: none"
+          />
         </FormItem>
         <FormItem label="上传进度">
           <Progress
@@ -1168,13 +1209,13 @@ export default {
         },
         {
           title: "版本数",
-          key: "rep_rev",
+          slot: "rep_rev",
           sortable: "custom",
           minWidth: 90,
         },
         {
           title: "体积",
-          key: "rep_size",
+          slot: "rep_size",
           sortable: "custom",
           minWidth: 120,
         },
@@ -1547,7 +1588,7 @@ export default {
         });
     },
 
-    GetRepList(sync = false, page = true) {
+    GetRepList(sync = false, page = true, sync_size = false, sync_rev = false) {
       var that = this;
       that.loadingRep = true;
       that.tableDataRep = [];
@@ -1560,6 +1601,8 @@ export default {
         sortType: that.sortTypeGetRepList,
         sync: sync,
         page: page,
+        sync_size: sync_size,
+        sync_rev: sync_rev,
       };
       that.$axios
         .post("api.php?c=Svnrep&a=GetRepList&t=web", data)
@@ -1576,6 +1619,56 @@ export default {
         })
         .catch(function (error) {
           that.loadingRep = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    SyncRepSize(rep_name, index) {
+      var that = this;
+      that.tableDataRep[index].loading_rep_size = true;
+      var data = {
+        rep_name: rep_name,
+      };
+      that.$axios
+        .post("api.php?c=Svnrep&a=SyncRepSize&t=web", data)
+        .then(function (response) {
+          that.loadingRep = false;
+          that.tableDataRep[index].loading_rep_size = false;
+          var result = response.data;
+          if (result.status == 1) {
+            // that.$Message.success(result.message);
+            that.GetRepList();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.tableDataRep[index].loading_rep_size = false;
+          console.log(error);
+          that.$Message.error("出错了 请联系管理员！");
+        });
+    },
+    SyncRepRev(rep_name, index) {
+      var that = this;
+      that.tableDataRep[index].loading_rep_rev = true;
+      var data = {
+        rep_name: rep_name,
+      };
+      that.$axios
+        .post("api.php?c=Svnrep&a=SyncRepRev&t=web", data)
+        .then(function (response) {
+          that.loadingRep = false;
+          that.tableDataRep[index].loading_rep_rev = false;
+          var result = response.data;
+          if (result.status == 1) {
+            // that.$Message.success(result.message);
+            that.GetRepList();
+          } else {
+            that.$Message.error({ content: result.message, duration: 2 });
+          }
+        })
+        .catch(function (error) {
+          that.tableDataRep[index].loading_rep_rev = false;
           console.log(error);
           that.$Message.error("出错了 请联系管理员！");
         });
@@ -1600,7 +1693,18 @@ export default {
      * 所有仓库排序
      */
     SortChangeRep(value) {
-      this.sortNameGetRepList = value.key;
+      var sortNameGetRepList;
+      try {
+        sortNameGetRepList = value.key;
+      } catch (error) {
+        if (error instanceof TypeError) {
+          sortNameGetRepList = value.slot;
+        } else {
+          throw error;
+        }
+      }
+      // this.sortNameGetRepList =
+      //   value.key !== undefined ? value.key : value.slot;
       if (value.order == "desc" || value.order == "asc") {
         this.sortTypeGetRepList = value.order;
       }

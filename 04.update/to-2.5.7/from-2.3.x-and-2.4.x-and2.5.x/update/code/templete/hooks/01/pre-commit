@@ -1,0 +1,16 @@
+#!/bin/sh
+
+REPOS="$1"
+TXN="$2"
+SVNLOOK="svnlook"
+
+# SVN 提交必须填写备注钩子
+LOGMSG=`$SVNLOOK log -t "$TXN" "$REPOS" | grep "[a-zA-Z0-9]" | wc -c`  
+if [ "$LOGMSG" -lt 4 ]  
+then  
+   echo -e "\nLog message cann‘t be empty! you must input more than 4 chars 4 Chinese characters as comment!\\n 日志消息不能为空！您必须输入超过4个字符或4个汉字以上作为注释!\\n" 1>&2  
+exit 1  
+fi 
+
+# All checks passed, so allow the commit.
+exit 0

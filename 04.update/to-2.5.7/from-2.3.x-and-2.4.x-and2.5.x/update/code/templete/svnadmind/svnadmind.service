@@ -1,0 +1,11 @@
+[Unit]
+Description=Subversion protocol daemon
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/php /var/www/html/server/svnadmind.php start
+ExecStop=/usr/bin/php /var/www/html/server/svnadmind.php stop
+
+[Install]
+WantedBy=multi-user.target
