@@ -2,14 +2,14 @@
   <div>
     <Card :bordered="false" :dis-hover="true">
       <Tabs value="name1">
-        <TabPane label="修改密码" name="name1">
+        <TabPane :label="$t('personal.changePassword')" name="name1">
           <Card
             :bordered="false"
             :dis-hover="true"
             style="width: 450px; min-height: 321px"
           >
             <Form :label-width="100" v-if="user_role_id == 1">
-              <FormItem label="管理员账户">
+              <FormItem :label="$t('personal.adminAccount')">
                 <Row>
                   <Col span="12">
                     <Input
@@ -20,12 +20,12 @@
                   <Col span="1"> </Col>
                   <Col span="6">
                     <Button type="success" @click="ModalUpdAdminUserName"
-                      >修改</Button
+                      >{{ $t('modify') }}</Button
                     ></Col
                   >
                 </Row>
               </FormItem>
-              <FormItem label="管理员密码">
+              <FormItem :label="$t('personal.adminPassword')">
                 <Row>
                   <Col span="12">
                     <Input type="password" value="******" readonly></Input>
@@ -33,14 +33,14 @@
                   <Col span="1"> </Col>
                   <Col span="6">
                     <Button type="success" @click="ModalUpdAdminUserPass"
-                      >修改</Button
+                      >{{ $t('modify') }}</Button
                     ></Col
                   >
                 </Row>
               </FormItem>
             </Form>
             <Form :label-width="100" v-if="user_role_id == 3">
-              <FormItem label="子管理员账户">
+              <FormItem :label="$t('personal.subadminAccount')">
                 <Row>
                   <Col span="12">
                     <Input
@@ -52,7 +52,7 @@
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="子管理员密码">
+              <FormItem :label="$t('personal.subadminPassword')">
                 <Row>
                   <Col span="12">
                     <Input type="password" value="******" readonly></Input>
@@ -60,7 +60,7 @@
                   <Col span="1"> </Col>
                   <Col span="6">
                     <Button type="success" @click="ModalUpdSubadminPass"
-                      >修改</Button
+                      >{{ $t('modify') }}</Button
                     ></Col
                   >
                 </Row>
@@ -71,17 +71,17 @@
               :label-width="100"
               v-if="user_role_id == 2"
             >
-              <FormItem label="用户名">
+              <FormItem :label="$t('username')">
                 <Input readonly v-model="formUpdSvnUserPass.userName"></Input>
               </FormItem>
-              <FormItem label="新密码">
+              <FormItem :label="$t('newPassword')">
                 <Input
                   type="password"
                   password
                   v-model="formUpdSvnUserPass.newPassword"
                 ></Input>
               </FormItem>
-              <FormItem label="确认新密码">
+              <FormItem :label="$t('confirmNewPassword')">
                 <Input
                   type="password"
                   password
@@ -93,7 +93,7 @@
                   type="primary"
                   :loading="loadingUpdSvnUserPass"
                   @click="UpdSvnUserPass"
-                  >确认修改</Button
+                  >{{ $t('confirmModify') }}</Button
                 >
               </FormItem>
             </Form>
@@ -104,13 +104,13 @@
     <Modal
       v-model="modalUpdAdminUserName"
       :draggable="true"
-      title="修改管理员账号"
+      :title="$t('personal.modifyAdminAccount')"
     >
       <Form :model="formUpdAdminUserName" :label-width="80">
-        <FormItem label="新账号">
+        <FormItem :label="$t('personal.newAccount')">
           <Input v-model="formUpdAdminUserName.userName"></Input>
         </FormItem>
-        <FormItem label="确认">
+        <FormItem :label="$t('confirm')">
           <Input v-model="formUpdAdminUserName.confirm"></Input>
         </FormItem>
         <FormItem>
@@ -131,17 +131,17 @@
     <Modal
       v-model="modalUpdAdminUserPass"
       :draggable="true"
-      title="修改管理员密码"
+      :title="$t('personal.modifyAdminPassword')"
     >
       <Form :model="formUpdAdminUserPass" :label-width="80">
-        <FormItem label="新密码">
+        <FormItem :label="$t('newPassword')">
           <Input
             v-model="formUpdAdminUserPass.password"
             type="password"
             password
           ></Input>
         </FormItem>
-        <FormItem label="确认">
+        <FormItem :label="$t('confirm')">
           <Input
             v-model="formUpdAdminUserPass.confirm"
             type="password"
@@ -166,17 +166,17 @@
     <Modal
       v-model="modalUpdSubadminPass"
       :draggable="true"
-      title="修改子管理员密码"
+      :title="$t('personal.modifySubadminPassword')"
     >
       <Form :model="formUpdSubadminPass" :label-width="80">
-        <FormItem label="新密码">
+        <FormItem :label="$t('newPassword')">
           <Input
             v-model="formUpdSubadminPass.password"
             type="password"
             password
           ></Input>
         </FormItem>
-        <FormItem label="确认">
+        <FormItem :label="$t('confirm')">
           <Input
             v-model="formUpdSubadminPass.confirm"
             type="password"

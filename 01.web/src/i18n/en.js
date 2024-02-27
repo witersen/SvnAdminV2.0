@@ -148,6 +148,17 @@ export default {
         deleteSubadmin: 'Delete Sub-Admin',
         confirmDeleteSubadmin: 'Are you sure to delete this sub-admin? <br/>This operation cannot be undone!',
     },
+    personal: {
+        changePassword: 'Change Password',
+        adminAccount: 'Admin Account',
+        adminPassword: 'Admin Password',
+        subadminAccount: 'Sub-Admin Account',
+        subadminPassword: 'Sub-Admin Password',
+        modifyAdminAccount: 'Modify Admin Account',
+        newAccount: 'New Account',
+        modifyAdminPassword: 'Modify Admin Password',
+        modifySubadminPassword: 'Modify Sub-Admin Password',
+    },
     repositoryInfo: {
         noDataNow: 'No data now',
     }
