@@ -251,7 +251,7 @@ export default {
   data() {
     return {
         //当前语言
-        lang: navigator.language.substring(0, 2),
+        lang: this.$i18n.locale,
       //是否有更新
       hasUpdate: sessionStorage.hasUpdate == 1 ? true : false,
       //当前选中的导航

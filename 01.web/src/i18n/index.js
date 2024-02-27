@@ -14,5 +14,6 @@ const i18n = new VueI18n({
     messages,
     locale: navigator.language.substring(0, 2),
     fallbackLocale: 'en',
+    silentTranslationWarn: true,
 })
 export default i18n

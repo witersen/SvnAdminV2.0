@@ -107,7 +107,7 @@ export default {
   data() {
     return {
         //当前语言
-        lang: navigator.language.substring(0, 2),
+        lang: this.$i18n.locale,
       /**
        * 加载
        */
@@ -166,10 +166,19 @@ export default {
   },
   methods: {
     translate(lng) {
-        console.log("browser language is "+navigator.language.substring(0, 2));
-        console.log("Translating to "+lng);
+        // console.log("browser language is "+navigator.language.substring(0, 2));
+        // console.log("Translating to "+lng);
         this.lang = lng;
         this.$i18n.locale = this.lang
+        this.ruleValidateLogin ={
+            user_name: [
+            { required: true, message: i18n.t("loginPage.usernameCannotBeEmpty"), trigger: "blur" },
+            ],
+            user_pass: [
+            { required: true, message: i18n.t("loginPage.passwordCannotBeEmpty"), trigger: "blur" },
+            ],
+            code: [{ required: true, message: i18n.t("loginPage.codeCannotBeEmpty"), trigger: "blur" }],
+        };
     },
     //记录下拉
     ChangeSelect(value) {
@@ -203,7 +212,7 @@ export default {
               that.verifyOption = false;
             }
           } else {
-            that.$Message.error({ content: result.message, duration: 2 });
+            that.$Message.error({ content: i18n.t('loginPage.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
           }
         })
         .catch(function (error) {
@@ -227,7 +236,7 @@ export default {
             that.formUserLogin.uuid = result.data.uuid;
             that.formUserLogin.base64 = result.data.base64;
           } else {
-            that.$Message.error({ content: result.message, duration: 2 });
+            that.$Message.error({ content: i18n.t('loginPage.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
           }
         })
         .catch(function (error) {
@@ -266,7 +275,7 @@ export default {
               JSON.stringify(result.data.functions)
             );
 
-            that.$Message.success(result.message);
+            that.$Message.success(i18n.t('loginPage.' + result.message));
 
             if (result.data.user_role_id == 1) {
               //管理员跳转到首页
@@ -284,7 +293,7 @@ export default {
             that.$router.push({ name: sessionStorage.firstRoute });
           } else {
             that.GetVerifyOption();
-            that.$Message.error({ content: result.message, duration: 2 });
+            that.$Message.error({ content: i18n.t('loginPage.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
           }
         })
         .catch(function (error) {
