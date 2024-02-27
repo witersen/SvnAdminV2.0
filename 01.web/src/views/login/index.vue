@@ -212,6 +212,8 @@ export default {
               that.verifyOption = false;
             }
           } else {
+            // 取返回错误消息有效信息来翻译（key 里不支持中括号）：
+            // 登录失败[验证码错误] -> 验证码错误 by result.message.substr(5, result.message.length - 6)
             that.$Message.error({ content: i18n.t('loginPage.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
           }
         })
