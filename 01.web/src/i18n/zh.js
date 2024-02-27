@@ -17,6 +17,7 @@ export default {
     status: '启用状态',
     others: '其它',
     createTime: '创建时间',
+    退出登录成功: '退出登录成功',
     loginPage: {
         inputUsername: '请输入用户名',
         inputPassword: '请输入密码',
@@ -27,7 +28,6 @@ export default {
         codeCannotBeEmpty: '验证码不能为空',
         userAlreadyLogin: '已有登录信息 自动跳转中...',
         登陆成功: '登录成功',
-        退出登录成功: '退出登录成功',
         验证码错误: '登录失败[验证码错误]',
         验证码失效: '登录失败[验证码失效]',
         验证码过期: '登录失败[验证码过期]',

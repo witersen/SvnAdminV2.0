@@ -267,7 +267,7 @@ export default {
           that.loadingUpdAdminUserName = false;
           if (result.status == 1) {
             that.modalUpdAdminUserName = false;
-            that.$Message.success(result.message);
+            that.$Message.success(i18n.t(result.message));
             that.Logout();
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
@@ -384,7 +384,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             sessionStorage.clear();
-            that.$Message.success(result.message);
+            that.$Message.success(i18n.t(result.message));
             that.$router.push({ name: "login" });
           } else {
             that.$Message.error({ content: result.message, duration: 2 });

@@ -13,6 +13,7 @@ export default {
     serial: 'ID',
     status: 'Status',
     others: 'Others',
+    退出登录成功: 'Logout success',
     loginPage: {
         inputUsername: 'Please enter username',
         inputPassword: 'Please enter password',
@@ -23,7 +24,6 @@ export default {
         codeCannotBeEmpty: 'Verification code cannot be empty',
         userAlreadyLogin: 'User already login，redirecting...',
         登陆成功: 'Login success',
-        退出登录成功: 'Logout success',
         验证码错误: 'Login failed[Verification code error]',
         验证码失效: 'Login failed[Verification code expired]',
         验证码过期: 'Login failed[Verification code expired]',
