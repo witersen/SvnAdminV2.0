@@ -943,6 +943,8 @@ import ModalRepPri from "@/components/modalRepPri.vue";
 
 import SparkMD5 from "spark-md5";
 
+import i18n from "@/i18n";
+
 export default {
   data() {
     return {
@@ -1014,11 +1016,6 @@ export default {
        * 搜索关键词
        */
       searchKeywordRep: "",
-
-      /**
-       * 表格无数据提示
-       */
-      noDataTextRepCon: "暂无数据",
 
       /**
        * 加载
@@ -1407,7 +1404,14 @@ export default {
   components: {
     ModalRepPri,
   },
-  computed: {},
+  computed: {
+      /**
+       * 表格无数据提示
+       */
+       noDataTextRepCon() { 
+        return i18n.t('noDataNow'); //"暂无数据",
+      },
+  },
   created() {},
   mounted() {
     this.GetSvnserveStatus();
@@ -1804,7 +1808,7 @@ export default {
     ModalViewRep(rep_name) {
       var that = this;
       //还原表格为空提示内容
-      that.noDataTextRepCon = "暂无数据";
+      that.noDataTextRepCon = i18n.t('noDataNow'); //"暂无数据";
       //通过按钮点击浏览 初始化路径和仓库名称
       that.currentRepPath = "/";
       that.currentRepName = rep_name;
@@ -1824,7 +1828,7 @@ export default {
     ModalViewUserRep(rep_name, pri_path) {
       var that = this;
       //还原表格为空提示内容
-      that.noDataTextRepCon = "暂无数据";
+      that.noDataTextRepCon = i18n.t('noDataNow'); //"暂无数据";
       //通过按钮点击浏览 初始化路径和仓库名称
       that.currentRepPath = pri_path;
       that.currentRepName = rep_name;

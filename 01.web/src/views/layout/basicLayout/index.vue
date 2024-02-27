@@ -138,7 +138,7 @@
           <TabPane :label="$t('backendTasks.currentTasks')" icon="ios-loading" name="current">
             <Spin size="large" v-if="loadingTask" fix></Spin>
             <Alert v-if="!formTasks.task_running"
-              >当前没有后台任务运行（如遇任务堆积不执行可重启守护进程解决）</Alert
+              >{{ $t('backendTasks.noTasksRunning') }}</Alert
             >
             <Input
               v-else
