@@ -26,6 +26,7 @@ export default {
         用户未同步: 'Login failed[User not synchronized]',
     },
     menus: {
+        SVNAdmin: 'SVNAdmin',
         backendTasks: 'Backend Tasks',
         仓库: 'Repository',
         信息统计: 'Statics',
@@ -105,7 +106,7 @@ export default {
         Friday: 'Friday',
         Saturday: 'Saturday',
         Sunday: 'Sunday',
-        monthDay: 'Date {0}',
+        monthDay: 'Day {0}',
         dayDay: ' days',
         hourHour: ' hours',
         minuteMinute: ' minutes',

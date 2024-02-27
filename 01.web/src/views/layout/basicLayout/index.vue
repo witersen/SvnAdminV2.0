@@ -122,7 +122,7 @@
         >
           <Breadcrumb style="padding: 0px 0px 20px 0px">
             <BreadcrumbItem v-for="(item, index) in breadcrumb" :key="index">{{
-              item.meta.title
+              $t('menus.' + item.meta.title)
             }}</BreadcrumbItem>
           </Breadcrumb>
           <Content>

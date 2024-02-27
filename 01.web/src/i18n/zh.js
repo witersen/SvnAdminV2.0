@@ -29,6 +29,7 @@ export default {
         用户未同步: '登录失败[用户未同步]',
     },
     menus: {
+        SVNAdmin: 'SVNAdmin',
         backendTasks: '后台任务',
         仓库: '仓库',
         信息统计: '信息统计',
