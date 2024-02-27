@@ -574,8 +574,8 @@ export default {
         {
           title: i18n.t('crond.saveCount'),   //"保存数量",
           key: "save_count",
-          width: 100,
-          minWidth: 100,
+          width: 110,
+          minWidth: 110,
         },
         {
           title: i18n.t('crond.lastExecTime'),   //"上次执行时间",

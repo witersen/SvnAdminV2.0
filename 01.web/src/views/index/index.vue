@@ -30,7 +30,7 @@
       <div>
         <Row>
           <Col span="4">
-            <div class="statusTop">负载状态</div>
+            <div class="statusTop">{{ $t('index.loadStatus') }}</div>
             <Tooltip placement="bottom" max-width="200">
               <Circle
                 :percent="statusInfo.load.percent"
@@ -44,15 +44,15 @@
                 >
               </Circle>
               <div slot="content" style="font-size:11px">
-                <p>最近1分钟平均负载：{{ statusInfo.load.cpuLoad1Min }}</p>
-                <p>最近5分钟平均负载：{{ statusInfo.load.cpuLoad5Min }}</p>
-                <p>最近15分钟平均负载：{{ statusInfo.load.cpuLoad15Min }}</p>
+                <p>{{ $t('index.cpuLoad1Min') + statusInfo.load.cpuLoad1Min }}</p>
+                <p>{{ $t('index.cpuLoad5Min') + statusInfo.load.cpuLoad5Min }}</p>
+                <p>{{ $t('index.cpuLoad15Min') + statusInfo.load.cpuLoad15Min }}</p>
               </div>
             </Tooltip>
             <div class="statusBottom">{{ statusInfo.load.title }}</div>
           </Col>
           <Col span="4">
-            <div class="statusTop">CPU使用率</div>
+            <div class="statusTop">{{ $t('index.cpuUsage') }}</div>
             <Tooltip placement="bottom" max-width="200">
               <Circle
                 :percent="statusInfo.cpu.percent"
@@ -67,15 +67,15 @@
               </Circle>
               <div slot="content" style="font-size:11px">
                 <p v-for="item in statusInfo.cpu.cpu" :key="item">{{ item }}</p>
-                <p>{{ statusInfo.cpu.cpuPhysical }}个物理CPU</p>
-                <p>{{ statusInfo.cpu.cpuCore }}个物理核心</p>
-                <p>{{ statusInfo.cpu.cpuProcessor }}个逻辑核心/线程</p>
+                <p>{{ statusInfo.cpu.cpuPhysical + $t('index.cpuPhysical') }}</p>
+                <p>{{ statusInfo.cpu.cpuCore + $t('index.cpuCore') }}</p>
+                <p>{{ statusInfo.cpu.cpuProcessor + $t('index.cpuProcessor') }}</p>
               </div>
             </Tooltip>
             <div class="statusBottom">{{ statusInfo.cpu.cpuCore }}核心</div>
           </Col>
           <Col span="4">
-            <div class="statusTop">内存使用率</div>
+            <div class="statusTop">{{ $t('index.memUsage') }}</div>
             <Circle
               :percent="statusInfo.mem.percent"
               dashboard
@@ -95,12 +95,12 @@
             <div class="statusTop">{{ item.mountedOn }}</div>
             <Tooltip placement="bottom" max-width="200">
               <div slot="content" style="font-size:11px">
-                <p>文件系统：{{ item.fileSystem }}</p>
-                <p>容量：{{ item.size }}</p>
-                <p>已使用+系统占用：{{ item.used }}</p>
-                <p>可使用：{{ item.avail }}</p>
-                <p>使用率：{{ item.percent }}%</p>
-                <p>挂载点：{{ item.mountedOn }}</p>
+                <p>{{ $t('index.fileSystem') + item.fileSystem }}</p>
+                <p>{{ $t('index.fsSize') + item.size }}</p>
+                <p>{{ $t('index.fsUsed') + item.used }}</p>
+                <p>{{ $t('index.fsAvail') + item.avail }}</p>
+                <p>{{ $t('index.fsPercent') + item.percent }}%</p>
+                <p>{{ $t('index.mountOn') + item.mountedOn }}</p>
               </div>
               <Circle
                 :percent="item.percent"
@@ -125,14 +125,14 @@
     <Card :bordered="false" :dis-hover="true" style="margin-bottom: 10px">
       <p slot="title">
         <Icon type="ios-options" />
-        统计
+        {{ $t('index.statistics') }}
       </p>
       <div>
         <Row :gutter="16" style="margin-bottom: 10px">
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>SVN仓库</p>
+                <p>{{ $t('index.svnRepo') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.repCount }}</h2>
               </div>
             </Card>
@@ -140,7 +140,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>仓库占用</p>
+                <p>{{ $t('index.repoSize') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.repSize }}</h2>
               </div>
             </Card>
@@ -148,7 +148,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>仓库备份</p>
+                <p>{{ $t('index.repoBackup') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.backupCount }}</h2>
               </div>
             </Card>
@@ -156,7 +156,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>备份占用</p>
+                <p>{{ $t('index.backupSize') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.backupSize }}</h2>
               </div>
             </Card>
@@ -164,7 +164,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>运行日志</p>
+                <p>{{ $t('index.logs') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.logCount }}</h2>
               </div>
             </Card>
@@ -174,7 +174,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>管理员</p>
+                <p>{{ $t('roles.管理员') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.adminCount }}</h2>
               </div>
             </Card>
@@ -182,7 +182,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>子管理员</p>
+                <p>{{ $t('roles.子管理员') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.subadminCount }}</h2>
               </div>
             </Card>
@@ -190,7 +190,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>SVN用户</p>
+                <p>{{ $t('roles.SVN用户') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.userCount }}</h2>
               </div>
             </Card>
@@ -198,7 +198,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>SVN分组</p>
+                <p>{{ $t('menus.SVN分组') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.groupCount }}</h2>
               </div>
             </Card>
@@ -206,7 +206,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>SVN别名</p>
+                <p>{{ $t('index.svnAlias') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.aliaseCount }}</h2>
               </div>
             </Card>
