@@ -4,6 +4,7 @@ import VueRouter from 'vue-router';
 import Routers from './router';
 import Util from './libs/util';
 import App from './app.vue';
+import i18n from './i18n';
 import 'view-design/dist/styles/iview.css';
 
 /**
@@ -121,6 +122,7 @@ function routerCom(path) {
 }
 
 new Vue({
+    i18n,
     el: '#app',
     router: router,
     render: h => h(App)

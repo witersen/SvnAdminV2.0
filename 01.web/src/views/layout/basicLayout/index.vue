@@ -43,13 +43,13 @@
           style="cursor: pointer"
           @click="ModalTasks"
           v-if="currentRoleId != 2"
-          >后台任务</span
+          >{{$t('menus.backendJobs')}}</span
         >
         <!-- 分割线 -->
         <Divider type="vertical" v-if="currentRoleId != 2" />
         <!-- 用户身份 -->
         <a style="margin-left: 8px; color: #fff; cursor: default">{{
-          currentRoleName
+          $t('roles.' + currentRoleName)
         }}</a>
         <!-- 分割线 -->
         <Divider type="vertical" />
@@ -60,27 +60,22 @@
             <Icon type="md-arrow-dropdown" />
           </a>
           <DropdownMenu slot="list">
-            <DropdownItem>退出</DropdownItem>
+            <DropdownItem>{{ $t('menus.logout') }}</DropdownItem>
           </DropdownMenu>
         </Dropdown>
         <!-- 多语言切换 -->
-        <!-- <Dropdown trigger="click">
+        <Dropdown trigger="click" @on-click="translate">
           <a href="javascript:void(0)" style="margin-left: 8px; color: #fff">
-            语言
+            {{ $t(this.lang) }}
             <Icon type="md-arrow-dropdown" />
           </a>
           <DropdownMenu slot="list">
-            <DropdownItem>中文简体</DropdownItem>
+            <DropdownItem name="zh">中文</DropdownItem>
           </DropdownMenu>
           <DropdownMenu slot="list">
-            <DropdownItem>中文繁体</DropdownItem>
+            <DropdownItem name="en">English</DropdownItem>
           </DropdownMenu>
-          <DropdownMenu slot="list">
-            <DropdownItem>English</DropdownItem>
-          </DropdownMenu>
-        </Dropdown> -->
-        <!-- 分割线 -->
-        <!-- <Divider type="vertical" /> -->
+        </Dropdown>
       </Header>
       <Layout style="margin-top: 64px">
         <Sider
@@ -100,7 +95,7 @@
             style="height: 100%"
           >
             <MenuGroup
-              :title="itemGroup.title"
+              :title="$t('menus.' + itemGroup.title)"
               v-for="(itemGroup, indexGroup) in navList"
               :key="indexGroup"
             >
@@ -116,7 +111,7 @@
                   :offset="[0, -10]"
                 >
                   <Icon :type="itemItem.meta.icon" />
-                  {{ itemItem.meta.title }}
+                  {{ $t('menus.' + itemItem.meta.title) }}
                 </Badge>
               </MenuItem>
             </MenuGroup>
@@ -255,6 +250,8 @@
 export default {
   data() {
     return {
+        //当前语言
+        lang: navigator.language.substring(0, 2),
       //是否有更新
       hasUpdate: sessionStorage.hasUpdate == 1 ? true : false,
       //当前选中的导航
@@ -376,6 +373,12 @@ export default {
     };
   },
   methods: {
+    translate(lng) {
+        console.log("default language is "+navigator.language.substring(0, 2));
+        console.log("Translating to "+lng);
+        this.lang = lng;    //this.lang === 'zh' ? 'en' : 'zh'
+        this.$i18n.locale = this.lang
+    },
     //点击logo回到当前用户有权限第一个页面
     toMyIndex() {
       this.$router.push({ name: sessionStorage.firstRoute });
