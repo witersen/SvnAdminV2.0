@@ -148,7 +148,7 @@
         </Col>
       </Row>
       <div slot="footer">
-        <Button type="primary" ghost @click="CloseModalRepPri">取消</Button>
+        <Button type="primary" ghost @click="CloseModalRepPri">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <!-- SVN对象列表组件 -->
@@ -175,13 +175,13 @@
             type="primary"
             :loading="loadingCreateRepFolder"
             @click="CreateRepFolder"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalCreateRepFolder = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -191,7 +191,7 @@
 <script>
 //SVN对象列表组件
 import ModalSvnObject from "./modalSvnObject.vue";
-
+import i18n from "@/i18n";
 export default {
   props: {
     //父组件控制子组件显示
@@ -533,7 +533,7 @@ export default {
         .catch(function (error) {
           that.loadingCreateRepFolder = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -557,7 +557,7 @@ export default {
           })
           .catch(function (error) {
             console.log(error);
-            that.$Message.error("出错了 请联系管理员！");
+            that.$Message.error(i18n.t('errors.contactAdmin'));
             reject(error);
           });
       });
@@ -580,7 +580,7 @@ export default {
           })
           .catch(function (error) {
             console.log(error);
-            that.$Message.error("出错了 请联系管理员！");
+            that.$Message.error(i18n.t('errors.contactAdmin'));
             reject(error);
           });
       });
@@ -693,7 +693,7 @@ export default {
         .catch(function (error) {
           that.loadingRepPathAllPri = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -724,7 +724,7 @@ export default {
         .catch(function (error) {
           // that.modalSvnObject = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -754,7 +754,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -782,7 +782,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

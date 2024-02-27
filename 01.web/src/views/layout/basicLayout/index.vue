@@ -247,6 +247,7 @@
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   data() {
     return {
@@ -401,7 +402,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     // 退出登录下拉组件
@@ -540,7 +541,7 @@ export default {
         .catch(function (error) {
           that.loadingTask = false;
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //页码改变
@@ -575,7 +576,7 @@ export default {
         .catch(function (error) {
           that.loadingTaskQueue = false;
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //页码改变
@@ -614,7 +615,7 @@ export default {
         .catch(function (error) {
           that.loadingTaskHistory = false;
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //取消后台任务
@@ -642,7 +643,7 @@ export default {
               })
               .catch(function (error) {
                 console.log(error);
-                that.$Message.error($t('errors.contactAdmin'));
+                that.$Message.error(i18n.t('errors.contactAdmin'));
               });
           },
         });
@@ -660,7 +661,7 @@ export default {
           })
           .catch(function (error) {
             console.log(error);
-            that.$Message.error($t('errors.contactAdmin'));
+            that.$Message.error(i18n.t('errors.contactAdmin'));
           });
       }
     },
@@ -683,7 +684,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //删除历史任务
@@ -705,7 +706,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

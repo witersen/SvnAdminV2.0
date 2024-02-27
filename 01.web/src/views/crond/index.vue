@@ -540,7 +540,7 @@ export default {
       tableColumnCrond() {
         return [
         {
-          title: i18n.t('crond.serial'),   //"序号",
+          title: i18n.t('serial'),   //"序号",
           type: "index",
           fixed: "left",
           minWidth: 80,
@@ -565,7 +565,7 @@ export default {
           minWidth: 120,
         },
         {
-          title: i18n.t('crond.status'),   //"启用状态",
+          title: i18n.t('status'),   //"启用状态",
           key: "status",
           slot: "status",
           sortable: true,
@@ -585,7 +585,7 @@ export default {
           minWidth: 140,
         },
         {
-          title: i18n.t('crond.others'),   //"其它",
+          title: i18n.t('others'),   //"其它",
           slot: "action",
           width: 240,
         },
@@ -658,7 +658,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -679,7 +679,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -713,7 +713,7 @@ export default {
         .catch(function (error) {
           that.loadingGetCrondList = false;
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -819,7 +819,7 @@ export default {
         .catch(function (error) {
           that.loadingAddCrond = false;
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -850,7 +850,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -885,7 +885,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdCrond = false;
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -913,7 +913,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
-              that.$Message.error($t('errors.contactAdmin'));
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -944,7 +944,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
-              that.$Message.error($t('errors.contactAdmin'));
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -968,7 +968,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

@@ -117,13 +117,13 @@
             type="primary"
             @click="CreateGroup"
             :loading="loadingCreateGroup"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalAddGroup = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -148,13 +148,13 @@
             type="primary"
             @click="UpdGroupName"
             :loading="loadingEditGroupName"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalEditGroupName = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -223,7 +223,7 @@
       </Table>
       <div slot="footer">
         <Button type="primary" ghost @click="modalGetGroupMember = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -268,7 +268,7 @@ group3=user4,&aliase1"
 <script>
 //SVN对象列表组件
 import ModalSvnObject from "@/components/modalSvnObject.vue";
-
+import i18n from "@/i18n";
 export default {
   data() {
     return {
@@ -498,7 +498,7 @@ export default {
         .catch(function (error) {
           that.loadingGroup = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -522,7 +522,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -554,7 +554,7 @@ export default {
         .catch(function (error) {
           that.loadingCreateGroup = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -583,7 +583,7 @@ export default {
         .catch(function (error) {
           that.loadingScanGroup = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -622,7 +622,7 @@ export default {
         .catch(function (error) {
           that.loadingEditGroupName = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -740,7 +740,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -783,7 +783,7 @@ export default {
         .catch(function (error) {
           that.loadingGetGroupMember = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -814,7 +814,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

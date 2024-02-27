@@ -300,13 +300,13 @@
         </FormItem>
         <FormItem>
           <Button type="primary" @click="CreateRep" :loading="loadingCreateRep"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalCreateRep = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -367,7 +367,7 @@
         </Table>
       </Card>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalViewRep = false">取消</Button>
+        <Button type="primary" ghost @click="modalViewRep = false">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <!-- 对话框-仓库钩子 -->
@@ -624,7 +624,7 @@
       </Tabs>
       <div slot="footer">
         <Button type="primary" ghost @click="modalRepHooks = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -643,7 +643,7 @@
       />
       <div slot="footer">
         <Button type="primary" ghost @click="modalStudyRepHook = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -677,7 +677,7 @@
       />
       <div slot="footer">
         <Button type="primary" ghost @click="modalRecommendHook = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -779,7 +779,7 @@
       </Tabs>
       <div slot="footer">
         <Button type="primary" ghost @click="modalRepAdvance = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -798,13 +798,13 @@
             type="primary"
             :loading="loadingEditRepName"
             @click="UpdRepName"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalEditRepName = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -819,12 +819,12 @@
         </FormItem>
         <FormItem>
           <Button type="primary" :loading="loadingSetUUID" @click="SetUUID"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalSetUUID = false">取消</Button>
+        <Button type="primary" ghost @click="modalSetUUID = false">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <!-- 对话框-authz检测结果 -->
@@ -838,7 +838,7 @@
       />
       <div slot="footer">
         <Button type="primary" ghost @click="modalValidateAuthz = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -852,7 +852,7 @@
         type="textarea"
       />
       <div slot="footer">
-        <Button type="primary" ghost @click="modalRepLoad = false">取消</Button>
+        <Button type="primary" ghost @click="modalRepLoad = false">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <!-- 对话框-备份文件上传 -->
@@ -922,7 +922,7 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" ghost @click="ClickModalRepLoad">取消</Button>
+        <Button type="primary" ghost @click="ClickModalRepLoad">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <!-- 对话框-仓库权限配置 -->
@@ -1528,7 +1528,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
 
@@ -1554,7 +1554,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
 
@@ -1588,7 +1588,7 @@ export default {
         .catch(function (error) {
           that.loadingCreateRep = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
 
@@ -1624,7 +1624,7 @@ export default {
         .catch(function (error) {
           that.loadingRep = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     SyncRepSize(rep_name, index) {
@@ -1649,7 +1649,7 @@ export default {
         .catch(function (error) {
           that.tableDataRep[index].loading_rep_size = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     SyncRepRev(rep_name, index) {
@@ -1674,7 +1674,7 @@ export default {
         .catch(function (error) {
           that.tableDataRep[index].loading_rep_rev = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -1748,7 +1748,7 @@ export default {
         .catch(function (error) {
           that.loadingUserRep = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -1798,7 +1798,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
 
@@ -1891,7 +1891,7 @@ export default {
           })
           .catch(function (error) {
             console.log(error);
-            that.$Message.error("出错了 请联系管理员！");
+            that.$Message.error(i18n.t('errors.contactAdmin'));
             reject(error);
           });
       });
@@ -1928,7 +1928,7 @@ export default {
         .catch(function (error) {
           that.loadingRepCon = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -1963,7 +1963,7 @@ export default {
         .catch(function (error) {
           that.loadingRepCon = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2029,7 +2029,7 @@ export default {
         .catch(function (error) {
           that.loadingRepBackupList = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //立即备份
@@ -2054,7 +2054,7 @@ export default {
         .catch(function (error) {
           that.loadingRepDump = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //点击按钮 触发隐藏 input 的 click 事件
@@ -2164,7 +2164,7 @@ export default {
             .catch(function (error) {
               that.file.stop = true;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         }
 
@@ -2277,7 +2277,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2344,7 +2344,7 @@ export default {
         .catch(function (error) {
           that.loadingGetRepHooks = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2365,7 +2365,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2393,7 +2393,7 @@ export default {
         .catch(function (error) {
           that.loadingGetRepHooks = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2460,7 +2460,7 @@ export default {
         .catch(function (error) {
           that.loadingEditRepHook = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2498,7 +2498,7 @@ export default {
         .catch(function (error) {
           that.loadingRepDetail = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2551,7 +2551,7 @@ export default {
         .catch(function (error) {
           that.loadingSetUUID = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //获取php文件上传相关参数
@@ -2572,7 +2572,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //上传前
@@ -2623,7 +2623,7 @@ export default {
             JSON.stringify(that.loadingLoadBackup)
           );
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
 
@@ -2663,7 +2663,7 @@ export default {
         .catch(function (error) {
           that.loadingEditRepName = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
 
@@ -2785,7 +2785,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });

@@ -219,7 +219,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -243,7 +243,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //登录
@@ -301,7 +301,7 @@ export default {
         .catch(function (error) {
           that.loadingLogin = false;
           console.log(error);
-          that.$Message.error($t('errors.contactAdmin'));
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

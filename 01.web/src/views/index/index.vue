@@ -218,6 +218,7 @@
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   data() {
     return {
@@ -322,7 +323,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -344,7 +345,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -366,7 +367,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

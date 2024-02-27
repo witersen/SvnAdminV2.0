@@ -277,7 +277,7 @@
         >如果对象信息用户等不是最新，需要回到对应的导航下同步</Alert
       > -->
       <div slot="footer">
-        <Button type="primary" ghost @click="CloseModalObject">取消</Button>
+        <Button type="primary" ghost @click="CloseModalObject">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <!-- 对话框-分组成员列表 -->
@@ -329,7 +329,7 @@
       </Table>
       <div slot="footer">
         <Button type="primary" ghost @click="modalGetGroupMember = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -337,6 +337,7 @@
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   props: {
     //父组件控制子组件显示状态
@@ -756,7 +757,7 @@ export default {
         .catch(function (error) {
           that.loadingAllUsers = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -790,7 +791,7 @@ export default {
         .catch(function (error) {
           that.loadingAllGroups = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -821,7 +822,7 @@ export default {
         .catch(function (error) {
           that.loadingAllAliases = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
 
@@ -864,7 +865,7 @@ export default {
         .catch(function (error) {
           that.loadingGetGroupMember = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

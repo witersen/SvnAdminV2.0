@@ -1510,7 +1510,7 @@
       />
       <div slot="footer">
         <Button type="primary" ghost @click="modalLdapUsersGroups = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -1518,6 +1518,7 @@
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   data() {
     return {
@@ -1854,7 +1855,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     ChangeUpdSvnservePort(value) {
@@ -1889,7 +1890,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -1939,7 +1940,7 @@ export default {
         .catch(function (error) {
           that.loadingEditEmail = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -1974,7 +1975,7 @@ export default {
         .catch(function (error) {
           that.loadingSendTest = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -1995,7 +1996,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2016,7 +2017,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2037,7 +2038,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2099,7 +2100,7 @@ export default {
         .catch(function (error) {
           that.loadingEditPush = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2126,7 +2127,7 @@ export default {
         .catch(function (error) {
           that.loadingEditSafe = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2155,7 +2156,7 @@ export default {
             .catch(function (error) {
               that.loadingSvnserveStart = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2186,7 +2187,7 @@ export default {
             .catch(function (error) {
               that.loadingSvnserveStop = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2221,7 +2222,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSvnservePort = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2256,7 +2257,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSvnserveHost = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2277,7 +2278,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //修改主机配置
@@ -2302,7 +2303,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdDockerHostInfo = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2399,7 +2400,7 @@ export default {
             that.loadingLdapTestGroup = false;
           }
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //保存svnserve配置
@@ -2429,7 +2430,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSvnUsersource = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2461,7 +2462,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdHttpUsersource = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2504,7 +2505,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSaslStatusStart = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2535,7 +2536,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSaslStatusStop = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2568,7 +2569,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2671,7 +2672,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdPort = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //修改http显示端口
@@ -2696,7 +2697,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdHttpPort = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //修改http访问仓库前缀

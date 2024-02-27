@@ -118,13 +118,13 @@
             type="primary"
             :loading="loadingUpdAdminUserName"
             @click="UpdAdminUserName"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalUpdAdminUserName = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -153,13 +153,13 @@
             type="primary"
             :loading="loadingUpdAdminUserPass"
             @click="UpdAdminUserPass"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalUpdAdminUserPass = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -188,13 +188,13 @@
             type="primary"
             :loading="loadingUpdSubadminPass"
             @click="UpdSubadminPass"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalUpdSubadminPass = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -202,6 +202,7 @@
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   data() {
     return {
@@ -275,7 +276,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdAdminUserName = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -307,7 +308,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdAdminUserPass = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -339,7 +340,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdSubadminPass = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -368,7 +369,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdSvnUserPass = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -391,7 +392,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },
