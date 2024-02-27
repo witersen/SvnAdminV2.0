@@ -119,6 +119,11 @@ export default {
         others: '其它',
         time: '时间',
         content: '内容',
+        editCrond: '编辑计划任务',
+        deleteCrond: '删除计划任务',
+        confirmDelCrond: '确定要删除该记录吗？此操作不可逆！',
+        triggerCrond: '执行计划任务',
+        confirmTriggerCrond: '确定要立即执行该任务计划吗？该操作可用于测试任务计划配置的正确性！',
     },
     repositoryInfo: {
         noDataNow: '暂无数据',

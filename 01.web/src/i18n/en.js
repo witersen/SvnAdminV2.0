@@ -116,6 +116,11 @@ export default {
         others: 'Others',
         time: 'Time',
         content: 'Content',
+        editCrond: 'Edit Crontab',
+        deleteCrond: 'Delete Crontab',
+        confirmDelCrond: 'Are you sure to delete this crontab task? All tasks related to this record will be deleted!',
+        triggerCrond: 'Trigger Crontab',
+        confirmTriggerCrond: 'Are you sure to trigger this crontab task? This operation can be used to test the correctness of the crontab task configuration!',
     },
     repositoryInfo: {
         noDataNow: 'No data now',

@@ -860,7 +860,7 @@ export default {
       this.cycle = JSON.parse(JSON.stringify(this.tableDataCrond[index]));
 
       this.statusCrond = "upd";
-      this.titleModalCrond = "编辑计划任务";
+      this.titleModalCrond = i18n.t('crond.editCrond'); //"编辑计划任务";
       this.modalCrond = true;
     },
     UpdCrontab() {
@@ -894,8 +894,8 @@ export default {
     DelCrontab(crond_id) {
       var that = this;
       that.$Modal.confirm({
-        title: "删除任务计划",
-        content: "确定要删除该记录吗？此操作不可逆！",
+        title: i18n.t('crond.deleteCrond'), //"删除任务计划",
+        content: i18n.t('crond.confirmDelCrond'), //"确定要删除该记录吗？此操作不可逆！",
         onOk: () => {
           var data = {
             crond_id: crond_id,
@@ -924,9 +924,9 @@ export default {
     TriggerCrontab(crond_id) {
       var that = this;
       that.$Modal.confirm({
-        title: "执行任务计划",
+        title: i18n.t('crond.triggerCrond'), //"执行任务计划",
         content:
-          "确定要立即执行该任务计划吗？该操作可用于测试任务计划配置的正确性！",
+          i18n.t('crond.confirmTriggerCrond'), //"确定要立即执行该任务计划吗？该操作可用于测试任务计划配置的正确性！",
         onOk: () => {
           var data = {
             crond_id: crond_id,
