@@ -1,7 +1,21 @@
 export default {
     zh: '中文',
+    cancel: '取消',
+    confirm: '确定',
+    save: '保存',
+    add: '添加',
+    loginPage: {
+        inputUsername: '请输入用户名',
+        inputPassword: '请输入密码',
+        inputCode: '请输入验证码',
+        login: '登录',
+        usernameCannotBeEmpty: '用户名不能为空',
+        passwordCannotBeEmpty: '密码不能为空',
+        codeCannotBeEmpty: '验证码不能为空',
+        userAlreadyLogin: '已有登录信息 自动跳转中...',
+    },
     menus: {
-        backendJobs: '后台任务',
+        backendTasks: '后台任务',
         仓库: '仓库',
         信息统计: '信息统计',
         SVN仓库: 'SVN仓库',
@@ -21,5 +35,14 @@ export default {
         SVN用户: 'SVN用户',
         子管理员: '子管理员',
         未知: '未知',
-    }
+    },
+    backendTasks: {
+        realtimeBackendTasks: '实时后台任务',
+        currentTasks: '当前任务',
+        tasksInQueue: '排队任务',
+        historyTasks: '历史任务',
+    },
+    errors: {
+        contactAdmin: '出错了 请联系管理员！',
+    },
 }

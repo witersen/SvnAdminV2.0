@@ -1,7 +1,21 @@
 export default {
     en: 'English',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    save: 'Save',
+    add: 'Add',
+    loginPage: {
+        inputUsername: 'Please enter username',
+        inputPassword: 'Please enter password',
+        inputCode: 'Please enter verification code',
+        login: 'Login',
+        usernameCannotBeEmpty: 'Username cannot be empty',
+        passwordCannotBeEmpty: 'Password cannot be empty',
+        codeCannotBeEmpty: 'Verification code cannot be empty',
+        userAlreadyLogin: 'User already login，redirecting...',
+    },
     menus: {
-        backendJobs: 'Backend Jobs',
+        backendTasks: 'Backend Tasks',
         仓库: 'Repository',
         信息统计: 'Statics',
         SVN仓库: 'SVN Repository',
@@ -9,7 +23,7 @@ export default {
         SVN分组: 'SVN Groups',
         运维: 'Operations',
         系统日志: 'System Logs',
-        任务计划: 'Cron Jobs',
+        任务计划: 'Cron Tasks',
         高级: 'Advanced',
         个人中心: 'Personal',
         子管理员: 'Sub-Admin',
@@ -21,5 +35,14 @@ export default {
         SVN用户: 'SVN User',
         子管理员: 'Sub-Admin',
         未知: 'Unknown',
-    }
+    },
+    backendTasks: {
+        realtimeBackendTasks: 'Real-time Backend Tasks',
+        currentTasks: 'Current Tasks',
+        tasksInQueue: 'Tasks in Queue',
+        historyTasks: 'History Tasks',
+    },
+    errors: {
+        contactAdmin: 'There was an error. Please contact the administrator.',
+    },
 }

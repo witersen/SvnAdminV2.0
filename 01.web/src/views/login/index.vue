@@ -16,7 +16,7 @@
             <FormItem prop="user_name">
               <Input
                 v-model="formUserLogin.user_name"
-                placeholder="请输入用户名"
+                :placeholder="$t('loginPage.inputUsername')"
               >
                 <span slot="prepend">
                   <Icon :size="16" type="ios-person"></Icon>
@@ -28,7 +28,7 @@
                 type="password"
                 password
                 v-model="formUserLogin.user_pass"
-                placeholder="请输入密码"
+                :placeholder="$t('loginPage.inputPassword')"
               >
                 <span slot="prepend">
                   <Icon :size="14" type="md-lock"></Icon>
@@ -41,9 +41,9 @@
                 :transfer="true"
                 @on-change="ChangeSelect"
               >
-                <Option value="1">管理人员</Option>
-                <Option value="3">子管理员</Option>
-                <Option value="2">SVN用户</Option>
+                <Option value="1">{{ $t('roles.管理员') }}</Option>
+                <Option value="3">{{ $t('roles.子管理员') }}</Option>
+                <Option value="2">{{ $t('roles.SVN用户') }}</Option>
               </Select>
             </FormItem>
             <FormItem prop="code" v-if="verifyOption">
@@ -51,7 +51,7 @@
                 <Col span="11"
                   ><Input
                     v-model="formUserLogin.code"
-                    placeholder="请输入验证码"
+                    :placeholder="$t('loginPage.inputCode')"
                   ></Input
                 ></Col>
                 <Col span="1"></Col>
@@ -65,13 +65,33 @@
                 </Col>
               </Row>
             </FormItem>
+            <FormItem prop="lang">
+              <Row>
+                <Col span="1"></Col>
+                <Col span="11">
+                    <Dropdown trigger="click" @on-click="translate">
+                    <a href="javascript:void(0)">
+                        {{ $t(this.lang ? this.lang : 'en') }}
+                        <Icon type="md-arrow-dropdown" />
+                    </a>
+                    <DropdownMenu slot="list">
+                        <DropdownItem name="zh">中文</DropdownItem>
+                    </DropdownMenu>
+                    <DropdownMenu slot="list">
+                        <DropdownItem name="en">English</DropdownItem>
+                    </DropdownMenu>
+                    </Dropdown>
+                </Col>
+                <Col span="12"></Col>
+              </Row>
+            </FormItem>
             <FormItem>
               <Button
                 type="primary"
                 long
                 @click="Submit('formUserLogin')"
                 :loading="loadingLogin"
-                >登录</Button
+                >{{ $t('loginPage.login') }}</Button
               >
             </FormItem>
           </Form>
@@ -82,9 +102,12 @@
 </template>
 
 <script>
+import i18n from '@/i18n'
 export default {
   data() {
     return {
+        //当前语言
+        lang: navigator.language.substring(0, 2),
       /**
        * 加载
        */
@@ -115,12 +138,12 @@ export default {
       // 登录校验规则
       ruleValidateLogin: {
         user_name: [
-          { required: true, message: "用户名不能为空", trigger: "blur" },
+          { required: true, message: i18n.t("loginPage.usernameCannotBeEmpty"), trigger: "blur" },
         ],
         user_pass: [
-          { required: true, message: "密码不能为空", trigger: "blur" },
+          { required: true, message: i18n.t("loginPage.passwordCannotBeEmpty"), trigger: "blur" },
         ],
-        code: [{ required: true, message: "验证码不能为空", trigger: "blur" }],
+        code: [{ required: true, message: i18n.t("loginPage.codeCannotBeEmpty"), trigger: "blur" }],
       },
     };
   },
@@ -133,7 +156,7 @@ export default {
       ? localStorage.user_role
       : "2";
     if (sessionStorage.token) {
-      that.$Message.success("已有登录信息 自动跳转中...");
+      that.$Message.success($t("loginPage.userAlreadyLogin"));
       setTimeout(function () {
         that.$router.push({ name: sessionStorage.firstRoute });
       }, 2000);
@@ -142,6 +165,12 @@ export default {
     }
   },
   methods: {
+    translate(lng) {
+        console.log("browser language is "+navigator.language.substring(0, 2));
+        console.log("Translating to "+lng);
+        this.lang = lng;
+        this.$i18n.locale = this.lang
+    },
     //记录下拉
     ChangeSelect(value) {
       localStorage.setItem("user_role", value);
@@ -179,7 +208,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error($t('errors.contactAdmin'));
         });
     },
     /**
@@ -203,7 +232,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error($t('errors.contactAdmin'));
         });
     },
     //登录
@@ -261,7 +290,7 @@ export default {
         .catch(function (error) {
           that.loadingLogin = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error($t('errors.contactAdmin'));
         });
     },
   },

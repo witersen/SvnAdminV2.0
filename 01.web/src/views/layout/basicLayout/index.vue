@@ -43,7 +43,7 @@
           style="cursor: pointer"
           @click="ModalTasks"
           v-if="currentRoleId != 2"
-          >{{$t('menus.backendJobs')}}</span
+          >{{$t('menus.backendTasks')}}</span
         >
         <!-- 分割线 -->
         <Divider type="vertical" v-if="currentRoleId != 2" />
@@ -66,7 +66,7 @@
         <!-- 多语言切换 -->
         <Dropdown trigger="click" @on-click="translate">
           <a href="javascript:void(0)" style="margin-left: 8px; color: #fff">
-            {{ $t(this.lang) }}
+            {{ $t(this.lang ? this.lang : 'en') }}
             <Icon type="md-arrow-dropdown" />
           </a>
           <DropdownMenu slot="list">
@@ -132,10 +132,10 @@
       </Layout>
     </Layout>
     <!-- 对话框-实时后台任务 -->
-    <Modal v-model="modalTasks" :draggable="true" title="实时后台任务">
+    <Modal v-model="modalTasks" :draggable="true" :title="$t('backendTasks.realtimeBackendTasks')">
       <div style="height: 350px">
         <Tabs v-model="tabsTaskCurrent" @on-click="ClickTaskTab">
-          <TabPane label="当前任务" icon="ios-loading" name="current">
+          <TabPane :label="$t('backendTasks.currentTasks')" icon="ios-loading" name="current">
             <Spin size="large" v-if="loadingTask" fix></Spin>
             <Alert v-if="!formTasks.task_running"
               >当前没有后台任务运行（如遇任务堆积不执行可重启守护进程解决）</Alert
@@ -149,7 +149,7 @@
               type="textarea"
             />
           </TabPane>
-          <TabPane label="排队任务" icon="ios-cafe" name="queue">
+          <TabPane :label="$t('backendTasks.tasksInQueue')" icon="ios-cafe" name="queue">
             <Table
               highlight-row
               border
@@ -182,7 +182,7 @@
               </template>
             </Table>
           </TabPane>
-          <TabPane label="历史任务" icon="md-aperture" name="history">
+          <TabPane :label="$t('backendTasks.historyTasks')" icon="md-aperture" name="history">
             <Table
               highlight-row
               border
@@ -227,7 +227,7 @@
         </Tabs>
       </div>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalTasks = false">取消</Button>
+        <Button type="primary" ghost @click="modalTasks = false">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <!-- 对话框-历史任务日志 -->
@@ -240,7 +240,7 @@
         type="textarea"
       />
       <div slot="footer">
-        <Button type="primary" ghost @click="modalTaskLog = false">取消</Button>
+        <Button type="primary" ghost @click="modalTaskLog = false">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
   </div>
@@ -374,9 +374,9 @@ export default {
   },
   methods: {
     translate(lng) {
-        console.log("default language is "+navigator.language.substring(0, 2));
+        console.log("browser language is "+navigator.language.substring(0, 2));
         console.log("Translating to "+lng);
-        this.lang = lng;    //this.lang === 'zh' ? 'en' : 'zh'
+        this.lang = lng;
         this.$i18n.locale = this.lang
     },
     //点击logo回到当前用户有权限第一个页面
@@ -401,7 +401,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error($t('errors.contactAdmin'));
         });
     },
     // 退出登录下拉组件
@@ -540,7 +540,7 @@ export default {
         .catch(function (error) {
           that.loadingTask = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error($t('errors.contactAdmin'));
         });
     },
     //页码改变
@@ -575,7 +575,7 @@ export default {
         .catch(function (error) {
           that.loadingTaskQueue = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error($t('errors.contactAdmin'));
         });
     },
     //页码改变
@@ -614,7 +614,7 @@ export default {
         .catch(function (error) {
           that.loadingTaskHistory = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error($t('errors.contactAdmin'));
         });
     },
     //取消后台任务
@@ -642,7 +642,7 @@ export default {
               })
               .catch(function (error) {
                 console.log(error);
-                that.$Message.error("出错了 请联系管理员！");
+                that.$Message.error($t('errors.contactAdmin'));
               });
           },
         });
@@ -660,7 +660,7 @@ export default {
           })
           .catch(function (error) {
             console.log(error);
-            that.$Message.error("出错了 请联系管理员！");
+            that.$Message.error($t('errors.contactAdmin'));
           });
       }
     },
@@ -683,7 +683,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error($t('errors.contactAdmin'));
         });
     },
     //删除历史任务
@@ -705,7 +705,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error($t('errors.contactAdmin'));
         });
     },
   },
