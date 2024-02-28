@@ -11,6 +11,7 @@ module.exports = {
     copy: 'Copy',
     action: 'Action',
     apply: 'Apply',
+    close: 'Close',
     reset: 'Reset',
     view: 'View',
     config: 'Config',
@@ -23,6 +24,8 @@ module.exports = {
     serial: 'ID',
     status: 'Status',
     others: 'Others',
+    success: 'Success',
+    fail: 'Fail',
     createTime: 'Create Time',
     noDataNow: 'No data now',
     operator: 'Operator',
@@ -110,7 +113,6 @@ module.exports = {
         minuteMinute: ' minutes',
         cycleDesc: 'Cycle Description',
         lastExecTime: 'Last Execution Time',
-        others: 'Others',
         time: 'Time',
         content: 'Content',
         editCrond: 'Edit Crontab',
@@ -217,7 +219,7 @@ module.exports = {
         searchMember: 'Search Member',
         user: 'SVN User',
         group: 'SVN Group',
-        aliases: 'SVN Aliases',
+        aliase: 'SVN Aliase',
         scanGroupTitle: 'Step 1: Group Recognition',
         authzContent: `Please pasete the content of the authz file
 
@@ -332,7 +334,55 @@ This feature relies on svnauthz-validate`,
         deleteRepoConfirm: 'Are you sure to delete this repository?<br/>This operation cannot be undone!<br/>If the repository is being used by other users, please make sure to stop the network transfer before deleting the repository!',
     },
     repositoryUser: {
+        createUser: 'Create SVN User',
+        userScan: 'Scan User',
+        syncListTip: `1. You need to synchronize to get the latest user list
+2. Users need to be synchronized to be able to login the system who are manually added to the passwd file`,
+        syncList: 'Sync SVN User List',
+        searchUser: 'Search SVN User',
+        online: 'Online',
+        offline: 'Offline',
+        userNameAlert: 'Username can only contain letters, numbers, hyphens, underscores, and dots. It cannot start or end with a dot.',
+        userRecogonize: 'Step 1: User Recognition',
+        userPasswdTips: `Please paste the contents of the passwd file
 
+If it is checked out by the svn protocol  (password plaintext), the following is an example:  
+
+[users]
+user1=passwd1
+user2=passwd2
+
+If it is checked out by the HTTP protocol (cipher redaction), the following is an example:  
+
+user1:passwd1
+user2:passwd2`,
+        userScanResult: 'Step 2: Result Confirmation',
+        enabled: 'Enabled',
+        disabled: 'Disabled',
+        userImport: 'Import',
+        userImportResult: 'Step 3: Import Result',
+        secondPriObj: 'Second Authorize Object',
+        userPriPath: 'User Permission Path',
+        lastLogin: 'Last Login',
+        onlineStatus: 'Online Status',
+        secondPriStatus: 'Second Authorize Status',
+        secondPriTips: 'Second-level authorization allows SVN users to grant path permissions to ordinary SVN users',
+        forExample: 'For example:',
+        secondPriTips1: 'projects repository contains projects: project1 project2 ...',
+        secondPriTips2: 'user1 user2 user3 is in charge of project1',
+        secondPriTips3: 'user1 is the project mananger',
+        secondPriTips4: 'user2 is developer',
+        secondPriTips5: 'user2 is tester',
+        secondPriTips6: '(1) Administrator enables the second authorization swith to user1 for this path',
+        secondPriTips7: '(2) Administrator select the second-level authorization object (in this case, user2 user3)',
+        secondPriTips8: 'user1 can authorize ordinary users to manage projects without administrator intervention',
+        secondPriTips9: 'Closing the second-level authorization will synchronize the destruction of the second-level authorization object configured',
+        userStatus: 'User Status',
+        importResult: 'Import Result',
+        reason: 'Reason',
+        deleteUser: 'Delete User',
+        deleteUserConfirm: 'Are you sure to delete this user?<br/>It will remove the user from all repositories and groups!<br/>This operation cannot be undone!',
+        userPriPathList: 'Path Permission List',
     },
     subadmin: {
         createSubadmin: 'Create Sub-Admin',

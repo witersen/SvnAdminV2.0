@@ -11,6 +11,7 @@ module.exports = {
     copy: '复制',
     action: '操作',
     apply: '应用',
+    close: '关闭',
     reset: '重设',
     view: '浏览',
     config: '配置',
@@ -23,6 +24,8 @@ module.exports = {
     serial: '序号',
     status: '状态',
     others: '其它',
+    success: '成功',
+    fail: '失败',
     createTime: '创建时间',
     noDataNow: '暂无数据',
     operator: '操作人',
@@ -181,7 +184,6 @@ module.exports = {
         ldap账户未同步: '登录失败[ldap账户未同步]',
         ldap账户认证失败: '登录失败[ldap账户认证失败]',
         ldap账户名不合法: '登录失败[ldap账户名不合法]',
-        账号或密码错误: '登录失败[账号或密码错误]',
         用户已过期: '登录失败[用户已过期]',
         用户未同步: '登录失败[用户未同步]',
     },
@@ -217,7 +219,7 @@ module.exports = {
         searchMember: '通过对象名称搜索...',
         user: 'SVN用户',
         group: 'SVN分组',
-        aliases: 'SVN别名',
+        aliase: 'SVN别名',
         scanGroupTitle: '步骤一：分组识别',
         authzContent: `请粘贴 authz 文件内容
 
@@ -235,7 +237,7 @@ group3=user4,&aliase1`,
         objectName: '对象名称',
         editGroupName: '编辑SVN分组名',
         deleteGroup: '删除SVN分组',
-        deleteGroupConfirm: '确定要删除该分组吗？<br/>将会从所有仓库和分组下将该分组移除！<br/>该操作不可逆！',
+        deleteGroupsConfirm: '确定要删除该分组吗？<br/>将会从所有仓库和分组下将该分组移除！<br/>该操作不可逆！',
         editGroupMember: '编辑分组成员信息',
     },
     repositoryInfo: {
@@ -310,7 +312,6 @@ group3=user4,&aliase1`,
         revNum: '版本',
         revTime: '时间',
         revLog: '日志',
-        fileName: '文件名',
         fileEditTime: '修改时间',
         userPri: '用户权限',
         groupName: '分组名',
@@ -333,7 +334,55 @@ group3=user4,&aliase1`,
         deleteRepoConfirm: '确定要删除该仓库吗？<br/>该操作不可逆！<br/>如果该仓库有正在进行的网络传输，可能会删除失败，请注意提示信息！',
     },
     repositoryUser: {
+        createUser: '新建SVN用户',
+        userScan: '用户迁入',
+        syncListTip: `1、同步才可获取最新用户列表 
+2、手动写入passwd文件的用户需要同步才能登录系统`,
+        syncList: '同步列表',
+        searchUser: '通过SVN用户名、备注搜索...',
+        online: '在线',
+        offline: '离线',
+        userNameAlert: '用户名只能包含字母、数字、破折号、下划线、点。',
+        userRecogonize: '步骤一：用户识别',
+        userPasswdTips: `请粘贴 passwd 文件内容
 
+如果为 svn 协议检出(密码明文)，内容示例如下：  
+
+[users]
+user1=passwd1
+user2=passwd2
+
+如果为 http 协议检出(密码密文)，内容示例如下：  
+
+user1:passwd1
+user2:passwd2`,
+        userScanResult: '步骤二：结果确认',
+        enabled: '正常',
+        disabled: '禁用',
+        userImport: '导入',
+        userImportResult: '步骤三：导入结果',
+        secondPriObj: '二次授权对象',
+        userPriPath: '有权路径',
+        lastLogin: '上次登录',
+        onlineStatus: '在线状态',
+        secondPriStatus: '二次授权状态',
+        secondPriTips: '二次授权可赋予普通SVN用户分配路径权限的能力',
+        forExample: '举例来讲',
+        secondPriTips1: 'projects 仓库包含众多项目 project1 project2 ...',
+        secondPriTips2: 'user1 user2 user3 负责项目 project1',
+        secondPriTips3: 'user1 为项目组长',
+        secondPriTips4: 'user2 为研发同学',
+        secondPriTips5: 'user2 为测试同学',
+        secondPriTips6: '(1) 管理员为 user1 开启此路径二次授权开关',
+        secondPriTips7: '(2) 管理员选择二次授权管理对象(此处为 user2 user3)',
+        secondPriTips8: 'user1 可随意为管理对象授权而无需管理员介入',
+        secondPriTips9: '关闭二次授权将会同步清理配置的二次授权对象',
+        userStatus: '用户状态',
+        importResult: '导入结果',
+        reason: '原因',
+        deleteUser: '删除SVN用户',
+        deleteUserConfirm: '确定要删除该用户吗？<br/>将会从所有仓库和分组下将该用户移除！<br/>该操作不可逆！',
+        userPriPathList: '用户有权限路径列表',
     },
     subadmin: {
         createSubadmin: '新建子管理员',

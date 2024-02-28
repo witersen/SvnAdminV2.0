@@ -14,15 +14,14 @@
           :lg="18"
         >
           <Button icon="md-add" type="primary" ghost @click="ModalCreateUser"
-            >新建SVN用户</Button
+            >{{ $t('repositoryUser.createUser') }}</Button
           >
           <Button icon="ios-sync" type="primary" ghost @click="ModalUserScan"
-            >用户迁入</Button
+            >{{ $t('repositoryUser.userScan') }}</Button
           >
           <Tooltip
             max-width="250"
-            content="1、同步才可获取最新用户列表 
-2、手动写入passwd文件的用户需要同步才能登录系统"
+            :content="$t('repositoryUser.syncListTip')"
             placement="bottom"
             :transfer="true"
           >
@@ -31,7 +30,7 @@
               type="warning"
               ghost
               @click="GetUserList(true)"
-              >同步列表</Button
+              >{{ $t('repositoryUser.syncList') }}</Button
             >
           </Tooltip>
         </Col>
@@ -40,7 +39,7 @@
             v-model="searchKeywordUser"
             search
             enter-button
-            placeholder="通过SVN用户名、备注搜索..."
+            :placeholder="$t('repositoryUser.searchUser')"
             style="width: 100%"
             @on-search="GetUserList()"
         /></Col>
@@ -87,25 +86,25 @@
             type="info"
             size="small"
             @click="ModalSvnUserPriPath(row.svn_user_name)"
-            >查看</Button
+            >{{ $t('view') }}</Button
           >
         </template>
         <template slot-scope="{ row }" slot="online">
-          <Tag color="success" v-if="row.online == true">在线</Tag>
-          <Tag v-else>离线</Tag>
+          <Tag color="success" v-if="row.online == true">{{ $t('repositoryUser.online') }}</Tag>
+          <Tag v-else>{{ $t('repositoryUser.offline') }}</Tag>
         </template>
         <template slot-scope="{ row, index }" slot="action">
           <Button
             type="warning"
             size="small"
             @click="ModalEditUserPass(index, row.svn_user_name)"
-            >修改</Button
+            >{{ $t('modify') }}</Button
           >
           <Button
             type="error"
             size="small"
             @click="DelUser(index, row.svn_user_name)"
-            >删除</Button
+            >{{ $t('delete') }}</Button
           >
         </template>
       </Table>
@@ -123,17 +122,17 @@
       </Card>
     </Card>
     <!-- 对话框-新建SVN用户 -->
-    <Modal v-model="modalCreateUser" :draggable="true" title="新建SVN用户">
+    <Modal v-model="modalCreateUser" :draggable="true" :title="$t('repositoryUser.createUser')">
       <Form :model="formCreateUser" :label-width="80">
-        <FormItem label="用户名">
+        <FormItem :label="$t('username')">
           <Input v-model="formCreateUser.svn_user_name"></Input>
         </FormItem>
         <FormItem>
           <Alert type="warning" show-icon
-            >用户名只能包含字母、数字、破折号、下划线、点。</Alert
+            >{{ $t('repositoryUser.userNameAlert') }}</Alert
           >
         </FormItem>
-        <FormItem label="密码">
+        <FormItem :label="$t('password')">
           <Input
             type="password"
             password
@@ -159,22 +158,10 @@
       </div>
     </Modal>
     <!-- 对话框-步骤一：用户识别 -->
-    <Modal v-model="modalUserScan" :draggable="true" title="步骤一：用户识别">
+    <Modal v-model="modalUserScan" :draggable="true" :title="$t('repositoryUser.userRecogonize')">
       <Input
         v-model="tempPasswdContent"
-        placeholder="请粘贴 passwd 文件内容
-
-如果为 svn 协议检出(密码明文)，内容示例如下：  
-
-[users]
-user1=passwd1
-user2=passwd2
-
-如果为 http 协议检出(密码密文)，内容示例如下：  
-
-user1:passwd1
-user2:passwd2
-"
+        :placeholder="$t('repositoryUser.userPasswdTips')"
         :rows="11"
         show-word-limit
         type="textarea"
@@ -193,7 +180,7 @@ user2:passwd2
     <Modal
       v-model="modalUserScanResult"
       :draggable="true"
-      title="步骤二：结果确认"
+      :title="$t('repositoryUser.userScanResult')"
     >
       <Table
         highlight-row
@@ -206,28 +193,28 @@ user2:passwd2
       >
         <template slot-scope="{ row }" slot="disabled">
           <Tag color="blue" v-if="row.disabled == '0' || row.disabled == 0"
-            >正常</Tag
+            >{{ $t('repositoryUser.enabled') }}</Tag
           >
-          <Tag color="red" v-else>禁用</Tag>
+          <Tag color="red" v-else>{{ $t('repositoryUser.disabled') }}</Tag>
         </template>
         <template slot-scope="{ index }" slot="action">
           <Tag
             style="cursor: pointer"
             color="red"
             @click.native="UpdUserSacanResult(index)"
-            >移除</Tag
+            >{{ $t('delete') }}</Tag
           >
         </template>
       </Table>
       <div slot="footer">
-        <Button type="primary" ghost @click="UserImport">导入</Button>
+        <Button type="primary" ghost @click="UserImport">{{ $t('repositoryUser.userImport') }}</Button>
       </div>
     </Modal>
     <!-- 对话框-步骤三：导入结果 -->
     <Modal
       v-model="modalUserImportResult"
       :draggable="true"
-      title="步骤三：导入结果"
+      :title="$t('repositoryUser.userImportResult')"
     >
       <Table
         highlight-row
@@ -239,13 +226,13 @@ user2:passwd2
         style="margin-bottom: 10px"
       >
         <template slot-scope="{ row }" slot="status">
-          <Tag color="blue" v-if="row.status == 1">成功</Tag>
-          <Tag color="red" v-else>失败</Tag>
+          <Tag color="blue" v-if="row.status == 1">{{ $t('success') }}</Tag>
+          <Tag color="red" v-else>{{ $t('fail') }}</Tag>
         </template>
       </Table>
       <div slot="footer">
         <Button type="primary" ghost @click="modalUserImportResult = false"
-          >关闭</Button
+          >{{ $t('close') }}</Button
         >
       </div>
     </Modal>
@@ -257,7 +244,7 @@ user2:passwd2
       @on-ok="UpdUserPass"
     >
       <Form :model="formEditUser" :label-width="80">
-        <FormItem label="新密码">
+        <FormItem :label="$t('newPassword')">
           <Input v-model="formEditUser.svn_user_pass"></Input>
         </FormItem>
         <FormItem>
@@ -293,7 +280,7 @@ user2:passwd2
         >
           <Tooltip
             max-width="250"
-            content="同步才可获取最新权限列表"
+            :content="$t('repositoryInfo.syncUserRepListTip')"
             placement="bottom"
             :transfer="true"
           >
@@ -302,14 +289,14 @@ user2:passwd2
               type="warning"
               ghost
               @click="GetSvnUserRepList2(true)"
-              >同步列表</Button
+              >{{ $t('repositoryInfo.syncUserRepList') }}</Button
             >
           </Tooltip>
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
           <Input
             search
-            placeholder="通过SVN仓库名搜索..."
+            :placeholder="$t('repositoryInfo.searchRepByName')"
             @on-change="GetSvnUserRepList2()"
             v-model="searchKeywordGetSvnUserRepList2"
           />
@@ -341,7 +328,7 @@ user2:passwd2
             size="small"
             @click="ModalGetSecondpriObject(row.svnn_user_pri_path_id)"
             :disabled="!row.second_pri"
-            >配置</Button
+            >{{ $t('config') }}</Button
           >
         </template>
       </Table>
@@ -355,7 +342,7 @@ user2:passwd2
     <Modal
       v-model="modalGetSecondpriObject"
       :draggable="true"
-      title="二次授权对象"
+      :title="$t('repositoryUser.secondPriObj')"
     >
       <Row style="margin-bottom: 15px">
         <Col type="flex" justify="space-between" span="12">
@@ -364,13 +351,13 @@ user2:passwd2
             type="primary"
             ghost
             @click="modalSvnObject = true"
-            >添加成员</Button
+            >{{ $t('repositoryGroup.addMember') }}</Button
           >
         </Col>
         <Col span="12">
           <Input
             search
-            placeholder="通过对象名称搜索..."
+            :placeholder="$t('repositoryGroup.searchMember')"
             v-model="searchKeywordSecondpriObject"
             @on-change="GetSecondpriObjectList"
           />
@@ -390,19 +377,19 @@ user2:passwd2
             color="blue"
             v-if="row.objectType == 'user'"
             style="width: 90px; text-align: center"
-            >SVN用户</Tag
+            >{{ $t('repositoryGroup.user') }}</Tag
           >
           <Tag
             color="geekblue"
             v-if="row.objectType == 'group'"
             style="width: 90px; text-align: center"
-            >SVN分组</Tag
+            >{{ $t('repositoryGroup.group') }}</Tag
           >
           <Tag
             color="purple"
             v-if="row.objectType == 'aliase'"
             style="width: 90px; text-align: center"
-            >SVN别名</Tag
+            >{{ $t('repositoryGroup.aliase') }}</Tag
           >
         </template>
         <template slot-scope="{ row }" slot="action">
@@ -410,7 +397,7 @@ user2:passwd2
             type="error"
             size="small"
             @click="DelSecondpriObject(row.svn_second_pri_id)"
-            >移除</Button
+            >{{ $t('delete') }}</Button
           >
         </template>
       </Table>
@@ -539,89 +526,104 @@ export default {
       //SVN用户有权限的仓库列表
       titleSvnUserPriPath: "",
 
-      /**
+      tableDataUser: [],
+      //svn用户有权限的仓库路径
+      tableDataUserRep: [],
+      
+      tableDataSecondpriObject: [],
+      
+      tableDataUserScanResult: [],
+      
+      tableDataUserImportResult: [],
+    };
+  },
+  components: {
+    ModalSvnObject,
+  },
+  computed: {
+    /**
        * 表格
        */
       //仓库信息
-      tableColumnUser: [
+      tableColumnUser() {
+        return [
         {
-          title: "序号",
+          title: i18n.t('serial'),   //"序号",
           slot: "index",
           fixed: "left",
           minWidth: 80,
         },
         {
-          title: "用户名",
+          title: i18n.t('username'),   //"用户名",
           key: "svn_user_name",
           tooltip: true,
           sortable: "custom",
           minWidth: 120,
         },
         {
-          title: "密码",
+          title: i18n.t('password'),   //"密码",
           slot: "svn_user_pass",
           minWidth: 145,
         },
         {
-          title: "启用状态",
+          title: i18n.t('status'),   //"启用状态",
           key: "svn_user_status",
           slot: "svn_user_status",
           sortable: "custom",
           minWidth: 120,
         },
         {
-          title: "备注信息",
+          title: i18n.t('note'),   //"备注信息",
           slot: "svn_user_note",
           minWidth: 120,
         },
         {
-          title: "有权路径",
+          title: i18n.t('repositoryUser.userPriPath'),   //"有权路径",
           slot: "svn_user_rep_list",
           minWidth: 120,
         },
         {
-          title: "上次登录",
+          title: i18n.t('repositoryUser.lastLogin'),   //"上次登录",
           key: "svn_user_last_login",
           tooltip: true,
           sortable: "custom",
           minWidth: 150,
         },
         {
-          title: "在线状态",
+          title: i18n.t('repositoryUser.onlineStatus'),   //"在线状态",
           slot: "online",
           minWidth: 90,
         },
         {
-          title: "其它",
+          title: i18n.t('others'),   //"其它",
           slot: "action",
           minWidth: 180,
         },
-      ],
-      tableDataUser: [],
-      //svn用户有权限的仓库路径
-      tableDataUserRep: [],
-      tableColumnUserRep: [
+      ]},
+
+      tableColumnUserRep() {
+        return [
         {
-          title: "序号",
+          title: i18n.t('serial'),   //"序号",
           type: "index",
           fixed: "left",
           minWidth: 80,
         },
         {
-          title: "仓库名",
+          title: i18n.t('repositoryInfo.repoName'),   //"仓库名",
           key: "rep_name",
           tooltip: true,
           sortable: "custom",
           minWidth: 120,
         },
         {
-          title: "路径/文件",
+          title: i18n.t('repositoryInfo.pathFile'),   //"路径/文件",
           tooltip: true,
           key: "pri_path",
           minWidth: 120,
         },
         {
-          title: "权限",
+          title: i18n.t('repositoryInfo.userPri'),   //"权限",
           key: "rep_pri",
           minWidth: 120,
         },
@@ -640,7 +642,7 @@ export default {
               },
               [
                 h("span", [
-                  h("span", "二次授权状态"),
+                  h("span", i18n.t("repositoryUser.secondPriStatus")),
                   h("Icon", {
                     props: {
                       type: "ios-help-circle-outline",
@@ -658,7 +660,7 @@ export default {
                     },
                   },
                   [
-                    h("p", "二次授权可赋予普通SVN用户分配路径权限的能力"),
+                    h("p", i18n.t("repositoryUser.secondPriTips")),
                     h("p", " "),
                     h(
                       "p",
@@ -667,24 +669,24 @@ export default {
                           color: "#479af1",
                         },
                       },
-                      "举例来讲"
+                      i18n.t("repositoryUser.forExample")
                     ),
                     h("p", " "),
-                    h("p", "projects 仓库包含众多项目 project1 project2 ..."),
-                    h("p", "user1 user2 user3 负责项目 project1"),
-                    h("p", "user1 为项目组长"),
-                    h("p", "user2 为研发同学"),
-                    h("p", "user2 为测试同学"),
+                    h("p", i18n.t("repositoryUser.secondPriTips1")),    //"projects 仓库包含众多项目 project1 project2 ..."),
+                    h("p", i18n.t("repositoryUser.secondPriTips2")),    //"user1 user2 user3 负责项目 project1"),
+                    h("p", i18n.t("repositoryUser.secondPriTips3")),    //"user1 为项目组长"),
+                    h("p", i18n.t("repositoryUser.secondPriTips4")),    //"user2 为研发同学"),
+                    h("p", i18n.t("repositoryUser.secondPriTips5")),    //"user2 为测试同学"),
                     h("p", " "),
-                    h("p", "(1) 管理员为 user1 开启此路径二次授权开关"),
+                    h("p", i18n.t("repositoryUser.secondPriTips6")),    //"(1) 管理员为 user1 开启此路径二次授权开关"),
                     h(
                       "p",
-                      "(2) 管理员选择二次授权管理对象(此处为 user2 user3)"
+                      i18n.t("repositoryUser.secondPriTips7")    //"(2) 管理员选择二次授权管理对象(此处为 user2 user3)"
                     ),
                     h("p", " "),
-                    h("p", "user1 可随意为管理对象授权而无需管理员介入"),
+                    h("p", i18n.t("repositoryUser.secondPriTips8")),    //"user1 可随意为管理对象授权而无需管理员介入"),
                     h("p", " "),
-                    h("p", "关闭二次授权将会同步清理配置的二次授权对象"),
+                    h("p", i18n.t("repositoryUser.secondPriTips9")),    //"关闭二次授权将会同步清理配置的二次授权对象"),
                   ]
                 ),
               ]
@@ -692,78 +694,73 @@ export default {
           },
         },
         {
-          title: "二次授权对象",
+          title: i18n.t('repositoryUser.secondPriObj'), //"二次授权对象",
           slot: "action",
           width: 180,
           // fixed:"right"
         },
-      ],
+      ]},
       //二次授权对象
-      tableColumnSecondpriObject: [
+      tableColumnSecondpriObject() {
+        return [
         {
-          title: "对象类型",
+          title: i18n.t('repositoryGroup.objectType'),   //"对象类型",
           slot: "objectType",
           // width: 125,
         },
         {
-          title: "对象名称",
+          title: i18n.t('repositoryGroup.objectName'),   //"对象名称",
           key: "objectName",
           tooltip: true,
           // width: 115,
         },
         {
-          title: "操作",
+          title: i18n.t('action'),   //"操作",
           slot: "action",
         },
-      ],
-      tableDataSecondpriObject: [],
+      ]},
       //识别出的待导入用户
-      tableColumnUserScanResult: [
+      tableColumnUserScanResult() {
+        return [
         {
-          title: "用户名",
+          title: i18n.t('username'),   //"用户名",
           key: "userName",
           tooltip: true,
         },
         {
-          title: "密码",
+          title: i18n.t('password'),   //"密码",
           key: "userPass",
           tooltip: true,
         },
         {
-          title: "用户状态",
+          title: i18n.t('repositoryUser.userStatus'), //"用户状态",
           slot: "disabled",
         },
         {
-          title: "操作",
+          title: i18n.t('action'),   //"操作",
           slot: "action",
           width: 90,
         },
-      ],
-      tableDataUserScanResult: [],
+      ]},
       //导入结果
-      tableColumnUserImportResult: [
+      tableColumnUserImportResult() {
+        return [
         {
-          title: "用户名",
+          title: i18n.t('username'),   //"用户名",
           key: "userName",
           tooltip: true,
         },
         {
-          title: "导入结果",
+          title: i18n.t('repositoryUser.importResult'), //"导入结果",
           slot: "status",
           tooltip: true,
         },
         {
-          title: "原因",
+          title: i18n.t('repositoryUser.reason'), //"原因",
           key: "reason",
         },
-      ],
-      tableDataUserImportResult: [],
-    };
+      ]},
   },
-  components: {
-    ModalSvnObject,
-  },
-  computed: {},
   created() {},
   mounted() {
     this.GetUserList();
@@ -984,7 +981,7 @@ export default {
      */
     ModalEditUserPass(index, svn_user_name) {
       //设置标题
-      this.titleEditUser = "修改密码 - " + svn_user_name;
+      this.titleEditUser = i18n.t("personal.changePassword") + " - " + svn_user_name;
       //设置选中用户
       this.formEditUser.svn_user_name = svn_user_name;
       //设置密码同步到输入框
@@ -1075,7 +1072,7 @@ export default {
                         display: "inline-block",
                       },
                       domProps: {
-                        innerHTML: "删除SVN用户 - " + svn_user_name,
+                        innerHTML: i18n.t("repositoryUser.deleteUser") + " - " + svn_user_name,
                       },
                     }),
                     h(
@@ -1094,7 +1091,7 @@ export default {
                               fontSize: "15px",
                             },
                           },
-                          "删除SVN用户 - " + svn_user_name
+                          i18n.t("repositoryUser.deleteUser") + " - " + svn_user_name
                         ),
                       ]
                     ),
@@ -1113,7 +1110,7 @@ export default {
                   style: { marginBottom: "15px" },
                   domProps: {
                     innerHTML:
-                      "确定要删除该用户吗？<br/>将会从所有仓库和分组下将该用户移除！<br/>该操作不可逆！",
+                      i18n.t("repositoryUser.deleteUserConfirm"),
                   },
                 }),
               ]
@@ -1147,7 +1144,7 @@ export default {
      * 查看权限路径列表
      */
     ModalSvnUserPriPath(svn_user_name) {
-      this.titleSvnUserPriPath = "用户有权限路径列表 - " + svn_user_name;
+      this.titleSvnUserPriPath = i18n.t("repositoryUser.userPriPathList") + " - " + svn_user_name;
       this.modalSvnUserPriPath = true;
       this.currentSvnUserName = svn_user_name;
       this.GetSvnUserRepList2();
