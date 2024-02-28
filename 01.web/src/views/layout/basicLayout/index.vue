@@ -43,7 +43,7 @@
           style="cursor: pointer"
           @click="ModalTasks"
           v-if="currentRoleId != 2"
-          >{{$t('menus.backendTasks')}}</span
+          >{{$t('layout.backendTasks')}}</span
         >
         <!-- 分割线 -->
         <Divider type="vertical" v-if="currentRoleId != 2" />
@@ -60,7 +60,7 @@
             <Icon type="md-arrow-dropdown" />
           </a>
           <DropdownMenu slot="list">
-            <DropdownItem>{{ $t('menus.logout') }}</DropdownItem>
+            <DropdownItem>{{ $t('layout.logout') }}</DropdownItem>
           </DropdownMenu>
         </Dropdown>
         <!-- 多语言切换 -->
@@ -95,7 +95,7 @@
             style="height: 100%"
           >
             <MenuGroup
-              :title="$t('menus.' + itemGroup.title)"
+              :title="$t('layout.' + itemGroup.title)"
               v-for="(itemGroup, indexGroup) in navList"
               :key="indexGroup"
             >
@@ -111,7 +111,7 @@
                   :offset="[0, -10]"
                 >
                   <Icon :type="itemItem.meta.icon" />
-                  {{ $t('menus.' + itemItem.meta.title) }}
+                  {{ $t('layout.' + itemItem.meta.title) }}
                 </Badge>
               </MenuItem>
             </MenuGroup>
@@ -122,7 +122,7 @@
         >
           <Breadcrumb style="padding: 0px 0px 20px 0px">
             <BreadcrumbItem v-for="(item, index) in breadcrumb" :key="index">{{
-              $t('menus.' + item.meta.title)
+              $t('layout.' + item.meta.title)
             }}</BreadcrumbItem>
           </Breadcrumb>
           <Content>

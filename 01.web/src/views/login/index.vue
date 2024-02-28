@@ -16,7 +16,7 @@
             <FormItem prop="user_name">
               <Input
                 v-model="formUserLogin.user_name"
-                :placeholder="$t('loginPage.inputUsername')"
+                :placeholder="$t('login.inputUsername')"
               >
                 <span slot="prepend">
                   <Icon :size="16" type="ios-person"></Icon>
@@ -28,7 +28,7 @@
                 type="password"
                 password
                 v-model="formUserLogin.user_pass"
-                :placeholder="$t('loginPage.inputPassword')"
+                :placeholder="$t('login.inputPassword')"
               >
                 <span slot="prepend">
                   <Icon :size="14" type="md-lock"></Icon>
@@ -51,7 +51,7 @@
                 <Col span="11"
                   ><Input
                     v-model="formUserLogin.code"
-                    :placeholder="$t('loginPage.inputCode')"
+                    :placeholder="$t('login.inputCode')"
                   ></Input
                 ></Col>
                 <Col span="1"></Col>
@@ -91,7 +91,7 @@
                 long
                 @click="Submit('formUserLogin')"
                 :loading="loadingLogin"
-                >{{ $t('loginPage.login') }}</Button
+                >{{ $t('login.login') }}</Button
               >
             </FormItem>
           </Form>
@@ -138,12 +138,12 @@ export default {
       // 登录校验规则
       ruleValidateLogin: {
         user_name: [
-          { required: true, message: i18n.t("loginPage.usernameCannotBeEmpty"), trigger: "blur" },
+          { required: true, message: i18n.t("login.usernameCannotBeEmpty"), trigger: "blur" },
         ],
         user_pass: [
-          { required: true, message: i18n.t("loginPage.passwordCannotBeEmpty"), trigger: "blur" },
+          { required: true, message: i18n.t("login.passwordCannotBeEmpty"), trigger: "blur" },
         ],
-        code: [{ required: true, message: i18n.t("loginPage.codeCannotBeEmpty"), trigger: "blur" }],
+        code: [{ required: true, message: i18n.t("login.codeCannotBeEmpty"), trigger: "blur" }],
       },
     };
   },
@@ -156,7 +156,7 @@ export default {
       ? localStorage.user_role
       : "2";
     if (sessionStorage.token) {
-      that.$Message.success($t("loginPage.userAlreadyLogin"));
+      that.$Message.success($t("login.userAlreadyLogin"));
       setTimeout(function () {
         that.$router.push({ name: sessionStorage.firstRoute });
       }, 2000);
@@ -172,12 +172,12 @@ export default {
         this.$i18n.locale = this.lang
         this.ruleValidateLogin ={
             user_name: [
-            { required: true, message: i18n.t("loginPage.usernameCannotBeEmpty"), trigger: "blur" },
+            { required: true, message: i18n.t("login.usernameCannotBeEmpty"), trigger: "blur" },
             ],
             user_pass: [
-            { required: true, message: i18n.t("loginPage.passwordCannotBeEmpty"), trigger: "blur" },
+            { required: true, message: i18n.t("login.passwordCannotBeEmpty"), trigger: "blur" },
             ],
-            code: [{ required: true, message: i18n.t("loginPage.codeCannotBeEmpty"), trigger: "blur" }],
+            code: [{ required: true, message: i18n.t("login.codeCannotBeEmpty"), trigger: "blur" }],
         };
     },
     //记录下拉
@@ -214,7 +214,7 @@ export default {
           } else {
             // 取返回错误消息有效信息来翻译（key 里不支持中括号）：
             // 登录失败[验证码错误] -> 验证码错误 by result.message.substr(5, result.message.length - 6)
-            that.$Message.error({ content: i18n.t('loginPage.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
+            that.$Message.error({ content: i18n.t('login.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
           }
         })
         .catch(function (error) {
@@ -238,7 +238,7 @@ export default {
             that.formUserLogin.uuid = result.data.uuid;
             that.formUserLogin.base64 = result.data.base64;
           } else {
-            that.$Message.error({ content: i18n.t('loginPage.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
+            that.$Message.error({ content: i18n.t('login.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
           }
         })
         .catch(function (error) {
@@ -277,7 +277,7 @@ export default {
               JSON.stringify(result.data.functions)
             );
 
-            that.$Message.success(i18n.t('loginPage.' + result.message));
+            that.$Message.success(i18n.t('login.' + result.message));
 
             if (result.data.user_role_id == 1) {
               //管理员跳转到首页
@@ -295,7 +295,7 @@ export default {
             that.$router.push({ name: sessionStorage.firstRoute });
           } else {
             that.GetVerifyOption();
-            that.$Message.error({ content: i18n.t('loginPage.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
+            that.$Message.error({ content: i18n.t('login.' + result.message.substr(5, result.message.length - 6)), duration: 2 });
           }
         })
         .catch(function (error) {

@@ -198,7 +198,7 @@
           <Col span="4">
             <Card :dis-hover="true">
               <div style="text-align: center">
-                <p>{{ $t('menus.SVN分组') }}</p>
+                <p>{{ $t('layout.SVN分组') }}</p>
                 <h2 style="color: #28bcfe">{{ systemBrif.groupCount }}</h2>
               </div>
             </Card>
