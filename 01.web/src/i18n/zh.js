@@ -14,9 +14,10 @@ export default {
     confirmNewPassword: '确认新密码',
     note: '备注',
     serial: '序号',
-    status: '启用状态',
+    status: '状态',
     others: '其它',
     createTime: '创建时间',
+    noDataNow: '暂无数据',
     退出登录成功: '退出登录成功',
     loginPage: {
         inputUsername: '请输入用户名',
@@ -68,6 +69,20 @@ export default {
         tasksInQueue: '排队任务',
         historyTasks: '历史任务',
         noTasksRunning: '当前没有后台任务运行（如遇任务堆积不执行可重启守护进程解决）',
+        running: '执行中',
+        waiting: '待执行',
+        stopTask: '中断执行',
+        cancelTask: '取消排队',
+        completed: '已完成',
+        cancelled: '已取消',
+        stopped: '已中断',
+        viewLog: '日志',
+        taskLog: '历史任务日志',
+        taskName: '任务名称',
+        action: '操作',
+        endTime: '结束时间',
+        stopConfirm: '中断进程确认',
+        stopConfirmContent: '确定要中断执行吗？<br/>不保证该操作是否会产生无法清理的睡眠进程！',
     },
     errors: {
         contactAdmin: '出错了 请联系管理员！',
@@ -192,7 +207,5 @@ export default {
         deleteSubadmin: '删除子管理员',
         confirmDeleteSubadmin: '确定要删除该子管理员吗？<br/>该操作不可逆！',
     },
-    repositoryInfo: {
-        noDataNow: '暂无数据',
-    }
+
 }

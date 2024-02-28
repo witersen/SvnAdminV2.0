@@ -161,8 +161,8 @@
               style="margin-bottom: 10px"
             >
               <template slot-scope="{ row }" slot="task_status">
-                <Tag color="success" v-if="row.task_status == 2">执行中</Tag>
-                <Tag color="default" v-else>待执行</Tag>
+                <Tag color="success" v-if="row.task_status == 2">{{ $t('backendTasks.running') }}</Tag>
+                <Tag color="default" v-else>{{ $t('backendTasks.waiting') }}</Tag>
               </template>
               <template slot-scope="{ row }" slot="action">
                 <Button
@@ -170,14 +170,14 @@
                   size="small"
                   @click="UpdTaskStop(row.task_id, row.task_status)"
                   v-if="row.task_status == 2"
-                  >中断执行</Button
+                  >{{ $t('backendTasks.stopTask') }}</Button
                 >
                 <Button
                   type="warning"
                   size="small"
                   @click="UpdTaskStop(row.task_id, row.task_status)"
                   v-else
-                  >取消排队</Button
+                  >{{ $t('backendTasks.cancelTask') }}</Button
                 >
               </template>
             </Table>
@@ -194,22 +194,22 @@
               style="margin-bottom: 10px"
             >
               <template slot-scope="{ row }" slot="task_status">
-                <Tag color="success" v-if="row.task_status == 3">已完成</Tag>
-                <Tag color="warning" v-if="row.task_status == 4">已取消</Tag>
-                <Tag color="error" v-if="row.task_status == 5">已中断</Tag>
+                <Tag color="success" v-if="row.task_status == 3">{{ $t('backendTasks.completed') }}</Tag>
+                <Tag color="warning" v-if="row.task_status == 4">{{ $t('backendTasks.cancelled') }}</Tag>
+                <Tag color="error" v-if="row.task_status == 5">{{ $t('backendTasks.stopped') }}</Tag>
               </template>
               <template slot-scope="{ row }" slot="action">
                 <Button
                   type="primary"
                   size="small"
                   @click="GetTaskHistoryLog(row.task_id)"
-                  >日志</Button
+                  >{{ $t('backendTasks.viewLog') }}</Button
                 >
                 <Button
                   type="error"
                   size="small"
                   @click="DelTaskHistory(row.task_id)"
-                  >删除</Button
+                  >{{ $t('delete') }}</Button
                 >
               </template>
             </Table>
@@ -231,7 +231,7 @@
       </div>
     </Modal>
     <!-- 对话框-历史任务日志 -->
-    <Modal v-model="modalTaskLog" :draggable="true" title="历史任务日志">
+    <Modal v-model="modalTaskLog" :draggable="true" :title="$t('backendTasks.taskLog')">
       <Input
         v-model="tempTaskLog"
         readonly
@@ -306,60 +306,8 @@ export default {
       /**
        * 表格
        */
-      //任务队列
-      tableColumnTaskQueue: [
-        {
-          title: "任务名称",
-          key: "task_name",
-          tooltip: true,
-        },
-        {
-          title: "创建时间",
-          key: "task_create_time",
-          tooltip: true,
-        },
-        {
-          title: "状态",
-          slot: "task_status",
-        },
-        {
-          title: "操作",
-          slot: "action",
-        },
-      ],
       tableDataTaskQueue: [],
-      //历史任务
-      tableColumnTaskHistory: [
-        {
-          title: "任务名称",
-          key: "task_name",
-          tooltip: true,
-          fixed: "left",
-          width: 150,
-        },
-        {
-          title: "状态",
-          slot: "task_status",
-          width: 110,
-        },
-        {
-          title: "创建时间",
-          key: "task_create_time",
-          tooltip: true,
-          width: 150,
-        },
-        {
-          title: "结束时间",
-          key: "task_update_time",
-          tooltip: true,
-          width: 150,
-        },
-        {
-          title: "操作",
-          slot: "action",
-          width: 130,
-        },
-      ],
+      
       tableDataTaskHistory: [],
 
       /**
@@ -372,6 +320,63 @@ export default {
       //获取历史任务
       loadingTaskHistory: false,
     };
+  },
+  computed: {
+    //任务队列
+    tableColumnTaskQueue() {
+      return [
+        {
+          title: i18n.t("backendTasks.taskName"),   //"任务名称",
+          key: "task_name",
+          tooltip: true,
+        },
+        {
+          title: i18n.t("createTime"),   //"创建时间",
+          key: "task_create_time",
+          tooltip: true,
+        },
+        {
+          title: i18n.t("status"),   //"状态",
+          slot: "task_status",
+        },
+        {
+          title: i18n.t("backendTasks.action"),   //"操作",
+          slot: "action",
+        },
+      ]},
+      //历史任务
+      tableColumnTaskHistory() {
+        return [
+        {
+          title: i18n.t("backendTasks.taskName"),   //"任务名称",
+          key: "task_name",
+          tooltip: true,
+          fixed: "left",
+          width: 150,
+        },
+        {
+          title: i18n.t("status"),   //"状态",
+          slot: "task_status",
+          width: 110,
+        },
+        {
+          title: i18n.t("createTime"),   //"创建时间",
+          key: "task_create_time",
+          tooltip: true,
+          width: 150,
+        },
+        {
+          title: i18n.t("backendTasks.endTime"),   //"结束时间",
+          key: "task_update_time",
+          tooltip: true,
+          width: 150,
+        },
+        {
+          title: i18n.t("backendTasks.action"),   //"操作",
+          slot: "action",
+          width: 130,
+        },
+      ]},
   },
   methods: {
     translate(lng) {
@@ -626,9 +631,9 @@ export default {
       };
       if (task_status == 2) {
         that.$Modal.confirm({
-          title: "中断进程确认",
+          title: i18n.t("backendTasks.stopConfirm"),   //"中断进程确认",
           content:
-            "确定要中断执行吗？<br/>不保证该操作是否会产生无法清理的睡眠进程！",
+            i18n.t("backendTasks.stopConfirmContent"),   //"确定要中断执行吗？<br/>不保证该操作是否会产生无法清理的睡眠进程！",
           onOk: () => {
             that.$axios
               .post("api.php?c=Tasks&a=UpdTaskStop&t=web", data)
