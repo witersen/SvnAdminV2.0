@@ -153,6 +153,11 @@ export default {
         backupSize: 'Backup Size',
         logs: 'Logs',
         svnAlias: 'SVN Aliases',
+        运行堵塞: 'Running Jammed',
+        运行缓慢: 'Running Slow',
+        运行正常: 'Running Normal',
+        运行流畅: 'Running Quick',
+        未知: 'Unknown',
     },
     personal: {
         changePassword: 'Change Password',

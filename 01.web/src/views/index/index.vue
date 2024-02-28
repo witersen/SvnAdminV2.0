@@ -49,7 +49,7 @@
                 <p>{{ $t('index.cpuLoad15Min') + statusInfo.load.cpuLoad15Min }}</p>
               </div>
             </Tooltip>
-            <div class="statusBottom">{{ statusInfo.load.title }}</div>
+            <div class="statusBottom">{{ $t('index.' + statusInfo.load.title) }}</div>
           </Col>
           <Col span="4">
             <div class="statusTop">{{ $t('index.cpuUsage') }}</div>
@@ -72,7 +72,7 @@
                 <p>{{ statusInfo.cpu.cpuProcessor + $t('index.cpuProcessor') }}</p>
               </div>
             </Tooltip>
-            <div class="statusBottom">{{ statusInfo.cpu.cpuCore }}核心</div>
+            <div class="statusBottom">{{ statusInfo.cpu.cpuCore + $t('index.cpuCore') }}</div>
           </Col>
           <Col span="4">
             <div class="statusTop">{{ $t('index.memUsage') }}</div>

@@ -157,6 +157,11 @@ export default {
         backupSize: '备份占用',
         logs: '运行日志',
         svnAlias: 'SVN别名',
+        运行堵塞: '运行堵塞',
+        运行缓慢: '运行缓慢',
+        运行正常: '运行正常',
+        运行流畅: '运行流畅',
+        未知: '未知',
     },
     personal: {
         changePassword: '修改密码',
