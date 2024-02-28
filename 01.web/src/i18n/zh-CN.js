@@ -1,4 +1,4 @@
-export default {
+module.exports = {
     zh: '中文',
     cancel: '取消',
     confirm: '确定',
