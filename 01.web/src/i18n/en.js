@@ -13,6 +13,7 @@ export default {
     serial: 'ID',
     status: 'Status',
     others: 'Others',
+    operator: 'Operator',
     退出登录成功: 'Logout success',
     loginPage: {
         inputUsername: 'Please enter username',
@@ -172,6 +173,15 @@ export default {
         运行正常: 'Running Normal',
         运行流畅: 'Running Quick',
         未知: 'Unknown',
+    },
+    logs: {
+        clearLogs: 'Clear Logs',
+        exportLogs: 'Export Logs',
+        logName: 'SVNAdmin2-Logs',
+        searchLogs: 'Search Logs',
+        logType: 'Log Type',
+        content: 'Content',
+        addTime: 'Add Time',
     },
     personal: {
         changePassword: 'Change Password',

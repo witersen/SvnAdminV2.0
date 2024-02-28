@@ -18,6 +18,7 @@ export default {
     others: '其它',
     createTime: '创建时间',
     noDataNow: '暂无数据',
+    operator: '操作人',
     退出登录成功: '退出登录成功',
     loginPage: {
         inputUsername: '请输入用户名',
@@ -177,6 +178,15 @@ export default {
         运行正常: '运行正常',
         运行流畅: '运行流畅',
         未知: '未知',
+    },
+    logs: {
+        clearLogs: '清空日志',
+        exportLogs: '导出日志',
+        logName: 'SVNAdmin2-系统日志',
+        searchLogs: '通过所有信息搜索...',
+        logType: '日志类型',
+        content: '详细信息',
+        addTime: '操作时间',
     },
     personal: {
         changePassword: '修改密码',
