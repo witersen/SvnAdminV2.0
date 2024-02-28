@@ -340,7 +340,7 @@ export default {
           slot: "task_status",
         },
         {
-          title: i18n.t("backendTasks.action"),   //"操作",
+          title: i18n.t("action"),   //"操作",
           slot: "action",
         },
       ]},
@@ -372,7 +372,7 @@ export default {
           width: 150,
         },
         {
-          title: i18n.t("backendTasks.action"),   //"操作",
+          title: i18n.t("action"),   //"操作",
           slot: "action",
           width: 130,
         },

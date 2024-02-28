@@ -8,6 +8,7 @@ export default {
     modify: '修改',
     confirmModify: '确认修改',
     delete: '删除',
+    action: '操作',
     username: '用户名',
     password: '密码',
     newPassword: '新密码',
@@ -42,7 +43,6 @@ export default {
         viewLog: '日志',
         taskLog: '历史任务日志',
         taskName: '任务名称',
-        action: '操作',
         endTime: '结束时间',
         stopConfirm: '中断进程确认',
         stopConfirmContent: '确定要中断执行吗？<br/>不保证该操作是否会产生无法清理的睡眠进程！',
@@ -200,6 +200,42 @@ export default {
         modifySubadminPassword: '修改子管理员密码',
     },
     repositoryGroup: {
+        createGroup: '新建SVN分组',
+        syncGroupTip: '同步才可获取最新分组列表',
+        syncGroupList: '同步列表',
+        searchGroup: '通过SVN分组名、备注搜索...',
+        groupMember: '成员',
+        groupName: '分组名',
+        groupNameTip: '分组名只能包含字母、数字、破折号、下划线、点。',
+        addMember: '添加成员',
+        searchMember: '通过对象名称搜索...',
+        user: 'SVN用户',
+        group: 'SVN分组',
+        aliases: 'SVN别名',
+        scanGroupTitle: '步骤一：分组识别',
+        authzContent: `请粘贴 authz 文件内容
+
+        示例：  
+        
+        [groups]
+        group1=user1,user2,@group2
+        group2=user3
+        group3=user4,&aliase1`,
+        scanGroup: '识别',
+        includeUserCount: '包含用户数',
+        includeGroupCount: '包含分组数',
+        includeAliaseCount: '包含别名用户数',
+        objectType: '对象类型',
+        objectName: '对象名称',
+        editGroupName: '编辑SVN分组名',
+        deleteGroup: '删除SVN分组',
+        deleteGroupConfirm: '确定要删除该分组吗？<br/>将会从所有仓库和分组下将该分组移除！<br/>该操作不可逆！',
+        editGroupMember: '编辑分组成员信息',
+    },
+    repositoryInfo: {
+
+    },
+    repositoryUser: {
 
     },
     subadmin: {

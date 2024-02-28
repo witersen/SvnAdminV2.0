@@ -6,6 +6,7 @@ export default {
     add: 'Add',
     edit: 'Edit',
     delete: 'Delete',
+    action: 'Action',
     username: 'Username',
     password: 'Password',
     newPassword: 'New Password',
@@ -37,7 +38,6 @@ export default {
         viewLog: 'Log',
         taskLog: 'Task Log',
         taskName: 'Task Name',
-        action: 'Action',
         endTime: 'End Time',
         stopConfirm: 'Confirm to stop task',
         stopConfirmContent: 'Are you sure to stop this task?<br/>Cannot garrantee the task will be stopped successfully!',
@@ -193,6 +193,45 @@ export default {
         newAccount: 'New Account',
         modifyAdminPassword: 'Modify Admin Password',
         modifySubadminPassword: 'Modify Sub-Admin Password',
+    },
+    repositoryGroup: {
+        createGroup: 'Create SVN Group',
+        syncGroupTip: 'Sync to update the SVN Group List',
+        syncGroupList: 'Sync SVN Group List',
+        searchGroup: 'Search SVN Group',
+        groupMember: 'Member',
+        groupName: 'Group Name',
+        groupNameTip: 'Group name can only contain letters, numbers, hyphens, underscores, and dots.',
+        addMember: 'Add Member',
+        searchMember: 'Search Member',
+        user: 'SVN User',
+        group: 'SVN Group',
+        aliases: 'SVN Aliases',
+        scanGroupTitle: 'Step 1: Group Recognition',
+        authzContent: `Please pasete the content of the authz file
+
+        Example:  
+        
+        [groups]
+        group1=user1,user2,@group2
+        group2=user3
+        group3=user4,&aliase1`,
+        scanGroup: 'Scan Group',
+        includeUserCount: 'User Count',
+        includeGroupCount: 'Group Count',
+        includeAliaseCount: 'Aliase Count',
+        objectType: 'Object Type',
+        objectName: 'Object Name',
+        editGroupName: 'Edit SVN Group Name',
+        deleteGroup: 'Delete SVN Group',
+        deleteGroupConfirm: 'Confirm to delete SVN Group?<br/>It will remove the group from all repositories and groups!<br/>This operation cannot be undone!',
+        editGroupMember: 'Edit SVN Group Member',
+    },
+    repositoryInfo: {
+
+    },
+    repositoryUser: {
+
     },
     subadmin: {
         createSubadmin: 'Create Sub-Admin',
