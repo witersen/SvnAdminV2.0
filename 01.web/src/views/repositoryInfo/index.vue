@@ -23,11 +23,11 @@
             ghost
             @click="ModalCreateRep"
             v-if="user_role_id == 1 || user_role_id == 3"
-            >新建仓库</Button
+            >{{ $t("repositoryInfo.createRepo") }}</Button
           >
           <Tooltip
             max-width="250"
-            content="该操作会扫描磁盘上的有效仓库列表"
+            :content="$t('repositoryInfo.syncRepListTip')"
             placement="bottom"
             :transfer="true"
             v-if="user_role_id == 1 || user_role_id == 3"
@@ -37,12 +37,12 @@
               type="warning"
               ghost
               @click="GetRepList(true, true, false, false)"
-              >同步仓库列表</Button
+              >{{ $t("repositoryInfo.syncRepList") }}</Button
             >
           </Tooltip>
           <Tooltip
             max-width="250"
-            content="该操作会扫描磁盘上的有效仓库列表，并批量读取每个仓库的体积和版本信息，为耗时操作"
+            :content="$t('repositoryInfo.syncRepListInfoTip')"
             placement="bottom"
             :transfer="true"
             v-if="user_role_id == 1 || user_role_id == 3"
@@ -52,12 +52,12 @@
               type="warning"
               ghost
               @click="GetRepList(true, true, true, true)"
-              >同步仓库信息</Button
+              >{{ $t("repositoryInfo.syncRepListInfo") }}</Button
             >
           </Tooltip>
           <Tooltip
             max-width="250"
-            content="同步才可获取最新权限列表"
+            :content="$t('repositoryInfo.syncUserRepListTip')"
             placement="bottom"
             :transfer="true"
             v-if="user_role_id == 2"
@@ -67,16 +67,12 @@
               type="warning"
               ghost
               @click="GetSvnUserRepList(true)"
-              >同步列表</Button
+              >{{ $t("repositoryInfo.syncUserRepList") }}</Button
             >
           </Tooltip>
           <Tooltip
             max-width="450"
-            content="不经意的配置可能会导致 authz 配置文件失效
-如 svnserve 1.10 版本中为空分组授权仓库可能会导致配置失效等
-配置文件失效会导致用户端无法检出、浏览等正常操作
-因此可通过此工具在线检测 authz 配置文件有无问题
-此功能依赖 svnauthz-validate"
+            :content="$t('repositoryInfo.checkAuthzTip')"
             placement="bottom"
             :transfer="true"
             v-if="user_role_id == 1 || user_role_id == 3"
@@ -86,7 +82,7 @@
               type="error"
               ghost
               @click="CheckAuthz"
-              >authz检测</Button
+              >{{ $t("repositoryInfo.checkAuthz") }}</Button
             >
           </Tooltip>
           <!-- <Tooltip
@@ -109,7 +105,7 @@
           <Input
             search
             enter-button
-            placeholder="通过SVN仓库名、备注搜索..."
+            :placeholder="$t('repositoryInfo.searchRepByNameDesc')"
             @on-search="GetRepList()"
             v-model="searchKeywordRep"
             v-if="user_role_id == 1 || user_role_id == 3"
@@ -117,7 +113,7 @@
           <Input
             search
             enter-button
-            placeholder="通过SVN仓库名搜索..."
+            :placeholder="$t('repositoryInfo.searchUserRepByName')"
             @on-search="GetSvnUserRepList()"
             v-model="searchKeywordRep"
             v-if="user_role_id == 2"
@@ -166,17 +162,17 @@
         </template>
         <template slot-scope="{ row }" slot="repScan">
           <Button type="info" size="small" @click="ModalViewRep(row.rep_name)"
-            >浏览</Button
+            >{{ $t('view') }}</Button
           >
         </template>
         <template slot-scope="{ row }" slot="repPri">
           <Button type="info" size="small" @click="ModalRepPri(row.rep_name)"
-            >配置</Button
+            >{{ $t('config') }}</Button
           >
         </template>
         <template slot-scope="{ row }" slot="repHooks">
           <Button type="info" size="small" @click="ModalRepHooks(row.rep_name)"
-            >编辑</Button
+            >{{ $t('edit') }}</Button
           >
         </template>
         <template slot-scope="{ row }" slot="action">
@@ -184,16 +180,16 @@
             type="success"
             size="small"
             @click="ModalRepAdvance(row.rep_name)"
-            >高级</Button
+            >{{ $t('advance') }}</Button
           >
           <Button
             type="warning"
             size="small"
             @click="ModalEditRepName(row.rep_name)"
-            >修改</Button
+            >{{ $t('modify') }}</Button
           >
           <Button type="error" size="small" @click="DelRep(row.rep_name)"
-            >删除</Button
+            >{{ $t('delete') }}</Button
           >
         </template>
       </Table>
@@ -222,7 +218,7 @@
                 row.pri_path
               )
             "
-            >配置</Button
+            >{{ $t('config') }}</Button
           >
         </template>
         <template slot-scope="{ row }" slot="action">
@@ -230,14 +226,14 @@
             type="info"
             size="small"
             @click="ModalViewUserRep(row.rep_name, row.pri_path)"
-            >浏览</Button
+            >{{ $t('view') }}</Button
           >
           <Button
             type="info"
             size="small"
             v-if="enableCheckout == 'http'"
             @click="ModalViewUserRepRaw(row.raw_url)"
-            >原生浏览</Button
+            >{{ $t('repositoryInfo.viewRaw') }}</Button
           >
         </template>
       </Table>
@@ -273,28 +269,28 @@
       </Card>
     </Card>
     <!-- 对话框-新建SVN仓库 -->
-    <Modal v-model="modalCreateRep" :draggable="true" title="新建SVN仓库">
+    <Modal v-model="modalCreateRep" :draggable="true" :title="$t('repositoryInfo.createRepo')">
       <Form :model="formRepAdd" :label-width="80">
-        <FormItem label="仓库名称">
+        <FormItem :label="$t('repositoryInfo.repoName')">
           <Input v-model="formRepAdd.rep_name"></Input>
         </FormItem>
         <FormItem>
           <Alert type="warning" show-icon
-            >仓库名称只能包含中文、字母、数字、破折号、下划线、点，不能以点开头或结尾</Alert
+            >{{ $t('repositoryInfo.repoNameTip') }}</Alert
           >
         </FormItem>
-        <FormItem label="备注信息">
+        <FormItem :label="$t('note')">
           <Input v-model="formRepAdd.rep_note"></Input>
         </FormItem>
-        <FormItem label="仓库类型">
+        <FormItem :label="$t('repositoryInfo.repoType')">
           <RadioGroup vertical v-model="formRepAdd.rep_type">
             <Radio label="1">
               <Icon type="social-apple"></Icon>
-              <span>空仓库</span>
+              <span>{{ $t('repositoryInfo.emptyRepo') }}</span>
             </Radio>
             <Radio label="2">
               <Icon type="social-android"></Icon>
-              <span>指定结构的仓库(包含 "trunk" "branches" "tags" 文件夹)</span>
+              <span>{{ $t('repositoryInfo.standardRepo') }}</span>
             </Radio>
           </RadioGroup>
         </FormItem>
@@ -333,7 +329,7 @@
           >
             <Input readonly v-model="tempCheckout">
               <Button slot="append" icon="md-copy" @click="CopyCheckout"
-                >复制</Button
+                >{{ $t('copy') }}</Button
               >
             </Input>
           </Tooltip>
@@ -378,10 +374,10 @@
       :draggable="true"
     >
       <Alert type="info" show-icon
-        >如果SVN客户端正在触发相关的钩子，则更新动作可能会持续阻塞或失败，直至客户端结束相关进程</Alert
+        >{{ $t('repositoryInfo.repoHooksAlert') }}</Alert
       >
       <Tabs type="card">
-        <TabPane label="仓库钩子">
+        <TabPane :label="$t('repositoryInfo.repoHooks')">
           <Card :bordered="false" :dis-hover="true" class="my-modal">
             <!-- <Scroll> -->
             <List>
@@ -394,15 +390,15 @@
                 <ListItemMeta title="Start-commit hook" v-else />
                 <template slot="action">
                   <li>
-                    <span @click="ModalStudyRepHook('start_commit')">介绍</span>
+                    <span @click="ModalStudyRepHook('start_commit')">{{ $t('repositoryInfo.introduce') }}</span>
                   </li>
                   <li>
-                    <span @click="ModalEditRepHook('start_commit')">编辑</span>
+                    <span @click="ModalEditRepHook('start_commit')">{{ $t('edit') }}</span>
                   </li>
                   <li>
                     <span
                       @click="DelRepHook(formRepHooks.start_commit.fileName)"
-                      >移除</span
+                      >{{ $t('delete') }}</span
                     >
                   </li>
                 </template>
@@ -415,14 +411,14 @@
                 <ListItemMeta title="Pre-commit hook" v-else />
                 <template slot="action">
                   <li>
-                    <span @click="ModalStudyRepHook('pre_commit')">介绍</span>
+                    <span @click="ModalStudyRepHook('pre_commit')">{{ $t('repositoryInfo.introduce') }}</span>
                   </li>
                   <li>
-                    <span @click="ModalEditRepHook('pre_commit')">编辑</span>
+                    <span @click="ModalEditRepHook('pre_commit')">{{ $t('edit') }}</span>
                   </li>
                   <li>
                     <span @click="DelRepHook(formRepHooks.pre_commit.fileName)"
-                      >移除</span
+                      >{{ $t('delete') }}</span
                     >
                   </li>
                 </template>
@@ -435,14 +431,14 @@
                 <ListItemMeta title="Post-commit hook" v-else />
                 <template slot="action">
                   <li>
-                    <span @click="ModalStudyRepHook('post_commit')">介绍</span>
+                    <span @click="ModalStudyRepHook('post_commit')">{{ $t('repositoryInfo.introduce') }}</span>
                   </li>
                   <li>
-                    <span @click="ModalEditRepHook('post_commit')">编辑</span>
+                    <span @click="ModalEditRepHook('post_commit')">{{ $t('edit') }}</span>
                   </li>
                   <li>
                     <span @click="DelRepHook(formRepHooks.post_commit.fileName)"
-                      >移除</span
+                      >{{ $t('delete') }}</span
                     >
                   </li>
                 </template>
@@ -456,14 +452,14 @@
                 <ListItemMeta title="Pre-lock hook" v-else />
                 <template slot="action">
                   <li>
-                    <span @click="ModalStudyRepHook('pre_lock')">介绍</span>
+                    <span @click="ModalStudyRepHook('pre_lock')">{{ $t('repositoryInfo.introduce') }}</span>
                   </li>
                   <li>
-                    <span @click="ModalEditRepHook('pre_lock')">编辑</span>
+                    <span @click="ModalEditRepHook('pre_lock')">{{ $t('edit') }}</span>
                   </li>
                   <li>
                     <span @click="DelRepHook(formRepHooks.pre_lock.fileName)"
-                      >移除</span
+                      >{{ $t('delete') }}</span
                     >
                   </li>
                 </template>
@@ -476,14 +472,14 @@
                 <ListItemMeta title="Post-lock hook" v-else />
                 <template slot="action">
                   <li>
-                    <span @click="ModalStudyRepHook('post_lock')">介绍</span>
+                    <span @click="ModalStudyRepHook('post_lock')">{{ $t('repositoryInfo.introduce') }}</span>
                   </li>
                   <li>
-                    <span @click="ModalEditRepHook('post_lock')">编辑</span>
+                    <span @click="ModalEditRepHook('post_lock')">{{ $t('edit') }}</span>
                   </li>
                   <li>
                     <span @click="DelRepHook(formRepHooks.post_lock.fileName)"
-                      >移除</span
+                      >{{ $t('delete') }}</span
                     >
                   </li>
                 </template>
@@ -496,14 +492,14 @@
                 <ListItemMeta title="Pre-unlock hook" v-else />
                 <template slot="action">
                   <li>
-                    <span @click="ModalStudyRepHook('pre_unlock')">介绍</span>
+                    <span @click="ModalStudyRepHook('pre_unlock')">{{ $t('repositoryInfo.introduce') }}</span>
                   </li>
                   <li>
-                    <span @click="ModalEditRepHook('pre_unlock')">编辑</span>
+                    <span @click="ModalEditRepHook('pre_unlock')">{{ $t('edit') }}</span>
                   </li>
                   <li>
                     <span @click="DelRepHook(formRepHooks.pre_unlock.fileName)"
-                      >移除</span
+                      >{{ $t('delete') }}</span
                     >
                   </li>
                 </template>
@@ -516,14 +512,14 @@
                 <ListItemMeta title="Post-unlock hook" v-else />
                 <template slot="action">
                   <li>
-                    <span @click="ModalStudyRepHook('post_unlock')">介绍</span>
+                    <span @click="ModalStudyRepHook('post_unlock')">{{ $t('repositoryInfo.introduce') }}</span>
                   </li>
                   <li>
-                    <span @click="ModalEditRepHook('post_unlock')">编辑</span>
+                    <span @click="ModalEditRepHook('post_unlock')">{{ $t('edit') }}</span>
                   </li>
                   <li>
                     <span @click="DelRepHook(formRepHooks.post_unlock.fileName)"
-                      >移除</span
+                      >{{ $t('delete') }}</span
                     >
                   </li>
                 </template>
@@ -543,12 +539,12 @@
                 <template slot="action">
                   <li>
                     <span @click="ModalStudyRepHook('pre_revprop_change')"
-                      >介绍</span
+                      >{{ $t('repositoryInfo.introduce') }}</span
                     >
                   </li>
                   <li>
                     <span @click="ModalEditRepHook('pre_revprop_change')"
-                      >编辑</span
+                      >{{ $t('edit') }}</span
                     >
                   </li>
                   <li>
@@ -556,7 +552,7 @@
                       @click="
                         DelRepHook(formRepHooks.pre_revprop_change.fileName)
                       "
-                      >移除</span
+                      >{{ $t('delete') }}</span
                     >
                   </li>
                 </template>
@@ -573,12 +569,12 @@
                 <template slot="action">
                   <li>
                     <span @click="ModalStudyRepHook('post_revprop_change')"
-                      >介绍</span
+                      >{{ $t('repositoryInfo.introduce') }}</span
                     >
                   </li>
                   <li>
                     <span @click="ModalEditRepHook('post_revprop_change')"
-                      >编辑</span
+                      >{{ $t('edit') }}</span
                     >
                   </li>
                   <li>
@@ -586,7 +582,7 @@
                       @click="
                         DelRepHook(formRepHooks.post_revprop_change.fileName)
                       "
-                      >移除</span
+                      >{{ $t('delete') }}</span
                     >
                   </li>
                 </template>
@@ -596,14 +592,14 @@
           </Card>
           <Spin size="large" fix v-if="loadingGetRepHooks"></Spin>
         </TabPane>
-        <TabPane label="常用钩子">
+        <TabPane :label="$t('repositoryInfo.recommendHooks')">
           <Alert
-            >如需将自己常用的钩子显示在此处<br /><br />
-            以新增 pre-commit 功能为例，操作步骤如下：<br /><br />
-            1、在 /home/svnadmin/hooks/ 目录下创建任意名称的文件夹<br />
-            2、创建文件 hookDescription 并写入此钩子的主要功能描述<br />
-            3、创建文件 hookName 并写入钩子的类型 pre-commit<br />
-            4、创建文件 pre-commit 并写入钩子内容<br />
+            >{{ $t('repositoryInfo.recommendHooksAlert1') }}<br /><br />
+            {{ $t('repositoryInfo.recommendHooksAlert2') }}<br /><br />
+            {{ $t('repositoryInfo.recommendHooksAlert3') }}<br />
+            {{ $t('repositoryInfo.recommendHooksAlert4') }}<br />
+            {{ $t('repositoryInfo.recommendHooksAlert5') }}<br />
+            {{ $t('repositoryInfo.recommendHooksAlert6') }}<br />
           </Alert>
           <Scroll :height="200">
             <List :border="true">
@@ -614,7 +610,7 @@
                 />
                 <template slot="action">
                   <li>
-                    <span @click="ViewRecommendHook(item.hookName)">查看</span>
+                    <span @click="ViewRecommendHook(item.hookName)">{{ $t('view') }}</span>
                   </li>
                 </template>
               </ListItem>
@@ -658,16 +654,16 @@
         :rows="15"
         show-word-limit
         type="textarea"
-        placeholder="具体介绍和语法可看钩子介绍"
+        :placeholder="$t('repositoryInfo.hookFilePlaceHolder')"
       />
       <div slot="footer">
         <Button type="primary" @click="UpdRepHook" :loading="loadingEditRepHook"
-          >应用</Button
+          >{{ $t('apply') }}</Button
         >
       </div>
     </Modal>
     <!-- 对话框-常用钩子 -->
-    <Modal v-model="modalRecommendHook" :draggable="true" title="常用钩子">
+    <Modal v-model="modalRecommendHook" :draggable="true" :title="$t('repositoryInfo.recommendHooks')">
       <Input
         v-model="tempSelectRepHookRecommend"
         readonly
@@ -688,7 +684,7 @@
       :title="titleModalRepAdvance"
     >
       <Tabs type="card" v-model="curTabRepAdvance" @on-click="ClickTabAdvance">
-        <TabPane label="仓库属性" name="attribute">
+        <TabPane :label="$t('repositoryInfo.repoAttribute')" name="attribute">
           <Table
             :show-header="false"
             :columns="tableColumnRepDetail"
@@ -710,20 +706,20 @@
               v-if="row.repKey == 'UUID' || row.repKey == 'uuid'"
             >
               <Button type="primary" size="small" @click="ModalSetUUID()"
-                >重设</Button
+                >{{ $t('reset') }}</Button
               >
             </template>
           </Table>
         </TabPane>
-        <TabPane label="仓库备份" name="backup">
+        <TabPane :label="$t('repositoryInfo.repoBackup')" name="backup">
           <Alert type="error" show-icon v-if="!file.on"
-            >当前环境PHP未开启文件上传功能
+            >{{ $t('repositoryInfo.cannotUploadAlert') }}
           </Alert>
           <Row style="margin-bottom: 15px">
             <Col span="15">
               <Tooltip
                 max-width="250"
-                content="以svnadmin dump的方式加入后台任务进行备份"
+                :content="$t('repositoryInfo.backupByCrondDump')"
                 placement="bottom"
                 :transfer="true"
               >
@@ -733,7 +729,7 @@
                   icon="ios-cafe-outline"
                   :loading="loadingRepDump"
                   @click="SvnadminDump"
-                  >立即备份</Button
+                  >{{ $t('repositoryInfo.backupNow') }}</Button
                 >
               </Tooltip>
               <Button
@@ -741,7 +737,7 @@
                 ghost
                 icon="ios-cloud-upload-outline"
                 @click="ModalUploadBackup"
-                >上传备份</Button
+                >{{ $t('repositoryInfo.uploadBackup') }}</Button
               >
             </Col>
           </Row>
@@ -759,19 +755,19 @@
                 size="small"
                 :loading="loadingLoadBackup[index]"
                 @click="SvnadminLoad(row.fileName, index)"
-                >恢复</Button
+                >{{ $t('repositoryInfo.loadBackup') }}</Button
               >
               <Button
                 type="success"
                 size="small"
                 @click="DownloadRepBackup(row.fileUrl)"
-                >下载</Button
+                >{{ $t('repositoryInfo.downloadBackup') }}</Button
               >
               <Button
                 type="error"
                 size="small"
                 @click="DelRepBackup(row.fileName)"
-                >删除</Button
+                >{{ $t('delete') }}</Button
               >
             </template>
           </Table>
@@ -790,7 +786,7 @@
       :title="titleModalEditRepName"
     >
       <Form :model="formRepEdit" :label-width="80">
-        <FormItem label="仓库名称">
+        <FormItem :label="$t('repositoryInfo.repoName')">
           <Input v-model="formRepEdit.new_rep_name"></Input>
         </FormItem>
         <FormItem>
@@ -809,12 +805,12 @@
       </div>
     </Modal>
     <!-- 对话框-重设仓库UUID -->
-    <Modal v-model="modalSetUUID" :draggable="true" title="重设仓库UUID">
+    <Modal v-model="modalSetUUID" :draggable="true" :title="$t('repositoryInfo.resetUUID')">
       <Form :label-width="80" @submit.native.prevent>
         <FormItem label="UUID">
           <Input
             v-model="tempRepUUID"
-            placeholder="不填写则自动生成全新UUID"
+            :placeholder="$t('repositoryInfo.inputUUID')"
           ></Input>
         </FormItem>
         <FormItem>
@@ -828,7 +824,7 @@
       </div>
     </Modal>
     <!-- 对话框-authz检测结果 -->
-    <Modal v-model="modalValidateAuthz" title="authz检测结果">
+    <Modal v-model="modalValidateAuthz" :title="$t('repositoryInfo.authzCheckResult')">
       <Input
         v-model="tempmodalValidateAuthz"
         readonly
@@ -843,7 +839,7 @@
       </div>
     </Modal>
     <!-- 对话框-仓库导入错误 -->
-    <Modal v-model="modalRepLoad" :draggable="true" title="仓库导入错误">
+    <Modal v-model="modalRepLoad" :draggable="true" :title="$t('repositoryInfo.repoLoadError')">
       <Input
         v-model="tempRepLoadError"
         readonly
@@ -859,17 +855,17 @@
     <Modal
       v-model="modalRepUpload"
       :draggable="true"
-      title="仓库备份文件上传"
+      :title="$t('repositoryInfo.uploadBackupFile')"
       @on-visible-change="ChangeModalVisible"
     >
       <Form :label-width="80">
-        <FormItem label="上传文件">
+        <FormItem :label="$t('repositoryInfo.uploadFile')">
           <Button
             type="primary"
             icon="ios-cloud-upload-outline"
             ghost
             @click="ClickRepUpload"
-            >选择文件</Button
+            >{{ $t('repositoryInfo.chooseFile') }}</Button
           >
           <input
             type="file"
@@ -879,45 +875,45 @@
             style="display: none"
           />
         </FormItem>
-        <FormItem label="上传进度">
+        <FormItem :label="$t('repositoryInfo.uploadProgress')">
           <Progress
             :percent="file.percent"
             :stroke-width="20"
             status="active"
           />
         </FormItem>
-        <FormItem label="文件名称"
+        <FormItem :label="$t('repositoryInfo.filename')"
           ><span style="color: #2d8cf0">{{ file.name }}</span>
         </FormItem>
-        <FormItem label="上传体积">
+        <FormItem :label="$t('repositoryInfo.filesize')">
           <span style="color: #2d8cf0">{{ file.size }}</span></FormItem
         >
-        <FormItem label="当前阶段">
+        <FormItem :label="$t('repositoryInfo.uploadStatus')">
           <span style="color: red">{{ file.desc }}</span>
         </FormItem>
-        <FormItem label="分片大小">
+        <FormItem :label="$t('repositoryInfo.chunkSize')">
           <span style="color: #2d8cf0">{{ file.chunkSize }} MB</span>
         </FormItem>
-        <FormItem label="剩余时间">
+        <FormItem :label="$t('repositoryInfo.timeleft')">
           <span style="color: #2d8cf0">{{ file.left }}</span></FormItem
         >
-        <FormItem label="分片清理">
+        <FormItem :label="$t('repositoryInfo.clearChunks')">
           <span style="color: #2d8cf0">{{
             file.deleteOnMerge == 1
-              ? "合并完成后服务器自动删除分片"
-              : "合并完成后服务器不自动删除分片"
+              ? $t('repositoryInfo.deleteOnMerge')
+              : $t('repositoryInfo.keepOnMerge')
           }}</span>
         </FormItem>
-        <FormItem label="上传控制">
+        <FormItem :label="$t('repositoryInfo.uploadControl')">
           <Button
             type="primary"
             ghost
             v-if="!file.stop"
             @click="file.stop = true"
-            >暂停</Button
+            >{{ $t('repositoryInfo.pause') }}</Button
           >
           <span v-else style="color: red"
-            >暂停后需要重新选择文件-已上传分片依然有效</span
+            >{{ $t('repositoryInfo.pauseTips') }}</span
           >
         </FormItem>
       </Form>
@@ -1186,218 +1182,18 @@ export default {
       //常用钩子列表
       recommendHooks: [],
 
-      /**
-       * 表格
-       */
-      //所有仓库
-      tableColumnRep: [
-        {
-          title: "序号",
-          slot: "index",
-          fixed: "left",
-          minWidth: 80,
-        },
-        {
-          title: "仓库名",
-          key: "rep_name",
-          tooltip: true,
-          sortable: "custom",
-          minWidth: 120,
-        },
-        {
-          title: "版本数",
-          slot: "rep_rev",
-          sortable: "custom",
-          minWidth: 90,
-        },
-        {
-          title: "体积",
-          slot: "rep_size",
-          sortable: "custom",
-          minWidth: 120,
-        },
-        {
-          title: "备注信息",
-          slot: "rep_note",
-          minWidth: 120,
-        },
-        {
-          title: "仓库内容",
-          slot: "repScan",
-          minWidth: 120,
-        },
-        {
-          title: "仓库权限",
-          slot: "repPri",
-          minWidth: 120,
-        },
-        {
-          title: "仓库钩子",
-          slot: "repHooks",
-          width: 120,
-        },
-        {
-          title: "其它",
-          slot: "action",
-          width: 180,
-          // fixed:"right"
-        },
-      ],
       tableDataRep: [],
-      //SVN用户仓库
-      tableColumnUserRep: [
-        {
-          title: "序号",
-          slot: "index",
-          fixed: "left",
-          minWidth: 80,
-        },
-        {
-          title: "仓库名",
-          key: "rep_name",
-          tooltip: true,
-          sortable: "custom",
-          minWidth: 120,
-        },
-        {
-          title: "路径/文件",
-          tooltip: true,
-          key: "pri_path",
-          minWidth: 120,
-        },
-        {
-          title: "权限",
-          key: "rep_pri",
-          minWidth: 120,
-        },
-        {
-          title: "二次授权",
-          slot: "second_pri",
-          minWidth: 120,
-        },
-        {
-          title: "其它",
-          slot: "action",
-          width: 180,
-          // fixed:"right"
-        },
-      ],
+      
       tableDataUserRep: [],
-      //仓库内容浏览
-      tableColumnRepCon: [
-        {
-          title: "类型",
-          slot: "resourceType",
-          width: 60,
-        },
-        {
-          title: "文件",
-          key: "resourceName",
-          tooltip: true,
-        },
-        {
-          title: "体积",
-          key: "fileSize",
-          tooltip: true,
-        },
-        {
-          title: "作者",
-          key: "revAuthor",
-          tooltip: true,
-        },
-        {
-          title: "版本",
-          key: "revNum",
-          tooltip: true,
-        },
-        {
-          title: "日期",
-          key: "revTime",
-          tooltip: true,
-          width: 350,
-        },
-        {
-          title: "日志",
-          key: "revLog",
-          tooltip: true,
-        },
-      ],
+      
       tableDataRepCon: [],
-      //备份文件
-      tableColumnBackup: [
-        {
-          title: "文件名",
-          key: "fileName",
-          tooltip: true,
-        },
-        {
-          title: "大小",
-          key: "fileSize",
-          tooltip: true,
-        },
-        {
-          title: "修改时间",
-          key: "fileEditTime",
-          tooltip: true,
-        },
-        {
-          title: "其它",
-          slot: "action",
-          width: 200,
-        },
-      ],
+      
       tableDataBackup: [],
-      //某节点的用户权限
-      tableColumnRepPathUserPri: [
-        {
-          title: "用户名",
-          key: "userName",
-        },
-        {
-          title: "权限",
-          key: "userPri",
-        },
-      ],
+      
       tableDataRepPathUserPri: [],
-      //某节点的分组权限
-      tableColumnRepPathGroupPri: [
-        {
-          title: "分组名",
-          key: "groupName",
-        },
-        {
-          title: "权限",
-          key: "groupPri",
-        },
-      ],
+      
       tableDataRepPathGroupPri: [],
 
-      //仓库的详细信息 uuid等
-      tableColumnRepDetail: [
-        {
-          title: "属性",
-          key: "repKey",
-          tooltip: true,
-          fixed: "left",
-          width: 170,
-          // width:80
-        },
-        {
-          title: "信息",
-          key: "repValue",
-          tooltip: true,
-          width: 170,
-        },
-        {
-          title: "复制",
-          slot: "copy",
-          width: 60,
-        },
-        {
-          title: "重设",
-          slot: "uuid",
-        },
-      ],
       tableDataRepDetail: [],
     };
   },
@@ -1411,6 +1207,218 @@ export default {
        noDataTextRepCon() { 
         return i18n.t('noDataNow'); //"暂无数据",
       },
+      /**
+       * 表格
+       */
+      //所有仓库
+      tableColumnRep() {
+        return [
+        {
+          title: i18n.t('serial'),   //"序号",
+          slot: "index",
+          fixed: "left",
+          minWidth: 80,
+        },
+        {
+          title: i18n.t('repositoryInfo.repoName'),   //"仓库名",
+          key: "rep_name",
+          tooltip: true,
+          sortable: "custom",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('repositoryInfo.repoRev'),   //"版本数",
+          slot: "rep_rev",
+          sortable: "custom",
+          minWidth: 90,
+        },
+        {
+          title: i18n.t('repositoryInfo.repoSize'),   //"体积",
+          slot: "rep_size",
+          sortable: "custom",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('note'),   //"备注信息",
+          slot: "rep_note",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('repositoryInfo.repoScan'),   //"仓库内容",
+          slot: "repScan",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('repositoryInfo.repoPri'),   //"仓库权限",
+          slot: "repPri",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('repositoryInfo.repoHooks'),   //"仓库钩子",
+          slot: "repHooks",
+          width: 120,
+        },
+        {
+          title: i18n.t('others'),   //"其它",
+          slot: "action",
+          width: 180,
+          // fixed:"right"
+        },
+      ]},
+      //SVN用户仓库
+      tableColumnUserRep() {
+        return [
+        {
+          title: i18n.t('serial'),   //"序号",
+          slot: "index",
+          fixed: "left",
+          minWidth: 80,
+        },
+        {
+          title: i18n.t('repositoryInfo.repoName'),   //"仓库名",
+          key: "rep_name",
+          tooltip: true,
+          sortable: "custom",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('repositoryInfo.pathFile'),   //"路径/文件",
+          tooltip: true,
+          key: "pri_path",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('repositoryInfo.repoPri'),   //"权限",
+          key: "rep_pri",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('repositoryInfo.secondPri'),   //"二次授权",
+          slot: "second_pri",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('others'),   //"其它",
+          slot: "action",
+          width: 180,
+          // fixed:"right"
+        },
+      ]},
+      //仓库内容浏览
+      tableColumnRepCon() {
+        return [
+        {
+          title: i18n.t('repositoryInfo.resourceType'),   //"类型",
+          slot: "resourceType",
+          width: 60,
+        },
+        {
+          title: i18n.t('repositoryInfo.resourceName'),   //"文件",
+          key: "resourceName",
+          tooltip: true,
+        },
+        {
+          title: i18n.t('repositoryInfo.filesize'),   //"体积",
+          key: "fileSize",
+          tooltip: true,
+        },
+        {
+          title: i18n.t('repositoryInfo.revAuthor'),   //"作者",
+          key: "revAuthor",
+          tooltip: true,
+        },
+        {
+          title: i18n.t('repositoryInfo.revNum'),   //"版本",
+          key: "revNum",
+          tooltip: true,
+        },
+        {
+          title: i18n.t('repositoryInfo.revTime'),   //"日期",
+          key: "revTime",
+          tooltip: true,
+          width: 350,
+        },
+        {
+          title: i18n.t('repositoryInfo.revLog'),   //"日志",
+          key: "revLog",
+          tooltip: true,
+        },
+      ]},
+      //备份文件
+      tableColumnBackup() {
+        return [
+        {
+          title: i18n.t('repositoryInfo.filename'),   //"文件名",
+          key: "fileName",
+          tooltip: true,
+        },
+        {
+          title: i18n.t('repositoryInfo.filesize'),   //"大小",
+          key: "fileSize",
+          tooltip: true,
+        },
+        {
+          title: i18n.t('repositoryInfo.fileEditTime'),   //"修改时间",
+          key: "fileEditTime",
+          tooltip: true,
+        },
+        {
+          title: i18n.t('others'),   //"其它",
+          slot: "action",
+          width: 200,
+        },
+      ]},
+      //某节点的用户权限
+      tableColumnRepPathUserPri() {
+        return [
+        {
+          title: i18n.t('username'),   //"用户名",
+          key: "userName",
+        },
+        {
+          title: i18n.t('repositoryInfo.userPri'),   //"权限",
+          key: "userPri",
+        },
+      ]},
+      //某节点的分组权限
+      tableColumnRepPathGroupPri() {
+        return [
+        {
+          title: i18n.t('repositoryInfo.groupName'),   //"分组名",
+          key: "groupName",
+        },
+        {
+          title: i18n.t('repositoryInfo.groupPri'),   //"权限",
+          key: "groupPri",
+        },
+      ]},
+      //仓库的详细信息 uuid等
+      tableColumnRepDetail() {
+        return [
+        {
+          title: i18n.t('repositoryInfo.repoAttribute'),   //"属性",
+          key: "repKey",
+          tooltip: true,
+          fixed: "left",
+          width: 170,
+          // width:80
+        },
+        {
+          title: i18n.t('repositoryInfo.repoInfo'),   //"信息",
+          key: "repValue",
+          tooltip: true,
+          width: 170,
+        },
+        {
+          title: i18n.t('copy'),   //"复制",
+          slot: "copy",
+          width: 60,
+        },
+        {
+          title: i18n.t('reset'),   //"重设",
+          slot: "uuid",
+        },
+      ]},
   },
   created() {},
   mounted() {
@@ -1813,7 +1821,7 @@ export default {
       that.currentRepPath = "/";
       that.currentRepName = rep_name;
       //设置标题
-      that.titleModalViewRep = "仓库内容 - " + rep_name;
+      that.titleModalViewRep = i18n.t('repositoryInfo.repoScan') + " - " + rep_name;
       //显示对话框
       that.modalViewRep = true;
       //请求检出地址信息
@@ -1833,7 +1841,7 @@ export default {
       that.currentRepPath = pri_path;
       that.currentRepName = rep_name;
       //设置标题
-      that.titleModalViewRep = "仓库内容 - " + rep_name;
+      that.titleModalViewRep = i18n.t('repositoryInfo.repoScan') + " - " + rep_name;
       //显示对话框
       that.modalViewRep = true;
       //请求检出地址信息
@@ -1845,7 +1853,7 @@ export default {
           that.loadingRepCon = false;
           //设置表格提示信息
           that.noDataTextRepCon =
-            "由于svnserve服务未启动，SVN用户只能复制检出地址而不能进行仓库内容浏览";
+            i18n.t('repositoryInfo.noDataTextRepCon');
           //更新检出地址
           that.tempCheckout =
             that.checkInfo.protocal +
@@ -1997,10 +2005,10 @@ export default {
       var that = this;
       that.$copyText(that.tempCheckout).then(
         function (e) {
-          that.$Message.success("复制成功");
+          that.$Message.success(i18n.t('repositoryInfo.copySuccess'));
         },
         function (e) {
-          that.$Message.error("复制失败，请手动复制");
+          that.$Message.error(i18n.t('repositoryInfo.copyFailed'));
         }
       );
     },
@@ -2125,19 +2133,19 @@ export default {
               var result = response.data;
               if (result.status == 1) {
                 if (result.data.completeCount == that.file.total / 2 - 1) {
-                  that.file.desc = "分片合并中";
+                  that.file.desc = i18n.t('repositoryInfo.mergingChunks');
                 } else if (result.data.completeCount == that.file.total / 2) {
-                  that.file.desc = "分片合并完成（上传成功）";
+                  that.file.desc = i18n.t('repositoryInfo.mergeSuccess');
                 } else {
                   // that.file.desc = "分片上传中";
-                  that.file.desc = `${that.file.chunkCount} 个分片上传中`;
+                  that.file.desc = `${that.file.chunkCount + i18n.t('repositoryInfo.chunksUploading')}`;
                 }
                 if (result.data.complete) {
                   //进度条百分比
                   that.file.percent = 100;
                   //剩余时间
                   var formateTime = that.FormatTime(0);
-                  that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+                  that.file.left = `${formateTime[0]}${i18n.t('repositoryInfo.hours')}${formateTime[1]}${i18n.t('repositoryInfo.minutes')}${formateTime[2]}${i18n.t('repositoryInfo.seconds')}`;
                   that.$Message.success(result.message);
                   that.GetBackupList();
                   that.file.stop = true;
@@ -2151,7 +2159,7 @@ export default {
                   var formateTime = that.FormatTime(
                     that.file.total - that.file.current
                   );
-                  that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+                  that.file.left = `${formateTime[0]}${i18n.t('repositoryInfo.hours')}${formateTime[1]}${i18n.t('repositoryInfo.minutes')}${formateTime[2]}${i18n.t('repositoryInfo.seconds')}`;
                 }
               } else {
                 that.file.stop = true;
@@ -2238,9 +2246,9 @@ export default {
           var formateTime = that.FormatTime(
             that.file.total - that.file.current
           );
-          that.file.left = `${formateTime[0]}时${formateTime[1]}分${formateTime[2]}秒`;
+          that.file.left = `${formateTime[0]}${i18n.t('repositoryInfo.hours')}${formateTime[1]}${i18n.t('repositoryInfo.minutes')}${formateTime[2]}${i18n.t('repositoryInfo.seconds')}`;
           //当前状态
-          that.file.desc = `${that.file.chunkCount} 个分片md5计算中`;
+          that.file.desc = `${that.file.chunkCount + i18n.t('repositoryInfo.chunksMd5Calculating')}`;
         }
 
         loadNext();
@@ -2258,8 +2266,8 @@ export default {
     DelRepBackup(fileName) {
       var that = this;
       that.$Modal.confirm({
-        title: "删除文件",
-        content: "确定要删除该文件吗？<br/>该操作不可逆！",
+        title: i18n.t('repositoryInfo.deleteFile'),
+        content: i18n.t('repositoryInfo.deleteFileConfirm'),
         onOk: () => {
           var data = {
             fileName: fileName,
@@ -2311,7 +2319,7 @@ export default {
      */
     ModalRepHooks(rep_name) {
       //设置标题
-      this.titleModalRepHooks = "仓库钩子 - " + rep_name;
+      this.titleModalRepHooks = i18n.t('repositoryInfo.repoHooks') + " - " + rep_name;
       //显示对话框
       this.modalRepHooks = true;
       //设置当前选中仓库
@@ -2470,7 +2478,7 @@ export default {
       //设置当前仓库名称
       this.currentRepName = rep_name;
       //设置标题
-      this.titleModalRepAdvance = "高级 - " + rep_name;
+      this.titleModalRepAdvance = i18n.t('advance') + " - " + rep_name;
       //显示对话框
       this.modalRepAdvance = true;
       this.ClickTabAdvance(sessionStorage.curTabRepAdvance);
@@ -2512,10 +2520,10 @@ export default {
         that.tableDataRepDetail[index].repValue;
       that.$copyText(copyContent).then(
         function (e) {
-          that.$Message.success("复制成功");
+          that.$Message.success(i18n.t("repositoryInfo.copySuccess"));
         },
         function (e) {
-          that.$Message.error("复制失败，请手动复制");
+          that.$Message.error(i18n.t("repositoryInfo.copyFailed"));
         }
       );
     },
@@ -2636,7 +2644,7 @@ export default {
       //设置新名称
       this.formRepEdit.new_rep_name = JSON.parse(JSON.stringify(rep_name));
       //配置标题
-      this.titleModalEditRepName = "修改仓库名称 - " + rep_name;
+      this.titleModalEditRepName = i18n.t('repositoryInfo.modifyRepoName') + " - " + rep_name;
       //显示对话框
       this.modalEditRepName = true;
     },
@@ -2723,7 +2731,7 @@ export default {
                         display: "inline-block",
                       },
                       domProps: {
-                        innerHTML: "删除仓库 - " + rep_name,
+                        innerHTML: i18n.t('repositoryInfo.deleteRepo') + " - " + rep_name,
                       },
                     }),
                     h(
@@ -2742,7 +2750,7 @@ export default {
                               fontSize: "15px",
                             },
                           },
-                          "删除仓库 - " + rep_name
+                          i18n.t('repositoryInfo.deleteRepo') + " - " + rep_name
                         ),
                       ]
                     ),
@@ -2761,7 +2769,7 @@ export default {
                   style: { marginBottom: "15px" },
                   domProps: {
                     innerHTML:
-                      "确定要删除该仓库吗？<br/>该操作不可逆！<br/>如果该仓库有正在进行的网络传输，可能会删除失败，请注意提示信息！",
+                      i18n.t('repositoryInfo.deleteRepoConfirm'),
                   },
                 }),
               ]
