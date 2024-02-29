@@ -84,7 +84,7 @@
             </Alert>
             <Form :label-width="160" label-position="left">
               <FormItem
-                :label="item.key"
+                :label="item.key ? $t('setting.' + item.key) : ''"
                 v-for="(item, index) in configList"
                 :key="index"
               >
@@ -1304,7 +1304,7 @@
             >
             <Form :label-width="140">
               <FormItem
-                :label="item.note"
+                :label="item.note ? $t('setting.' + item.note) : item.note"
                 v-for="(item, index) in listPush"
                 :key="index"
               >
@@ -1332,7 +1332,7 @@
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem
-                :label="item.note"
+                :label="item.note ? $t('setting.' + item.note) : item.note"
                 v-for="(item, index) in listSafe"
                 :key="index"
               >

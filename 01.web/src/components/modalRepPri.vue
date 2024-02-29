@@ -19,7 +19,7 @@
             >
               <template slot="contextMenu">
                 <DropdownItem @click.native="modalCreateRepFolder = true"
-                  >新建文件夹</DropdownItem
+                  >{{ $t('modalRepPri.createFolder') }}</DropdownItem
                 >
               </template>
             </Tree>
@@ -34,7 +34,7 @@
             placement="bottom"
           >
             <Input v-model="currentRepPath">
-              <span slot="prepend">当前路径:</span>
+              <span slot="prepend">{{ $t('modalRepPri.currentPath') }}</span>
             </Input>
           </Tooltip>
           <Card

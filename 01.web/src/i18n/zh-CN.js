@@ -520,6 +520,18 @@ user2:passwd2`,
         waitingHttpdRestart: '等待httpd服务重启',
         enableSvnProtocol: '启用 svn 协议检出将会使用另外的用户密码文件、会清空数据库中目前的用户信息、会停止 http 协议检出。是否继续？',
         restartHttpdConfirm: '此操作将会重启httpd服务。是否继续？',
+        主目录: '主目录',
+        仓库父目录: '仓库父目录',
+        仓库配置文件: '仓库配置文件',
+        仓库权限文件: '仓库权限文件',
+        用户账号文件: '用户账号文件',
+        备份目录: '备份目录',
+        svnserve环境变量文件: 'svnserve环境变量文件',
+        用户登录: '用户登录',
+        管理人员修改账户名: '管理人员修改账户名',
+        管理人员修改密码: '管理人员修改密码',
+        SVN用户修改密码: 'SVN用户修改密码',
+        登录验证码: '登录验证码',
     },
     subadmin: {
         createSubadmin: '新建子管理员',
@@ -539,5 +551,11 @@ user2:passwd2`,
         deleteSubadmin: '删除子管理员',
         confirmDeleteSubadmin: '确定要删除该子管理员吗？<br/>该操作不可逆！',
     },
+    modalRepPri: {
+        createFolder: '新建文件夹',
+        currentPath: '当前路径：',
+    },
+    modalSvnObject: {
 
+    }
 }
