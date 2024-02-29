@@ -582,6 +582,16 @@ user2:passwd2`,
         permissionDesc13: '# 只有项目管理员有 calc 项目的发行版标签操作权限',
     },
     modalSvnObject: {
-
+        objectList: '对象列表',
+        syncUserTip: '同步才可获取最新用户列表',
+        searchByUserName: '通过用户名搜索...',
+        select: '选择',
+        searchByGroupName: '通过分组名搜索...',
+        searchByAliase: '通过别名搜索...',
+        searchBySymbol: '通过符号搜索',
+        defaultPermissionTip: '授权的对象权限默认为读写',
+        aliase: '别名',
+        aliaseCon: '别名内容',
+        groupMemberInfo: '分组成员信息',
     }
 }

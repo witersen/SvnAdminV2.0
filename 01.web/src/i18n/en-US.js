@@ -582,6 +582,16 @@ user2:passwd2`,
         permissionDesc13: '# Only project administrators have release label operations for calc projects',
     },
     modalSvnObject: {
-
+        objectList: 'Object List',
+        syncUserTip: 'synchronization to get the latest list of users',
+        searchByUserName: 'Search by user name',
+        select: 'Select',
+        searchByGroupName: 'Search by group name',
+        searchByAliase: 'Search by aliase',
+        searchBySymbol: 'Search by symbol',
+        defaultPermissionTip: 'By default, the authorized object permissions are read and write',
+        aliase: 'Aliase',
+        aliaseCon: 'Aliase Content',
+        groupMemberInfo: 'Group Member Information',
     }
 }

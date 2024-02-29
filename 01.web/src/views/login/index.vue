@@ -156,7 +156,7 @@ export default {
       ? localStorage.user_role
       : "2";
     if (sessionStorage.token) {
-      that.$Message.success($t("login.userAlreadyLogin"));
+      that.$Message.success(i18n.t("login.userAlreadyLogin"));
       setTimeout(function () {
         that.$router.push({ name: sessionStorage.firstRoute });
       }, 2000);
