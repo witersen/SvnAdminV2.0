@@ -47,7 +47,7 @@
               type="primary"
               ghost
               @click="modalSvnObject = true"
-              >路径授权</Button
+              >{{ $t('modalRepPri.addPathPermission') }}</Button
             >
             <Table
               border
@@ -63,37 +63,37 @@
                   color="blue"
                   v-if="row.objectType == 'user'"
                   style="width: 90px; text-align: center"
-                  >SVN用户</Tag
+                  >{{ $t('repositoryGroup.user') }}</Tag
                 >
                 <Tag
                   color="geekblue"
                   v-if="row.objectType == 'group'"
                   style="width: 90px; text-align: center"
-                  >SVN分组</Tag
+                  >{{ $t('repositoryGroup.group') }}</Tag
                 >
                 <Tag
                   color="purple"
                   v-if="row.objectType == 'aliase'"
                   style="width: 90px; text-align: center"
-                  >SVN别名</Tag
+                  >{{ $t('repositoryGroup.aliase') }}</Tag
                 >
                 <Tag
                   color="red"
                   v-if="row.objectType == '*'"
                   style="width: 90px; text-align: center"
-                  >所有人</Tag
+                  >{{ $t('modalRepPri.allUsers') }}</Tag
                 >
                 <Tag
                   color="magenta"
                   v-if="row.objectType == '$authenticated'"
                   style="width: 90px; text-align: center"
-                  >所有已认证者</Tag
+                  >{{ $t('modalRepPri.authenticatedUsers') }}</Tag
                 >
                 <Tag
                   color="volcano"
                   v-if="row.objectType == '$anonymous'"
                   style="width: 90px; text-align: center"
-                  >所有匿名者</Tag
+                  >{{ $t('modalRepPri.anonymousUsers') }}</Tag
                 >
               </template>
               <template slot-scope="{ row }" slot="objectPri">
@@ -112,9 +112,9 @@
                       )
                   "
                 >
-                  <Radio label="rw">读写</Radio>
-                  <Radio label="r">只读</Radio>
-                  <Radio label="no">禁止</Radio>
+                  <Radio label="rw">{{ $t('repositoryGroup.readWrite') }}</Radio>
+                  <Radio label="r">{{ $t('repositoryGroup.readOnly') }}</Radio>
+                  <Radio label="no">{{ $t('repositoryGroup.noAccess') }}</Radio>
                 </RadioGroup>
               </template>
               <template slot-scope="{ row }" slot="invert">
@@ -140,7 +140,7 @@
                   type="error"
                   size="small"
                   @click="DelRepPathPri(row.objectType, row.objectName)"
-                  >删除</Button
+                  >{{ $t('delete') }}</Button
                 >
               </template>
             </Table>
@@ -162,12 +162,12 @@
       :propShowSvnAnonymousTab="showModalSvnObjectTab"
     />
     <!-- 对话框-新建文件夹 -->
-    <Modal v-model="modalCreateRepFolder" :draggable="true" title="新建文件夹">
+    <Modal v-model="modalCreateRepFolder" :draggable="true" :title="$t('modalRepPri.createFolder')">
       <Form :label-width="80">
-        <FormItem label="父目录">
+        <FormItem :label="$t('modalRepPri.parentPath')">
           <Input v-model="currentRepPath" readonly></Input>
         </FormItem>
-        <FormItem label="文件夹">
+        <FormItem :label="$t('modalRepPri.folderName')">
           <Input v-model="folderName"></Input>
         </FormItem>
         <FormItem>
@@ -226,6 +226,8 @@ export default {
   },
   data() {
     return {
+      //配置仓库权限
+      titleModalRepPri: "仓库权限",
       //临时
       contextData: null,
       //新建文件夹名称
@@ -272,8 +274,7 @@ export default {
       /**
        * 对话框标题
        */
-      //配置仓库权限
-      titleModalRepPri: "仓库权限",
+      
 
       /**
        * 表格
@@ -282,20 +283,28 @@ export default {
       dataTreeRep: [],
       //某节点的权限信息
       tableDataRepPathAllPri: [],
-      tableColumnRepPathAllPri: [
+      
+    };
+  },
+  components: {
+    ModalSvnObject,
+  },
+  computed: {
+    tableColumnRepPathAllPri() {
+      return [
         {
-          title: "授权类型",
+          title: i18n.t('modalRepPri.authType'),    //"授权类型",
           slot: "objectType",
           width: 125,
         },
         {
-          title: "对象名称",
+          title: i18n.t('modalRepPri.objectName'),    //"对象名称",
           key: "objectName",
           tooltip: true,
           width: 115,
         },
         {
-          title: "读写权限",
+          title: i18n.t('modalRepPri.rwPermission'),    //"读写权限",
           slot: "objectPri",
           width: 200,
         },
@@ -314,7 +323,7 @@ export default {
               },
               [
                 h("span", [
-                  h("span", "权限反转"),
+                  h("span", i18n.t('modalRepPri.invertPermission')),
                   h("Icon", {
                     props: {
                       type: "ios-help-circle-outline",
@@ -340,48 +349,48 @@ export default {
                           fontSize: "15px",
                         },
                       },
-                      "不熟练的用户请慎用此功能！"
+                      i18n.t('modalRepPri.permissionDesc1')   //'不熟练的用户请慎用此功能！'
                     ),
                     h("p", " "),
-                    h("p", "从 Subversion 1.5 开始"),
-                    h("p", "$authenticated 表示所有已认证的用户"),
-                    h("p", "$anonymous 表示所有未认证的用户"),
+                    h("p", i18n.t('modalRepPri.permissionDesc2')),   //"从 Subversion 1.5 开始"),
+                    h("p", i18n.t('modalRepPri.permissionDesc3')),   //"$authenticated 表示所有已认证的用户"),
+                    h("p", i18n.t('modalRepPri.permissionDesc4')),   //"$anonymous 表示所有未认证的用户"),
                     h(
                       "p",
-                      "~ 即权限反转表示排除某些用户 如在用户名、别名、用户组、认证类别前加上 ~ 表示将访问权限授予给与规则不匹配的用户"
+                      i18n.t('modalRepPri.permissionDesc5')   //"~ 即权限反转表示排除某些用户 如在用户名、别名、用户组、认证类别前加上 ~ 表示将访问权限授予给与规则不匹配的用户"
                     ),
                     h("p", " "),
-                    h("p", "如："),
+                    h("p", i18n.t('modalRepPri.permissionDesc6')),   //"如："),
                     h("p", "[calendar:/projects/calendar]"),
                     h("p", "$anonymous = r"),
                     h("p", "$authenticated = rw"),
                     h("p", " "),
                     h(
                       "p",
-                      "虽然下面的配置容易让人产生困惑,，但它和上面的例子是等效的："
+                      i18n.t('modalRepPri.permissionDesc7')   //"虽然下面的配置容易让人产生困惑,，但它和上面的例子是等效的："
                     ),
                     h("p", " "),
                     h("p", "[calendar:/projects/calendar]"),
                     h("p", "~$authenticated = r"),
                     h("p", "~$anonymous = rw"),
                     h("p", " "),
-                    h("p", "下面是一个更恰当的使用 ~ 的例子："),
+                    h("p", i18n.t('modalRepPri.permissionDesc8')),   //"下面是一个更恰当的使用 ~ 的例子："),
                     h("p", " "),
                     h("p", "[groups]"),
-                    h("p", "# calc 项目的开发人员信息"),
+                    h("p", i18n.t('modalRepPri.permissionDesc9')),   //"# calc 项目的开发人员信息"),
                     h("p", "calc-developers = &harry, &sally, &joe"),
                     h("p", " "),
-                    h("p", "# calc 项目的管理人员信息"),
+                    h("p", i18n.t('modalRepPri.permissionDesc10')),   //"# calc 项目的管理人员信息"),
                     h("p", "calc-owners = &hewlett, &packard"),
                     h("p", " "),
-                    h("p", "# calc 项目的所有参与人信息"),
+                    h("p", i18n.t('modalRepPri.permissionDesc11')),   //"# calc 项目的所有参与人信息"),
                     h("p", "calc = @calc-developers, @calc-owners"),
                     h("p", " "),
-                    h("p", "# 所有的 calc 项目参与成员有该项目的读权限"),
+                    h("p", i18n.t('modalRepPri.permissionDesc12')),   //"# 所有的 calc 项目参与成员有该项目的读权限"),
                     h("p", "[calc:/projects/calc]"),
                     h("p", "@calc = rw"),
                     h("p", " "),
-                    h("p", "# 只有项目管理员有 calc 项目的发行版标签操作权限"),
+                    h("p", i18n.t('modalRepPri.permissionDesc13')),   //"# 只有项目管理员有 calc 项目的发行版标签操作权限"),
                     h("p", "[calc:/projects/calc/tags]"),
                     h("p", "~@calc-owners = r"),
                   ]
@@ -391,16 +400,15 @@ export default {
           },
         },
         {
-          title: "操作",
+          title: i18n.t('action'),    //"操作",
           slot: "action",
         },
-      ],
-    };
+      ]},
+    //   //配置仓库权限
+    //   titleModalRepPri() {
+    //     return i18n.t('repositoryInfo.repoPri');    //"仓库权限";
+    //   }
   },
-  components: {
-    ModalSvnObject,
-  },
-  computed: {},
   created() {},
   mounted() {},
   watch: {
@@ -423,7 +431,7 @@ export default {
       that.modalRepPri = value;
       if (value) {
         //标题
-        that.titleModalRepPri = "仓库权限 - " + that.currentRepName;
+        that.titleModalRepPri = i18n.t('repositoryInfo.repoPri') + " - " + that.currentRepName;
         //显示加载动画
         that.loadingRepTree = true;
         //清空数据
