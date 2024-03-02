@@ -5,7 +5,7 @@
       <Alert v-if="tempCrondError != ''" type="error" show-icon>{{
         tempCrondError
       }}</Alert>
-      <Alert v-else show-icon>请确保依赖的 crond atd 服务安装并正常运行</Alert>
+      <Alert v-else show-icon>{{ $t('crond.plsCheckCrondAtd') }}</Alert>
       <Row style="margin-bottom: 15px">
         <Col
           type="flex"
@@ -21,7 +21,7 @@
             content="此功能需要系统中安装 crontab 和 at 服务"
           > -->
           <Button icon="md-add" type="primary" ghost @click="ModalAddCrond"
-            >添加任务计划</Button
+            >{{ $t('crond.addCrond') }}</Button
           >
           <!-- </Tooltip> -->
         </Col>
@@ -30,7 +30,7 @@
             v-model="searchKeywordCrond"
             search
             enter-button
-            placeholder="通过任务名称和描述搜索..."
+            :placeholder="$t('crond.searchByNameAndDesc')"
             style="width: 100%"
             @on-search="GetCrontabList"
         /></Col>
@@ -58,19 +58,19 @@
             color="red"
             style="width: 90px; text-align: center"
             v-if="row.notice.length == 0"
-            >通知关闭</Tag
+            >{{ $t('crond.noNotice') }}</Tag
           >
           <Tag
             color="purple"
             style="width: 90px; text-align: center"
             v-if="row.notice.length == 1 && row.notice.indexOf('success') != -1"
-            >仅成功通知</Tag
+            >{{ $t('crond.successNotice') }}</Tag
           >
           <Tag
             color="magenta"
             style="width: 90px; text-align: center"
             v-if="row.notice.length == 1 && row.notice.indexOf('fail') != -1"
-            >仅失败通知</Tag
+            >{{ $t('crond.failureNotice') }}</Tag
           >
           <Tag
             color="blue"
@@ -79,7 +79,7 @@
               row.notice.indexOf('fail') != -1 &&
               row.notice.indexOf('success') != -1
             "
-            >全部通知</Tag
+            >{{ $t('crond.allNotice') }}</Tag
           >
         </template>
         <template slot-scope="{ row, index }" slot="action">
@@ -87,25 +87,25 @@
             type="info"
             size="small"
             @click="ModalViewCrondLog(row.crond_id)"
-            >日志</Button
+            >{{ $t('crond.viewLog') }}</Button
           >
           <Button type="warning" size="small" @click="ModalUpdCrond(index)"
-            >编辑</Button
+            >{{ $t('edit') }}</Button
           >
           <Button type="error" size="small" @click="DelCrontab(row.crond_id)"
-            >删除</Button
+            >{{ $t('delete') }}</Button
           >
           <Tooltip
             :transfer="true"
             placement="left"
             max-width="200"
-            content="不确定任务是否配置成功可手动执行一次通过分析日志查看具体情况"
+            :content="$t('crond.tipCheckByTrigger')"
           >
             <Button
               type="error"
               size="small"
               @click="TriggerCrontab(row.crond_id)"
-              >执行</Button
+              >{{ $t('crond.trigger') }}</Button
             >
           </Tooltip>
         </template>
@@ -125,7 +125,7 @@
     </Card>
     <Modal v-model="modalCrond" :draggable="true" :title="titleModalCrond">
       <Form :model="cycle" :label-width="80">
-        <FormItem label="任务类型">
+        <FormItem :label="$t('crond.type')">
           <Select
             :disabled="statusCrond == 'upd'"
             style="width: 250px"
@@ -140,13 +140,13 @@
             >
           </Select>
         </FormItem>
-        <FormItem label="任务名称">
+        <FormItem :label="$t('crond.name')">
           <Input
             v-model="cycle.task_name"
             :readonly="[1, 2, 3, 4, 5, 7, 8, 9].indexOf(cycle.task_type) != -1"
           ></Input>
         </FormItem>
-        <FormItem label="执行周期">
+        <FormItem :label="$t('crond.cycleType')">
           <!-- 周期类型 -->
           <Select style="width: 130px" v-model="cycle.cycle_type">
             <Option
@@ -173,8 +173,8 @@
           <InputNumber
             :min="1"
             :max="31"
-            :formatter="(value) => `${value}日`"
-            :parser="(value) => value.replace('日', '')"
+            :formatter="(value) => `${$t('crond.monthDay', [value])}`"
+            :parser="(value) => value.replace($t('crond.monthDay'), '')"
             v-model="cycle.day"
             v-if="['month'].indexOf(cycle.cycle_type) != -1"
           ></InputNumber>
@@ -182,8 +182,8 @@
           <InputNumber
             :min="1"
             :max="31"
-            :formatter="(value) => `${value}天`"
-            :parser="(value) => value.replace('天', '')"
+            :formatter="(value) => `${value + $t('crond.dayDay')}`"
+            :parser="(value) => value.replace($t('crond.dayDay'), '')"
             v-model="cycle.day"
             v-if="['day_n'].indexOf(cycle.cycle_type) != -1"
           ></InputNumber>
@@ -191,8 +191,8 @@
           <InputNumber
             :min="0"
             :max="23"
-            :formatter="(value) => `${value}小时`"
-            :parser="(value) => value.replace('小时', '')"
+            :formatter="(value) => `${value + $t('crond.hourHour')}`"
+            :parser="(value) => value.replace($t('crond.hourHour'), '')"
             v-model="cycle.hour"
             v-if="
               ['month', 'week', 'day', 'day_n', 'hour_n'].indexOf(
@@ -204,8 +204,8 @@
           <InputNumber
             :min="0"
             :max="59"
-            :formatter="(value) => `${value}分钟`"
-            :parser="(value) => value.replace('分钟', '')"
+            :formatter="(value) => `${value + $t('crond.minuteMinute')}`"
+            :parser="(value) => value.replace($t('crond.minuteMinute'), '')"
             v-model="cycle.minute"
             v-if="
               [
@@ -221,7 +221,7 @@
           ></InputNumber>
         </FormItem>
         <FormItem
-          label="仓库选择"
+          :label="$t('crond.changeRepo')"
           v-if="[1, 2, 3, 4, 5].indexOf(cycle.task_type) != -1"
         >
           <Select
@@ -234,32 +234,32 @@
               v-for="(rep, index) in repList"
               :value="rep.rep_key"
               :key="index"
-              >{{ rep.rep_name }}</Option
+              >{{ index == 0 ? $t('crond.allRepos') : rep.rep_name }}</Option
             >
           </Select>
         </FormItem>
         <FormItem
-          label="消息通知"
+          :label="$t('crond.notice')"
           v-if="[1, 2, 3, 4, 5, 6, 7, 8, 9].indexOf(cycle.task_type) != -1"
         >
           <CheckboxGroup v-model="cycle.notice">
-            <Checkbox label="success">成功通知</Checkbox>
-            <Checkbox label="fail">失败通知</Checkbox>
+            <Checkbox label="success">{{ $t('crond.noticeSuccess') }}</Checkbox>
+            <Checkbox label="fail">{{ $t('crond.noticeFailure') }}</Checkbox>
           </CheckboxGroup>
         </FormItem>
         <FormItem
-          label="保存数量"
+          :label="$t('crond.saveCount')"
           v-if="[1, 2, 3, 4].indexOf(cycle.task_type) != -1"
         >
           <InputNumber :min="1" v-model="cycle.save_count"></InputNumber>
         </FormItem>
-        <FormItem label="脚本内容" v-if="[6].indexOf(cycle.task_type) != -1">
+        <FormItem :label="$t('crond.scriptContent')" v-if="[6].indexOf(cycle.task_type) != -1">
           <Input
             v-model="cycle.shell"
             :rows="8"
             show-word-limit
             type="textarea"
-            placeholder="请输入脚本内容"
+            :placeholder="$t('crond.inputScriptContent')"
           />
         </FormItem>
         <FormItem>
@@ -268,25 +268,25 @@
             type="primary"
             @click="CreateCrontab()"
             :loading="loadingAddCrond"
-            >确定</Button
+            >{{ $t('add') }}</Button
           >
           <Button
             v-else
             type="primary"
             @click="UpdCrontab"
             :loading="loadingUpdCrond"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalCrond = false">取消</Button>
+        <Button type="primary" ghost @click="modalCrond = false">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <Modal
       v-model="modalViewCrondLog"
       :draggable="true"
-      title="查看任务计划日志"
+      :title="$t('crond.viewCrondLog')"
     >
       <Input
         readonly
@@ -296,11 +296,11 @@
         :rows="15"
       >
       </Input>
-      <br /><br />日志文件: {{ tempCrondLogPath }}
+      <br /><br />{{ $t('crond.logFile') }}: {{ tempCrondLogPath }}
       <Spin fix v-if="laodingGetLog"></Spin>
       <div slot="footer">
         <Button type="primary" ghost @click="modalViewCrondLog = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -308,6 +308,7 @@
 </template>
 
 <script>
+import i18n from '@/i18n'
 export default {
   data() {
     return {
@@ -394,111 +395,6 @@ export default {
       /**
        * 下拉
        */
-      //任务计划类型
-      taskType: [
-        {
-          key: 1,
-          value: "仓库备份[dump-全量]",
-        },
-        {
-          key: 2,
-          value: "仓库备份[dump-增量-deltas]",
-        },
-        // {
-        //   key: 3,
-        //   value: "仓库备份[hotcopy-全量]",
-        // },
-        // {
-        //   key: 4,
-        //   value: "仓库备份[hotcopy-增量]",
-        // },
-        {
-          key: 5,
-          value: "仓库检查",
-        },
-        {
-          key: 6,
-          value: "shell脚本",
-        },
-        {
-          key: 7,
-          value: "同步SVN用户",
-        },
-        {
-          key: 8,
-          value: "同步SVN分组",
-        },
-        {
-          key: 9,
-          value: "同步SVN仓库",
-        },
-      ],
-      //周期类型
-      cycleType: [
-        {
-          name: "每分钟",
-          value: "minute",
-        },
-        {
-          name: "每隔N分钟",
-          value: "minute_n",
-        },
-        {
-          name: "每小时",
-          value: "hour",
-        },
-        {
-          name: "每隔N小时",
-          value: "hour_n",
-        },
-        {
-          name: "每天",
-          value: "day",
-        },
-        {
-          name: "每隔N天",
-          value: "day_n",
-        },
-        {
-          name: "每周",
-          value: "week",
-        },
-        {
-          name: "每月",
-          value: "month",
-        },
-      ],
-      //周一到周日
-      weekList: [
-        {
-          name: "周一",
-          value: 1,
-        },
-        {
-          name: "周二",
-          value: 2,
-        },
-        {
-          name: "周三",
-          value: 3,
-        },
-        {
-          name: "周四",
-          value: 4,
-        },
-        {
-          name: "周五",
-          value: 5,
-        },
-        {
-          name: "周六",
-          value: 6,
-        },
-        {
-          name: "周日",
-          value: 0,
-        },
-      ],
       //仓库列表
       repList: [
         {
@@ -518,72 +414,10 @@ export default {
       /**
        * 表格
        */
-      //任务计划信息
-      tableColumnCrond: [
-        {
-          title: "序号",
-          type: "index",
-          fixed: "left",
-          minWidth: 80,
-        },
-        {
-          title: "任务名称",
-          key: "task_name",
-          tooltip: true,
-          width: 220,
-          minWidth: 220,
-        },
-        {
-          title: "执行周期描述",
-          tooltip: true,
-          key: "cycle_desc",
-          width: 200,
-          minWidth: 200,
-        },
-        {
-          title: "消息通知",
-          slot: "notice",
-          minWidth: 120,
-        },
-        {
-          title: "启用状态",
-          key: "status",
-          slot: "status",
-          sortable: true,
-          minWidth: 120,
-        },
-        {
-          title: "保存数量",
-          key: "save_count",
-          width: 100,
-          minWidth: 100,
-        },
-        {
-          title: "上次执行时间",
-          key: "last_exec_time",
-          tooltip: true,
-          // width: 180,
-          minWidth: 140,
-        },
-        {
-          title: "其它",
-          slot: "action",
-          width: 240,
-        },
-      ],
+      
       tableDataCrond: [],
 
-      //任务计划日志
-      tableColumnCrondLog: [
-        {
-          title: "时间",
-          key: "time",
-        },
-        {
-          title: "内容",
-          key: "content",
-        },
-      ],
+      
       tableDataCrondLog: [
         {
           time: "xxx",
@@ -593,7 +427,182 @@ export default {
       ],
     };
   },
-  computed: {},
+  computed: {
+      //任务计划类型
+      taskType(){
+        return [
+        {
+          key: 1,
+          value: i18n.t('crond.dumpFull')   //"仓库备份[dump-全量]",
+        },
+        {
+          key: 2,
+          value: i18n.t('crond.dumpDeltas')   //"仓库备份[dump-增量-deltas]",
+        },
+        // {
+        //   key: 3,
+        //   value: i18n.t('crond.hotcopyFull')   //"仓库备份[hotcopy-全量]",
+        // },
+        // {
+        //   key: 4,
+        //   value: i18n.t('crond.hotcopyDeltas')   //"仓库备份[hotcopy-增量]",
+        // },
+        {
+          key: 5,
+          value: i18n.t('crond.checkRepo')   //"仓库检查",
+        },
+        {
+          key: 6,
+          value: i18n.t('crond.shellScript')   //"shell脚本",
+        },
+        {
+          key: 7,
+          value: i18n.t('crond.syncSvnUser')   //"同步SVN用户",
+        },
+        {
+          key: 8,
+          value: i18n.t('crond.syncSvnGroup')   //"同步SVN分组",
+        },
+        {
+          key: 9,
+          value: i18n.t('crond.syncSvnRepo')   //"同步SVN仓库",
+        },
+      ]},
+      //周期类型
+      cycleType() {
+        return [
+        {
+          name: i18n.t('crond.minute'),   //"每分钟",
+          value: "minute",
+        },
+        {
+          name: i18n.t('crond.minute_n'),   //"每隔N分钟",
+          value: "minute_n",
+        },
+        {
+          name: i18n.t('crond.hour'),   //"每小时",
+          value: "hour",
+        },
+        {
+          name: i18n.t('crond.hour_n'),   //"每隔N小时",
+          value: "hour_n",
+        },
+        {
+          name: i18n.t('crond.day'),   //"每天",
+          value: "day",
+        },
+        {
+          name: i18n.t('crond.day_n'),   //"每隔N天",
+          value: "day_n",
+        },
+        {
+          name: i18n.t('crond.week'),   //"每周",
+          value: "week",
+        },
+        {
+          name: i18n.t('crond.month'),   //"每月",
+          value: "month",
+        },
+      ]},
+      //周一到周日
+      weekList() {
+        return [
+        {
+          name: i18n.t('crond.Monday'),   //"周一",
+          value: 1,
+        },
+        {
+          name: i18n.t('crond.Tuesday'),   //"周二",
+          value: 2,
+        },
+        {
+          name: i18n.t('crond.Wednesday'),   //"周三",
+          value: 3,
+        },
+        {
+          name: i18n.t('crond.Thursday'),   //"周四",
+          value: 4,
+        },
+        {
+          name: i18n.t('crond.Friday'),   //"周五",
+          value: 5,
+        },
+        {
+          name: i18n.t('crond.Saturday'),   //"周六",
+          value: 6,
+        },
+        {
+          name: i18n.t('crond.Sunday'),   //"周日",
+          value: 0,
+        },
+      ]},
+      //任务计划信息
+      tableColumnCrond() {
+        return [
+        {
+          title: i18n.t('serial'),   //"序号",
+          type: "index",
+          fixed: "left",
+          minWidth: 80,
+        },
+        {
+          title: i18n.t('crond.name'),   //"任务名称",
+          key: "task_name",
+          tooltip: true,
+          width: 220,
+          minWidth: 220,
+        },
+        {
+          title: i18n.t('crond.cycleDesc'),   //"执行周期描述",
+          tooltip: true,
+          key: "cycle_desc",
+          width: 200,
+          minWidth: 200,
+        },
+        {
+          title: i18n.t('crond.notice'),   //"消息通知",
+          slot: "notice",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('status'),   //"启用状态",
+          key: "status",
+          slot: "status",
+          sortable: true,
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('crond.saveCount'),   //"保存数量",
+          key: "save_count",
+          width: 110,
+          minWidth: 110,
+        },
+        {
+          title: i18n.t('crond.lastExecTime'),   //"上次执行时间",
+          key: "last_exec_time",
+          tooltip: true,
+          // width: 180,
+          minWidth: 140,
+        },
+        {
+          title: i18n.t('others'),   //"其它",
+          slot: "action",
+          width: 240,
+        },
+      ]},
+      //任务计划日志
+      tableColumnCrondLog() {
+        return [
+        {
+          title: i18n.t('crond.time'),   //"时间",
+          key: "time",
+        },
+        {
+          title: i18n.t('crond.content'),   //"内容",
+          key: "content",
+        },
+      ]},
+  },
   created() {},
   mounted() {
     this.GetCronStatus();
@@ -649,7 +658,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -670,7 +679,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -704,13 +713,17 @@ export default {
         .catch(function (error) {
           that.loadingGetCrondList = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
      * 任务类型改变
      */
     ChangeCrondType(value) {
+        var t_rep_name = this.repList.find((item) => item.rep_key === this.cycle.rep_key).rep_name;
+        if (parseInt(this.cycle.rep_key) == -1) {
+            t_rep_name = i18n.t('crond.allRepos');
+        }
       switch (value) {
         case 1:
         case 2:
@@ -722,8 +735,8 @@ export default {
             this.taskType.find((item) => item.key === this.cycle.task_type)
               .value +
             "[" +
-            this.repList.find((item) => item.rep_key === this.cycle.rep_key)
-              .rep_name +
+            t_rep_name
+             +
             "]";
           break;
         case 6:
@@ -744,31 +757,41 @@ export default {
      * 选择的仓库改变
      */
     ChangeRep(value) {
+        var t_rep_name = this.repList.find((item) => item.rep_key === this.cycle.rep_key).rep_name;
+        if (parseInt(this.cycle.rep_key) == -1) {
+            t_rep_name = i18n.t('crond.allRepos');
+        }
       //修改任务名称
       this.cycle.task_name =
         this.taskType.find((item) => item.key === this.cycle.task_type).value +
         "[" +
-        this.repList.find((item) => item.rep_key === this.cycle.rep_key)
-          .rep_name +
+        t_rep_name
+        +
         "]";
+        console.log("2 ")
+        console.log(parseInt(this.cycle.rep_key) === -1);
     },
     /**
      * 设置任务计划
      */
     ModalAddCrond() {
       if (this.cycle.task_type != 6) {
+        var t_rep_name = this.repList.find((item) => item.rep_key === this.cycle.rep_key).rep_name;
+        if (parseInt(this.cycle.rep_key) == -1) {
+            t_rep_name = i18n.t('crond.allRepos');
+        }
         //修改任务名称
         this.cycle.task_name =
           this.taskType.find((item) => item.key === this.cycle.task_type)
             .value +
           "[" +
-          this.repList.find((item) => item.rep_key === this.cycle.rep_key)
-            .rep_name +
+          t_rep_name
+          +
           "]";
       }
       //显示对话框
       this.statusCrond = "add";
-      this.titleModalCrond = "添加任务计划";
+      this.titleModalCrond = i18n.t('crond.addCrond');
       this.modalCrond = true;
     },
     /**
@@ -796,7 +819,7 @@ export default {
         .catch(function (error) {
           that.loadingAddCrond = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -827,7 +850,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -837,7 +860,7 @@ export default {
       this.cycle = JSON.parse(JSON.stringify(this.tableDataCrond[index]));
 
       this.statusCrond = "upd";
-      this.titleModalCrond = "编辑计划任务";
+      this.titleModalCrond = i18n.t('crond.editCrond'); //"编辑计划任务";
       this.modalCrond = true;
     },
     UpdCrontab() {
@@ -862,7 +885,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdCrond = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -871,8 +894,8 @@ export default {
     DelCrontab(crond_id) {
       var that = this;
       that.$Modal.confirm({
-        title: "删除任务计划",
-        content: "确定要删除该记录吗？此操作不可逆！",
+        title: i18n.t('crond.deleteCrond'), //"删除任务计划",
+        content: i18n.t('crond.confirmDelCrond'), //"确定要删除该记录吗？此操作不可逆！",
         onOk: () => {
           var data = {
             crond_id: crond_id,
@@ -890,7 +913,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -901,9 +924,9 @@ export default {
     TriggerCrontab(crond_id) {
       var that = this;
       that.$Modal.confirm({
-        title: "执行任务计划",
+        title: i18n.t('crond.triggerCrond'), //"执行任务计划",
         content:
-          "确定要立即执行该任务计划吗？该操作可用于测试任务计划配置的正确性！",
+          i18n.t('crond.confirmTriggerCrond'), //"确定要立即执行该任务计划吗？该操作可用于测试任务计划配置的正确性！",
         onOk: () => {
           var data = {
             crond_id: crond_id,
@@ -921,7 +944,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -945,7 +968,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },
