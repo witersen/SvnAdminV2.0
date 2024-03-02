@@ -379,7 +379,7 @@
                 "
               >
                 <Divider>{{ $t('setting.ldapServer') }}</Divider>
-                <FormItem label="$t('setting.ldapServerAddress')">
+                <FormItem :label="$t('setting.ldapServerAddress')">
                   <Row>
                     <Col span="12">
                       <Input
@@ -838,7 +838,7 @@
                 "
               >
                 <Divider>{{ $t('setting.ldapServer') }}</Divider>
-                <FormItem label="$t('setting.ldapServerAddress')">
+                <FormItem :label="$t('setting.ldapServerAddress')">
                   <Row>
                     <Col span="12">
                       <Input
@@ -1300,7 +1300,7 @@
         <TabPane :label="$t('setting.pushSetting')" name="6">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Alert
-              >{{ $t('setting.pushSettingTip') }}</Alert
+              ><span v-html="$t('setting.pushSettingTip')"></span></Alert
             >
             <Form :label-width="140">
               <FormItem
