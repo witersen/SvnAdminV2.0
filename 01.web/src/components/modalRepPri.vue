@@ -112,9 +112,9 @@
                       )
                   "
                 >
-                  <Radio label="rw">{{ $t('repositoryGroup.readWrite') }}</Radio>
-                  <Radio label="r">{{ $t('repositoryGroup.readOnly') }}</Radio>
-                  <Radio label="no">{{ $t('repositoryGroup.noAccess') }}</Radio>
+                  <Radio label="rw">{{ $t('modalRepPri.readWrite') }}</Radio>
+                  <Radio label="r">{{ $t('modalRepPri.readOnly') }}</Radio>
+                  <Radio label="no">{{ $t('modalRepPri.noAccess') }}</Radio>
                 </RadioGroup>
               </template>
               <template slot-scope="{ row }" slot="invert">
