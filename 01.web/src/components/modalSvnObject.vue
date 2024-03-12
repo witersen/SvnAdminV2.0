@@ -45,6 +45,9 @@
             :data="tableDataAllUsers"
             style="margin-bottom: 10px"
           >
+            <template slot-scope="{ index }" slot="index">
+              {{ pageSizeUser * (pageCurrentUser - 1) + index + 1 }}
+            </template>
             <template slot-scope="{ row }" slot="svn_user_status">
               <Tag
                 color="blue"
@@ -62,6 +65,18 @@
               >
             </template>
           </Table>
+          <Card :bordered="false" :dis-hover="true">
+            <Page
+              v-if="totalUser != 0"
+              :total="totalUser"
+              :current="pageCurrentUser"
+              :page-size="pageSizeUser"
+              @on-page-size-change="UserPageSizeChange"
+              @on-change="UserPageChange"
+              size="small"
+              show-sizer
+            />
+          </Card>
         </TabPane>
         <TabPane
           :label="custom_tab_svn_group"
@@ -104,6 +119,9 @@
             :data="tableDataAllGroups"
             style="margin-bottom: 10px"
           >
+            <template slot-scope="{ index }" slot="index">
+              {{ pageSizeGroup * (pageCurrentGroup - 1) + index + 1 }}
+            </template>
             <template slot-scope="{ row }" slot="member">
               <Tag
                 style="cursor: pointer"
@@ -123,6 +141,18 @@
               >
             </template>
           </Table>
+          <Card :bordered="false" :dis-hover="true">
+            <Page
+              v-if="totalGroup != 0"
+              :total="totalGroup"
+              :current="pageCurrentGroup"
+              :page-size="pageSizeGroup"
+              @on-page-size-change="GroupPageSizeChange"
+              @on-change="GroupPageChange"
+              size="small"
+              show-sizer
+            />
+          </Card>
         </TabPane>
         <TabPane
           :label="custom_tab_svn_aliase"
@@ -470,6 +500,19 @@ export default {
       },
 
       /**
+       * 分页数据
+       */
+      //用户
+      pageCurrentUser: 1,
+      pageSizeUser: 20,
+      totalUser: 0,
+
+      //分组
+      pageCurrentGroup: 1,
+      pageSizeGroup: 20,
+      totalGroup: 0,
+
+      /**
        * 关键词
        */
       searchKeywordAliase: "",
@@ -525,6 +568,12 @@ export default {
       //对象列表-SVN用户列表
       tableColumnAllUsers: [
         {
+          title: "序号",
+          slot: "index",
+          fixed: "left",
+          // minWidth: 40,
+        },
+        {
           title: "用户名",
           key: "svn_user_name",
           tooltip: true,
@@ -547,6 +596,12 @@ export default {
       tableDataAllUsers: [],
       //对象列表-SVN分组列表
       tableColumnAllGroups: [
+        {
+          title: "序号",
+          slot: "index",
+          fixed: "left",
+          // minWidth: 80,
+        },
         {
           title: "分组名",
           key: "svn_group_name",
@@ -726,6 +781,22 @@ export default {
       }
     },
     /**
+     * 每页数量改变
+     */
+    UserPageSizeChange(value) {
+      //设置每页条数
+      this.pageSizeUser = value;
+      this.GetAllUsers();
+    },
+    /**
+     * 页码改变
+     */
+    UserPageChange(value) {
+      //设置当前页数
+      this.pageCurrentUser = value;
+      this.GetAllUsers();
+    },
+    /**
      * 获取所有的SVN用户列表
      */
     GetAllUsers(sync = false) {
@@ -735,11 +806,14 @@ export default {
       //开始加载动画
       that.loadingAllUsers = true;
       var data = {
+        pageSize: that.pageSizeUser,
+        currentPage: that.pageCurrentUser,
+
         searchKeyword: that.searchKeywordUser,
         sortName: "svn_user_name",
         sortType: "asc",
         sync: sync,
-        page: false,
+        page: true,
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
@@ -749,6 +823,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.tableDataAllUsers = result.data.data;
+            that.totalUser = result.data.total;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }
@@ -760,6 +835,22 @@ export default {
         });
     },
     /**
+     * 每页数量改变
+     */
+    GroupPageSizeChange(value) {
+      //设置每页条数
+      this.pageSizeGroup = value;
+      this.GetAllGroups();
+    },
+    /**
+     * 页码改变
+     */
+    GroupPageChange(value) {
+      //设置当前页数
+      this.pageCurrentGroup = value;
+      this.GetAllGroups();
+    },
+    /**
      * 获取所有的SVN分组列表
      */
     GetAllGroups(sync = false) {
@@ -769,11 +860,14 @@ export default {
       //开始加载动画
       that.loadingAllGroups = true;
       var data = {
+        pageSize: that.pageSizeGroup,
+        currentPage: that.pageCurrentGroup,
+
         searchKeyword: that.searchKeywordGroup,
         sortName: "svn_group_name",
         sortType: "asc",
         sync: sync,
-        page: false,
+        page: true,
         svnn_user_pri_path_id: that.svnn_user_pri_path_id,
       };
       that.$axios
@@ -783,6 +877,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             that.tableDataAllGroups = result.data.data;
+            that.totalGroup = result.data.total;
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
           }

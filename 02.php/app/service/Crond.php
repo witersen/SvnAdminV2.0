@@ -69,28 +69,29 @@ class Crond extends Base
             'last_exec_time',
             'create_time',
         ], [
-            'AND' => [
-                'OR' => [
-                    'task_name[~]' => $searchKeyword,
-                    'cycle_desc[~]' => $searchKeyword,
-                ],
-            ],
-            'LIMIT' => [$begin, $pageSize],
             'ORDER' => [
                 $this->payload['sortName']  => strtoupper($this->payload['sortType'])
             ]
         ]);
 
-        $total = $this->database->count('crond', [
-            'crond_id'
-        ], [
-            'AND' => [
-                'OR' => [
-                    'task_name[~]' => $searchKeyword,
-                    'cycle_desc[~]' => $searchKeyword,
-                ],
-            ],
-        ]);
+        //过滤
+        if (!empty($searchKeyword)) {
+            foreach ($list as $key => $value) {
+                if (
+                    strstr($value['task_name'], $searchKeyword) === false &&
+                    strstr($value['cycle_desc'], $searchKeyword) === false
+                ) {
+                    unset($list[$key]);
+                }
+            }
+            $list = array_values($list);
+        }
+
+        //总计
+        $total = empty($list) ? 0 : count($list);
+
+        //分页
+        $list = array_slice($list, $begin, $pageSize);
 
         foreach ($list as $key => $value) {
             // 5 6 7 8 9 类型不需要 count 字段

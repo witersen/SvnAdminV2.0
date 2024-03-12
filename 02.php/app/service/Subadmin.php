@@ -42,40 +42,35 @@ class Subadmin extends Base
         $list = $this->database->select('subadmin', [
             'subadmin_id [Int]',
             'subadmin_name',
-            // 'subadmin_phone',
-            // 'subadmin_email',
             'subadmin_status [Int]',
             'subadmin_note',
             'subadmin_create_time',
             'subadmin_last_login',
             'subadmin_token'
         ], [
-            'AND' => [
-                'OR' => [
-                    'subadmin_name[~]' => $searchKeyword,
-                    // 'subadmin_phone[~]' => $searchKeyword,
-                    // 'subadmin_email[~]' => $searchKeyword,
-                    'subadmin_note[~]' => $searchKeyword,
-                ],
-            ],
-            'LIMIT' => [$begin, $pageSize],
             'ORDER' => [
                 $this->payload['sortName']  => strtoupper($this->payload['sortType'])
             ]
         ]);
 
-        $total = $this->database->count('subadmin', [
-            'subadmin_id'
-        ], [
-            'AND' => [
-                'OR' => [
-                    'subadmin_name[~]' => $searchKeyword,
-                    // 'subadmin_phone[~]' => $searchKeyword,
-                    // 'subadmin_email[~]' => $searchKeyword,
-                    'subadmin_note[~]' => $searchKeyword,
-                ],
-            ],
-        ]);
+        //过滤
+        if (!empty($searchKeyword)) {
+            foreach ($list as $key => $value) {
+                if (
+                    strstr($value['subadmin_name'], $searchKeyword) === false &&
+                    strstr($value['subadmin_note'], $searchKeyword) === false
+                ) {
+                    unset($list[$key]);
+                }
+            }
+            $list = array_values($list);
+        }
+
+        //总计
+        $total = empty($list) ? 0 : count($list);
+
+        //分页
+        $list = array_slice($list, $begin, $pageSize);
 
         $time = time();
         foreach ($list as $key => $value) {

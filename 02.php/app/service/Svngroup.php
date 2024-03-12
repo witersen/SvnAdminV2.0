@@ -202,57 +202,33 @@ class Svngroup extends Base
             $pageSize = $this->payload['pageSize'];
             $currentPage = $this->payload['currentPage'];
             $begin = $pageSize * ($currentPage - 1);
-
-            $result = $this->database->select('svn_groups', [
-                'svn_group_id',
-                'svn_group_name',
-                'svn_group_note',
-                'include_user_count [Int]',
-                'include_group_count [Int]',
-                'include_aliase_count [Int]',
-            ], [
-                'AND' => [
-                    'OR' => [
-                        'svn_group_name[~]' => $searchKeyword,
-                        'svn_group_note[~]' => $searchKeyword,
-                    ],
-                ],
-                'LIMIT' => [$begin, $pageSize],
-                'ORDER' => [
-                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
-                ]
-            ]);
-        } else {
-            $result = $this->database->select('svn_groups', [
-                'svn_group_id',
-                'svn_group_name',
-                'svn_group_note',
-                'include_user_count [Int]',
-                'include_group_count [Int]',
-                'include_aliase_count [Int]',
-            ], [
-                'AND' => [
-                    'OR' => [
-                        'svn_group_name[~]' => $searchKeyword,
-                        'svn_group_note[~]' => $searchKeyword,
-                    ],
-                ],
-                'ORDER' => [
-                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
-                ]
-            ]);
         }
 
-        $total = $this->database->count('svn_groups',  [
-            'svn_group_id'
+        $result = $this->database->select('svn_groups', [
+            'svn_group_id',
+            'svn_group_name',
+            'svn_group_note',
+            'include_user_count [Int]',
+            'include_group_count [Int]',
+            'include_aliase_count [Int]',
         ], [
-            'AND' => [
-                'OR' => [
-                    'svn_group_name[~]' => $searchKeyword,
-                    'svn_group_note[~]' => $searchKeyword,
-                ],
-            ],
+            'ORDER' => [
+                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+            ]
         ]);
+
+        //过滤
+        if (!empty($searchKeyword)) {
+            foreach ($result as $key => $value) {
+                if (
+                    strstr($value['svn_group_name'], $searchKeyword) === false &&
+                    strstr($value['svn_group_note'], $searchKeyword) === false
+                ) {
+                    unset($result[$key]);
+                }
+            }
+            $result = array_values($result);
+        }
 
         //针对SVN用户可管理对象进行过滤
         if ($this->userRoleId == 2) {
@@ -273,6 +249,15 @@ class Svngroup extends Base
                     unset($result[$key]);
                 }
             }
+            $result = array_values($result);
+        }
+
+        //总计
+        $total = empty($result) ? 0 : count($result);
+
+        //分页
+        if ($page) {
+            $result = array_slice($result, $begin, $pageSize);
         }
 
         return message(200, 1, '成功', [
@@ -542,7 +527,7 @@ class Svngroup extends Base
         } else {
             $dataSource = $this->httpDataSource;
         }
-        
+
         if ($dataSource['user_source'] == 'ldap' && $dataSource['group_source'] == 'ldap') {
             return message(200, 0, '当前SVN分组来源为LDAP-不支持此操作');
         }

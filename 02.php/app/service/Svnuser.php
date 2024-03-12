@@ -366,59 +366,34 @@ class Svnuser extends Base
             $pageSize = $this->payload['pageSize'];
             $currentPage = $this->payload['currentPage'];
             $begin = $pageSize * ($currentPage - 1);
-
-            $result = $this->database->select('svn_users', [
-                'svn_user_id',
-                'svn_user_name',
-                'svn_user_pass',
-                'svn_user_status [Int]',
-                'svn_user_note',
-                'svn_user_last_login',
-                'svn_user_token'
-            ], [
-                'AND' => [
-                    'OR' => [
-                        'svn_user_name[~]' => $searchKeyword,
-                        'svn_user_note[~]' => $searchKeyword,
-                    ],
-                ],
-                'LIMIT' => [$begin, $pageSize],
-                'ORDER' => [
-                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
-                ]
-            ]);
-        } else {
-            $result = $this->database->select('svn_users', [
-                'svn_user_id',
-                'svn_user_name',
-                'svn_user_pass',
-                'svn_user_status [Int]',
-                'svn_user_note',
-                'svn_user_last_login',
-                'svn_user_token'
-            ], [
-                'AND' => [
-                    'OR' => [
-                        'svn_user_name[~]' => $searchKeyword,
-                        'svn_user_note[~]' => $searchKeyword,
-                    ],
-                ],
-                'ORDER' => [
-                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
-                ]
-            ]);
         }
 
-        $total = $this->database->count('svn_users', [
-            'svn_user_id'
+        $result = $this->database->select('svn_users', [
+            'svn_user_id',
+            'svn_user_name',
+            'svn_user_pass',
+            'svn_user_status [Int]',
+            'svn_user_note',
+            'svn_user_last_login',
+            'svn_user_token'
         ], [
-            'AND' => [
-                'OR' => [
-                    'svn_user_name[~]' => $searchKeyword,
-                    'svn_user_note[~]' => $searchKeyword,
-                ],
-            ],
+            'ORDER' => [
+                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+            ]
         ]);
+
+        //过滤
+        if (!empty($searchKeyword)) {
+            foreach ($result as $key => $value) {
+                if (
+                    strstr($value['svn_user_name'], $searchKeyword) === false &&
+                    strstr($value['svn_user_note'], $searchKeyword) === false
+                ) {
+                    unset($result[$key]);
+                }
+            }
+            $result = array_values($result);
+        }
 
         //针对SVN用户可管理对象进行过滤
         if ($this->userRoleId == 2) {
@@ -439,6 +414,15 @@ class Svnuser extends Base
                     unset($result[$key]);
                 }
             }
+            $result = array_values($result);
+        }
+
+        //总计
+        $total = empty($result) ? 0 : count($result);
+
+        //分页
+        if ($page) {
+            $result = array_slice($result, $begin, $pageSize);
         }
 
         $time = time();

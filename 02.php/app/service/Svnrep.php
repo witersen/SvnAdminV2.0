@@ -461,57 +461,39 @@ class Svnrep extends Base
         //     ], $searchKeyword);
         // }
 
-        if ($page) {
-            $list = $this->database->select('svn_reps', [
-                'rep_id',
-                'rep_name',
-                'rep_size',
-                'rep_note',
-                'rep_rev',
-                'rep_uuid'
-            ], [
-                'AND' => [
-                    'OR' => [
-                        'rep_name[~]' => $searchKeyword,
-                        'rep_note[~]' => $searchKeyword,
-                    ],
-                ],
-                'LIMIT' => [$begin, $pageSize],
-                'ORDER' => [
-                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
-                ]
-            ]);
-        } else {
-            $list = $this->database->select('svn_reps', [
-                'rep_id',
-                'rep_name',
-                'rep_size',
-                'rep_note',
-                'rep_rev',
-                'rep_uuid'
-            ], [
-                'AND' => [
-                    'OR' => [
-                        'rep_name[~]' => $searchKeyword,
-                        'rep_note[~]' => $searchKeyword,
-                    ],
-                ],
-                'ORDER' => [
-                    $this->payload['sortName']  => strtoupper($this->payload['sortType'])
-                ]
-            ]);
+        $list = $this->database->select('svn_reps', [
+            'rep_id',
+            'rep_name',
+            'rep_size',
+            'rep_note',
+            'rep_rev',
+            'rep_uuid'
+        ], [
+            'ORDER' => [
+                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+            ]
+        ]);
+
+        //过滤
+        if (!empty($searchKeyword)) {
+            foreach ($list as $key => $value) {
+                if (
+                    strstr($value['rep_name'], $searchKeyword) === false &&
+                    strstr($value['rep_note'], $searchKeyword) === false
+                ) {
+                    unset($list[$key]);
+                }
+            }
+            $list = array_values($list);
         }
 
-        $total = $this->database->count('svn_reps', [
-            'rep_id'
-        ], [
-            'AND' => [
-                'OR' => [
-                    'rep_name[~]' => $searchKeyword,
-                    'rep_note[~]' => $searchKeyword,
-                ],
-            ],
-        ]);
+        //总计
+        $total = empty($list) ? 0 : count($list);
+
+        //分页
+        if ($page) {
+            $list = array_slice($list, $begin, $pageSize);
+        }
 
         foreach ($list as $key => $value) {
             $list[$key]['rep_size'] = funFormatSize($value['rep_size']);
@@ -586,43 +568,37 @@ class Svnrep extends Base
             $begin = $pageSize * ($currentPage - 1);
         }
 
+        $list = $this->database->select('svn_user_pri_paths', [
+            'svnn_user_pri_path_id [Int]',
+            'rep_name',
+            'pri_path',
+            'rep_pri',
+            'second_pri [Int]'
+        ], [
+            'ORDER' => [
+                'rep_name'  => strtoupper($this->payload['sortType'])
+            ],
+            'svn_user_name' => $this->userName
+        ]);
+
+        //过滤
+        if (!empty($searchKeyword)) {
+            foreach ($list as $key => $value) {
+                if (
+                    strstr($value['rep_name'], $searchKeyword) === false
+                ) {
+                    unset($list[$key]);
+                }
+            }
+            $list = array_values($list);
+        }
+
+        //总计
+        $total = empty($list) ? 0 : count($list);
+
+        //分页
         if ($page) {
-            $list = $this->database->select('svn_user_pri_paths', [
-                'svnn_user_pri_path_id [Int]',
-                'rep_name',
-                'pri_path',
-                'rep_pri',
-                'second_pri [Int]'
-            ], [
-                'AND' => [
-                    'OR' => [
-                        'rep_name[~]' => $searchKeyword,
-                    ],
-                ],
-                'LIMIT' => [$begin, $pageSize],
-                'ORDER' => [
-                    'rep_name'  => strtoupper($this->payload['sortType'])
-                ],
-                'svn_user_name' => $this->userName
-            ]);
-        } else {
-            $list = $this->database->select('svn_user_pri_paths', [
-                'svnn_user_pri_path_id [Int]',
-                'rep_name',
-                'pri_path',
-                'rep_pri',
-                'second_pri [Int]'
-            ], [
-                'AND' => [
-                    'OR' => [
-                        'rep_name[~]' => $searchKeyword,
-                    ],
-                ],
-                'ORDER' => [
-                    'rep_name'  => strtoupper($this->payload['sortType'])
-                ],
-                'svn_user_name' => $this->userName
-            ]);
+            $list = array_slice($list, $begin, $pageSize);
         }
 
         if ($this->enableCheckout == 'http') {
@@ -635,17 +611,6 @@ class Svnrep extends Base
                 $list[$key]['second_pri'] = $value['second_pri'] == 1 ? true : false;
             }
         }
-
-        $total = $this->database->count('svn_user_pri_paths', [
-            'svnn_user_pri_path_id [Int]'
-        ], [
-            'AND' => [
-                'OR' => [
-                    'rep_name[~]' => $searchKeyword,
-                ],
-            ],
-            'svn_user_name' => $this->userName
-        ]);
 
         return message(200, 1, '成功', [
             'data' => $list,

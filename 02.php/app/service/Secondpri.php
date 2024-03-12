@@ -80,13 +80,20 @@ class Secondpri extends Base
             'svn_object_type(objectType)',
             'svn_object_name(objectName)'
         ], [
-            'AND' => [
-                'OR' => [
-                    'svn_object_name[~]' => $searchKeyword,
-                ],
-            ],
             'svnn_user_pri_path_id' => $this->payload['svnn_user_pri_path_id']
         ]);
+
+        //过滤
+        if (!empty($searchKeyword)) {
+            foreach ($result as $key => $value) {
+                if (
+                    strstr($value['svn_object_name'], $searchKeyword) === false
+                ) {
+                    unset($result[$key]);
+                }
+            }
+            $result = array_values($result);
+        }
 
         return message(200, 1, '成功', $result);
     }
