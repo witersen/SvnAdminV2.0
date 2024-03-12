@@ -1,0 +1,11 @@
+[Unit]
+Description=Subversion protocol daemon
+After=syslog.target network.target
+ 
+[Service]
+Type=forking
+EnvironmentFile=%s
+ExecStart=%s --daemon --pid-file=%s $OPTIONS
+ 
+[Install]
+WantedBy=multi-user.target
