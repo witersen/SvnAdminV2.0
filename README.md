@@ -47,7 +47,7 @@ Subversion：1.8+
 此方式可快速部署程序体验效果，数据不存储在宿主机，生产环境使用请看3.2
 
 ```
-docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.5.7
+docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom/svnadmin:2.5.9
 ```
 
 ##### 3.2 适用于：新用户正式使用
@@ -55,7 +55,7 @@ docker run -d --name svnadmintemp -p 80:80 -p 3690:3690 --privileged witersencom
 - 启动一个临时的容器用于复制配置文件出来
 
 ```
-docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.5.7 /usr/sbin/init
+docker run -d --name svnadmintemp --privileged witersencom/svnadmin:2.5.9 /usr/sbin/init
 ```
 
 - 把配置文件复制到本机的 `/home/svnadmin` 目录
@@ -82,7 +82,7 @@ docker run -d -p 80:80 -p 3690:3690 \
 -v /home/svnadmin/sasl2/:/etc/sasl2/ \
 --privileged \
 --name svnadmin \
-witersencom/svnadmin:2.5.7
+witersencom/svnadmin:2.5.9
 ```
 
 - 进入容器内进行文件授权
@@ -96,13 +96,13 @@ chown -R apache:apache /home/svnadmin
 
 *ps: 2.4.3 及之前的用户要注意目录挂载多了 conf.d sasl2 升级之前要提前复制出来*
 
-- 2.3.x和2.4.x和2.5.x升级到2.5.7 （可以联网的用户）
+- 2.3.x和2.4.x和2.5.x升级到2.5.9 （可以联网的用户）
   - 进入容器内
   - yum install -y unzip
   - cd /var/www/html/server && php install.php
   - 退出容器
   - 停止旧的容器，拉取新容器，挂载本地的数据目录到新版本的容器即可
-- 2.3.x和2.4.x和2.5.x升级到2.5.7 （不可联网的用户）
+- 2.3.x和2.4.x和2.5.x升级到2.5.9 （不可联网的用户）
   - 在有网络的环境下下载升级包，注意下载 update.tar.gz 而不是 update.zip
   - 提前下载好升级包并复制到容器中 /var/www/html/server/ 目录下
   - cd /var/www/html/server/
@@ -162,9 +162,9 @@ crond
 - 下载解压代码包
 
 ```
-cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/2.5.7/2.5.7.zip
+cd /var/www/html/ && wget https://gitee.com/witersen/SvnAdminV2.0/releases/download/2.5.9/2.5.9.zip
 
-unzip 2.5.7.zip
+unzip 2.5.9.zip
 ```
 
 - 安装Subversion（如果你安装过Subversion，本步骤可以略过）（注意需要Subversion >= 1.8）
@@ -298,7 +298,7 @@ nohup php server/svnadmind.php start &
 
 ##### 4.4 适用于：旧用户升级
 
-- 2.3.x和2.4.x和2.5.x升级到2.5.7
+- 2.3.x和2.4.x和2.5.x升级到2.5.9
   - yum install -y unzip
   - cd /var/www/html/server && php install.php
 

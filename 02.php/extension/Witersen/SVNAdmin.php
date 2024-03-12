@@ -1532,25 +1532,50 @@ class SVNAdmin
             $pregArray[] = '(?:~@' . preg_quote($value) . ')';
         }
 
-        preg_match_all(sprintf($this->reg_7, '(' . implode('|', $pregArray) . ')'), $authzContent, $authzContentPreg);
-        if (preg_last_error() != 0) {
-            return preg_last_error();
+        if (false) {
+            preg_match_all(sprintf($this->reg_7, '(' . implode('|', $pregArray) . ')'), $authzContent, $authzContentPreg);
+            if (preg_last_error() != 0) {
+                return preg_last_error();
+            }
+
+            //两个满足条件在同一个路径下的问题 会被一个条件匹配到 而且不会重复 所以无需去重
+
+            // 从结果中过滤掉 ~user1=[rw]+
+            $result = [];
+            foreach ($authzContentPreg[5] as $key => $value) {
+                if ($value == "~$userName") {
+                    unset($authzContentPreg[5][$key]);
+                } else {
+                    $result[] = [
+                        'repName' => $authzContentPreg[2][$key],
+                        'priPath' => $authzContentPreg[3][$key],
+                        'repPri' => $authzContentPreg[6][$key],
+                        // 'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
+                    ];
+                }
+            }
         }
 
-        //两个满足条件在同一个路径下的问题 会被一个条件匹配到 而且不会重复 所以无需去重
-
-        // 从结果中过滤掉 ~user1=[rw]+
         $result = [];
-        foreach ($authzContentPreg[5] as $key => $value) {
-            if ($value == "~$userName") {
-                unset($authzContentPreg[5][$key]);
-            } else {
-                $result[] = [
-                    'repName' => $authzContentPreg[2][$key],
-                    'priPath' => $authzContentPreg[3][$key],
-                    'repPri' => $authzContentPreg[6][$key],
-                    // 'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
-                ];
+        foreach ($pregArray as $value) {
+            preg_match_all(sprintf($this->reg_7, '(' . $value . ')'), $authzContent, $authzContentPreg);
+            if (preg_last_error() != 0) {
+                return preg_last_error();
+            }
+
+            //两个满足条件在同一个路径下的问题 会被一个条件匹配到 而且不会重复 所以无需去重
+
+            // 从结果中过滤掉 ~user1=[rw]+
+            if (array_key_exists(0, $authzContentPreg[5])) {
+                if ($authzContentPreg[5][0] == "~$userName") {
+                } else {
+                    $result[] = [
+                        'repName' => $authzContentPreg[2][0],
+                        'priPath' => $authzContentPreg[3][0],
+                        'repPri' => $authzContentPreg[6][0],
+                        // 'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
+                    ];
+                }
             }
         }
 
