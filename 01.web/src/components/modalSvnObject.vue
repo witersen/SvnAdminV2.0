@@ -633,7 +633,7 @@ export default {
           title: i18n.t("action"),    //"操作",
           slot: "action",
         },
-      ]},
+      ],
       //对象列表-SVN分组列表
       tableColumnAllGroups() {
         return [
