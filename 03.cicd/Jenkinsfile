@@ -38,7 +38,7 @@ pipeline {
 
         GIT_MESSAGE = sh (script: 'git show -s --format=%s ${GIT_COMMIT}', returnStdout: true).trim()
 
-        TAG = '2.5.6'
+        TAG = '2.5.9'
     }
 
     stages {
