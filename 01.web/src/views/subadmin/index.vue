@@ -18,7 +18,7 @@
             type="primary"
             ghost
             @click="ModalCreateSubadmin"
-            >新建子管理员</Button
+            >{{ $t("subadmin.createSubadmin") }}</Button
           >
         </Col>
         <Col :xs="3" :sm="4" :md="5" :lg="6">
@@ -26,7 +26,7 @@
             v-model="searchKeywordSubadmin"
             search
             enter-button
-            placeholder="通过用户名、备注信息搜索..."
+            :placeholder="$t('subadmin.searchByNameAndDesc')"
             style="width: 100%"
             @on-search="SearchGetSubadminList"
         /></Col>
@@ -73,12 +73,12 @@
             type="info"
             size="small"
             @click="ModalPriTree(row.subadmin_id)"
-            >配置</Button
+            >{{ $t("subadmin.priTree") }}</Button
           >
         </template>
         <template slot-scope="{ row }" slot="online">
-          <Tag color="success" v-if="row.online == true">在线</Tag>
-          <Tag v-else>离线</Tag>
+          <Tag color="success" v-if="row.online == true">{{ $t("subadmin.online") }}</Tag>
+          <Tag v-else>{{ $t("subadmin.offline") }}</Tag>
         </template>
         <template slot-scope="{ row, index }" slot="action">
           <Button
@@ -87,13 +87,13 @@
             @click="
               ModalUpdSubadminPass(index, row.subadmin_id, row.subadmin_name)
             "
-            >重置</Button
+            >{{ $t("subadmin.resetPassword") }}</Button
           >
           <Button
             type="error"
             size="small"
             @click="DelSubadmin(index, row.subadmin_id, row.subadmin_name)"
-            >删除</Button
+            >{{ $t("subadmin.delete") }}</Button
           >
         </template>
       </Table>
@@ -111,19 +111,19 @@
       </Card>
     </Card>
     <!-- 对话框-新建子管理员 -->
-    <Modal v-model="modalCreateSubadmin" :draggable="true" title="新建子管理员">
+    <Modal v-model="modalCreateSubadmin" :draggable="true" :title="$t('subadmin.createSubadmin')">
       <Form :model="formCreateSubadmin" :label-width="80">
-        <FormItem label="用户名">
+        <FormItem :label="$t('username')">
           <Input v-model="formCreateSubadmin.subadmin_name"></Input>
         </FormItem>
-        <FormItem label="密码">
+        <FormItem :label="$t('password')">
           <Input
             type="password"
             password
             v-model="formCreateSubadmin.subadmin_password"
           ></Input>
         </FormItem>
-        <FormItem label="备注">
+        <FormItem :label="$t('note')">
           <Input v-model="formCreateSubadmin.subadmin_note"></Input>
         </FormItem>
         <FormItem>
@@ -131,13 +131,13 @@
             type="primary"
             @click="CreateSubadmin"
             :loading="loadingCreateSubadmin"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalCreateSubadmin = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -149,7 +149,7 @@
       @on-ok="UpdSubadminPass"
     >
       <Form :model="formUpdSubadmin" :label-width="80">
-        <FormItem label="新密码">
+        <FormItem :label="$t('newPassword')">
           <Input
             v-model="formUpdSubadmin.subadmin_password"
             type="password"
@@ -161,29 +161,29 @@
             type="primary"
             @click="UpdSubadminPass"
             :loading="loadingUpdSubadminPass"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalEditUserPass = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
     <!-- 对话框-子管理员权限配置 -->
-    <Modal v-model="modalPriTree" title="子管理员权限配置">
+    <Modal v-model="modalPriTree" :title="$t('subadmin.permissionConfig')">
       <Alert type="error" v-if="needUpdateTree"
-        >由于版本升级-权限节点调整-请参考旧权限树-重新为子管理员授权</Alert
+        >{{ $t("subadmin.reAuth") }}</Alert
       >
       <Form :model="formCreateSubadmin" :label-width="110">
-        <FormItem label="旧权限树" v-if="needUpdateTree">
+        <FormItem :label="$t('subadmin.oldPriTree')" v-if="needUpdateTree">
           <Scroll>
             <Tree :data="dataPriTreeOld" show-checkbox></Tree>
             <Spin size="large" fix v-if="loadingPriTree"></Spin>
           </Scroll>
         </FormItem>
-        <FormItem label="权限树">
+        <FormItem :label="$t('subadmin.newPriTree')">
           <Scroll>
             <Tree :data="dataPriTree" show-checkbox></Tree>
             <Spin size="large" fix v-if="loadingPriTree"></Spin>
@@ -194,18 +194,19 @@
             type="primary"
             @click="UpdSubadminTree"
             :loading="loadingUpdSubadminTree"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalPriTree = false">取消</Button>
+        <Button type="primary" ghost @click="modalPriTree = false">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
   </div>
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   data() {
     return {
@@ -285,66 +286,69 @@ export default {
       /**
        * 表格
        */
-      //仓库信息
-      tableColumnSubadmin: [
-        {
-          title: "序号",
-          slot: "index",
-          fixed: "left",
-          minWidth: 80,
-        },
-        {
-          title: "用户名",
-          key: "subadmin_name",
-          tooltip: true,
-          sortable: "custom",
-          minWidth: 120,
-        },
-        {
-          title: "启用状态",
-          key: "subadmin_status",
-          slot: "subadmin_status",
-          sortable: "custom",
-          minWidth: 120,
-        },
-        {
-          title: "备注信息",
-          slot: "subadmin_note",
-          minWidth: 120,
-        },
-        {
-          title: "上次登录",
-          key: "subadmin_last_login",
-          minWidth: 130,
-        },
-        {
-          title: "在线状态",
-          slot: "online",
-          minWidth: 90,
-        },
-        {
-          title: "创建时间",
-          key: "subadmin_create_time",
-          minWidth: 150,
-        },
-        {
-          title: "系统权限",
-          slot: "subadmin_pri",
-          minWidth: 120,
-        },
-        {
-          title: "其它",
-          slot: "action",
-          minWidth: 180,
-        },
-      ],
+      
       tableDataSubadmin: [],
       //子管理员权限信息
       dataPriTree: [],
       dataPriTreeOld: [],
     };
   },
-  computed: {},
+  computed: {
+    //仓库信息
+    tableColumnSubadmin() {
+      return [
+        {
+          title: i18n.t('serial'),   //"序号",
+          slot: "index",
+          fixed: "left",
+          minWidth: 80,
+        },
+        {
+          title: i18n.t('username'),   //"用户名",
+          key: "subadmin_name",
+          tooltip: true,
+          sortable: "custom",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('status'),   //"启用状态",
+          key: "subadmin_status",
+          slot: "subadmin_status",
+          sortable: "custom",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('note'),   //"备注信息",
+          slot: "subadmin_note",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('subadmin.lastLogin'),   //"上次登录",
+          key: "subadmin_last_login",
+          minWidth: 130,
+        },
+        {
+          title: i18n.t('subadmin.onlineStatus'),   //"在线状态",
+          slot: "online",
+          minWidth: 90,
+        },
+        {
+          title: i18n.t('createTime'),   //"创建时间",
+          key: "subadmin_create_time",
+          minWidth: 150,
+        },
+        {
+          title: i18n.t('subadmin.sysPermission'),   //"系统权限",
+          slot: "subadmin_pri",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('others'),   //"其它",
+          slot: "action",
+          minWidth: 180,
+        },
+      ]},
+  },
   created() {},
   mounted() {
     this.GetSubadminList();
@@ -404,7 +408,7 @@ export default {
         .catch(function (error) {
           that.loadingSubadmin = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -429,7 +433,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -453,7 +457,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -496,7 +500,7 @@ export default {
         .catch(function (error) {
           that.loadingCreateSubadmin = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -504,7 +508,7 @@ export default {
      */
     ModalUpdSubadminPass(index, subadmin_id, subadmin_name) {
       //设置标题
-      this.titleEditUser = "重置密码 - " + subadmin_name;
+      this.titleEditUser = i18n.t('subadmin.resetPassword') + " - " + subadmin_name;
       //设置选中子管理员
       this.formUpdSubadmin.subadmin_id = subadmin_id;
       //显示对话框
@@ -533,7 +537,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdSubadminPass = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -589,7 +593,7 @@ export default {
                         display: "inline-block",
                       },
                       domProps: {
-                        innerHTML: "删除子管理员 - " + subadmin_name,
+                        innerHTML: i18n.t('subadmin.deleteSubadmin') + " - " + subadmin_name,
                       },
                     }),
                     h(
@@ -608,7 +612,7 @@ export default {
                               fontSize: "15px",
                             },
                           },
-                          "删除子管理员 - " + subadmin_name
+                          i18n.t('subadmin.deleteSubadmin') + " - " + subadmin_name
                         ),
                       ]
                     ),
@@ -626,7 +630,7 @@ export default {
                 h("p", {
                   style: { marginBottom: "15px" },
                   domProps: {
-                    innerHTML: "确定要删除该子管理员吗？<br/>该操作不可逆！",
+                    innerHTML: i18n.t('subadmin.confirmDeleteSubadmin'),
                   },
                 }),
               ]
@@ -650,7 +654,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -689,7 +693,7 @@ export default {
         .catch(function (error) {
           that.loadingPriTree = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -717,7 +721,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdSubadminTree = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

@@ -16,17 +16,17 @@
             ghost
             :loading="loadingClearLogs"
             @click="DelLogs"
-            >清空日志</Button
+            >{{ $t('logs.clearLogs') }}</Button
           >
           <download-excel
             style="display: inline-block"
             class="export-excel-wrapper"
             :data="tableDataLog"
             :fields="excelLogFields"
-            name="SVNAdmin2-系统日志"
+            :name="$t('logs.logName')"
           >
             <Button icon="ios-cloud-download-outline" type="success" ghost
-              >导出日志</Button
+              >{{ $t('logs.exportLogs') }}</Button
             >
           </download-excel>
         </Col>
@@ -35,7 +35,7 @@
             v-model="searchKeywordLog"
             search
             enter-button
-            placeholder="通过所有信息搜索..."
+            :placeholder="$t('logs.searchLogs')"
             style="width: 100%"
             @on-search="SearchGetLogList"
         /></Col>
@@ -65,6 +65,7 @@
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   data() {
     return {
@@ -75,16 +76,6 @@ export default {
       pageCurrentLog: 1,
       pageSizeLog: 10,
       totalLog: 0,
-
-      /**
-       * 表格
-       */
-      excelLogFields: {
-        操作人: "log_add_user_name",
-        日志类型: "log_type_name",
-        详细信息: "log_content",
-        操作时间: "log_add_time",
-      },
 
       /**
        * 搜索关键词
@@ -98,43 +89,56 @@ export default {
       //清空日志
       loadingClearLogs: false,
 
+      tableDataLog: [],
+    };
+  },
+  computed: {
+       /**
+       * 表格
+       */
+       excelLogFields() {
+        return {
+            操作人: "log_add_user_name",
+            日志类型: "log_type_name",
+            详细信息: "log_content",
+            操作时间: "log_add_time",
+        }
+      },
       /**
        * 表格
        */
       //日志
-      tableColumnLog: [
+      tableColumnLog() {
+        return [
         {
-          title: "序号",
+          title: i18n.t("serial"),    //"序号",
           type: "index",
           fixed: "left",
           minWidth: 80,
         },
         {
-          title: "操作人",
+          title: i18n.t("operator"),    //"操作人",
           key: "log_add_user_name",
           minWidth: 120,
         },
         {
-          title: "日志类型",
+          title: i18n.t("logs.logType"),    //"日志类型",
           key: "log_type_name",
           minWidth: 150,
         },
         {
-          title: "详细信息",
+          title: i18n.t("logs.content"),    //"详细信息",
           key: "log_content",
           tooltip: true,
           minWidth: 120,
         },
         {
-          title: "操作时间",
+          title: i18n.t("logs.addTime"),    //"操作时间",
           key: "log_add_time",
           minWidth: 150,
         },
-      ],
-      tableDataLog: [],
-    };
+      ]},
   },
-  computed: {},
   created() {},
   mounted() {
     this.GetLogList();
@@ -192,7 +196,7 @@ export default {
         .catch(function (error) {
           that.loadingGetLogList = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -221,7 +225,7 @@ export default {
             .catch(function (error) {
               that.loadingClearLogs = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
