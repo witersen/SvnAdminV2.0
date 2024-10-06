@@ -1,0 +1,1 @@
+OPTIONS="-r '%s' --config-file '%s' --log-file '%s' --listen-port 3690 --listen-host 0.0.0.0"
