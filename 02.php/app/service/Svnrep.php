@@ -46,7 +46,7 @@ class Svnrep extends Base
             return message(200, 0, '未在 config/bin.php 文件中配置 svnauthz-validate 路径');
         }
 
-        $result = funShellExec(sprintf("'%s' '%s'", '/usr/bin/svn-tools/svnauthz-validate', $this->configSvn['svn_authz_file'], $this->configBin['svnauthz-validate']));
+        $result = funShellExec(sprintf("'%s' '%s'", $this->configBin['svnauthz-validate'], $this->configSvn['svn_authz_file']));
         if ($result['code'] != 0) {
             return message(200, 2, '检测到异常', $result['error']);
         } else {

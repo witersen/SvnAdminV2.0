@@ -25,6 +25,8 @@ ini_set('pcre.backtrack_limit', -1);
 
 ini_set('pcre.recursion_limit', -1);
 
+ini_set('pcre.jit_stack_limit', -1);
+
 define('BASE_PATH', __DIR__);
 
 define('IPC_SVNADMIN', BASE_PATH . '/server/svnadmind.socket');

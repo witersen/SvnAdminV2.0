@@ -75,7 +75,7 @@ for php_version in "${php_version_array[@]}"; do
         sign=${TAG}-${php_version}-svn${svn_version}
 
         cp -r 03.cicd/svnadmin_docker 03.cicd/${sign}
-        releasever='\$releasever' basearch='\$basearch' php_version=${php_version} svn_version=${svn_version} envsubst <03.cicd/${sign}/dockerfile >03.cicd/${sign}/dockerfile.temp
+        php_version=${php_version} svn_version=${svn_version} envsubst <03.cicd/${sign}/dockerfile >03.cicd/${sign}/dockerfile.temp
         mv 03.cicd/${sign}/dockerfile.temp 03.cicd/${sign}/dockerfile
 
         image_svnadmin="${MY_HARBOR_HOST}/${project_name}/svnadmin-${GIT_BRANCH}:${sign}"

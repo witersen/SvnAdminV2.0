@@ -1567,14 +1567,26 @@ class SVNAdmin
 
             // 从结果中过滤掉 ~user1=[rw]+
             if (array_key_exists(0, $authzContentPreg[5])) {
-                if ($authzContentPreg[5][0] == "~$userName") {
-                } else {
-                    $result[] = [
-                        'repName' => $authzContentPreg[2][0],
-                        'priPath' => $authzContentPreg[3][0],
-                        'repPri' => $authzContentPreg[6][0],
-                        // 'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
-                    ];
+                // if ($authzContentPreg[5][0] == "~$userName") {
+                // } else {
+                //     $result[] = [
+                //         'repName' => $authzContentPreg[2][0],
+                //         'priPath' => $authzContentPreg[3][0],
+                //         'repPri' => $authzContentPreg[6][0],
+                //         // 'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
+                //     ];
+                // }
+                foreach ($authzContentPreg[5] as $key => $value) {
+                    if ($value == "~$userName") {
+                        // unset($authzContentPreg[5][$key]);
+                    } else {
+                        $result[] = [
+                            'repName' => $authzContentPreg[2][$key],
+                            'priPath' => $authzContentPreg[3][$key],
+                            'repPri' => $authzContentPreg[6][$key],
+                            // 'unique' => '' //兼容2.3.3及之前版本 从2.3.3.1版本开始无实际意义
+                        ];
+                    }
                 }
             }
         }
