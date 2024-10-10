@@ -513,7 +513,19 @@ class Svnrep extends Base
     public function GetSvnUserRepList()
     {
         if ($this->enableCheckout == 'http') {
-            $checkoutHost = $this->localHttpProtocol . '://' . ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHttpPort) . ($this->httpPrefix == '/' ? '' : $this->httpPrefix);
+            $checkoutHost = $this->dockerHost;
+
+            if ($this->dockerHttpPort != 80 && $this->dockerHttpPort != 443) {
+                $checkoutHost .= ':' . $this->dockerHttpPort;
+            }
+
+            if ($this->httpPrefix != '/') {
+                $checkoutHost .= $this->httpPrefix;
+            }
+
+            $protocal = $this->dockerHttpPort == 443 ? 'https://' : 'http://';
+
+            $checkoutHost = $protocal . $checkoutHost;
         }
 
         $sync = $this->payload['sync'];
