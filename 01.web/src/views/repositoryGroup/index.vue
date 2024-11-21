@@ -529,6 +529,10 @@ export default {
      * 添加分组
      */
     ModalCreateGroup() {
+      this.formCreateGroup = {
+        svn_group_name: "",
+        svn_group_note: "",
+      }
       this.modalAddGroup = true;
     },
     CreateGroup() {

@@ -470,6 +470,11 @@ export default {
      * 新建子管理员
      */
     ModalCreateSubadmin() {
+      this.formCreateSubadmin = {
+        subadmin_name: "",
+        subadmin_password: "",
+        subadmin_note: "",
+      }
       this.modalCreateSubadmin = true;
     },
     CreateSubadmin() {

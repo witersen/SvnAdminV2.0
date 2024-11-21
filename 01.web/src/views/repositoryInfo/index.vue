@@ -1558,6 +1558,11 @@ export default {
      * 添加仓库
      */
     ModalCreateRep() {
+      this.formRepAdd = {
+        rep_name: "",
+        rep_note: "",
+        rep_type: "1",
+      }
       this.modalCreateRep = true;
     },
     CreateRep() {

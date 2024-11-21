@@ -887,6 +887,11 @@ export default {
      * 新建用户
      */
     ModalCreateUser() {
+      this.formCreateUser = {
+        svn_user_name: "",
+        svn_user_pass: "",
+        svn_user_note: "",
+      }
       this.modalCreateUser = true;
     },
     CreateUser() {
