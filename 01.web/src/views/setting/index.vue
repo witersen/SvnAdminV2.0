@@ -2,11 +2,11 @@
   <div>
     <Card :bordered="false" :dis-hover="true">
       <Tabs v-model="curTabSettingAdvance" @on-click="SetCurrentAdvanceTab">
-        <TabPane label="主机配置" name="1">
+        <TabPane :label="$t('setting.serverConfig')" name="1">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <Alert>该信息主要用于仓库检出地址的拼接</Alert>
+            <Alert>{{ $t('setting.serverConfigDesc') }}</Alert>
             <Form :label-width="120" label-position="left">
-              <FormItem label="宿主机IP/域名">
+              <FormItem :label="$t('setting.serverNameIp')">
                 <Row>
                   <Col span="12">
                     <Input
@@ -19,14 +19,14 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="此值仅通过数据库维护-不影响业务运行"
+                      :content="$t('setting.serverNameIpTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="宿主机svn端口">
+              <FormItem :label="$t('setting.hostSvnPort')">
                 <Row>
                   <Col span="12">
                     <InputNumber
@@ -39,14 +39,14 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="此值仅通过数据库维护-不影响业务运行-作用为当处于容器环境中通常会做端口映射导致容器内端口和宿主机端口不同-这个时候为了显示方便-可配置此值-当不处于容器环境时候此值与实际端口值一致即可"
+                      :content="$t('setting.hostPortTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="宿主机web端口">
+              <FormItem :label="$t('setting.hostWebPort')">
                 <Row>
                   <Col span="12">
                     <InputNumber
@@ -59,9 +59,9 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="此值仅通过数据库维护-不影响业务运行-作用为当处于容器环境中通常会做端口映射导致容器内端口和宿主机端口不同-这个时候为了显示方便-可配置此值-当不处于容器环境时候此值与实际端口值一致即可"
+                      :content="$t('setting.hostPortTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                 </Row>
@@ -71,20 +71,20 @@
                   type="primary"
                   @click="UpdDockerHostInfo"
                   :loading="loadingUpdDockerHostInfo"
-                  >保存</Button
+                  >{{ $t('save') }}</Button
                 >
               </FormItem>
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="路径信息" name="2">
+        <TabPane :label="$t('setting.pathInfo')" name="2">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Alert
-              >可在命令行模式下执行 server/install.php 进行目录更换操作
+              >{{ $t('setting.pathInfoDesc') }}
             </Alert>
             <Form :label-width="160" label-position="left">
               <FormItem
-                :label="item.key"
+                :label="item.key ? $t('setting.' + item.key) : ''"
                 v-for="(item, index) in configList"
                 :key="index"
               >
@@ -97,18 +97,18 @@
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="svn协议检出" name="3">
+        <TabPane :label="$t('setting.checkoutBySvnProtocol')" name="3">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <h2 style="margin: 0 0 30px 0">协议启用状态</h2>
+            <h2 style="margin: 0 0 30px 0">{{ $t('setting.protocolStatus') }}</h2>
             <Form :label-width="100" label-position="left">
-              <FormItem label="协议启用状态">
+              <FormItem :label="$t('setting.protocolStatus')">
                 <Row>
                   <Col span="12">
                     <span style="color: #f90" v-if="!formSvn.enable"
-                      >未启用</span
+                      >{{ $t('setting.disable') }}</span
                     >
                     <span style="color: #19be6b" v-if="formSvn.enable"
-                      >启用中</span
+                      >{{ $t('setting.enabled') }}</span
                     >
                   </Col>
                   <Col span="1"> </Col>
@@ -116,21 +116,21 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="为了仓库数据安全-svn协议检出和http协议检出不建议同时提供服务-因此同时只可启用一种服务"
+                      :content="$t('setting.protocolStatusTip')"
                     >
                       <Button
                         :loading="loadingUpdSvnEnable"
                         type="success"
                         v-if="!formSvn.enable"
                         @click="UpdSvnEnable"
-                        >启用</Button
+                        >{{ $t('setting.enable') }}</Button
                       >
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
             </Form>
-            <h2 style="margin: 30px 0 30px 0">svnserve服务信息</h2>
+            <h2 style="margin: 30px 0 30px 0">{{ $t('setting.svnserveInfo') }}</h2>
             <Form :label-width="100" label-position="left">
               <FormItem label="svnserve">
                 <Row>
@@ -142,27 +142,27 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="当使用svn协议检出时必须通过svnserve服务"
+                      :content="$t('setting.svnserveTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="运行状态">
+              <FormItem :label="$t('setting.runningStatus')">
                 <Row>
                   <Col span="12">
                     <Tooltip
                       :transfer="true"
                       max-width="300"
-                      content="运行状态通过pid文件和pid数值进行判断-如有误判请检查svnserve程序的启动方式"
+                      :content="$t('setting.runningStatusTip')"
                     >
                       <span style="color: #f90" v-if="!formSvn.status"
-                        >未启动</span
+                        >{{ $t('setting.notStart') }}</span
                       >
                       <span style="color: #19be6b" v-if="formSvn.status"
-                        >运行中</span
+                        >{{ $t('setting.running') }}</span
                       >
                     </Tooltip>
                   </Col>
@@ -173,19 +173,19 @@
                       type="success"
                       v-if="!formSvn.status"
                       @click="UpdSvnserveStatusStart"
-                      >启动</Button
+                      >{{ $t('setting.start') }}</Button
                     >
                     <Button
                       :loading="loadingSvnserveStop"
                       type="warning"
                       v-if="formSvn.status"
                       @click="UpdSvnserveStatusStop"
-                      >停止</Button
+                      >{{ $t('setting.stop') }}</Button
                     >
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="监听端口">
+              <FormItem :label="$t('setting.listeningPort')">
                 <Row>
                   <Col span="12">
                     <InputNumber
@@ -199,20 +199,20 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="若您的应用以容器方式部署，则无需修改此值，只需要修改宿主机到容器的端口映射即可"
+                      :content="$t('setting.listeningPortTip')"
                     >
                       <Button
                         type="warning"
                         @click="UpdSvnservePort"
                         :disabled="disableUpdSvnservePort"
                         :loading="loadingUpdSvnservePort"
-                        >修改</Button
+                        >{{ $t('modify') }}</Button
                       >
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="监听地址">
+              <FormItem :label="$t('setting.listeningAddress')">
                 <Row>
                   <Col span="12">
                     <Input
@@ -226,20 +226,20 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="（1）请注意，此值默认为 0.0.0.0 ，是 svnserve 服务器的实际的默认的绑定地址。如果无特殊原因无需修改此默认值。如果你要更换为公网IP地址，且你的机器为公网服务器且非弹性IP，则可能会绑定失败。原因与云服务器厂商分配公网IP给服务器的方式有关。（2）若您的应用以容器方式部署，则无需修改此值"
+                      :content="$t('setting.listeningAddressTip')"
                     >
                       <Button
                         type="warning"
                         @click="UpdSvnserveHost"
                         :disabled="disableUpdSvnserveHost"
                         :loading="loadingUpdSvnserveHost"
-                        >修改</Button
+                        >{{ $t('modify') }}</Button
                       >
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="关联用户文件">
+              <FormItem :label="$t('setting.passwordDb')">
                 <Row>
                   <Col span="12">
                     <span>{{ formSvn.password_db }}</span>
@@ -249,16 +249,16 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="svn协议检出默认情况下使用明文密码的用户认证文件"
+                      :content="$t('setting.passwordDbTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
             </Form>
-            <h2 style="margin: 30px 0 30px 0">saslauthd服务信息</h2>
+            <h2 style="margin: 30px 0 30px 0">{{ $t('setting.saslauthdService') }}</h2>
             <Form :label-width="100" label-position="left">
               <FormItem label="saslauthd">
                 <Row>
@@ -270,15 +270,15 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="当使用svn协议检出时如要接入第三方认证如ldap等必须通过额外的服务saslauthd"
+                      :content="$t('setting.saslauthdServiceTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="支持信息">
+              <FormItem :label="$t('setting.supportInfo')">
                 <Row>
                   <Col span="12">
                     <span>{{ formSvn.sasl.mechanisms }}</span>
@@ -288,19 +288,19 @@
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="运行状态">
+              <FormItem :label="$t('setting.runningStatus')">
                 <Row>
                   <Col span="12">
                     <Tooltip
                       :transfer="true"
                       max-width="300"
-                      content="运行状态通过pid文件和pid数值进行判断-如有误判请检查saslauthd程序的启动方式"
+                      :content="$t('setting.runningStatusTip')"
                     >
                       <span style="color: #f90" v-if="!formSvn.sasl.status"
-                        >未启动</span
+                        >{{ $t('setting.notStart') }}</span
                       >
                       <span style="color: #19be6b" v-if="formSvn.sasl.status"
-                        >运行中</span
+                        >{{ $t('setting.running') }}</span
                       >
                     </Tooltip>
                   </Col>
@@ -311,22 +311,22 @@
                       type="success"
                       v-if="!formSvn.sasl.status"
                       @click="UpdSaslStatusStart"
-                      >启动</Button
+                      >{{ $t('setting.start') }}</Button
                     >
                     <Button
                       :loading="loadingUpdSaslStatusStop"
                       type="warning"
                       v-if="formSvn.sasl.status"
                       @click="UpdSaslStatusStop"
-                      >停止</Button
+                      >{{ $t('setting.stop') }}</Button
                     >
                   </Col>
                 </Row>
               </FormItem>
             </Form>
-            <h2 style="margin: 30px 0 30px 0">用户来源</h2>
+            <h2 style="margin: 30px 0 30px 0">{{ $t('setting.userSource') }}</h2>
             <Form :label-width="120" label-position="left">
-              <FormItem label="SVN用户来源">
+              <FormItem :label="$t('setting.svnUserSource')">
                 <Row>
                   <Col span="12">
                     <Select
@@ -334,18 +334,18 @@
                       style="width: 200px"
                       @on-change="ChangeSvnUsersource"
                     >
-                      <Option value="passwd">passwd文件</Option>
+                      <Option value="passwd">{{ $t('setting.passwdFile') }}</Option>
                       <Option value="ldap">ldap</Option>
                     </Select>
                   </Col>
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="SVN分组来源">
+              <FormItem :label="$t('setting.svnGroupSource')">
                 <Row>
                   <Col span="12">
                     <Select v-model="formSvn.group_source" style="width: 200px">
-                      <Option value="authz">authz文件</Option>
+                      <Option value="authz">{{ $t('setting.authzFile') }}</Option>
                       <Option
                         value="ldap"
                         :disabled="formSvn.user_source == 'passwd'"
@@ -362,9 +362,9 @@
                       "
                       :transfer="true"
                       max-width="250"
-                      content="如果要设置SVN分组来源为LDAP  必须要先设置SVN用户来源为LDAP"
+                      :content="$t('setting.ldapSourceTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                 </Row>
@@ -378,8 +378,8 @@
                   formSvn.group_source == 'ldap'
                 "
               >
-                <Divider>LDAP 服务器</Divider>
-                <FormItem label="LDAP 主机地址">
+                <Divider>{{ $t('setting.ldapServer') }}</Divider>
+                <FormItem :label="$t('setting.ldapServerAddress')">
                   <Row>
                     <Col span="12">
                       <Input
@@ -389,7 +389,7 @@
                     </Col>
                   </Row>
                 </FormItem>
-                <FormItem label="LDAP 端口">
+                <FormItem :label="$t('setting.ldapPort')">
                   <Row>
                     <Col span="12">
                       <InputNumber
@@ -399,7 +399,7 @@
                     </Col>
                   </Row>
                 </FormItem>
-                <FormItem label="LDAP 协议版本">
+                <FormItem :label="$t('setting.ldapVersion')">
                   <Row>
                     <Col span="12">
                       <InputNumber
@@ -420,9 +420,9 @@
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如: CN=blue,CN=Users,DC=witersen,DC=com"
+                        :content="$t('setting.ldapBindDnTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -442,7 +442,7 @@
                         type="success"
                         @click="LdapTest('svn', 'connection')"
                         :loading="loadingLdapTestConnection"
-                        >验证</Button
+                        >{{ $t('setting.ldapTest') }}</Button
                       >
                     </Col>
                   </Row>
@@ -450,7 +450,7 @@
               </span>
               <!-- LDAP 用户 -->
               <span v-if="formSvn.user_source == 'ldap'">
-                <Divider>LDAP 用户</Divider>
+                <Divider>{{ $t('setting.ldapUser') }}</Divider>
                 <FormItem label="Base DN">
                   <Row>
                     <Col span="12">
@@ -461,9 +461,9 @@
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如: CN=Users,DC=witersen,DC=com"
+                        :content="$t('setting.ldapBaseDnTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -480,7 +480,7 @@
                         max-width="250"
                         content="如:  (&(objectClass=person)(objectClass=user))"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -497,9 +497,9 @@
                           <Tooltip
                             :transfer="true"
                             max-width="250"
-                            content="如: sAMAccountName（注意如果没有过滤到结果可切换本属性为全部小写进行测试）"
+                            :content="$t('setting.ldapAttributesTip')"
                           >
-                            <Button type="info">说明</Button>
+                            <Button type="info">{{ $t('setting.info') }}</Button>
                           </Tooltip>
                         </Col>
                         <Col span="2"> </Col>
@@ -508,7 +508,7 @@
                             type="success"
                             @click="LdapTest('svn', 'user')"
                             :loading="loadingLdapTestUser"
-                            >验证</Button
+                            >{{ $t('setting.ldapTest') }}</Button
                           >
                         </Col>
                       </Row>
@@ -518,7 +518,7 @@
               </span>
               <!-- LDAP 分组 -->
               <span v-if="formSvn.group_source == 'ldap'">
-                <Divider>LDAP 分组</Divider>
+                <Divider>{{ $t('setting.ldapGroup') }}</Divider>
                 <FormItem label="Base DN">
                   <Row>
                     <Col span="12">
@@ -529,9 +529,9 @@
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如: DC=witersen,DC=com"
+                        :content="$t('setting.ldapGroupBaseDnTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -546,9 +546,9 @@
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如:  (objectClass=group)"
+                        :content="$t('setting.ldapGroupSearchFilterTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -563,9 +563,9 @@
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如:  sAMAccountName"
+                        :content="$t('setting.ldapGroupAttributesTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -582,9 +582,9 @@
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="表示分组中的一个多值属性，这个多值属性包含了0到多个用户"
+                        :content="$t('setting.ldapGroupsToUserAttributeTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -603,9 +603,9 @@
                           <Tooltip
                             :transfer="true"
                             max-width="250"
-                            content="一般填写的是dn，即当遍历LDAP用户时，某用户的【Groups to user attribute value】属性对应的值与某组的【Groups to user attribute】对应的多项的某一项相等，该分组才包含该用户"
+                            :content="$t('setting.ldapGroupsToUserAttributeValueTip')"
                           >
-                            <Button type="info">说明</Button>
+                            <Button type="info">{{ $t('setting.info') }}</Button>
                           </Tooltip>
                         </Col>
                         <Col span="2"> </Col>
@@ -614,7 +614,7 @@
                             type="success"
                             @click="LdapTest('svn', 'group')"
                             :loading="loadingLdapTestGroup"
-                            >验证</Button
+                            >{{ $t('setting.ldapTest') }}</Button
                           >
                         </Col>
                       </Row>
@@ -628,24 +628,24 @@
                   type="primary"
                   @click="UpdSvnUsersource"
                   :loading="loadingUpdSvnUsersource"
-                  >保存</Button
+                  >{{ $t('save') }}</Button
                 >
               </FormItem>
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="http协议检出" name="4">
+        <TabPane :label="$t('setting.checkoutByHttpProtocol')" name="4">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
-            <h2 style="margin: 0 0 30px 0">协议启用状态</h2>
+            <h2 style="margin: 0 0 30px 0">{{ $t('setting.protocolStatus') }}</h2>
             <Form :label-width="100" label-position="left">
-              <FormItem label="协议启用状态">
+              <FormItem :label="$t('setting.protocolStatus')">
                 <Row>
                   <Col span="12">
                     <span style="color: #f90" v-if="!formHttp.enable"
-                      >未启用</span
+                      >{{ $t('setting.disable') }}</span
                     >
                     <span style="color: #19be6b" v-if="formHttp.enable"
-                      >启用中</span
+                      >{{ $t('setting.enabled') }}</span
                     >
                   </Col>
                   <Col span="1"> </Col>
@@ -653,21 +653,21 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="svn协议检出和http协议检出可同时提供服务-只是管理系统同一时间只建议管理一套用户数据-因此通过此按钮进行管理切换"
+                      :content="$t('setting.httpProtocolTip')"
                     >
                       <Button
                         :loading="loadingUpdSubversionEnable"
                         type="success"
                         v-if="!formHttp.enable"
                         @click="UpdSubversionEnable"
-                        >启用</Button
+                        >{{ $t('setting.enable') }}</Button
                       >
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
             </Form>
-            <h2 style="margin: 30px 0 30px 0">apache服务信息</h2>
+            <h2 style="margin: 30px 0 30px 0">{{ $t('setting.apacheServiceInfo') }}</h2>
             <Form :label-width="100" label-position="left">
               <FormItem label="apache">
                 <Row>
@@ -679,15 +679,15 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="当使用http协议检出时必须通过apache和mod_dav_svn模块"
+                      :content="$t('setting.apacheServiceInfoTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="svn相关模块">
+              <FormItem :label="$t('setting.modulesInfo')">
                 <Row>
                   <Col span="12">
                     <span>{{ formHttp.modules }}</span>
@@ -697,7 +697,7 @@
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="安装模块目录">
+              <FormItem :label="$t('setting.modulesPathInfo')">
                 <Row>
                   <Col span="12">
                     <span>{{ formHttp.modules_path }}</span>
@@ -707,7 +707,7 @@
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="监听端口">
+              <FormItem :label="$t('setting.listeningPort')">
                 <Row>
                   <Col span="12">
                     <InputNumber
@@ -721,20 +721,20 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="（1）此值仅通过数据库维护-不影响业务运行-由于实际情况复杂不便监控和管理apache服务器的运行端口-因此当本系统apache实际配置何端口值此处则填写何端口值-填写不正确则会影响http协议检出模式下的本系统内用户在线仓库浏览功能（2）若您的应用以容器方式部署，则无需修改此值"
+                      :content="$t('setting.apacheListeningPortTip')"
                     >
                       <Button
                         type="warning"
                         @click="UpdHttpPort"
                         :disabled="disableUpdHttpPort"
                         :loading="loadingUpdHttpPort"
-                        >修改</Button
+                        >{{ $t('modify') }}</Button
                       >
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="仓库访问前缀">
+              <FormItem :label="$t('setting.httpRepoPrefix')">
                 <Row>
                   <Col span="12">
                     <Input
@@ -748,20 +748,20 @@
                     <Tooltip
                       :transfer="true"
                       max-width="350"
-                      content="此值默认为 /svn 为使用http协议检出时访问仓库的路径-如果设置为 / 请注意与管理系统的地址冲突问题-可通过为本系统配置虚拟路径如/manage来达到仓库使用/前缀的目的"
+                      :content="$t('setting.httpRepoPrefixTip')"
                     >
                       <Button
                         type="warning"
                         @click="UpdHttpPrefix"
                         :disabled="disableUpdHttpPrefix"
                         :loading="loadingUpdHttpPrefix"
-                        >修改</Button
+                        >{{ $t('modify') }}</Button
                       >
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="关联用户文件">
+              <FormItem :label="$t('setting.passwordDb')">
                 <Row>
                   <Col span="12">
                     <span>{{ formHttp.password_db }}</span>
@@ -771,18 +771,18 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="http协议检出默认情况下使用密文密码的用户认证文件"
+                      :content="$t('setting.httpPasswordDbTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
             </Form>
-            <h2 style="margin: 30px 0 30px 0">用户来源</h2>
+            <h2 style="margin: 30px 0 30px 0">{{ $t('setting.userSource') }}</h2>
             <Form :label-width="120" label-position="left">
-              <FormItem label="SVN用户来源">
+              <FormItem :label="$t('setting.svnUserSource')">
                 <Row>
                   <Col span="12">
                     <Select
@@ -790,21 +790,21 @@
                       style="width: 200px"
                       @on-change="ChangeHttpUsersource"
                     >
-                      <Option value="httpPasswd">httpPasswd文件</Option>
+                      <Option value="httpPasswd">{{ $t('setting.httpPasswdFile') }}</Option>
                       <Option value="ldap">ldap</Option>
                     </Select>
                   </Col>
                   <Col span="6"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="SVN分组来源">
+              <FormItem :label="$t('setting.svnGroupSource')">
                 <Row>
                   <Col span="12">
                     <Select
                       v-model="formHttp.group_source"
                       style="width: 200px"
                     >
-                      <Option value="authz">authz文件</Option>
+                      <Option value="authz">{{ $t('setting.authzFile') }}</Option>
                       <Option
                         value="ldap"
                         :disabled="formHttp.user_source == 'httpPasswd'"
@@ -821,9 +821,9 @@
                       "
                       :transfer="true"
                       max-width="250"
-                      content="如果要设置SVN分组来源为LDAP  必须要先设置SVN用户来源为LDAP"
+                      :content="$t('setting.ldapSourceTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                 </Row>
@@ -833,38 +833,38 @@
               <!-- LDAP 服务器 -->
               <span
                 v-if="
-                  formHttp.user_source == 'ldap' ||
-                  formHttp.group_source == 'ldap'
+                  formSvn.user_source == 'ldap' ||
+                  formSvn.group_source == 'ldap'
                 "
               >
-                <Divider>LDAP 服务器</Divider>
-                <FormItem label="LDAP 主机地址">
+                <Divider>{{ $t('setting.ldapServer') }}</Divider>
+                <FormItem :label="$t('setting.ldapServerAddress')">
                   <Row>
                     <Col span="12">
                       <Input
-                        v-model="formHttp.ldap.ldap_host"
+                        v-model="formSvn.ldap.ldap_host"
                         placeholder="ldap://127.0.0.1/"
                       ></Input>
                     </Col>
                   </Row>
                 </FormItem>
-                <FormItem label="LDAP 端口">
+                <FormItem :label="$t('setting.ldapPort')">
                   <Row>
                     <Col span="12">
                       <InputNumber
                         :min="1"
-                        v-model="formHttp.ldap.ldap_port"
+                        v-model="formSvn.ldap.ldap_port"
                       ></InputNumber>
                     </Col>
                   </Row>
                 </FormItem>
-                <FormItem label="LDAP 协议版本">
+                <FormItem :label="$t('setting.ldapVersion')">
                   <Row>
                     <Col span="12">
                       <InputNumber
                         :min="2"
                         :max="3"
-                        v-model="formHttp.ldap.ldap_version"
+                        v-model="formSvn.ldap.ldap_version"
                       ></InputNumber>
                     </Col>
                   </Row>
@@ -872,16 +872,16 @@
                 <FormItem label="Bind DN">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formHttp.ldap.ldap_bind_dn"></Input>
+                      <Input v-model="formSvn.ldap.ldap_bind_dn"></Input>
                     </Col>
                     <Col span="1"> </Col>
                     <Col span="6">
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如: CN=blue,CN=Users,DC=witersen,DC=com"
+                        :content="$t('setting.ldapBindDnTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -890,7 +890,7 @@
                   <Row>
                     <Col span="12">
                       <Input
-                        v-model="formHttp.ldap.ldap_bind_password"
+                        v-model="formSvn.ldap.ldap_bind_password"
                         type="password"
                         password
                       ></Input>
@@ -899,30 +899,30 @@
                     <Col span="6">
                       <Button
                         type="success"
-                        @click="LdapTest('apache', 'connection')"
+                        @click="LdapTest('svn', 'connection')"
                         :loading="loadingLdapTestConnection"
-                        >验证</Button
+                        >{{ $t('setting.ldapTest') }}</Button
                       >
                     </Col>
                   </Row>
                 </FormItem>
               </span>
               <!-- LDAP 用户 -->
-              <span v-if="formHttp.user_source == 'ldap'">
-                <Divider>LDAP 用户</Divider>
+              <span v-if="formSvn.user_source == 'ldap'">
+                <Divider>{{ $t('setting.ldapUser') }}</Divider>
                 <FormItem label="Base DN">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formHttp.ldap.user_base_dn"></Input>
+                      <Input v-model="formSvn.ldap.user_base_dn"></Input>
                     </Col>
                     <Col span="1"> </Col>
                     <Col span="6">
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如: CN=Users,DC=witersen,DC=com"
+                        :content="$t('setting.ldapBaseDnTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -930,7 +930,7 @@
                 <FormItem label="Search filter">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formHttp.ldap.user_search_filter"></Input>
+                      <Input v-model="formSvn.ldap.user_search_filter"></Input>
                     </Col>
                     <Col span="1"> </Col>
                     <Col span="6">
@@ -939,7 +939,7 @@
                         max-width="250"
                         content="如:  (&(objectClass=person)(objectClass=user))"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -947,7 +947,7 @@
                 <FormItem label="Attributes">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formHttp.ldap.user_attributes"></Input>
+                      <Input v-model="formSvn.ldap.user_attributes"></Input>
                     </Col>
                     <Col span="1"> </Col>
                     <Col span="8">
@@ -956,18 +956,18 @@
                           <Tooltip
                             :transfer="true"
                             max-width="250"
-                            content="如: sAMAccountName（注意如果没有过滤到结果可切换本属性为全部小写进行进行测试）"
+                            :content="$t('setting.ldapAttributesTip')"
                           >
-                            <Button type="info">说明</Button>
+                            <Button type="info">{{ $t('setting.info') }}</Button>
                           </Tooltip>
                         </Col>
                         <Col span="2"> </Col>
                         <Col span="11">
                           <Button
                             type="success"
-                            @click="LdapTest('apache', 'user')"
+                            @click="LdapTest('svn', 'user')"
                             :loading="loadingLdapTestUser"
-                            >验证</Button
+                            >{{ $t('setting.ldapTest') }}</Button
                           >
                         </Col>
                       </Row>
@@ -976,21 +976,21 @@
                 </FormItem>
               </span>
               <!-- LDAP 分组 -->
-              <span v-if="formHttp.group_source == 'ldap'">
-                <Divider>LDAP 分组</Divider>
+              <span v-if="formSvn.group_source == 'ldap'">
+                <Divider>{{ $t('setting.ldapGroup') }}</Divider>
                 <FormItem label="Base DN">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formHttp.ldap.group_base_dn"></Input>
+                      <Input v-model="formSvn.ldap.group_base_dn"></Input>
                     </Col>
                     <Col span="1"> </Col>
                     <Col span="6">
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如: DC=witersen,DC=com"
+                        :content="$t('setting.ldapGroupBaseDnTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -998,18 +998,16 @@
                 <FormItem label="Search filter">
                   <Row>
                     <Col span="12">
-                      <Input
-                        v-model="formHttp.ldap.group_search_filter"
-                      ></Input>
+                      <Input v-model="formSvn.ldap.group_search_filter"></Input>
                     </Col>
                     <Col span="1"> </Col>
                     <Col span="6">
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如:  (objectClass=group)"
+                        :content="$t('setting.ldapGroupSearchFilterTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -1017,16 +1015,16 @@
                 <FormItem label="Attributes">
                   <Row>
                     <Col span="12">
-                      <Input v-model="formHttp.ldap.group_attributes"></Input>
+                      <Input v-model="formSvn.ldap.group_attributes"></Input>
                     </Col>
                     <Col span="1"> </Col>
                     <Col span="6">
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="如:  sAMAccountName"
+                        :content="$t('setting.ldapGroupAttributesTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -1035,7 +1033,7 @@
                   <Row>
                     <Col span="12">
                       <Input
-                        v-model="formHttp.ldap.groups_to_user_attribute"
+                        v-model="formSvn.ldap.groups_to_user_attribute"
                       ></Input>
                     </Col>
                     <Col span="1"> </Col>
@@ -1043,9 +1041,9 @@
                       <Tooltip
                         :transfer="true"
                         max-width="250"
-                        content="表示分组中的一个多值属性，这个多值属性包含了0到多个用户"
+                        :content="$t('setting.ldapGroupsToUserAttributeTip')"
                       >
-                        <Button type="info">说明</Button>
+                        <Button type="info">{{ $t('setting.info') }}</Button>
                       </Tooltip>
                     </Col>
                   </Row>
@@ -1054,7 +1052,7 @@
                   <Row>
                     <Col span="12">
                       <Input
-                        v-model="formHttp.ldap.groups_to_user_attribute_value"
+                        v-model="formSvn.ldap.groups_to_user_attribute_value"
                       ></Input>
                     </Col>
                     <Col span="1"> </Col>
@@ -1064,18 +1062,18 @@
                           <Tooltip
                             :transfer="true"
                             max-width="250"
-                            content="一般填写的是dn，即当遍历LDAP用户时，某用户的【Groups to user attribute value】属性对应的值与某组的【Groups to user attribute】对应的多项的某一项相等，该分组才包含该用户"
+                            :content="$t('setting.ldapGroupsToUserAttributeValueTip')"
                           >
-                            <Button type="info">说明</Button>
+                            <Button type="info">{{ $t('setting.info') }}</Button>
                           </Tooltip>
                         </Col>
                         <Col span="2"> </Col>
                         <Col span="11">
                           <Button
                             type="success"
-                            @click="LdapTest('apache', 'group')"
+                            @click="LdapTest('svn', 'group')"
                             :loading="loadingLdapTestGroup"
-                            >验证</Button
+                            >{{ $t('setting.ldapTest') }}</Button
                           >
                         </Col>
                       </Row>
@@ -1087,25 +1085,25 @@
               <FormItem>
                 <Button
                   type="primary"
-                  @click="UpdHttpUsersource"
-                  :loading="loadingUpdHttpUsersource"
-                  >保存</Button
+                  @click="UpdSvnUsersource"
+                  :loading="loadingUpdSvnUsersource"
+                  >{{ $t('save') }}</Button
                 >
               </FormItem>
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="邮件服务" name="5">
+        <TabPane :label="$t('setting.emailSetting')" name="5">
           <Card :bordered="false" :dis-hover="true" style="width: 620px">
             <Form :label-width="120" label-position="left">
-              <FormItem label="SMTP主机">
+              <FormItem :label="$t('setting.smtpServerInfo')">
                 <Row>
                   <Col span="12">
                     <Input v-model="formMailSmtp.host"></Input>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="加密">
+              <FormItem :label="$t('setting.encryption')">
                 <Row>
                   <Col span="12">
                     <RadioGroup
@@ -1113,13 +1111,13 @@
                       @on-change="ChangeEncryption"
                     >
                       <Radio label="none">
-                        <span>无</span>
+                        <span>{{ $t('setting.none') }}</span>
                       </Radio>
                       <Radio label="SSL">
-                        <span>SSL</span>
+                        <span>{{ $t('setting.ssl') }}</span>
                       </Radio>
                       <Radio label="TLS">
-                        <span>TLS</span>
+                        <span>{{ $t('setting.tls') }}</span>
                       </Radio>
                     </RadioGroup>
                   </Col>
@@ -1128,14 +1126,14 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="对于大多数服务器，建议使用TLS。 如果您的SMTP提供商同时提供SSL和TLS选项，我们建议您使用TLS。"
+                      :content="$t('setting.smtpEncryptionTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="SMTP端口">
+              <FormItem :label="$t('setting.smtpPort')">
                 <Row>
                   <Col span="12">
                     <InputNumber
@@ -1146,7 +1144,7 @@
                   <Col span="1"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="自动TLS" v-if="formMailSmtp.encryption != 'TLS'">
+              <FormItem :label="$t('setting.autoTls')" v-if="formMailSmtp.encryption != 'TLS'">
                 <Row>
                   <Col span="12">
                     <Switch v-model="formMailSmtp.autotls">
@@ -1159,14 +1157,14 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="默认情况下，如果服务器支持TLS加密，则会自动使用TLS加密（推荐）。在某些情况下，由于服务器配置错误可能会导致问题，则需要将其禁用。"
+                      :content="$t('setting.smtpAutoTlsTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="认证">
+              <FormItem :label="$t('setting.auth')">
                 <Row>
                   <Col span="12">
                     <Switch v-model="formMailSmtp.auth">
@@ -1176,7 +1174,7 @@
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="SMTP用户名" v-if="formMailSmtp.auth">
+              <FormItem :label="$t('setting.smtpUser')" v-if="formMailSmtp.auth">
                 <Row>
                   <Col span="12">
                     <Input v-model="formMailSmtp.user"></Input>
@@ -1186,14 +1184,14 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="如果使用QQ邮件服务，请注意对于@qq.com的邮件地址，仅输入@前面的部分，对于@vip.qq.com的邮件地址，可能需填入完整的地址"
+                      :content="$t('setting.smtpUserTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="SMTP密码" v-if="formMailSmtp.auth">
+              <FormItem :label="$t('setting.smtpPass')" v-if="formMailSmtp.auth">
                 <Row>
                   <Col span="12">
                     <Input
@@ -1205,18 +1203,18 @@
                   <Col span="1"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="发件人邮箱">
+              <FormItem :label="$t('setting.fromEmailAddress')">
                 <Row>
                   <Col span="12">
                     <Input
                       v-model="formMailSmtp.from.address"
-                      placeholder="默认与用户名相同，需要为邮件格式"
+                      :placeholder="$t('setting.fromEmailAddressTip')"
                     ></Input>
                   </Col>
                   <Col span="1"> </Col>
                 </Row>
               </FormItem>
-              <FormItem label="收件人邮箱">
+              <FormItem :label="$t('setting.toEmailAddress')">
                 <Row>
                   <Col span="12">
                     <Tag
@@ -1232,7 +1230,7 @@
                       type="dashed"
                       size="small"
                       @click="ModalAddToEmail"
-                      >添加</Button
+                      >{{ $t('add') }}</Button
                     >
                   </Col>
                   <Col span="1"> </Col>
@@ -1240,19 +1238,19 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="收件人邮箱只有在触发消息推送选项且邮件服务启用的条件下才会收到邮件"
+                      :content="$t('setting.toEmailAddressTip')"
                     >
-                      <Button type="info">说明</Button>
+                      <Button type="info">{{ $t('setting.info') }}</Button>
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="测试邮箱">
+              <FormItem :label="$t('setting.testEmailAddress')">
                 <Row>
                   <Col span="12">
                     <Input
                       v-model="formMailSmtp.test"
-                      placeholder="测试邮箱不会被保存"
+                      :placeholder="$t('setting.testEmailAddressDesc')"
                     ></Input>
                   </Col>
                   <Col span="1"> </Col>
@@ -1260,25 +1258,25 @@
                     <Tooltip
                       :transfer="true"
                       max-width="360"
-                      content="发送测试邮件会使用当前表单填写的配置信息而不是已经保存过的配置信息。全局默认的发送超时时间为10s，如有需要请自行修改。"
+                      :content="$t('setting.testEmailAddressTip')"
                     >
                       <Button
                         type="success"
                         @click="SendMailTest"
                         :loading="loadingSendTest"
-                        >发送</Button
+                        >{{ $t('setting.send') }}</Button
                       >
                     </Tooltip>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="发邮超时时间">
+              <FormItem :label="$t('setting.smtpSendTimeout')">
                 <InputNumber
                   :min="1"
                   v-model="formMailSmtp.timeout"
                 ></InputNumber>
               </FormItem>
-              <FormItem label="启用状态">
+              <FormItem :label="$t('setting.smtpStatus')">
                 <Row>
                   <Col span="12">
                     <Switch v-model="formMailSmtp.status">
@@ -1293,23 +1291,20 @@
                   type="primary"
                   @click="UpdMailInfo"
                   :loading="loadingEditEmail"
-                  >保存</Button
+                  >{{ $t('save') }}</Button
                 >
               </FormItem>
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="消息推送" name="6">
+        <TabPane :label="$t('setting.pushSetting')" name="6">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Alert
-              >由于邮件发送没有使用异步任务<br /><br />
-              因此开启了邮件推送模块的响应时间会有相应延迟<br /><br />
-              如，用户点击登录 ~ 登录成功跳转的响应时间 = 正常处理时间 +
-              邮件发送时间</Alert
+              ><span v-html="$t('setting.pushSettingTip')"></span></Alert
             >
             <Form :label-width="140">
               <FormItem
-                :label="item.note"
+                :label="item.note ? $t('setting.' + item.note) : item.note"
                 v-for="(item, index) in listPush"
                 :key="index"
               >
@@ -1327,17 +1322,17 @@
                   type="primary"
                   :loading="loadingEditPush"
                   @click="UpdPushInfo"
-                  >保存</Button
+                  >{{ $t('save') }}</Button
                 >
               </FormItem>
             </Form>
           </Card>
         </TabPane>
-        <TabPane label="安全配置" name="7">
+        <TabPane :label="$t('setting.safeSetting')" name="7">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
               <FormItem
-                :label="item.note"
+                :label="item.note ? $t('setting.' + item.note) : item.note"
                 v-for="(item, index) in listSafe"
                 :key="index"
               >
@@ -1355,7 +1350,7 @@
                   type="primary"
                   :loading="loadingEditSafe"
                   @click="UpdSafeInfo"
-                  >保存</Button
+                  >{{ $t('save') }}</Button
                 >
               </FormItem>
             </Form>
@@ -1364,24 +1359,24 @@
         <TabPane :label="labelUpd" name="8">
           <Card :bordered="false" :dis-hover="true" style="width: 600px">
             <Form :label-width="140">
-              <FormItem label="当前版本">
+              <FormItem :label="$t('setting.currentVersion')">
                 <Badge> {{ version.current_verson }} </Badge>
               </FormItem>
-              <FormItem label="支持PHP版本">
+              <FormItem :label="$t('setting.phpVersion')">
                 <Row>
                   <Col span="12">
                     <span>{{ version.php_version }}</span>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="支持数据库">
+              <FormItem :label="$t('setting.supportedDatabase')">
                 <Row>
                   <Col span="12">
                     <span>{{ version.database }}</span>
                   </Col>
                 </Row>
               </FormItem>
-              <FormItem label="开源地址">
+              <FormItem :label="$t('setting.codeSource')">
                 <Row>
                   <Badge>
                     <a :href="version.github" target="_blank">GitHub</a>
@@ -1398,7 +1393,7 @@
                   type="primary"
                   :loading="loadingCheckUpdate"
                   @click="CheckUpdate()"
-                  >检测更新</Button
+                  >{{ $t('setting.checkUpdate') }}</Button
                 >
               </FormItem>
             </Form>
@@ -1410,58 +1405,58 @@
     <Modal
       v-model="modalSofawareUpdateGet"
       :draggable="true"
-      title="最新版本信息"
+      :title="$t('setting.updateInfo')"
     >
       <Scroll>
         <Form ref="formUpdate" :model="formUpdate" :label-width="90">
-          <FormItem label="最新版本">
+          <FormItem :label="$t('setting.latestVersion')">
             <Badge dot>
               {{ formUpdate.version }}
             </Badge>
           </FormItem>
-          <FormItem label="修复内容">
+          <FormItem :label="$t('setting.fixedContent')">
             <ul style="list-style: none">
               <li v-for="(item, index) in formUpdate.fixd.con" :key="index">
                 <span> [{{ item.title }}] {{ item.content }} </span>
               </li>
             </ul>
           </FormItem>
-          <FormItem label="新增内容">
+          <FormItem :label="$t('setting.addContent')">
             <ul style="list-style: none">
               <li v-for="(item, index) in formUpdate.add.con" :key="index">
                 <span> [{{ item.title }}] {{ item.content }} </span>
               </li>
             </ul>
           </FormItem>
-          <FormItem label="移除内容">
+          <FormItem :label="$t('setting.removeContent')">
             <ul style="list-style: none">
               <li v-for="(item, index) in formUpdate.remove.con" :key="index">
                 <span> [{{ item.title }}] {{ item.content }} </span>
               </li>
             </ul>
           </FormItem>
-          <FormItem label="完整程序包">
+          <FormItem :label="$t('setting.releaseDownload')">
             <ul style="list-style: none">
               <li
                 v-for="(item, index) in formUpdate.release.download"
                 :key="index"
               >
-                [{{ index + 1 }}] {{ item.nodeName }}节点
+                [{{ index + 1 }}] {{ item.nodeName }}{{ $t('setting.node') }}
                 <ul style="list-style: none">
                   <li>
-                    <a :href="item.url" target="_blank">下载</a>
+                    <a :href="item.url" target="_blank">{{ $t('setting.download') }}</a>
                   </li>
                 </ul>
               </li>
             </ul>
           </FormItem>
-          <FormItem label="升级程序包">
+          <FormItem :label="$t('setting.updateDownload')">
             <ul style="list-style: none">
               <li
                 v-for="(item1, index1) in formUpdate.update.download"
                 :key="index1"
               >
-                [{{ index1 + 1 }}] {{ item1.nodeName }}节点
+                [{{ index1 + 1 }}] {{ item1.nodeName }}{{ $t('setting.node') }}
                 <ul style="list-style: none">
                   <li v-for="(item2, index2) in item1.packages" :key="index2">
                     <a :href="item2.url" target="_blank"
@@ -1472,7 +1467,7 @@
               </li>
             </ul>
           </FormItem>
-          <FormItem label="升级步骤">
+          <FormItem :label="$t('setting.updateStep')">
             <ul style="list-style: none">
               <li v-for="(item, index) in formUpdate.update.step" :key="index">
                 <span> [{{ item.title }}] {{ item.content }} </span>
@@ -1486,7 +1481,7 @@
     <Modal
       v-model="modalAddToEmail"
       :draggable="true"
-      title="添加收件人邮箱"
+      :title="$t('setting.addToEmail')"
       @on-ok="AddToEmail"
     >
       <Form @submit.native.prevent>
@@ -1510,7 +1505,7 @@
       />
       <div slot="footer">
         <Button type="primary" ghost @click="modalLdapUsersGroups = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -1518,13 +1513,14 @@
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   data() {
     return {
       //render的系统更新标点
       labelUpd: (h) => {
         return h("div", [
-          h("span", "系统更新"),
+          h("span", i18n.t("setting.systemUpdate")),
           h("Badge", {
             props: {
               //通过此状态设置有无更新
@@ -1854,7 +1850,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     ChangeUpdSvnservePort(value) {
@@ -1889,7 +1885,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -1939,7 +1935,7 @@ export default {
         .catch(function (error) {
           that.loadingEditEmail = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -1974,7 +1970,7 @@ export default {
         .catch(function (error) {
           that.loadingSendTest = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -1995,7 +1991,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2016,7 +2012,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2037,7 +2033,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2058,7 +2054,7 @@ export default {
     AddToEmail() {
       //检查为空输入
       if (this.tempToEmail == "") {
-        this.$Message.error("输入不能为空");
+        this.$Message.error(i18n.t("setting.emailEmpty"));
         return;
       }
       //检查重复输入
@@ -2066,7 +2062,7 @@ export default {
         (item) => item.address != this.tempToEmail
       );
       if (temp.length != this.formMailSmtp.to.length) {
-        this.$Message.error("邮件已存在");
+        this.$Message.error($t("setting.emailRepeat"));
         return;
       }
       //插入
@@ -2099,7 +2095,7 @@ export default {
         .catch(function (error) {
           that.loadingEditPush = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2126,7 +2122,7 @@ export default {
         .catch(function (error) {
           that.loadingEditSafe = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2135,8 +2131,8 @@ export default {
     UpdSvnserveStatusStart() {
       var that = this;
       that.$Modal.confirm({
-        title: "以daomen方式启动svnserve服务",
-        content: "确定要启动svnserve服务吗吗？",
+        title: i18n.t("setting.startSvnserveDaemon"),
+        content: i18n.t("setting.startSvnserveConfirm"),
         onOk: () => {
           that.loadingSvnserveStart = true;
           var data = {};
@@ -2155,7 +2151,7 @@ export default {
             .catch(function (error) {
               that.loadingSvnserveStart = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2166,8 +2162,8 @@ export default {
     UpdSvnserveStatusStop() {
       var that = this;
       that.$Modal.confirm({
-        title: "停止svnserve服务",
-        content: "确定要停止svnserve服务吗？",
+        title: i18n.t("setting.stopSvnserve"),
+        content: i18n.t("setting.stopSvnserveConfirm"),
         onOk: () => {
           that.loadingSvnserveStop = true;
           var data = {};
@@ -2186,7 +2182,7 @@ export default {
             .catch(function (error) {
               that.loadingSvnserveStop = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2197,9 +2193,9 @@ export default {
     UpdSvnservePort() {
       var that = this;
       that.$Modal.confirm({
-        title: "更换svnserve服务绑定端口",
+        title: i18n.t("setting.changeSvnservePort"),
         content:
-          "确定要更换svnserve服务绑定端口吗？此操作会使svnserve服务停止并重新启动！",
+          i18n.t("setting.changeSvnservePortConfirm"),
         onOk: () => {
           that.loadingUpdSvnservePort = true;
           var data = {
@@ -2221,7 +2217,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSvnservePort = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2232,9 +2228,9 @@ export default {
     UpdSvnserveHost() {
       var that = this;
       that.$Modal.confirm({
-        title: "更换svnserve服务绑定主机",
+        title: i18n.t("setting.changeSvnserveHost"),
         content:
-          "确定要更换svnserve服务绑定主机吗？此操作会使svnserve服务停止并重新启动！",
+          i18n.t("setting.changeSvnserveHostConfirm"),
         onOk: () => {
           that.loadingUpdSvnserveHost = true;
           var data = {
@@ -2256,7 +2252,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSvnserveHost = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2277,7 +2273,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //修改主机配置
@@ -2302,7 +2298,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdDockerHostInfo = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2365,24 +2361,24 @@ export default {
               that.$Message.success(result.message);
             } else if (type == "user") {
               that.titleLdapUsersGroups =
-                "LDAP用户共 " +
+                i18n.t("setting.testLdapResult1") +   //"LDAP用户共 " +
                 result.data.count +
-                " 个：成功 " +
+                i18n.t("setting.testLdapResult2") +   //" 个：成功 " +
                 result.data.success +
-                " 个，失败 " +
+                i18n.t("setting.testLdapResult3") +   //" 个，失败 " +
                 result.data.fail +
-                " 个";
+                i18n.t("setting.testLdapResult4");   //" 个";
               that.tempLdapUsersGroups = result.data.users;
               that.modalLdapUsersGroups = true;
             } else if (type == "group") {
               that.titleLdapUsersGroups =
-                "LDAP分组共 " +
+                i18n.t("setting.testLdapResult5") +   //"LDAP分组共 " +
                 result.data.count +
-                " 个：成功 " +
+                i18n.t("setting.testLdapResult2") +   //" 个：成功 " +
                 result.data.success +
-                " 个，失败 " +
+                i18n.t("setting.testLdapResult3") +   //" 个，失败 " +
                 result.data.fail +
-                " 个";
+                i18n.t("setting.testLdapResult4");   //" 个";
               that.tempLdapUsersGroups = result.data.groups;
               that.modalLdapUsersGroups = true;
             }
@@ -2399,16 +2395,16 @@ export default {
             that.loadingLdapTestGroup = false;
           }
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //保存svnserve配置
     UpdSvnUsersource() {
       var that = this;
       that.$Modal.confirm({
-        title: "警告",
+        title: i18n.t("setting.warning"),
         content:
-          "如果为切换到ldap服务器，请仔细阅读以下内容后做出选择:<br/>1、此操作会将数据库中的SVN用户信息清空,后续手动同步时会将ldap用户写入数据库。<br/>2、接入ldap不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会将数据库中的SVN分组信息清空但是不立刻清空authz的分组信息。后续手动同步时自动清空authz的分组信息之后进行到authz文件中分组和数据库的同步。<br/>4、此操作不会清理被清理分组和用户之前已配置的仓库路径权限",
+          i18n.t("setting.changeSvnUsersourceConfirm"),
         onOk: () => {
           that.loadingUpdSvnUsersource = true;
           var data = {
@@ -2429,7 +2425,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSvnUsersource = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2438,9 +2434,9 @@ export default {
     UpdHttpUsersource() {
       var that = this;
       that.$Modal.confirm({
-        title: "警告",
+        title: i18n.t("setting.warning"),
         content:
-          "如果为切换到ldap服务器，请仔细阅读以下内容后做出选择:<br/>1、此操作会将数据库中的SVN用户信息清空,后续手动同步时会将ldap用户写入数据库。<br/>2、接入ldap不会修改本系统中的passwd文件。<br/>3、如果设置了分组来源为ldap，此操作会将数据库中的SVN分组信息清空但是不立刻清空authz的分组信息。后续手动同步时自动清空authz的分组信息之后进行到authz文件中分组和数据库的同步。<br/>4、此操作不会清理被清理分组和用户之前已配置的仓库路径权限",
+          i18n.t("setting.changeSvnUsersourceConfirm"),
         onOk: () => {
           that.loadingUpdHttpUsersource = true;
           var data = {
@@ -2461,7 +2457,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdHttpUsersource = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2484,8 +2480,8 @@ export default {
     UpdSaslStatusStart() {
       var that = this;
       that.$Modal.confirm({
-        title: "以daomen方式启动saslauthd服务",
-        content: "确定要启动saslauthd服务吗吗？",
+        title: i18n.t("setting.startSaslauthdDaemon"),
+        content: i18n.t("setting.startSaslauthdConfirm"),
         onOk: () => {
           that.loadingUpdSaslStatusStart = true;
           var data = {};
@@ -2504,7 +2500,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSaslStatusStart = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2515,8 +2511,8 @@ export default {
     UpdSaslStatusStop() {
       var that = this;
       that.$Modal.confirm({
-        title: "停止saslauthd服务",
-        content: "确定要停止saslauthd服务吗？",
+        title: i18n.t("setting.stopSaslauthd"),
+        content: i18n.t("setting.stopSaslauthdConfirm"),
         onOk: () => {
           that.loadingUpdSaslStatusStop = true;
           var data = {};
@@ -2535,7 +2531,7 @@ export default {
             .catch(function (error) {
               that.loadingUpdSaslStatusStop = false;
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -2568,7 +2564,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -2577,9 +2573,9 @@ export default {
     UpdSubversionEnable() {
       var that = this;
       that.$Modal.confirm({
-        title: "警告",
+        title: i18n.t("setting.warning"),
         content:
-          "启用 http 协议检出将会使用另外的用户密码文件、会清空数据库中目前的用户信息、会停止 svn 协议检出。是否继续？",
+          i18n.t("setting.enableHttpProtocol"),
         onOk: () => {
           that.loadingUpdSubversionEnable = true;
           var data = {};
@@ -2605,7 +2601,7 @@ export default {
                   that.GetSvnInfo();
                 }, 0);
               }, 1000);
-              that.$Message.success("等待httpd服务重启");
+              that.$Message.success(i18n.t("setting.waitingHttpdRestart"));
             });
         },
       });
@@ -2616,9 +2612,9 @@ export default {
     UpdSvnEnable() {
       var that = this;
       that.$Modal.confirm({
-        title: "警告",
+        title: i18n.t("setting.warning"),
         content:
-          "启用 svn 协议检出将会使用另外的用户密码文件、会清空数据库中目前的用户信息、会停止 http 协议检出。是否继续？",
+          i18n.t("setting.enableSvnProtocol"),
         onOk: () => {
           that.loadingUpdSvnEnable = true;
           var data = {};
@@ -2644,7 +2640,7 @@ export default {
                   that.GetSvnInfo();
                 }, 0);
               }, 1000);
-              that.$Message.success("等待httpd服务重启");
+              that.$Message.success(i18n.t("setting.waitingHttpdRestart"));
             });
         },
       });
@@ -2671,7 +2667,7 @@ export default {
         .catch(function (error) {
           that.loadingUpdPort = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //修改http显示端口
@@ -2696,15 +2692,15 @@ export default {
         .catch(function (error) {
           that.loadingUpdHttpPort = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //修改http访问仓库前缀
     UpdHttpPrefix() {
       var that = this;
       that.$Modal.confirm({
-        title: "警告",
-        content: "此操作将会重启httpd服务。是否继续？",
+        title: i18n.t("setting.warning"),
+        content: i18n.t("setting.restartHttpdConfirm"),
         onOk: () => {
           that.loadingUpdHttpPrefix = true;
           var data = {
@@ -2731,7 +2727,7 @@ export default {
                   that.GetSvnInfo();
                 }, 0);
               }, 1000);
-              that.$Message.success("等待httpd服务重启");
+              that.$Message.success(i18n.t("setting.waitingHttpdRestart"));
             });
         },
       });

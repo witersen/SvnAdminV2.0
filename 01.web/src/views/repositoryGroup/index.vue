@@ -11,14 +11,14 @@
           :lg="18"
         >
           <Button icon="md-add" type="primary" ghost @click="ModalCreateGroup"
-            >新建SVN分组</Button
+            >{{ $t('repositoryGroup.createGroup') }}</Button
           >
           <!-- <Button icon="ios-sync" type="primary" ghost @click="ModalScanGroup"
             >分组迁入</Button
           > -->
           <Tooltip
             max-width="250"
-            content="同步才可获取最新分组列表"
+            :content="$t('repositoryGroup.syncGroupTip')"
             placement="bottom"
             :transfer="true"
           >
@@ -27,7 +27,7 @@
               type="warning"
               ghost
               @click="GetGroupList(true)"
-              >同步列表</Button
+              >{{ $t('repositoryGroup.syncGroupList') }}</Button
             >
           </Tooltip>
         </Col>
@@ -36,7 +36,7 @@
             v-model="searchKeywordGroup"
             search
             enter-button
-            placeholder="通过SVN分组名、备注搜索..."
+            :placeholder="$t('repositoryGroup.searchGroup')"
             style="width: 100%"
             @on-search="GetGroupList()"
         /></Col>
@@ -64,19 +64,19 @@
             type="success"
             size="small"
             @click="ModalGetGroupMember(row.svn_group_name)"
-            >成员</Button
+            >{{ $t('repositoryGroup.groupMember') }}</Button
           >
           <Button
             type="warning"
             size="small"
             @click="ModalEditGroupName(row.svn_group_name)"
-            >编辑</Button
+            >{{ $t('edit') }}</Button
           >
           <Button
             type="error"
             size="small"
             @click="DelGroup(row.svn_group_name)"
-            >删除</Button
+            >{{ $t('delete') }}</Button
           >
         </template>
       </Table>
@@ -97,19 +97,19 @@
     <Modal
       v-model="modalAddGroup"
       :draggable="true"
-      title="新建SVN分组"
+      :title="$t('repositoryGroup.createGroup')"
       @on-ok="CreateGroup"
     >
       <Form :model="formCreateGroup" :label-width="80">
-        <FormItem label="分组名">
+        <FormItem :label="$t('repositoryGroup.groupName')">
           <Input v-model="formCreateGroup.svn_group_name"></Input>
         </FormItem>
         <FormItem>
           <Alert type="warning" show-icon
-            >分组名只能包含字母、数字、破折号、下划线、点。</Alert
+            >{{ $t('repositoryGroup.groupNameTip') }}</Alert
           >
         </FormItem>
-        <FormItem label="备注">
+        <FormItem :label="$t('note')">
           <Input v-model="formCreateGroup.svn_group_note"></Input>
         </FormItem>
         <FormItem>
@@ -117,13 +117,13 @@
             type="primary"
             @click="CreateGroup"
             :loading="loadingCreateGroup"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalAddGroup = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -135,12 +135,12 @@
       @on-ok="UpdGroupName"
     >
       <Form :model="formEditGroupName" :label-width="80">
-        <FormItem label="分组名">
+        <FormItem :label="$t('repositoryGroup.groupName')">
           <Input v-model="formEditGroupName.groupNameNew"></Input>
         </FormItem>
         <FormItem>
           <Alert type="warning" show-icon
-            >分组名只能包含字母、数字、破折号、下划线、点。</Alert
+            >{{ $t('repositoryGroup.groupNameTip') }}</Alert
           >
         </FormItem>
         <FormItem>
@@ -148,13 +148,13 @@
             type="primary"
             @click="UpdGroupName"
             :loading="loadingEditGroupName"
-            >确定</Button
+            >{{ $t('confirm') }}</Button
           >
         </FormItem>
       </Form>
       <div slot="footer">
         <Button type="primary" ghost @click="modalEditGroupName = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -171,13 +171,13 @@
             type="primary"
             ghost
             @click="modalSvnObject = true"
-            >添加成员</Button
+            >{{ $t('repositoryGroup.addMember') }}</Button
           >
         </Col>
         <Col span="12">
           <Input
             search
-            placeholder="通过对象名称搜索..."
+            :placeholder="$t('repositoryGroup.searchMember')"
             v-model="searchKeywordGroupMember"
             @on-change="GetGroupMember"
           />
@@ -197,19 +197,19 @@
             color="blue"
             v-if="row.objectType == 'user'"
             style="width: 90px; text-align: center"
-            >SVN用户</Tag
+            >{{ $t('repositoryGroup.user') }}</Tag
           >
           <Tag
             color="geekblue"
             v-if="row.objectType == 'group'"
             style="width: 90px; text-align: center"
-            >SVN分组</Tag
+            >{{ $t('repositoryGroup.group') }}</Tag
           >
           <Tag
             color="purple"
             v-if="row.objectType == 'aliase'"
             style="width: 90px; text-align: center"
-            >SVN别名</Tag
+            >{{ $t('repositoryGroup.aliase') }}</Tag
           >
         </template>
         <template slot-scope="{ row }" slot="action">
@@ -217,28 +217,21 @@
             type="error"
             size="small"
             @click="UpdGroupMember(row.objectType, row.objectName, 'delete')"
-            >移除</Button
+            >{{ $t('delete') }}</Button
           >
         </template>
       </Table>
       <div slot="footer">
         <Button type="primary" ghost @click="modalGetGroupMember = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
     <!-- 对话框-识别分组信息 -->
-    <Modal v-model="modalScanGroup" :draggable="true" title="步骤一：分组识别">
+    <Modal v-model="modalScanGroup" :draggable="true" :title="$t('repositoryGroup.scanGroupTitle')">
       <Input
         v-model="tempAuthzContent"
-        placeholder="请粘贴 authz 文件内容
-
-示例：  
-
-[groups]
-group1=user1,user2,@group2
-group2=user3
-group3=user4,&aliase1"
+        :placeholder="$t('repositoryGroup.authzContent')"
         :rows="15"
         show-word-limit
         type="textarea"
@@ -249,7 +242,7 @@ group3=user4,&aliase1"
           ghost
           @click="ScanGroup"
           :loading="loadingScanGroup"
-          >识别</Button
+          >{{ $t('repositoryGroup.scanGroup') }}</Button
         >
       </div>
     </Modal>
@@ -268,7 +261,7 @@ group3=user4,&aliase1"
 <script>
 //SVN对象列表组件
 import ModalSvnObject from "@/components/modalSvnObject.vue";
-
+import i18n from "@/i18n";
 export default {
   data() {
     return {
@@ -355,81 +348,82 @@ export default {
         groupNameOld: "",
         groupNameNew: "",
       },
-
-      /**
-       * 表格
-       */
-      //分组信息
-      tableGroupColumn: [
-        {
-          title: "序号",
-          slot: "index",
-          fixed: "left",
-          minWidth: 80,
-        },
-        {
-          title: "分组名",
-          key: "svn_group_name",
-          tooltip: true,
-          sortable: "custom",
-          minWidth: 120,
-        },
-        {
-          title: "包含用户数",
-          key: "include_user_count",
-          sortable: "custom",
-          minWidth: 130,
-        },
-        {
-          title: "包含分组数",
-          key: "include_group_count",
-          sortable: "custom",
-          minWidth: 130,
-        },
-        {
-          title: "包含别名用户数",
-          key: "include_aliase_count",
-          sortable: "custom",
-          minWidth: 130,
-        },
-        {
-          title: "备注信息",
-          slot: "svn_group_note",
-          minWidth: 120,
-        },
-        {
-          title: "其它",
-          slot: "action",
-          minWidth: 180,
-        },
-      ],
       tableGroupData: [],
-
-      //分组的成员列表
-      tableColumnGroupMember: [
-        {
-          title: "对象类型",
-          slot: "objectType",
-          // width: 125,
-        },
-        {
-          title: "对象名称",
-          key: "objectName",
-          tooltip: true,
-          // width: 115,
-        },
-        {
-          title: "操作",
-          slot: "action",
-        },
-      ],
       tableDataGroupMember: [],
     };
   },
   components: {
     ModalSvnObject,
   },
-  computed: {},
+  computed: {
+    /**
+       * 表格
+       */
+      //分组信息
+      tableGroupColumn() {
+        return [
+        {
+          title: i18n.t('serial'),  //"序号",
+          slot: "index",
+          fixed: "left",
+          minWidth: 80,
+        },
+        {
+          title: i18n.t('repositoryGroup.groupName'),  //"分组名",
+          key: "svn_group_name",
+          tooltip: true,
+          sortable: "custom",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('repositoryGroup.includeUserCount'),  //"包含用户数",
+          key: "include_user_count",
+          sortable: "custom",
+          minWidth: 130,
+        },
+        {
+          title: i18n.t('repositoryGroup.includeGroupCount'),  //"包含分组数",
+          key: "include_group_count",
+          sortable: "custom",
+          minWidth: 130,
+        },
+        {
+          title: i18n.t('repositoryGroup.includeAliaseCount'),  //"包含别名用户数",
+          key: "include_aliase_count",
+          sortable: "custom",
+          minWidth: 130,
+        },
+        {
+          title: i18n.t('note'),  //"备注信息",
+          slot: "svn_group_note",
+          minWidth: 120,
+        },
+        {
+          title: i18n.t('others'),  //"其它",
+          slot: "action",
+          minWidth: 180,
+        },
+      ]},
+      //分组的成员列表
+      tableColumnGroupMember() {
+        return [
+        {
+          title: i18n.t('repositoryGroup.objectType'),  //"对象类型",
+          slot: "objectType",
+          // width: 125,
+        },
+        {
+          title: i18n.t('repositoryGroup.objectName'),  //"对象名称",
+          key: "objectName",
+          tooltip: true,
+          // width: 115,
+        },
+        {
+          title: i18n.t('action'),  //"操作",
+          slot: "action",
+        },
+      ]},
+  },
   created() {},
   mounted() {
     this.GetGroupList();
@@ -498,7 +492,7 @@ export default {
         .catch(function (error) {
           that.loadingGroup = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -522,7 +516,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -554,7 +548,7 @@ export default {
         .catch(function (error) {
           that.loadingCreateGroup = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -583,7 +577,7 @@ export default {
         .catch(function (error) {
           that.loadingScanGroup = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -595,7 +589,7 @@ export default {
       //自动显示输入信息
       this.formEditGroupName.groupNameNew = svn_group_name;
       //标题
-      this.titleEditGroupName = "编辑SVN分组名 - " + svn_group_name;
+      this.titleEditGroupName = i18n.t('repositoryGroup.editGroupName') + " - " + svn_group_name;
       //对话框
       this.modalEditGroupName = true;
     },
@@ -622,7 +616,7 @@ export default {
         .catch(function (error) {
           that.loadingEditGroupName = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -678,7 +672,7 @@ export default {
                         display: "inline-block",
                       },
                       domProps: {
-                        innerHTML: "删除SVN分组 - " + svn_group_name,
+                        innerHTML: i18n.t('repositoryGroup.deleteGroup') + " - " + svn_group_name,
                       },
                     }),
                     h(
@@ -697,7 +691,7 @@ export default {
                               fontSize: "15px",
                             },
                           },
-                          "删除SVN分组 - " + svn_group_name
+                          i18n.t('repositoryGroup.deleteGroup') + " - " + svn_group_name
                         ),
                       ]
                     ),
@@ -716,7 +710,7 @@ export default {
                   style: { marginBottom: "15px" },
                   domProps: {
                     innerHTML:
-                      "确定要删除该分组吗？<br/>将会从所有仓库和分组下将该分组移除！<br/>该操作不可逆！",
+                      i18n.t('repositoryGroup.deleteGroupConfirm'),
                   },
                 }),
               ]
@@ -740,7 +734,7 @@ export default {
             })
             .catch(function (error) {
               console.log(error);
-              that.$Message.error("出错了 请联系管理员！");
+              that.$Message.error(i18n.t('errors.contactAdmin'));
             });
         },
       });
@@ -754,7 +748,7 @@ export default {
       //显示对话框
       this.modalGetGroupMember = true;
       //标题
-      this.titleGetGroupMember = "编辑分组成员信息 - " + grouName;
+      this.titleGetGroupMember = i18n.t('repositoryGroup.editGroupMember') + " - " + grouName;
       //请求数据
       this.GetGroupMember();
     },
@@ -783,7 +777,7 @@ export default {
         .catch(function (error) {
           that.loadingGetGroupMember = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -814,7 +808,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

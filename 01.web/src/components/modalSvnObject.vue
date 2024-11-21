@@ -5,7 +5,7 @@
       v-model="modalSvnObject"
       :draggable="true"
       @on-visible-change="ChangeModalVisible"
-      title="对象列表"
+      :title="$t('modalSvnObject.objectList')"
     >
       <Tabs size="small" @on-click="ClickRepPathPriTab">
         <TabPane :label="custom_tab_svn_user" name="user" v-if="showSvnUserTab">
@@ -13,7 +13,7 @@
             <Col type="flex" justify="space-between" span="12">
               <Tooltip
                 max-width="250"
-                content="同步才可获取最新用户列表"
+                :content="$t('modalSvnObject.syncUserTip')"
                 placement="bottom"
                 :transfer="true"
               >
@@ -22,14 +22,14 @@
                   type="warning"
                   ghost
                   @click="GetAllUsers(true)"
-                  >同步列表</Button
+                  >{{ $t('repositoryUser.syncList') }}</Button
                 >
               </Tooltip>
             </Col>
             <Col span="12">
               <Input
                 search
-                placeholder="通过用户名搜索..."
+                :placeholder="$t('modalSvnObject.searchByUserName')"
                 v-model="searchKeywordUser"
                 @on-change="GetAllUsers()"
               />
@@ -52,16 +52,16 @@
               <Tag
                 color="blue"
                 v-if="row.svn_user_status == '1' || row.svn_user_status == 1"
-                >正常</Tag
+                >{{ $t('repositoryUser.enabled') }}</Tag
               >
-              <Tag color="red" v-else>禁用</Tag>
+              <Tag color="red" v-else>{{ $t('repositoryUser.disabled') }}</Tag>
             </template>
             <template slot-scope="{ row }" slot="action">
               <Tag
                 style="cursor: pointer"
                 color="primary"
                 @click.native="propSendParentObject('user', row.svn_user_name)"
-                >选择</Tag
+                >{{ $t('modalSvnObject.select') }}</Tag
               >
             </template>
           </Table>
@@ -87,7 +87,7 @@
             <Col type="flex" justify="space-between" span="12">
               <Tooltip
                 max-width="250"
-                content="同步才可获取最新分组列表"
+                :content="$t('repositoryGroup.syncGroupTip')"
                 placement="bottom"
                 :transfer="true"
               >
@@ -96,14 +96,14 @@
                   type="warning"
                   ghost
                   @click="GetAllGroups(true)"
-                  >同步列表</Button
+                  >{{ $t('repositoryGroup.syncGroupList') }}</Button
                 >
               </Tooltip>
             </Col>
             <Col span="12">
               <Input
                 search
-                placeholder="通过分组名搜索..."
+                :placeholder="$t('modalSvnObject.searchByGroupName')"
                 v-model="searchKeywordGroup"
                 @on-change="GetAllGroups()"
               />
@@ -127,7 +127,7 @@
                 style="cursor: pointer"
                 color="primary"
                 @click.native="ModalGetGroupMember(row.svn_group_name)"
-                >成员</Tag
+                >{{ $t('repositoryGroup.groupMember') }}</Tag
               >
             </template>
             <template slot-scope="{ row }" slot="action">
@@ -137,7 +137,7 @@
                 @click.native="
                   propSendParentObject('group', row.svn_group_name)
                 "
-                >选择</Tag
+                >{{ $t('modalSvnObject.select') }}</Tag
               >
             </template>
           </Table>
@@ -179,7 +179,7 @@
             <Col span="12">
               <Input
                 search
-                placeholder="通过别名搜索..."
+                :placeholder="$t('modalSvnObject.searchByAliase')"
                 v-model="searchKeywordAliase"
                 @on-change="GetAliaseList()"
               />
@@ -196,16 +196,16 @@
           >
             <template slot-scope="{ row }" slot="disabled">
               <Tag color="blue" v-if="row.disabled == '0' || row.disabled == 0"
-                >正常</Tag
+                >{{ $t('repositoryUser.enabled') }}</Tag
               >
-              <Tag color="red" v-else>禁用</Tag>
+              <Tag color="red" v-else>{{ $t('repositoryUser.disabled') }}</Tag>
             </template>
             <template slot-scope="{ row }" slot="action">
               <Tag
                 style="cursor: pointer"
                 color="primary"
                 @click.native="propSendParentObject('aliase', row.aliaseName)"
-                >选择</Tag
+                >{{ $t('modalSvnObject.select') }}</Tag
               >
             </template>
           </Table>
@@ -214,7 +214,7 @@
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
             <Col span="12">
-              <Input search disabled placeholder="通过符号搜索..." />
+              <Input search disabled :placeholder="$t('modalSvnObject.searchBySymbol')" />
             </Col>
           </Row>
           <Table
@@ -232,7 +232,7 @@
                 style="cursor: pointer"
                 color="primary"
                 @click.native="propSendParentObject('*', '*')"
-                >选择</Tag
+                >{{ $t('modalSvnObject.select') }}</Tag
               >
             </template>
           </Table>
@@ -245,7 +245,7 @@
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
             <Col span="12">
-              <Input search disabled placeholder="通过符号搜索..." />
+              <Input search disabled :placeholder="$t('modalSvnObject.searchBySymbol')" />
             </Col>
           </Row>
           <Table
@@ -265,7 +265,7 @@
                 @click.native="
                   propSendParentObject('$authenticated', '$authenticated')
                 "
-                >选择</Tag
+                >{{ $t('modalSvnObject.select') }}</Tag
               >
             </template>
           </Table>
@@ -278,7 +278,7 @@
           <Row style="margin-bottom: 15px">
             <Col type="flex" justify="space-between" span="12"> </Col>
             <Col span="12">
-              <Input search disabled placeholder="通过符号搜索..." />
+              <Input search disabled :placeholder="$t('modalSvnObject.searchBySymbol')" />
             </Col>
           </Row>
           <Table
@@ -296,18 +296,18 @@
                 style="cursor: pointer"
                 color="primary"
                 @click.native="propSendParentObject('$anonymous', '$anonymous')"
-                >选择</Tag
+                >{{ $t('modalSvnObject.select') }}</Tag
               >
             </template>
           </Table>
         </TabPane>
       </Tabs>
-      <Alert show-icon>授权的对象权限默认为读写</Alert>
+      <Alert show-icon>{{ $t('modalSvnObject.defaultPermissionTip') }}</Alert>
       <!-- <Alert show-icon
         >如果对象信息用户等不是最新，需要回到对应的导航下同步</Alert
       > -->
       <div slot="footer">
-        <Button type="primary" ghost @click="CloseModalObject">取消</Button>
+        <Button type="primary" ghost @click="CloseModalObject">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <!-- 对话框-分组成员列表 -->
@@ -321,7 +321,7 @@
         <Col span="12">
           <Input
             search
-            placeholder="通过对象名称搜索..."
+            :placeholder="$t('repositoryGroup.searchMember')"
             v-model="searchKeywordGroupMember"
             @on-change="GetGroupMember"
           />
@@ -341,25 +341,25 @@
             color="blue"
             v-if="row.objectType == 'user'"
             style="width: 90px; text-align: center"
-            >SVN用户</Tag
+            >{{ $t('repositoryGroup.user') }}</Tag
           >
           <Tag
             color="geekblue"
             v-if="row.objectType == 'group'"
             style="width: 90px; text-align: center"
-            >SVN分组</Tag
+            >{{ $t('repositoryGroup.group') }}</Tag
           >
           <Tag
             color="purple"
             v-if="row.objectType == 'aliase'"
             style="width: 90px; text-align: center"
-            >SVN别名</Tag
+            >{{ $t('repositoryGroup.aliase') }}</Tag
           >
         </template>
       </Table>
       <div slot="footer">
         <Button type="primary" ghost @click="modalGetGroupMember = false"
-          >取消</Button
+          >{{ $t('cancel') }}</Button
         >
       </div>
     </Modal>
@@ -367,6 +367,7 @@
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   props: {
     //父组件控制子组件显示状态
@@ -420,7 +421,7 @@ export default {
       /**
        * 特定风格的路径授权弹出框的 tab
        */
-      custom_tab_svn_user: (h) => {
+       custom_tab_svn_user: (h) => {
         return h("div", [
           h(
             "span",
@@ -429,7 +430,7 @@ export default {
                 color: "#1890ff",
               },
             },
-            "SVN用户"
+            i18n.t('repositoryGroup.user')
           ),
         ]);
       },
@@ -442,7 +443,7 @@ export default {
                 color: "#2f54eb",
               },
             },
-            "SVN分组"
+            i18n.t('repositoryGroup.group')
           ),
         ]);
       },
@@ -455,7 +456,7 @@ export default {
                 color: "#722ed1",
               },
             },
-            "SVN别名"
+            i18n.t('repositoryGroup.aliase')
           ),
         ]);
       },
@@ -468,7 +469,7 @@ export default {
                 color: "#f5222d",
               },
             },
-            "所有人"
+            i18n.t('modalRepPri.allUsers')
           ),
         ]);
       },
@@ -481,7 +482,7 @@ export default {
                 color: "#eb2f96",
               },
             },
-            "所有已认证者"
+            i18n.t('modalRepPri.authenticatedUsers')
           ),
         ]);
       },
@@ -494,23 +495,10 @@ export default {
                 color: "#fa541c",
               },
             },
-            "所有匿名者"
+            i18n.t('modalRepPri.anonymousUsers')
           ),
         ]);
       },
-
-      /**
-       * 分页数据
-       */
-      //用户
-      pageCurrentUser: 1,
-      pageSizeUser: 20,
-      totalUser: 0,
-
-      //分组
-      pageCurrentGroup: 1,
-      pageSizeGroup: 20,
-      totalGroup: 0,
 
       /**
        * 关键词
@@ -565,30 +553,59 @@ export default {
       //获取分组成员列表
       loadingGetGroupMember: true,
 
+      tableDataAllUsers: [],
+      
+      tableDataAllGroups: [],
+      
+      tableDataAllAliases: [],
+      
+      tableDataAll: [
+        {
+          all: "*",
+        },
+      ],
+      
+      tableDataAuthenticated: [
+        {
+          authenticated: "$authenticated",
+        },
+      ],
+      
+      tableDataAnonymous: [
+        {
+          anonymous: "$anonymous",
+        },
+      ],
+      //分组的成员列表
+      tableDataGroupMember: [],
+      
+    };
+  },
+  computed: {
       //对象列表-SVN用户列表
       tableColumnAllUsers: [
         {
-          title: "序号",
+          title: i18n.t("serial"),    //"序号",
           slot: "index",
           fixed: "left",
           // minWidth: 40,
         },
         {
-          title: "用户名",
+          title: i18n.t("username"),    //"用户名",
           key: "svn_user_name",
           tooltip: true,
         },
         {
-          title: "用户状态",
+          title: i18n.t("repositoryUser.userStatus"),    //"用户状态",
           slot: "svn_user_status",
         },
         {
-          title: "备注信息",
+          title: i18n.t("note"),    //"备注信息",
           key: "svn_user_note",
           tooltip: true,
         },
         {
-          title: "操作",
+          title: i18n.t("action"),    //"操作",
           slot: "action",
           width: 90,
         },
@@ -597,113 +614,98 @@ export default {
       //对象列表-SVN分组列表
       tableColumnAllGroups: [
         {
-          title: "序号",
+          title: i18n.t("serial"),    //"序号",
           slot: "index",
           fixed: "left",
           // minWidth: 80,
         },
         {
-          title: "分组名",
-          key: "svn_group_name",
-          tooltip: true,
-        },
-        {
-          title: "备注信息",
-          key: "svn_group_note",
-          tooltip: true,
-        },
-        {
-          title: "成员",
-          slot: "member",
-        },
-        {
-          title: "操作",
-          slot: "action",
-        },
-      ],
-      tableDataAllGroups: [],
-      //对象列表-SVN别名列表
-      tableColumnAllAliases: [
-        {
-          title: "别名",
+          title: i18n.t("modalSvnObject.aliase"),    //"别名",
           key: "aliaseName",
           tooltip: true,
         },
         {
-          title: "别名内容",
+          title: i18n.t("modalSvnObject.aliaseCon"),    //"别名内容",
           key: "aliaseCon",
           tooltip: true,
         },
         {
-          title: "操作",
+          title: i18n.t("action"),    //"操作",
           slot: "action",
         },
       ],
-      tableDataAllAliases: [],
-      //对象列表-所有人
-      tableColumnAll: [
+      //对象列表-SVN分组列表
+      tableColumnAllGroups() {
+        return [
         {
-          title: "所有人",
+          title: i18n.t("repositoryGroup.groupName"),    //"分组名",
+          key: "svn_group_name",
+          tooltip: true,
+        },
+        {
+          title: i18n.t('note'),   //"备注信息",
+          key: "svn_group_note",
+          tooltip: true,
+        },
+        {
+          title: i18n.t("repositoryGroup.groupMember"),    //"成员",
+          slot: "member",
+        },
+        {
+          title: i18n.t("action"),    //"操作",
+          slot: "action",
+        },
+      ]},
+      //对象列表-所有人
+      tableColumnAll() {
+        return [
+        {
+          title: i18n.t("modalRepPri.allUsers"),    //"所有人",
           key: "all",
         },
         {
-          title: "操作",
+          title: i18n.t("action"),    //"操作",
           slot: "action",
         },
-      ],
-      tableDataAll: [
-        {
-          all: "*",
-        },
-      ],
+      ]},
       //对象列表-所有已认证者
-      tableColumnAuthenticated: [
+      tableColumnAuthenticated() {
+        return [
         {
-          title: "所有已认证者",
+          title: i18n.t("modalRepPri.authenticatedUsers"),    //"所有已认证者",
           key: "authenticated",
         },
         {
-          title: "操作",
+          title: i18n.t("action"),    //"操作",
           slot: "action",
         },
-      ],
-      tableDataAuthenticated: [
-        {
-          authenticated: "$authenticated",
-        },
-      ],
+      ]},
       //对象列表-所有匿名者
-      tableColumnAnonymous: [
+      tableColumnAnonymous() {
+        return [
         {
-          title: "所有匿名者",
+          title: i18n.t("modalRepPri.anonymousUsers"),    //"所有匿名者",
           key: "anonymous",
         },
         {
-          title: "操作",
+          title: i18n.t("action"),    //"操作",
           slot: "action",
         },
-      ],
-      tableDataAnonymous: [
+      ]},
+      tableColumnGroupMember() {
+        return [
         {
-          anonymous: "$anonymous",
-        },
-      ],
-      //分组的成员列表
-      tableDataGroupMember: [],
-      tableColumnGroupMember: [
-        {
-          title: "对象类型",
+          title: i18n.t("repositoryGroup.objectType"),    //"对象类型",
           slot: "objectType",
           // width: 125,
         },
         {
-          title: "对象名称",
+          title: i18n.t("repositoryGroup.objectName"),    //"对象名称",
           key: "objectName",
           tooltip: true,
           // width: 115,
         },
-      ],
-    };
+      ]},
   },
   watch: {
     //父组件控制子组件显示状态
@@ -831,7 +833,7 @@ export default {
         .catch(function (error) {
           that.loadingAllUsers = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -885,7 +887,7 @@ export default {
         .catch(function (error) {
           that.loadingAllGroups = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     /**
@@ -916,7 +918,7 @@ export default {
         .catch(function (error) {
           that.loadingAllAliases = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
 
@@ -929,7 +931,7 @@ export default {
       //显示对话框
       this.modalGetGroupMember = true;
       //标题
-      this.titleGetGroupMember = "分组成员信息 - " + grouName;
+      this.titleGetGroupMember = i18n.t('modalSvnObject.groupMemberInfo') + " - " + grouName;
       //请求数据
       this.GetGroupMember();
     },
@@ -959,7 +961,7 @@ export default {
         .catch(function (error) {
           that.loadingGetGroupMember = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },

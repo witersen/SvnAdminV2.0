@@ -43,13 +43,13 @@
           style="cursor: pointer"
           @click="ModalTasks"
           v-if="currentRoleId != 2"
-          >后台任务</span
+          >{{$t('layout.backendTasks')}}</span
         >
         <!-- 分割线 -->
         <Divider type="vertical" v-if="currentRoleId != 2" />
         <!-- 用户身份 -->
         <a style="margin-left: 8px; color: #fff; cursor: default">{{
-          currentRoleName
+          $t('roles.' + currentRoleName)
         }}</a>
         <!-- 分割线 -->
         <Divider type="vertical" />
@@ -60,27 +60,22 @@
             <Icon type="md-arrow-dropdown" />
           </a>
           <DropdownMenu slot="list">
-            <DropdownItem>退出</DropdownItem>
+            <DropdownItem>{{ $t('layout.logout') }}</DropdownItem>
           </DropdownMenu>
         </Dropdown>
         <!-- 多语言切换 -->
-        <!-- <Dropdown trigger="click">
+        <Dropdown trigger="click" @on-click="translate">
           <a href="javascript:void(0)" style="margin-left: 8px; color: #fff">
-            语言
+            {{ $t(this.lang ? this.lang : 'en') }}
             <Icon type="md-arrow-dropdown" />
           </a>
           <DropdownMenu slot="list">
-            <DropdownItem>中文简体</DropdownItem>
+            <DropdownItem name="zh">中文</DropdownItem>
           </DropdownMenu>
           <DropdownMenu slot="list">
-            <DropdownItem>中文繁体</DropdownItem>
+            <DropdownItem name="en">English</DropdownItem>
           </DropdownMenu>
-          <DropdownMenu slot="list">
-            <DropdownItem>English</DropdownItem>
-          </DropdownMenu>
-        </Dropdown> -->
-        <!-- 分割线 -->
-        <!-- <Divider type="vertical" /> -->
+        </Dropdown>
       </Header>
       <Layout style="margin-top: 64px">
         <Sider
@@ -100,7 +95,7 @@
             style="height: 100%"
           >
             <MenuGroup
-              :title="itemGroup.title"
+              :title="$t('layout.' + itemGroup.title)"
               v-for="(itemGroup, indexGroup) in navList"
               :key="indexGroup"
             >
@@ -116,7 +111,7 @@
                   :offset="[0, -10]"
                 >
                   <Icon :type="itemItem.meta.icon" />
-                  {{ itemItem.meta.title }}
+                  {{ $t('layout.' + itemItem.meta.title) }}
                 </Badge>
               </MenuItem>
             </MenuGroup>
@@ -127,7 +122,7 @@
         >
           <Breadcrumb style="padding: 0px 0px 20px 0px">
             <BreadcrumbItem v-for="(item, index) in breadcrumb" :key="index">{{
-              item.meta.title
+              $t('layout.' + item.meta.title)
             }}</BreadcrumbItem>
           </Breadcrumb>
           <Content>
@@ -137,13 +132,13 @@
       </Layout>
     </Layout>
     <!-- 对话框-实时后台任务 -->
-    <Modal v-model="modalTasks" :draggable="true" title="实时后台任务">
+    <Modal v-model="modalTasks" :draggable="true" :title="$t('backendTasks.realtimeBackendTasks')">
       <div style="height: 350px">
         <Tabs v-model="tabsTaskCurrent" @on-click="ClickTaskTab">
-          <TabPane label="当前任务" icon="ios-loading" name="current">
+          <TabPane :label="$t('backendTasks.currentTasks')" icon="ios-loading" name="current">
             <Spin size="large" v-if="loadingTask" fix></Spin>
             <Alert v-if="!formTasks.task_running"
-              >当前没有后台任务运行（如遇任务堆积不执行可重启守护进程解决）</Alert
+              >{{ $t('backendTasks.noTasksRunning') }}</Alert
             >
             <Input
               v-else
@@ -154,7 +149,7 @@
               type="textarea"
             />
           </TabPane>
-          <TabPane label="排队任务" icon="ios-cafe" name="queue">
+          <TabPane :label="$t('backendTasks.tasksInQueue')" icon="ios-cafe" name="queue">
             <Table
               highlight-row
               border
@@ -166,8 +161,8 @@
               style="margin-bottom: 10px"
             >
               <template slot-scope="{ row }" slot="task_status">
-                <Tag color="success" v-if="row.task_status == 2">执行中</Tag>
-                <Tag color="default" v-else>待执行</Tag>
+                <Tag color="success" v-if="row.task_status == 2">{{ $t('backendTasks.running') }}</Tag>
+                <Tag color="default" v-else>{{ $t('backendTasks.waiting') }}</Tag>
               </template>
               <template slot-scope="{ row }" slot="action">
                 <Button
@@ -175,19 +170,19 @@
                   size="small"
                   @click="UpdTaskStop(row.task_id, row.task_status)"
                   v-if="row.task_status == 2"
-                  >中断执行</Button
+                  >{{ $t('backendTasks.stopTask') }}</Button
                 >
                 <Button
                   type="warning"
                   size="small"
                   @click="UpdTaskStop(row.task_id, row.task_status)"
                   v-else
-                  >取消排队</Button
+                  >{{ $t('backendTasks.cancelTask') }}</Button
                 >
               </template>
             </Table>
           </TabPane>
-          <TabPane label="历史任务" icon="md-aperture" name="history">
+          <TabPane :label="$t('backendTasks.historyTasks')" icon="md-aperture" name="history">
             <Table
               highlight-row
               border
@@ -199,22 +194,22 @@
               style="margin-bottom: 10px"
             >
               <template slot-scope="{ row }" slot="task_status">
-                <Tag color="success" v-if="row.task_status == 3">已完成</Tag>
-                <Tag color="warning" v-if="row.task_status == 4">已取消</Tag>
-                <Tag color="error" v-if="row.task_status == 5">已中断</Tag>
+                <Tag color="success" v-if="row.task_status == 3">{{ $t('backendTasks.completed') }}</Tag>
+                <Tag color="warning" v-if="row.task_status == 4">{{ $t('backendTasks.cancelled') }}</Tag>
+                <Tag color="error" v-if="row.task_status == 5">{{ $t('backendTasks.stopped') }}</Tag>
               </template>
               <template slot-scope="{ row }" slot="action">
                 <Button
                   type="primary"
                   size="small"
                   @click="GetTaskHistoryLog(row.task_id)"
-                  >日志</Button
+                  >{{ $t('backendTasks.viewLog') }}</Button
                 >
                 <Button
                   type="error"
                   size="small"
                   @click="DelTaskHistory(row.task_id)"
-                  >删除</Button
+                  >{{ $t('delete') }}</Button
                 >
               </template>
             </Table>
@@ -232,11 +227,11 @@
         </Tabs>
       </div>
       <div slot="footer">
-        <Button type="primary" ghost @click="modalTasks = false">取消</Button>
+        <Button type="primary" ghost @click="modalTasks = false">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
     <!-- 对话框-历史任务日志 -->
-    <Modal v-model="modalTaskLog" :draggable="true" title="历史任务日志">
+    <Modal v-model="modalTaskLog" :draggable="true" :title="$t('backendTasks.taskLog')">
       <Input
         v-model="tempTaskLog"
         readonly
@@ -245,16 +240,19 @@
         type="textarea"
       />
       <div slot="footer">
-        <Button type="primary" ghost @click="modalTaskLog = false">取消</Button>
+        <Button type="primary" ghost @click="modalTaskLog = false">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
   </div>
 </template>
 
 <script>
+import i18n from "@/i18n";
 export default {
   data() {
     return {
+        //当前语言
+        lang: this.$i18n.locale,
       //是否有更新
       hasUpdate: sessionStorage.hasUpdate == 1 ? true : false,
       //当前选中的导航
@@ -308,60 +306,8 @@ export default {
       /**
        * 表格
        */
-      //任务队列
-      tableColumnTaskQueue: [
-        {
-          title: "任务名称",
-          key: "task_name",
-          tooltip: true,
-        },
-        {
-          title: "创建时间",
-          key: "task_create_time",
-          tooltip: true,
-        },
-        {
-          title: "状态",
-          slot: "task_status",
-        },
-        {
-          title: "操作",
-          slot: "action",
-        },
-      ],
       tableDataTaskQueue: [],
-      //历史任务
-      tableColumnTaskHistory: [
-        {
-          title: "任务名称",
-          key: "task_name",
-          tooltip: true,
-          fixed: "left",
-          width: 150,
-        },
-        {
-          title: "状态",
-          slot: "task_status",
-          width: 110,
-        },
-        {
-          title: "创建时间",
-          key: "task_create_time",
-          tooltip: true,
-          width: 150,
-        },
-        {
-          title: "结束时间",
-          key: "task_update_time",
-          tooltip: true,
-          width: 150,
-        },
-        {
-          title: "操作",
-          slot: "action",
-          width: 130,
-        },
-      ],
+      
       tableDataTaskHistory: [],
 
       /**
@@ -375,7 +321,70 @@ export default {
       loadingTaskHistory: false,
     };
   },
+  computed: {
+    //任务队列
+    tableColumnTaskQueue() {
+      return [
+        {
+          title: i18n.t("backendTasks.taskName"),   //"任务名称",
+          key: "task_name",
+          tooltip: true,
+        },
+        {
+          title: i18n.t("createTime"),   //"创建时间",
+          key: "task_create_time",
+          tooltip: true,
+        },
+        {
+          title: i18n.t("status"),   //"状态",
+          slot: "task_status",
+        },
+        {
+          title: i18n.t("action"),   //"操作",
+          slot: "action",
+        },
+      ]},
+      //历史任务
+      tableColumnTaskHistory() {
+        return [
+        {
+          title: i18n.t("backendTasks.taskName"),   //"任务名称",
+          key: "task_name",
+          tooltip: true,
+          fixed: "left",
+          width: 150,
+        },
+        {
+          title: i18n.t("status"),   //"状态",
+          slot: "task_status",
+          width: 110,
+        },
+        {
+          title: i18n.t("createTime"),   //"创建时间",
+          key: "task_create_time",
+          tooltip: true,
+          width: 150,
+        },
+        {
+          title: i18n.t("backendTasks.endTime"),   //"结束时间",
+          key: "task_update_time",
+          tooltip: true,
+          width: 150,
+        },
+        {
+          title: i18n.t("action"),   //"操作",
+          slot: "action",
+          width: 130,
+        },
+      ]},
+  },
   methods: {
+    translate(lng) {
+        console.log("browser language is "+navigator.language.substring(0, 2));
+        console.log("Translating to "+lng);
+        this.lang = lng;
+        this.$i18n.locale = this.lang
+    },
     //点击logo回到当前用户有权限第一个页面
     toMyIndex() {
       this.$router.push({ name: sessionStorage.firstRoute });
@@ -390,7 +399,7 @@ export default {
           var result = response.data;
           if (result.status == 1) {
             sessionStorage.clear();
-            that.$Message.success(result.message);
+            that.$Message.success(i18n.t(result.message));
             that.$router.push({ name: "login" });
           } else {
             that.$Message.error({ content: result.message, duration: 2 });
@@ -398,7 +407,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     // 退出登录下拉组件
@@ -537,7 +546,7 @@ export default {
         .catch(function (error) {
           that.loadingTask = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //页码改变
@@ -572,7 +581,7 @@ export default {
         .catch(function (error) {
           that.loadingTaskQueue = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //页码改变
@@ -611,7 +620,7 @@ export default {
         .catch(function (error) {
           that.loadingTaskHistory = false;
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //取消后台任务
@@ -622,9 +631,9 @@ export default {
       };
       if (task_status == 2) {
         that.$Modal.confirm({
-          title: "中断进程确认",
+          title: i18n.t("backendTasks.stopConfirm"),   //"中断进程确认",
           content:
-            "确定要中断执行吗？<br/>不保证该操作是否会产生无法清理的睡眠进程！",
+            i18n.t("backendTasks.stopConfirmContent"),   //"确定要中断执行吗？<br/>不保证该操作是否会产生无法清理的睡眠进程！",
           onOk: () => {
             that.$axios
               .post("api.php?c=Tasks&a=UpdTaskStop&t=web", data)
@@ -639,7 +648,7 @@ export default {
               })
               .catch(function (error) {
                 console.log(error);
-                that.$Message.error("出错了 请联系管理员！");
+                that.$Message.error(i18n.t('errors.contactAdmin'));
               });
           },
         });
@@ -657,7 +666,7 @@ export default {
           })
           .catch(function (error) {
             console.log(error);
-            that.$Message.error("出错了 请联系管理员！");
+            that.$Message.error(i18n.t('errors.contactAdmin'));
           });
       }
     },
@@ -680,7 +689,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
     //删除历史任务
@@ -702,7 +711,7 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
-          that.$Message.error("出错了 请联系管理员！");
+          that.$Message.error(i18n.t('errors.contactAdmin'));
         });
     },
   },
