@@ -116,7 +116,7 @@ class Base
                 $subadminFunctions = $database->get('subadmin', 'subadmin_functions', [
                     'subadmin_name' => $userName
                 ]);
-                $subadminFunctions = json_decode($subadminFunctions, true);
+                $subadminFunctions = json_decode((string) $subadminFunctions, true);
                 if (empty($subadminFunctions) || !in_array($parm['controller_prefix'] . '/' . $parm['action'], $subadminFunctions)) {
                     json1(403, 0, '权限未分配');
                 }

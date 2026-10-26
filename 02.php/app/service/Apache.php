@@ -210,6 +210,10 @@ class Apache extends Base
         //禁用 svn 协议检出
         (new ServiceSvn())->UpdSvnDisable();
 
+        //切换后 Apache 以 apache 用户写入仓库
+        //svnserve/守护进程以 root 运行时创建的文件需要修正属主，否则 HTTP 提交会报 rep-cache.db 只读
+        funShellExec(sprintf("chown -R apache:apache '%s'", $this->configSvn['home_path']), true);
+
         //重启 httpd
         funShellExec(sprintf("'%s' -k graceful", $this->configBin['httpd']), true);
 

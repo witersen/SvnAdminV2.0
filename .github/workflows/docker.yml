@@ -1,0 +1,138 @@
+name: Docker Image
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: docker-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PHP_VERSION: php83
+  SVN_VERSION: '1.14'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 版本号取自 02.php/config/version.php，镜像名统一小写（GHCR 要求）
+      - name: Resolve image name and version
+        id: meta
+        env:
+          OWNER: ${{ github.repository_owner }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          OWNER_LC=$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')
+          VERSION=$(sed -n "s/.*'version' => '\([0-9][0-9.]*\)'.*/\1/p" 02.php/config/version.php | head -n1)
+          if [ -z "$VERSION" ]; then
+            echo "无法从 02.php/config/version.php 读取版本号" >&2
+            exit 1
+          fi
+
+          IMAGE="ghcr.io/${OWNER_LC}/svnadmin"
+          PUSH_TAGS=""
+
+          # 只有默认分支和 tag 允许推送镜像；PR 和普通分支只构建 + 冒烟
+          SHOULD_PUSH=false
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            if [ "${GITHUB_REF}" = "refs/heads/${DEFAULT_BRANCH}" ]; then
+              SHOULD_PUSH=true
+            fi
+            case "${GITHUB_REF}" in
+              refs/tags/*) SHOULD_PUSH=true ;;
+            esac
+          fi
+
+          if [ "$SHOULD_PUSH" = "true" ]; then
+            for tag in \
+              "${IMAGE}:${VERSION}" \
+              "${IMAGE}:${VERSION}-${PHP_VERSION}-svn${SVN_VERSION}" \
+              "${IMAGE}:sha-${GITHUB_SHA::7}"; do
+              PUSH_TAGS="${PUSH_TAGS}${PUSH_TAGS:+$'\n'}${tag}"
+            done
+
+            if [ "${GITHUB_REF}" = "refs/heads/${DEFAULT_BRANCH}" ]; then
+              PUSH_TAGS="${PUSH_TAGS}${PUSH_TAGS:+$'\n'}${IMAGE}:latest"
+            fi
+          fi
+
+          {
+            echo 'push_tags<<EOF'
+            echo "$PUSH_TAGS"
+            echo 'EOF'
+            echo "push=${SHOULD_PUSH}"
+            echo "version=${VERSION}"
+            echo "image=${IMAGE}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: 03.cicd/svnadmin_docker/dockerfile
+          build-args: |
+            php_version=${{ env.PHP_VERSION }}
+            svn_version=${{ env.SVN_VERSION }}
+          tags: svnadmin:ci
+          load: true
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start container
+        run: |
+          docker run -d --name svnadmin-smoke --privileged \
+            -p 18080:80 -p 13690:3690 svnadmin:ci
+
+      - name: Smoke test
+        run: bash 03.cicd/smoke_test.sh svnadmin-smoke http://127.0.0.1:18080 admin admin
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker logs svnadmin-smoke || true
+
+      - name: Remove container
+        if: always()
+        run: docker rm -f svnadmin-smoke || true
+
+      - name: Log in to GHCR
+        if: success() && steps.meta.outputs.push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        if: success() && steps.meta.outputs.push == 'true'
+        env:
+          PUSH_TAGS: ${{ steps.meta.outputs.push_tags }}
+        run: |
+          set -euo pipefail
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            echo "push $tag"
+            docker tag svnadmin:ci "$tag"
+            docker push "$tag"
+          done <<< "$PUSH_TAGS"

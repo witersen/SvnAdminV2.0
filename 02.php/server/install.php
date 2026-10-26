@@ -86,6 +86,13 @@ class Install
         $this->configUpdate = Config::get('update');
         $this->configVersion = Config::get('version');
         $this->configBin = Config::get('bin');
+
+        if (!empty($this->configVersion['php']['lowest']) && version_compare(PHP_VERSION, $this->configVersion['php']['lowest'], '<')) {
+            exit(sprintf('支持的最低PHP版本为[%s]当前的PHP版本为[%s]%s', $this->configVersion['php']['lowest'], PHP_VERSION, PHP_EOL));
+        }
+        if (!empty($this->configVersion['php']['highest']) && version_compare(PHP_VERSION, $this->configVersion['php']['highest'], '>=')) {
+            exit(sprintf('支持的最高PHP版本为[%s]当前的PHP版本为[%s]%s', $this->configVersion['php']['highest'], PHP_VERSION, PHP_EOL));
+        }
     }
 
     /**
@@ -104,7 +111,7 @@ class Install
             }
 
             //json => array
-            $result = json_decode($result, true);
+            $result = json_decode((string) $result, true);
 
             if (!isset($result['code'])) {
                 echo sprintf('节点[%s]返回信息错误-切换下一节点%s', $value1['nodeName'], PHP_EOL);
@@ -370,7 +377,7 @@ class Install
         foreach ($needBin as $key => $value) {
             echo "请输入[$key]程序位置：" . PHP_EOL;
             if ($key == 'svnauthz-validate') {
-                echo 'CentOS 下 svnauthz-validate 的位置通常为 /usr/bin/svn-tools/svnauthz-validate' . PHP_EOL;
+                echo 'Rocky/RHEL 9 下 svnauthz-validate 的位置通常为 /usr/bin/svnauthz-validate' . PHP_EOL;
             }
             echo '自动检测到以下程序路径：' . PHP_EOL;
             passthru("which $key 2>/dev/null");

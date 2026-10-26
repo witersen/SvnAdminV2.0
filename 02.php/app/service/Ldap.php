@@ -95,67 +95,25 @@ class Ldap extends Base
      */
     private function objectSearch($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100, $oid = '1.2.840.113556.1.4.319')
     {
-        $current_version = PHP_VERSION;
-
-        $range1 = '5.4.0';
-        $range2 = '7.4.0';
-
-        if (version_compare($current_version, $range1, '>=') && version_compare($current_version, $range2, '<')) {
-            return $this->objectSearch_54_to_74($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100);
-        } elseif (version_compare($current_version, $range2, '>=')) {
-            return $this->objectSearch_74_to_80($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100, $oid = '1.2.840.113556.1.4.319');
-        } else {
-            return $this->objectSearch_74_to_80($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100, $oid = '1.2.840.113556.1.4.319');
-        }
+        // PHP >= 7.4 使用 LDAP controls 分页
+        // PHP 8 已移除 ldap_control_paged_result / ldap_control_paged_result_response
+        return $this->objectSearch_74_to_80($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize, $oid);
     }
 
     /**
-     * [5.4   , 7.4.0)
+     * 构造 LDAP 连接地址
      *
-     * @param \LDAP\Connection $conn
-     * @param string $protocolVersion
-     * @param string $base_dn
-     * @param string $search_filter
-     * @param string $return_attributes
-     * @param integer $pageSize
-     * @return array of stdClass objects with property values defined by $return_attributes+"dn"
+     * PHP 8.3 要求 ldap_connect 使用带 scheme 的 URI
      */
-    private function objectSearch_54_to_74($conn, $protocolVersion, $base_dn, $search_filter, $return_attributes, $pageSize = 100)
+    private function getLdapConnectionUri($ldapHost, $ldapPort)
     {
-        $base_dn = $this->prepareQueryString($base_dn, $protocolVersion);
-        $search_filter = $this->prepareQueryString($search_filter, $protocolVersion);
+        $ldapHost = rtrim(trim($ldapHost), '/');
 
-        $ret = array();
-        $pageCookie = "";
-        do {
-            ldap_control_paged_result($conn, $pageSize, true, $pageCookie);
+        if (strpos($ldapHost, '://') === false) {
+            $ldapHost = 'ldap://' . $ldapHost;
+        }
 
-            // Start search in LDAP directory.
-            $sr = ldap_search($conn, $base_dn, $search_filter, $return_attributes, 0, 0, 0);
-            if (!$sr) {
-                break;
-            }
-
-            // Get the found entries as array.
-            $entries = ldap_get_entries($conn, $sr);
-            if (!$entries) {
-                break;
-            }
-
-            $count = $entries["count"];
-            for ($i = 0; $i < $count; ++$i) {
-                // A $entry (array) contains all attributes of a single dataset from LDAP.
-                $entry = $entries[$i];
-
-                // Create a new object which will hold the attributes.
-                // And add the default attribute "dn".
-                $o = $this->createObjectFromEntry($entry, $protocolVersion);
-                $ret[] = $o;
-            }
-
-            ldap_control_paged_result_response($conn, $sr, $pageCookie);
-        } while ($pageCookie !== null && $pageCookie != "");
-        return $ret;
+        return $ldapHost . ':' . $ldapPort . '/';
     }
 
     /**
@@ -308,7 +266,7 @@ class Ldap extends Base
             return message(200, 0, 'ldap主机名不可携带端口');
         }
 
-        $connection = ldap_connect(rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/');
+        $connection = ldap_connect($this->getLdapConnectionUri($dataSource['ldap_host'], $dataSource['ldap_port']));
         if (!$connection) {
             return message(200, 0, '连接失败');
         }
@@ -432,7 +390,7 @@ class Ldap extends Base
         }
         $dataSource = $dataSource['ldap'];
 
-        $connection = ldap_connect(rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/');
+        $connection = ldap_connect($this->getLdapConnectionUri($dataSource['ldap_host'], $dataSource['ldap_port']));
         if (!$connection) {
             return false;
         }
@@ -476,7 +434,7 @@ class Ldap extends Base
         }
         $dataSource = $dataSource['ldap'];
 
-        $connection = ldap_connect(rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/');
+        $connection = ldap_connect($this->getLdapConnectionUri($dataSource['ldap_host'], $dataSource['ldap_port']));
         if (!$connection) {
             return message(200, 0, '连接失败');
         }
@@ -529,7 +487,7 @@ class Ldap extends Base
         }
         $dataSource = $dataSource['ldap'];
 
-        $connection = ldap_connect(rtrim(trim($dataSource['ldap_host']), '/') . ':' . $dataSource['ldap_port'] . '/');
+        $connection = ldap_connect($this->getLdapConnectionUri($dataSource['ldap_host'], $dataSource['ldap_port']));
         if (!$connection) {
             return message(200, 0, '连接失败');
         }
@@ -652,7 +610,7 @@ class Ldap extends Base
                 foreach ($g->$gp_member_id as $member_id) {
                     //获取成员用户名
                     foreach ($users as $u) {
-                        if (!property_exists($u, $up_id)) {
+                        if (!property_exists($u, $up_id) || !property_exists($u, $up_name)) {
                             continue;
                         }
                         if ($u->$up_id == $member_id) {
@@ -677,6 +635,9 @@ class Ldap extends Base
                 $member_id = $g->$gp_member_id;
                 //获取成员用户名
                 foreach ($users as $u) {
+                    if (!property_exists($u, $up_id) || !property_exists($u, $up_name)) {
+                        continue;
+                    }
                     if ($u->$up_id == $member_id) {
                         //为分组添加成员
                         $result = $this->SVNAdmin->UpdGroupMember($authzContent, $g->$gp_name, $u->$up_name, 'user', 'add');

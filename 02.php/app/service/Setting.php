@@ -236,7 +236,7 @@ class Setting extends Base
             }
 
             //json => array
-            $result = json_decode($result, true);
+            $result = json_decode((string) $result, true);
 
             if (!isset($result['code'])) {
                 continue;
@@ -296,7 +296,9 @@ class Setting extends Base
             return message(200, 1, '成功', $safe_config_null);
         }
 
-        return message(200, 1, '成功', unserialize($safe_config['option_value']));
+        $safe_config_value = unserialize($safe_config['option_value']);
+
+        return message(200, 1, '成功', is_array($safe_config_value) ? $safe_config_value : $safe_config_null);
     }
 
     /**

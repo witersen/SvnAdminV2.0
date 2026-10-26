@@ -179,7 +179,7 @@ class Command
      */
     public function RepDumpAll()
     {
-        $repList = json_decode($this->crond['rep_name'], true);
+        $repList = json_decode((string) $this->crond['rep_name'], true) ?: [];
 
         if (in_array('-1', $repList)) {
             $repList = $this->database->select('svn_reps', 'rep_name');
@@ -248,7 +248,7 @@ class Command
      */
     public function RepDumpDeltas()
     {
-        $repList = json_decode($this->crond['rep_name'], true);
+        $repList = json_decode((string) $this->crond['rep_name'], true) ?: [];
 
         if (in_array('-1', $repList)) {
             $repList = $this->database->select('svn_reps', 'rep_name');
@@ -335,7 +335,7 @@ class Command
      */
     public function RepCheck()
     {
-        $repList = json_decode($this->crond['rep_name'], true);
+        $repList = json_decode((string) $this->crond['rep_name'], true) ?: [];
 
         if (in_array('-1', $repList)) {
             $repList = $this->database->select('svn_reps', 'rep_name');

@@ -1669,7 +1669,7 @@ class Base
             $subadminTree = $this->database->get('subadmin', 'subadmin_tree', [
                 'subadmin_name' => $userName,
             ]);
-            $subadminTree = json_decode($subadminTree, true);
+            $subadminTree = json_decode((string) $subadminTree, true);
             $subadminTree = empty($subadminTree) ? [] : $subadminTree;
             foreach ($subadminTree as $node) {
                 $temp1 = [];

@@ -197,7 +197,9 @@ class Mail extends Base
             return message(200, 1, '成功', $mail_smtp_null);
         }
 
-        return message(200, 1, '成功', unserialize($mail_smtp['option_value']));
+        $mail_smtp_value = unserialize($mail_smtp['option_value']);
+
+        return message(200, 1, '成功', is_array($mail_smtp_value) ? $mail_smtp_value : $mail_smtp_null);
     }
 
     /**
@@ -449,7 +451,9 @@ class Mail extends Base
             return message(200, 1, '成功', $message_push_null);
         }
 
-        return message(200, 1, '成功', unserialize($message_push['option_value']));
+        $message_push_value = unserialize($message_push['option_value']);
+
+        return message(200, 1, '成功', is_array($message_push_value) ? $message_push_value : $message_push_null);
     }
 
     /**

@@ -405,11 +405,11 @@ class Svnrep extends Base
      */
     public function GetRepList()
     {
-        $sync = $this->payload['sync'];
-        $page = $this->payload['page'];
+        $sync = $this->payload['sync'] ?? false;
+        $page = $this->payload['page'] ?? false;
 
-        $sync_size = $this->payload['sync_size'];
-        $sync_rev = $this->payload['sync_rev'];
+        $sync_size = $this->payload['sync_size'] ?? false;
+        $sync_rev = $this->payload['sync_rev'] ?? false;
 
         if ($sync) {
             /**
@@ -433,10 +433,10 @@ class Svnrep extends Base
         }
 
         if ($page) {
-            $pageSize = $this->payload['pageSize'];
-            $currentPage = $this->payload['currentPage'];
+            $pageSize = $this->payload['pageSize'] ?? 10;
+            $currentPage = $this->payload['currentPage'] ?? 1;
         }
-        $searchKeyword = trim($this->payload['searchKeyword']);
+        $searchKeyword = trim($this->payload['searchKeyword'] ?? '');
 
         //分页
         if ($page) {
@@ -470,9 +470,13 @@ class Svnrep extends Base
             'rep_uuid'
         ], [
             'ORDER' => [
-                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+                ($this->payload['sortName'] ?? 'rep_id') => strtoupper($this->payload['sortType'] ?? 'ASC')
             ]
         ]);
+
+        if (!is_array($list)) {
+            $list = [];
+        }
 
         //过滤
         if (!empty($searchKeyword)) {
@@ -516,8 +520,8 @@ class Svnrep extends Base
             $checkoutHost = $this->localHttpProtocol . '://' . ($this->dockerHttpPort == 80 ? $this->dockerHost : $this->dockerHost . ':' . $this->dockerHttpPort) . ($this->httpPrefix == '/' ? '' : $this->httpPrefix);
         }
 
-        $sync = $this->payload['sync'];
-        $page = $this->payload['page'];
+        $sync = $this->payload['sync'] ?? false;
+        $page = $this->payload['page'] ?? false;
 
         if ($sync) {
             /**
@@ -557,11 +561,11 @@ class Svnrep extends Base
         }
 
         if ($page) {
-            $pageSize = $this->payload['pageSize'];
-            $currentPage = $this->payload['currentPage'];
+            $pageSize = $this->payload['pageSize'] ?? 10;
+            $currentPage = $this->payload['currentPage'] ?? 1;
         }
 
-        $searchKeyword = trim($this->payload['searchKeyword']);
+        $searchKeyword = trim($this->payload['searchKeyword'] ?? '');
 
         if ($page) {
             //分页
@@ -576,10 +580,14 @@ class Svnrep extends Base
             'second_pri [Int]'
         ], [
             'ORDER' => [
-                'rep_name'  => strtoupper($this->payload['sortType'])
+                'rep_name'  => strtoupper($this->payload['sortType'] ?? 'ASC')
             ],
             'svn_user_name' => $this->userName
         ]);
+
+        if (!is_array($list)) {
+            $list = [];
+        }
 
         //过滤
         if (!empty($searchKeyword)) {

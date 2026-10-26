@@ -28,6 +28,10 @@ class Crond extends Base
             'rep_name',
         ]);
 
+        if (!is_array($list)) {
+            $list = [];
+        }
+
         $list = array_merge([[
             'rep_key' => '-1',
             'rep_name' => '所有仓库'
@@ -43,9 +47,9 @@ class Crond extends Base
      */
     public function GetCrontabList()
     {
-        $pageSize = $this->payload['pageSize'];
-        $currentPage = $this->payload['currentPage'];
-        $searchKeyword = trim($this->payload['searchKeyword']);
+        $pageSize = $this->payload['pageSize'] ?? 10;
+        $currentPage = $this->payload['currentPage'] ?? 1;
+        $searchKeyword = trim($this->payload['searchKeyword'] ?? '');
 
         //分页
         $begin = $pageSize * ($currentPage - 1);
@@ -70,9 +74,13 @@ class Crond extends Base
             'create_time',
         ], [
             'ORDER' => [
-                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+                ($this->payload['sortName'] ?? 'crond_id') => strtoupper($this->payload['sortType'] ?? 'ASC')
             ]
         ]);
+
+        if (!is_array($list)) {
+            $list = [];
+        }
 
         //过滤
         if (!empty($searchKeyword)) {
@@ -116,7 +124,8 @@ class Crond extends Base
             }
 
             //仓库
-            $list[$key]['rep_key'] = json_decode($value['rep_name'])[0];
+            $repName = json_decode((string) $value['rep_name'], true);
+            $list[$key]['rep_key'] = is_array($repName) && isset($repName[0]) ? $repName[0] : '';
             unset($list[$key]['rep_name']);
         }
 

@@ -25,8 +25,6 @@ ini_set('pcre.backtrack_limit', -1);
 
 ini_set('pcre.recursion_limit', -1);
 
-ini_set('pcre.jit_stack_limit', -1);
-
 define('BASE_PATH', __DIR__);
 
 define('IPC_SVNADMIN', BASE_PATH . '/server/svnadmind.socket');
@@ -58,12 +56,12 @@ $payload = !empty($payload) ? json_decode($payload, true) : [];
 
 $version = Config::get('version');
 if (isset($version['php']['lowest']) && !empty($version['php']['lowest'])) {
-    if (PHP_VERSION < $version['php']['lowest']) {
+    if (version_compare(PHP_VERSION, $version['php']['lowest'], '<')) {
         json1(200, 0, sprintf('支持的最低PHP版本为[%s]当前的PHP版本为[%s]', $version['php']['lowest'], PHP_VERSION));
     }
 }
 if (isset($version['php']['highest']) && !empty($version['php']['highest'])) {
-    if (PHP_VERSION >= $version['php']['highest']) {
+    if (version_compare(PHP_VERSION, $version['php']['highest'], '>=')) {
         json1(200, 0, sprintf('支持的最高PHP版本为[%s]当前的PHP版本为[%s]', $version['php']['highest'], PHP_VERSION));
     }
 }

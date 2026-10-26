@@ -38,7 +38,17 @@ function funShellExec($shell, $daemon = false)
 
         socket_close($socket);
 
-        return json_decode($reply, true);
+        $result = json_decode((string) $reply, true);
+
+        if (!is_array($result)) {
+            return [
+                'code' => -1,
+                'result' => '',
+                'error' => '守护进程通信失败'
+            ];
+        }
+
+        return $result;
     } else {
         //定义错误输出文件路径
         $stderrFile = tempnam(sys_get_temp_dir(), 'svnadmin_');

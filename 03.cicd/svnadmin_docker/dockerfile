@@ -1,58 +1,111 @@
-FROM centos:centos7.9.2009
+# ---------------------------------------------------------------
+# 前端构建阶段：只用于生成 dist/，最终镜像不包含 Node
+# webpack 2 在 Node 20 下会长时间卡在压缩阶段，使用 Node 14 构建
+# （Node 14 仅存在于构建阶段，不进入最终镜像）
+# ---------------------------------------------------------------
+FROM node:14.21.3-bullseye AS web
+
+WORKDIR /web
+
+COPY 01.web/package.json 01.web/package-lock.json ./
+RUN npm install --no-audit --no-fund
+
+COPY 01.web/ ./
+RUN npm run build
+
+# ---------------------------------------------------------------
+# 运行时：Rocky Linux 9 + REMI PHP 8.3.36+ + php-fpm
+# ---------------------------------------------------------------
+FROM rockylinux:9
 
 LABEL MAINTAINER "www.witersen.com 2023-07-23"
 
-# 时间同步
 ENV TZ=Asia/Shanghai \
-    DEBIAN_FRONTEND=noninteractive
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
-ADD 01.web/ /root/svnadmin_web/
-ADD 02.php/ /var/www/html/
-ADD 03.cicd/svnadmin_docker/start.sh /root/start.sh
-ADD 03.cicd/svnadmin_docker/data/ /home/svnadmin/
+ARG php_version=php83
+ARG svn_version=1.14
 
-RUN ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
-    && echo ${TZ} > /etc/timezone \
-    && localedef -c -i en_US -f UTF-8 C.UTF-8 \
-    && echo 'LANG="C.UTF-8"' >> /etc/sysconfig/i18n \
-    && echo 'LC_ALL="C.UTF-8"' >> /etc/sysconfig/i18n \
-    && echo 'export LANG="C.UTF-8"' >> /etc/profile \
-    && echo 'export LC_ALL="C.UTF-8"' >> /etc/profile\
-    && curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo \
-    && echo -e "[WandiscoSVN]\nname=Wandisco SVN Repo\nbaseurl=http://opensource.wandisco.com/centos/7/svn-${svn_version}/RPMS/x86_64/\nenabled=1\ngpgcheck=0" >/etc/yum.repos.d/wandisco-svn.repo \
-    && yum clean all \
-    && yum makecache \
-    && yum install -y epel-release yum-utils \
-    && rpm -Uvh https://mirrors.aliyun.com/remi/enterprise/remi-release-7.rpm \
-    && yum-config-manager --enable remi-${php_version} \
-    && yum install -y php php-common php-cli php-fpm php-json php-mysqlnd php-mysql php-pdo php-process php-json php-gd php-bcmath php-ldap php-mbstring\
-    && yum install -y httpd mod_dav_svn mod_ldap mod_php subversion subversion-tools \
-    && yum install -y cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain \
-    && yum install -y which \
-    && yum install -y cronie at \
-    && yum clean all \
-    && cd /home/svnadmin/ \
-    && mkdir -p backup \
-    && mkdir -p crond \
-    && mkdir -p rep \
-    && mkdir -p temp \
-    && mkdir -p templete/initStruct/01/branches \
-    && mkdir -p templete/initStruct/01/tags \
-    && mkdir -p templete/initStruct/01/trunk \
-    && chown -R apache:apache /home/svnadmin/ && mkdir -p /run/php-fpm/ \
-    && sed -i 's/expose_php = On/expose_php = Off/g' /etc/php.ini \
-    && curl -L -o /usr/local/node-v14.18.2-linux-x64.tar.gz https://cdn.npmmirror.com/binaries/node/latest-v14.x/node-v14.18.2-linux-x64.tar.gz \
-    && tar -xvf /usr/local/node-v14.18.2-linux-x64.tar.gz -C /usr/local/ \
-    && ln -s /usr/local/node-v14.18.2-linux-x64/bin/node /usr/local/bin/node \
-    && ln -s /usr/local/node-v14.18.2-linux-x64/bin/npm /usr/local/bin/npm \
-    && npm config set registry https://registry.npmmirror.com \
-    && cd /root/svnadmin_web \
-    && npm install \
-    && npm run build \
-    && mv dist/* /var/www/html/ \
-    && rm -rf /root/svnadmin_web \
-    && rm -rf /usr/local/node-v14.18.2-linux-x64* \
-    && chmod +x /root/start.sh
+RUN set -eux; \
+    ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime; \
+    echo ${TZ} > /etc/timezone; \
+    dnf -y update; \
+    dnf -y install dnf-plugins-core epel-release; \
+    rpm -Uvh https://rpms.remirepo.net/enterprise/remi-release-9.rpm; \
+    dnf -y module reset php || true; \
+    case "${php_version}" in \
+      php83) PHP_STREAM=remi-8.3 ;; \
+      php84) PHP_STREAM=remi-8.4 ;; \
+      *) echo "unsupported php_version: ${php_version}"; exit 1 ;; \
+    esac; \
+    dnf -y module enable "php:${PHP_STREAM}"
+
+RUN set -eux; \
+    dnf -y install \
+      php-cli php-common php-fpm php-mysqlnd php-pdo php-process \
+      php-gd php-bcmath php-ldap php-mbstring php-opcache \
+      httpd mod_dav_svn mod_ldap subversion subversion-tools \
+      cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain \
+      cronie at which util-linux procps-ng unzip zip ca-certificates tzdata \
+      glibc-langpack-en; \
+    dnf clean all; \
+    rm -rf /var/cache/dnf
+
+# PHP 安全加固：生产环境不显示错误、关闭 session upload progress
+RUN set -eux; \
+    printf '%s\n' \
+      'expose_php = Off' \
+      'display_errors = Off' \
+      'log_errors = On' \
+      'error_log = /home/svnadmin/logs/php_error.log' \
+      'session.upload_progress.enabled = Off' \
+      'session.upload_progress.cleanup = On' \
+      'open_basedir =' \
+      > /etc/php.d/99-svnadmin.ini; \
+    printf '\nrequest_terminate_timeout = 0\n' >> /etc/php-fpm.d/www.conf; \
+    printf 'ServerName localhost\nDirectoryIndex index.html index.php\n' > /etc/httpd/conf.d/zz-svnadmin-index.conf; \
+    httpd -t; \
+    httpd -M | grep -q mpm_event_module; \
+    httpd -M | grep -q proxy_fcgi_module; \
+    if httpd -M | grep -q php_module; then echo 'mod_php must not be loaded'; exit 1; fi; \
+    httpd -M | grep -q dav_svn_module; \
+    grep -q '^listen = /run/php-fpm/www.sock' /etc/php-fpm.d/www.conf; \
+    grep -q '^user = apache' /etc/php-fpm.d/www.conf; \
+    grep -q '^group = apache' /etc/php-fpm.d/www.conf; \
+    php-fpm -t
+
+# 构建期校验 PHP 版本、扩展、函数与系统二进制
+RUN set -eux; \
+    php -r 'exit(version_compare(PHP_VERSION, "8.3.36", ">=") ? 0 : 1);'; \
+    php -r 'foreach (["pcntl","sockets","posix","pdo_sqlite","pdo_mysql","ldap","gd","mbstring","bcmath","curl","openssl"] as $e) { if (!extension_loaded($e)) { fwrite(STDERR, "missing extension: $e\n"); exit(1); } }'; \
+    php -r 'foreach (["shell_exec","passthru","pcntl_fork","pcntl_wait","socket_create","socket_bind","socket_listen","socket_accept","posix_kill"] as $f) { if (!function_exists($f)) { fwrite(STDERR, "missing function: $f\n"); exit(1); } }'; \
+    php -r 'if (ini_get("open_basedir") !== "") { fwrite(STDERR, "open_basedir is set\n"); exit(1); }'; \
+    php -r 'foreach (["expose_php","display_errors","session.upload_progress.enabled"] as $k) { if (filter_var(ini_get($k), FILTER_VALIDATE_BOOLEAN)) { fwrite(STDERR, "insecure ini: $k\n"); exit(1); } } if (!filter_var(ini_get("log_errors"), FILTER_VALIDATE_BOOLEAN)) { fwrite(STDERR, "log_errors is off\n"); exit(1); }'; \
+    svn --version --quiet | grep -q '^1\.14\.'; \
+    command -v svnauthz-validate; \
+    command -v svnadmin; \
+    command -v svnserve; \
+    saslauthd -v 2>&1 | grep -qi ldap; \
+    locale -a | grep -qi '^en_US\.utf8$'; \
+    mkdir -p /usr/bin/svn-tools; \
+    ln -sf "$(command -v svnauthz-validate)" /usr/bin/svn-tools/svnauthz-validate
+
+# 应用代码与前端产物
+COPY 02.php/ /var/www/html/
+COPY --from=web /web/dist/ /var/www/html/
+COPY 03.cicd/svnadmin_docker/start.sh /root/start.sh
+COPY 03.cicd/svnadmin_docker/data/ /home/svnadmin/
+
+RUN set -eux; \
+    chmod +x /root/start.sh; \
+    find /var/www/html -name '*.php' -print0 | xargs -0 -n1 php -l; \
+    mkdir -p /home/svnadmin/backup /home/svnadmin/crond /home/svnadmin/rep /home/svnadmin/temp \
+             /home/svnadmin/logs /home/svnadmin/templete/initStruct/01/branches \
+             /home/svnadmin/templete/initStruct/01/tags /home/svnadmin/templete/initStruct/01/trunk \
+             /run/php-fpm; \
+    rm -f /home/svnadmin/svnserve.pid; \
+    chown -R apache:apache /home/svnadmin
 
 EXPOSE 80
 EXPOSE 443

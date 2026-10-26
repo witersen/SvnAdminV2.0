@@ -150,8 +150,12 @@ class Daemon
             ]
         ]);
 
+        if (!is_array($tasks)) {
+            $tasks = [];
+        }
+
         foreach ($tasks as $task) {
-            $pid = trim(shell_exec(sprintf("ps aux | grep -v grep | grep %s | awk 'NR==1' | awk '{print $2}'", $task['task_unique'])));
+            $pid = trim((string) shell_exec(sprintf("ps aux | grep -v grep | grep %s | awk 'NR==1' | awk '{print $2}'", $task['task_unique'])));
 
             if (empty($pid)) {
                 $database->update('tasks', [
@@ -220,6 +224,10 @@ class Daemon
             'task_status' => 1
         ]);
 
+        if (!is_array($tasks)) {
+            $tasks = [];
+        }
+
         foreach ($tasks as $task) {
             //开始执行
             $database->update('tasks', [
@@ -266,7 +274,7 @@ class Daemon
             exit();
         }
 
-        $receive = json_decode($receive, true);
+        $receive = json_decode((string) $receive, true);
 
         if (!isset($receive['type']) || !isset($receive['content'])) {
             exit();
@@ -370,12 +378,12 @@ class Daemon
     {
         $version = Config::get('version');
         if (isset($version['php']['lowest']) && !empty($version['php']['lowest'])) {
-            if (PHP_VERSION < $version['php']['lowest']) {
+            if (version_compare(PHP_VERSION, $version['php']['lowest'], '<')) {
                 die(sprintf('支持的最低PHP版本为[%s]当前的PHP版本为[%s]%s', $version['php']['lowest'], PHP_VERSION, PHP_EOL));
             }
         }
         if (isset($version['php']['highest']) && !empty($version['php']['highest'])) {
-            if (PHP_VERSION >= $version['php']['highest']) {
+            if (version_compare(PHP_VERSION, $version['php']['highest'], '>=')) {
                 die(sprintf('支持的最高PHP版本为[%s]当前的PHP版本为[%s]%s', $version['php']['highest'], PHP_VERSION, PHP_EOL));
             }
         }
@@ -481,7 +489,7 @@ class Daemon
     {
         if (file_exists($this->masterPidFile)) {
             $pid = file_get_contents($this->masterPidFile);
-            $result = trim(shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
+            $result = trim((string) shell_exec("ps -ax | awk '{ print $1 }' | grep -e \"^$pid$\""));
             if (strstr($result, $pid)) {
                 exit('无法进入调试模式，请先停止后台程序' . PHP_EOL);
             }

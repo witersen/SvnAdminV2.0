@@ -23,7 +23,9 @@
 //     'prefix' => '',
 //     'logging' => false,
 //     'option' => [
-//         PDO::ATTR_CASE => PDO::CASE_NATURAL
+//         PDO::ATTR_CASE => PDO::CASE_NATURAL,
+//         // PHP 8 默认 ERRMODE_EXCEPTION，Medoo 1.7 依赖静默模式
+//         PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT
 //     ],
 //     'command' => [
 //         'SET SQL_MODE=ANSI_QUOTES'
@@ -39,5 +41,9 @@
 
 return [
     'database_type' => 'sqlite',
-    'database_file' => '%ssvnadmin.db'
+    'database_file' => '%ssvnadmin.db',
+    'option' => [
+        // PHP 8 默认 ERRMODE_EXCEPTION，Medoo 1.7 依赖 prepare()/execute() 返回 false
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT
+    ]
 ];

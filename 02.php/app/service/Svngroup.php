@@ -217,6 +217,10 @@ class Svngroup extends Base
             ]
         ]);
 
+        if (!is_array($result)) {
+            $result = [];
+        }
+
         //过滤
         if (!empty($searchKeyword)) {
             foreach ($result as $key => $value) {

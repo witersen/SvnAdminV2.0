@@ -103,6 +103,10 @@ class Tasks extends Base
             ]
         ]);
 
+        if (!is_array($list)) {
+            $list = [];
+        }
+
         return message(200, 1, '成功', [
             'data' => $list,
         ]);
@@ -153,6 +157,10 @@ class Tasks extends Base
                 'task_id'  => 'DESC'
             ]
         ]);
+
+        if (!is_array($list)) {
+            $list = [];
+        }
 
         $total = $this->database->count('tasks', [
             'task_id'

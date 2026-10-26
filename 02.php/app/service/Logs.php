@@ -21,9 +21,9 @@ class Logs extends Base
      */
     public function GetLogList()
     {
-        $pageSize = $this->payload['pageSize'];
-        $currentPage = $this->payload['currentPage'];
-        $searchKeyword = trim($this->payload['searchKeyword']);
+        $pageSize = $this->payload['pageSize'] ?? 10;
+        $currentPage = $this->payload['currentPage'] ?? 1;
+        $searchKeyword = trim($this->payload['searchKeyword'] ?? '');
 
         //分页
         $begin = $pageSize * ($currentPage - 1);
@@ -48,6 +48,10 @@ class Logs extends Base
                 'log_add_time' => 'DESC'
             ]
         ]);
+
+        if (!is_array($list)) {
+            $list = [];
+        }
 
         $total = $this->database->count('logs', [
             'log_id'

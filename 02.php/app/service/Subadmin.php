@@ -32,9 +32,9 @@ class Subadmin extends Base
      */
     public function GetSubadminList()
     {
-        $pageSize = $this->payload['pageSize'];
-        $currentPage = $this->payload['currentPage'];
-        $searchKeyword = trim($this->payload['searchKeyword']);
+        $pageSize = $this->payload['pageSize'] ?? 10;
+        $currentPage = $this->payload['currentPage'] ?? 1;
+        $searchKeyword = trim($this->payload['searchKeyword'] ?? '');
 
         //分页
         $begin = $pageSize * ($currentPage - 1);
@@ -49,9 +49,13 @@ class Subadmin extends Base
             'subadmin_token'
         ], [
             'ORDER' => [
-                $this->payload['sortName']  => strtoupper($this->payload['sortType'])
+                ($this->payload['sortName'] ?? 'subadmin_id') => strtoupper($this->payload['sortType'] ?? 'ASC')
             ]
         ]);
+
+        if (!is_array($list)) {
+            $list = [];
+        }
 
         //过滤
         if (!empty($searchKeyword)) {
@@ -293,7 +297,7 @@ class Subadmin extends Base
         $tree = $this->database->get('subadmin', 'subadmin_tree', [
             'subadmin_id' => $this->payload['subadmin_id']
         ]);
-        $tree = json_decode($tree, true);
+        $tree = json_decode((string) $tree, true);
 
         if (empty($tree)) {
             $this->database->update('subadmin', [
